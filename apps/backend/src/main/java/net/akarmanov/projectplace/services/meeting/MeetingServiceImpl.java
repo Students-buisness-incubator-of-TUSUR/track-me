@@ -1,6 +1,7 @@
 package net.akarmanov.projectplace.services.meeting;
 
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.domain.Meeting;
 import net.akarmanov.projectplace.domain.spec.MeetingSpecification;
 import net.akarmanov.projectplace.models.MeetingStatus;
 import net.akarmanov.projectplace.repos.MeetingRepository;
@@ -75,5 +76,11 @@ public class MeetingServiceImpl implements MeetingService {
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
         meetingRepository.delete(meeting);
+    }
+
+    @Override
+    public Meeting getById(UUID targetId) {
+        return meetingRepository.findById(targetId)
+                .orElseThrow(() -> new MeetingNotFoundException(targetId));
     }
 }

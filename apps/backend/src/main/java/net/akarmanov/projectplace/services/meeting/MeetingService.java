@@ -1,5 +1,6 @@
 package net.akarmanov.projectplace.services.meeting;
 
+import net.akarmanov.projectplace.domain.Meeting;
 import net.akarmanov.projectplace.rest.api.meeting.MeetingCreateDto;
 import net.akarmanov.projectplace.rest.api.meeting.MeetingDto;
 import net.akarmanov.projectplace.rest.api.meeting.MeetingUpdateDto;
@@ -16,4 +17,6 @@ public interface MeetingService {
     MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto meetingCreateDto);
 
     void deleteMeeting(UUID meetingId);
+
+    Meeting getById(UUID targetId);
 }

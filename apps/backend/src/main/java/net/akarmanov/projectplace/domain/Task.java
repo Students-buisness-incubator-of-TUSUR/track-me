@@ -1,8 +1,7 @@
 package net.akarmanov.projectplace.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
@@ -10,6 +9,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "tasks")
 public class Task {
 
@@ -34,5 +36,14 @@ public class Task {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "meeting_id", nullable = false)
     private Meeting meeting;
+
+    public static Task copy(Task task) {
+        return Task.builder()
+                .link(task.getLink())
+                .number(task.getNumber())
+                .description(task.getDescription())
+                .status(task.getStatus())
+                .build();
+    }
 
 }
