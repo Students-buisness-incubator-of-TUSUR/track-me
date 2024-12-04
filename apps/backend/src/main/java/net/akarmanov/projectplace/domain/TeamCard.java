@@ -29,6 +29,8 @@ public class TeamCard {
     @Column(columnDefinition = "text")
     private String description;
 
+    private Boolean enabled;
+
     @Column(length = 32)
     @Enumerated(EnumType.STRING)
     private TeamCardStatus status;

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import net.akarmanov.projectplace.domain.NTIMarket;
+import net.akarmanov.projectplace.domain.ReadinessLevel;
 
 import java.time.LocalDate;
 
@@ -16,6 +18,10 @@ public record StreamCreateDto(
         LocalDate startDate,
         @NotNull
         @Future
-        LocalDate endDate
+        LocalDate endDate,
+        @NotBlank
+        ReadinessLevel readinessLevel,
+        @NotBlank
+        NTIMarket ntiMarket
 ) {
 }

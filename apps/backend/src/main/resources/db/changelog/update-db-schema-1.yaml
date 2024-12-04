@@ -22,4 +22,51 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - columnExists:
-                columnName:
+                tableName: streams
+                columnName: readiness_level
+      changes:
+        - addColumn:
+            tableName: streams
+            columns:
+              - column:
+                  name: readiness_level
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: update-db-schema-3
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: streams
+                columnName: nti_market
+      changes:
+        - addColumn:
+            tableName: streams
+            columns:
+              - column:
+                  name: nti_market
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: update-db-schema-4
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: team_cards
+                columnName: enabled
+      changes:
+        - addColumn:
+            tableName: team_cards
+            columns:
+              - column:
+                  name: enabled
+                  type: boolean
+                  constraints:
+                    nullable: false
+                  defaultValue: true

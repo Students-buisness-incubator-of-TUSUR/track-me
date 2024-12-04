@@ -3,14 +3,14 @@ package net.akarmanov.projectplace.mapping;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamUpdateDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValueCheckStrategy;
+import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ON_IMPLICIT_CONVERSION)
+@Mapper(
+        componentModel = "spring",
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface StreamMapper {
 
     @Mapping(target = "users", ignore = true)
