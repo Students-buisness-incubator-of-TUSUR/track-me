@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: update-db-schema-1
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          or:
+            - tableExists:
+                tableName: streams
+            - not:
+                - columnExists:
+                    tableName: streams
+                    columnName: teams_count
+      changes:
+        - dropColumn:
+            tableName: streams
+            columnName: teams_count
+  - changeSet:
+      id: update-db-schema-2
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                columnName:

@@ -2,6 +2,7 @@ package net.akarmanov.projectplace.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import net.akarmanov.projectplace.models.NTIMarket;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
@@ -32,6 +33,9 @@ public class Stream {
 
     @Column
     private LocalDate endDate;
+
+    @Column
+    private NTIMarket ntiMarket;
 
     @ManyToMany(mappedBy = "streams")
     private Set<TeamCard> teamCards = new HashSet<>();

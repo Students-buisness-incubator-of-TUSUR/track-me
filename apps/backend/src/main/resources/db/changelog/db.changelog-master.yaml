@@ -3,4 +3,6 @@ databaseChangeLog:
       file: db/changelog/initial-schema.yaml
   - include:
       file: db/changelog/initial-acl-schema.yaml
+  - include:
+      file: db/changelog/update-db-schema-1.yaml
 
