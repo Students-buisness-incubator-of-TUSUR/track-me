@@ -14,7 +14,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "team_cards")
+@Table(name = "team_card")
 public class TeamCard {
 
     @Id
@@ -44,7 +44,7 @@ public class TeamCard {
 
     @ManyToMany
     @JoinTable(
-            name = "streams_team_cards",
+            name = "stream_team_card",
             joinColumns = @JoinColumn(name = "team_id"),
             inverseJoinColumns = @JoinColumn(name = "stream_id")
     )

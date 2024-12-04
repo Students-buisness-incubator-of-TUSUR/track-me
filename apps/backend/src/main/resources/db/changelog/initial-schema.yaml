@@ -6,10 +6,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: users
+                tableName: user
       changes:
         - createTable:
-            tableName: users
+            tableName: user
             columns:
               - column:
                   name: id
@@ -50,7 +50,7 @@ databaseChangeLog:
                     nullable: false
         - addUniqueConstraint:
             columnNames: telegram_id, phone_number
-            tableName: users
+            tableName: user
             constraintName: uq_users_telegram_phone
   - changeSet:
       id: project-place-2
@@ -59,10 +59,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: team_cards
+                tableName: team_card
       changes:
         - createTable:
-            tableName: team_cards
+            tableName: team_card
             columns:
               - column:
                   name: id
@@ -97,10 +97,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: meetings
+                tableName: meeting
       changes:
         - createTable:
-            tableName: meetings
+            tableName: meeting
             columns:
               - column:
                   name: id
@@ -139,9 +139,9 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:
-            baseTableName: meetings
+            baseTableName: meeting
             baseColumnNames: team_id
-            referencedTableName: team_cards
+            referencedTableName: team_card
             referencedColumnNames: id
             constraintName: fk_meetings_team
   - changeSet:
@@ -151,10 +151,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: streams
+                tableName: stream
       changes:
         - createTable:
-            tableName: streams
+            tableName: stream
             columns:
               - column:
                   name: id
@@ -189,10 +189,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: tasks
+                tableName: task
       changes:
         - createTable:
-            tableName: tasks
+            tableName: task
             columns:
               - column:
                   name: id
@@ -226,9 +226,9 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:
-            baseTableName: tasks
+            baseTableName: task
             baseColumnNames: meeting_id
-            referencedTableName: meetings
+            referencedTableName: meeting
             referencedColumnNames: id
             constraintName: fk_tasks_meeting
   - changeSet:
@@ -238,10 +238,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: streams_team_cards
+                tableName: stream_team_card
       changes:
         - createTable:
-            tableName: streams_team_cards
+            tableName: stream_team_card
             columns:
               - column:
                   name: stream_id
@@ -255,18 +255,18 @@ databaseChangeLog:
                     nullable: false
         - addPrimaryKey:
             columnNames: stream_id, team_id
-            tableName: streams_team_cards
+            tableName: stream_team_card
             constraintName: pk_streams_team_cards
         - addForeignKeyConstraint:
-            baseTableName: streams_team_cards
+            baseTableName: stream_team_card
             baseColumnNames: stream_id
-            referencedTableName: streams
+            referencedTableName: stream
             referencedColumnNames: id
             constraintName: fk_streams_team_cards_stream
         - addForeignKeyConstraint:
-            baseTableName: streams_team_cards
+            baseTableName: stream_team_card
             baseColumnNames: team_id
-            referencedTableName: team_cards
+            referencedTableName: team_card
             referencedColumnNames: id
             constraintName: fk_streams_team_cards_team
   - changeSet:
@@ -276,10 +276,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: streams_users
+                tableName: stream_user
       changes:
         - createTable:
-            tableName: streams_users
+            tableName: stream_user
             columns:
               - column:
                   name: stream_id
@@ -293,18 +293,18 @@ databaseChangeLog:
                     nullable: false
         - addPrimaryKey:
             columnNames: stream_id, user_id
-            tableName: streams_users
+            tableName: stream_user
             constraintName: pk_streams_users
         - addForeignKeyConstraint:
-            baseTableName: streams_users
+            baseTableName: stream_user
             baseColumnNames: stream_id
-            referencedTableName: streams
+            referencedTableName: stream
             referencedColumnNames: id
             constraintName: fk_streams_users_stream
         - addForeignKeyConstraint:
-            baseTableName: streams_users
+            baseTableName: stream_user
             baseColumnNames: user_id
-            referencedTableName: users
+            referencedTableName: user
             referencedColumnNames: id
             constraintName: fk_streams_users_tracker
   - changeSet:
@@ -314,10 +314,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: user_photos
+                tableName: user_photo
       changes:
         - createTable:
-            tableName: user_photos
+            tableName: user_photo
             columns:
               - column:
                   name: id
@@ -342,9 +342,9 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:
-            baseTableName: user_photos
+            baseTableName: user_photo
             baseColumnNames: user_id
-            referencedTableName: users
+            referencedTableName: user
             referencedColumnNames: id
             constraintName: fk_user_photos_user
   - changeSet:
@@ -354,11 +354,11 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - columnExists:
-                tableName: users
+                tableName: user
                 columnName: enabled
       changes:
         - addColumn:
-            tableName: users
+            tableName: user
             columns:
               - column:
                   name: enabled
@@ -373,11 +373,11 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - columnExists:
-                tableName: users
+                tableName: user
                 columnName: email
       changes:
         - addColumn:
-            tableName: users
+            tableName: user
             columns:
               - column:
                   name: email

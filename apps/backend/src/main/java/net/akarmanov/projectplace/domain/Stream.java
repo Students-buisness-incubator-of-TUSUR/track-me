@@ -12,7 +12,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "streams")
+@Table(name = "stream")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

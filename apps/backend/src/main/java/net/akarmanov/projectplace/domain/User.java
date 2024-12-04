@@ -19,7 +19,7 @@ import java.util.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "users")
+@Table(name = "user")
 public class User implements UserDetails {
 
     @Id
@@ -69,7 +69,7 @@ public class User implements UserDetails {
 
     @ManyToMany
     @JoinTable(
-            name = "streams_users",
+            name = "stream_user",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "stream_id")
     )
