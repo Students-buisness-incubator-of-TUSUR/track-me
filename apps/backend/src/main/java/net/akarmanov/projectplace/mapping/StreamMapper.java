@@ -9,6 +9,7 @@ import java.util.List;
 
 @Mapper(
         componentModel = "spring",
+        uses = {NtiMarketMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface StreamMapper {

@@ -33,9 +33,13 @@ public class Stream {
     @Column
     private LocalDate endDate;
 
-    @Column
-    @Enumerated(EnumType.STRING)
-    private NTIMarket ntiMarket;
+    @ManyToMany
+    @JoinTable(
+            name = "stream_nti_market",
+            joinColumns = @JoinColumn(name = "stream_id"),
+            inverseJoinColumns = @JoinColumn(name = "nti_market_id")
+    )
+    private Set<NTIMarket> ntiMarkets;
 
     @Column
     @Enumerated(EnumType.STRING)

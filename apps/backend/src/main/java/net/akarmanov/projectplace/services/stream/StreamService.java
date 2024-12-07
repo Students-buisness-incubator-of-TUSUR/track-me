@@ -1,9 +1,11 @@
 package net.akarmanov.projectplace.services.stream;
 
+import net.akarmanov.projectplace.domain.NTIMarket;
 import net.akarmanov.projectplace.domain.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface StreamService {
@@ -20,4 +22,6 @@ public interface StreamService {
     void delete(UUID streamId);
 
     Page<Stream> findAll(Pageable pageable);
+
+    List<NTIMarket> getNTIMarkets();
 }

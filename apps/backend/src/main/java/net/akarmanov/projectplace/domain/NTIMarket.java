@@ -1,43 +1,36 @@
 package net.akarmanov.projectplace.domain;
 
-import lombok.Getter;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Getter
-public enum NTIMarket {
-    AERO_NET("AeroNet"),
-    AUTO_NET("AutoNet"),
-    ECO_NET("EcoNet"),
-    EDUCATION_NET("EduNet"),
-    ENERGY_NET("EnergyNet"),
-    FOOD_NET("FoodNet"),
-    GAME_NET("GameNet"),
-    HEALTH_NET("HealthNet"),
-    HOME_NET("HomeNet"),
-    MARI_NET("MariNet"),
-    NEURO_NET("NeuroNet"),
-    SAFE_NET("SafeNet"),
-    SPORT_NET("SportNet"),
-    TECH_NET("TechNet"),
-    WEAR_NET("WearNet");
+@Setter
+@Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "nti_market")
+public class NTIMarket {
+    @Id
+    @Column(nullable = false, updatable = false)
+    @GeneratedValue
+    @UuidGenerator
+    private UUID id;
 
-    private static final Map<String, NTIMarket> MARKET_MAP = new HashMap<>();
+    private String name;
 
-    static {
-        for (NTIMarket market : NTIMarket.values()) {
-            MARKET_MAP.put(market.getValue(), market);
-        }
-    }
+    private String displayName;
 
-    private final String value;
-
-    NTIMarket(String value) {
-        this.value = value;
-    }
-
-    public static NTIMarket fromValue(String value) {
-        return MARKET_MAP.get(value);
-    }
+    @ManyToMany
+    @JoinTable(
+            name = "stream_nti_market",
+            joinColumns = @JoinColumn(name = "nti_market_id"),
+            inverseJoinColumns = @JoinColumn(name = "stream_id")
+    )
+    private Set<Stream> streams = new HashSet<>();
 }

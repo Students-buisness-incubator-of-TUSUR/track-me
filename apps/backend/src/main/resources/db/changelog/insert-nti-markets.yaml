@@ -1,14 +1,14 @@
 databaseChangeLog:
   - changeSet:
-      id: initial-acl-schema-1
+      id: insert-nti-markets-1
       author: akarmanov
       dbms: h2, postgresql
       preConditions:
         - onFail: MARK_RAN
-          not:
-            tableExists:
-              tableName: acl_sid
+          sqlCheck:
+            sql: "SELECT COUNT(*) FROM nti_market"
+            expectedResult: "0"
       changes:
         - sqlFile:
-            path: sql/initial-acl-schema.sql
+            path: sql/insert-nti-markets.sql
             relativeToChangelogFile: true

@@ -6,10 +6,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
-                tableName: user
+                tableName: pp_user
       changes:
         - createTable:
-            tableName: user
+            tableName: pp_user
             columns:
               - column:
                   name: id
@@ -50,7 +50,7 @@ databaseChangeLog:
                     nullable: false
         - addUniqueConstraint:
             columnNames: telegram_id, phone_number
-            tableName: user
+            tableName: pp_user
             constraintName: uq_users_telegram_phone
   - changeSet:
       id: project-place-2
@@ -304,7 +304,7 @@ databaseChangeLog:
         - addForeignKeyConstraint:
             baseTableName: stream_user
             baseColumnNames: user_id
-            referencedTableName: user
+            referencedTableName: pp_user
             referencedColumnNames: id
             constraintName: fk_streams_users_tracker
   - changeSet:
@@ -344,7 +344,7 @@ databaseChangeLog:
         - addForeignKeyConstraint:
             baseTableName: user_photo
             baseColumnNames: user_id
-            referencedTableName: user
+            referencedTableName: pp_user
             referencedColumnNames: id
             constraintName: fk_user_photos_user
   - changeSet:
@@ -354,11 +354,11 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - columnExists:
-                tableName: user
+                tableName: pp_user
                 columnName: enabled
       changes:
         - addColumn:
-            tableName: user
+            tableName: pp_user
             columns:
               - column:
                   name: enabled
@@ -373,11 +373,11 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - columnExists:
-                tableName: user
+                tableName: pp_user
                 columnName: email
       changes:
         - addColumn:
-            tableName: user
+            tableName: pp_user
             columns:
               - column:
                   name: email
@@ -385,3 +385,57 @@ databaseChangeLog:
                   constraints:
                     unique: true
                     nullable: false
+  - changeSet:
+      id: project-place-12
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                tableName: nti_market
+      changes:
+        - createTable:
+            tableName: nti_market
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: display_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+  - changeSet:
+      id: project-place-13
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                tableName: stream_nti_market
+      changes:
+        - createTable:
+            tableName: stream_nti_market
+            columns:
+              - column:
+                  name: stream_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: nti_market_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+

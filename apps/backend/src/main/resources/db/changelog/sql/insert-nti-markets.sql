@@ -1,0 +1,16 @@
+INSERT INTO nti_market (id, name, display_name)
+VALUES (gen_random_uuid(), 'AERO_NET', 'AeroNet'),
+       (gen_random_uuid(), 'AUTO_NET', 'AutoNet'),
+       (gen_random_uuid(), 'ECO_NET', 'EcoNet'),
+       (gen_random_uuid(), 'EDU_NET', 'EduNet'),
+       (gen_random_uuid(), 'ENERGY_NET', 'EnergyNet'),
+       (gen_random_uuid(), 'FOOD_NET', 'FoodNet'),
+       (gen_random_uuid(), 'GAME_NET', 'GameNet'),
+       (gen_random_uuid(), 'HEALTH_NET', 'HealthNet'),
+       (gen_random_uuid(), 'HOME_NET', 'HomeNet'),
+       (gen_random_uuid(), 'MARI_NET', 'MariNet'),
+       (gen_random_uuid(), 'NEURO_NET', 'NeuroNet'),
+       (gen_random_uuid(), 'SAFE_NET', 'SafeNet'),
+       (gen_random_uuid(), 'SPORT_NET', 'SportNet'),
+       (gen_random_uuid(), 'TECH_NET', 'TechNet'),
+       (gen_random_uuid(), 'WEAR_NET', 'WearNet');

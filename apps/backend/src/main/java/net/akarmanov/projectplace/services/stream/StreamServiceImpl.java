@@ -2,7 +2,9 @@ package net.akarmanov.projectplace.services.stream;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.domain.NTIMarket;
 import net.akarmanov.projectplace.domain.Stream;
+import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.repos.StreamRepository;
 import net.akarmanov.projectplace.services.exceptions.CurrentStreamNotExistsException;
 import net.akarmanov.projectplace.services.exceptions.StreamNotFoundException;
@@ -12,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,6 +23,8 @@ import java.util.UUID;
 public class StreamServiceImpl implements StreamService {
 
     private final StreamRepository streamRepository;
+
+    private final NtiMarketRepository ntiMarketRepository;
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
@@ -58,5 +63,10 @@ public class StreamServiceImpl implements StreamService {
     @Override
     public Page<Stream> findAll(Pageable pageable) {
         return streamRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<NTIMarket> getNTIMarkets() {
+        return ntiMarketRepository.findAll();
     }
 }

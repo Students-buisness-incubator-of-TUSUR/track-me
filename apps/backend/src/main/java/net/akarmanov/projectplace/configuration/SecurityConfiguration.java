@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -24,9 +23,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
-import java.util.Map;
 
-import static net.akarmanov.projectplace.models.UserRole.*;
+import static net.akarmanov.projectplace.models.UserRole.ADMIN;
+import static net.akarmanov.projectplace.models.UserRole.SUPER_ADMIN;
 
 @Configuration
 @EnableWebSecurity
@@ -55,7 +54,12 @@ public class SecurityConfiguration {
                 }))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/swagger-resources/*", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-resources/*",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml/**",
+                                "/v3/api-docs.yaml").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasRole(ADMIN.toString())
                         .requestMatchers("/api/v1/super-admin/**").hasRole(SUPER_ADMIN.toString())
                         .anyRequest().authenticated())

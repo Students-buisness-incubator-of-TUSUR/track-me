@@ -1,0 +1,2093 @@
+﻿openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+  - url: http://127.0.0.1:8080
+    description: Generated server url
+tags:
+  - name: Stream API
+    description: API для работы с потоками
+  - name: Account API
+    description: API для работы с аккаунтом пользователя
+  - name: Meeting API
+    description: API для работы с встречами команды
+  - name: Task API
+    description: API для работы с задачами на встречи для администраторов
+  - name: Team Cards API
+    description: API для работы с карточками команд для администратора
+  - name: Team Cards API
+    description: API для работы с карточками команд
+  - name: User Photo API
+    description: Операции с фото пользователя
+paths:
+  /api/v1/admin/streams/{streamId}:
+    get:
+      tags:
+        - Stream API
+      summary: Получить поток по идентификатору
+      description: Возвращает поток по заданному идентификатору
+      operationId: getById
+      parameters:
+        - name: streamId
+          in: path
+          description: Идентификатор потока
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamDto"
+    put:
+      tags:
+        - Stream API
+      summary: Обновить существующий поток
+      description: Обновляет поток по заданному идентификатору
+      operationId: update
+      parameters:
+        - name: streamId
+          in: path
+          description: Идентификатор потока
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StreamUpdateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamDto"
+    delete:
+      tags:
+        - Stream API
+      summary: Удалить поток
+      description: Удаляет поток по заданному идентификатору
+      operationId: delete
+      parameters:
+        - name: streamId
+          in: path
+          description: Идентификатор потока
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/users/{userId}/photo:
+    get:
+      tags:
+        - User Photo API
+      summary: Получить фото пользователя
+      operationId: getPhoto
+      parameters:
+        - name: userId
+          in: path
+          description: Идентификатор пользователя
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+    post:
+      tags:
+        - User Photo API
+      summary: Добавить фото пользователя
+      operationId: addPhoto
+      parameters:
+        - name: userId
+          in: path
+          description: Идентификатор пользователя
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - file
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+    delete:
+      tags:
+        - User Photo API
+      summary: Удалить фото пользователя
+      operationId: deletePhoto
+      parameters:
+        - name: userId
+          in: path
+          description: Идентификатор пользователя
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/users/current/update:
+    post:
+      tags:
+        - Account API
+      summary: Обновление информации о текущем пользователе
+      operationId: updateCurrentUserInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateDTO"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+  /api/v1/users/current/changePassword:
+    post:
+      tags:
+        - Account API
+      summary: Изменение пароля текущего пользователя
+      operationId: changePassword
+      parameters:
+        - name: oldPassword
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: newPassword
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/team-cards/update:
+    post:
+      tags:
+        - Team Cards API
+      summary: Обновление карточки команды
+      operationId: updateTeamCard
+      parameters:
+        - name: teamCardId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamCardCreateOrUpdateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamCardDto"
+  /api/v1/team-cards/create:
+    post:
+      tags:
+        - Team Cards API
+      summary: Создание карточки команды
+      operationId: createTeamCard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamCardCreateOrUpdateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamCardDto"
+  /api/v1/tasks/update:
+    post:
+      tags:
+        - Task API
+      summary: Обновить информацию о задаче на встрече
+      operationId: updateTask
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskDto"
+  /api/v1/tasks/copy:
+    post:
+      tags:
+        - Task API
+      summary: Копировать задачу на встречу
+      operationId: copyTask
+      parameters:
+        - name: taskId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: meetingId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskDto"
+  /api/v1/tasks/add:
+    post:
+      tags:
+        - Task API
+      summary: Добавить задачу на встречу
+      operationId: addTask
+      parameters:
+        - name: meetingId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskCreateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskDto"
+  /api/v1/meetings/{meetingId}/update:
+    post:
+      tags:
+        - Meeting API
+      summary: Обновление встречи команды
+      operationId: updateMeeting
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: teamCardId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: meetingCreateDto
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/MeetingUpdateDto"
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetingDto"
+  /api/v1/meetings/create:
+    post:
+      tags:
+        - Meeting API
+      summary: Создание встречи команды
+      operationId: createMeeting
+      parameters:
+        - name: teamCardId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeetingCreateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeetingDto"
+  /api/v1/auth/sing-up:
+    post:
+      tags:
+        - Authentication API
+      summary: Регистрация пользователя
+      operationId: singUp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SingUpRequest"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/auth/sing-in:
+    post:
+      tags:
+        - Authentication API
+      summary: Аутентификация пользователя
+      operationId: singIn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SingInRequest"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtAuthenticationResponse"
+  /api/v1/admin/users/unconfirm:
+    post:
+      tags:
+        - Administration API
+      summary: Отмена подтверждения пользователя.
+      operationId: unconfirm
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/admin/users/confirm:
+    post:
+      tags:
+        - Administration API
+      summary: Подтверждение пользователя.
+      operationId: confirm
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/admin/team-cards/update:
+    post:
+      tags:
+        - Team Cards API
+      summary: Обновление карточки команды
+      operationId: updateTeamCard_1
+      parameters:
+        - name: teamCardId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamCardCreateOrUpdateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamCardDto"
+  /api/v1/admin/team-cards/create:
+    post:
+      tags:
+        - Team Cards API
+      summary: Создание карточки команды
+      operationId: createTeamCard_1
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamCardCreateOrUpdateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamCardDto"
+  /api/v1/admin/streams/create:
+    post:
+      tags:
+        - Stream API
+      summary: Создать новый поток
+      description: Создает новый поток с заданными параметрами
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StreamCreateDto"
+        required: true
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StreamDto"
+  /api/v1/users/current/info:
+    get:
+      tags:
+        - Account API
+      summary: Получение информации о текущем пользователе
+      operationId: getCurrentUserInfo
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+  /api/v1/team-cards:
+    get:
+      tags:
+        - Team Cards API
+      summary: Получение списка карточек команд
+      operationId: getTeamCards
+      parameters:
+        - name: name
+          in: query
+          description: Название карточки команды
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Статус карточки команды
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Zero-based page index (0..N)
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: The size of the page to be returned
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelTeamCardDto"
+  /api/v1/team-cards/get:
+    get:
+      tags:
+        - Team Cards API
+      summary: Получение карточки команды
+      operationId: getTeamCard
+      parameters:
+        - name: id
+          in: query
+          description: Идентификатор карточки команды
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamCardDto"
+  /api/v1/streams:
+    get:
+      tags:
+        - Stream API
+      summary: Получить список потоков
+      description: Возвращает список потоков с поддержкой пагинации
+      operationId: getStreams
+      parameters:
+        - name: page
+          in: query
+          description: Zero-based page index (0..N)
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: The size of the page to be returned
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedModelStreamDto"
+  /api/v1/streams/current:
+    get:
+      tags:
+        - Stream API
+      summary: Получить текущий поток
+      description: Возвращает информацию о текущем потоке
+      operationId: getCurrentStream
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/StreamDto"
+  /api/v1/meetings/list:
+    get:
+      tags:
+        - Meeting API
+      summary: Получение списка встреч команды
+      operationId: getMeetings
+      parameters:
+        - name: page
+          in: query
+          description: Zero-based page index (0..N)
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: The size of the page to be returned
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelMeetingDto"
+  /api/v1/admin/users/all:
+    get:
+      tags:
+        - Administration API
+      summary: Получить список всех пользователей.
+      operationId: all
+      parameters:
+        - name: page
+          in: query
+          description: Zero-based page index (0..N)
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: The size of the page to be returned
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageUserDTO"
+  /api/v1/admin/team-cards:
+    get:
+      tags:
+        - Team Cards API
+      summary: Получение списка карточек команд
+      operationId: getTeamCards_1
+      parameters:
+        - name: name
+          in: query
+          description: Название карточки команды
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Статус карточки команды
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Zero-based page index (0..N)
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: The size of the page to be returned
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelTeamCardDto"
+  /api/v1/admin/team-cards/get:
+    get:
+      tags:
+        - Team Cards API
+      summary: Получение карточки команды
+      operationId: getTeamCard_1
+      parameters:
+        - name: id
+          in: query
+          description: Идентификатор карточки команды
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamCardDto"
+  /api/v1/admin/streams/all:
+    get:
+      tags:
+        - Stream API
+      summary: Получить все потоки
+      description: Возвращает список всех потоков с поддержкой пагинации
+      operationId: findAll
+      parameters:
+        - name: page
+          in: query
+          description: Zero-based page index (0..N)
+          required: false
+          schema:
+            minimum: 0
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: The size of the page to be returned
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            default: 10
+        - name: sort
+          in: query
+          description: "Sorting criteria in the format: property,(asc|desc). Default\
+          \ sort order is ascending. Multiple sort criteria are supported."
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedModelStreamDto"
+  /api/v1/team-cards/delete:
+    delete:
+      tags:
+        - Team Cards API
+      summary: Удаление карточки команды
+      operationId: deleteTeamCard
+      parameters:
+        - name: id
+          in: query
+          description: Идентификатор карточки команды
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/tasks/delete:
+    delete:
+      tags:
+        - Task API
+      summary: Удалить задачу
+      operationId: deleteTask
+      parameters:
+        - name: taskId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/meetings/{meetingId}/delete:
+    delete:
+      tags:
+        - Meeting API
+      summary: Удаление встречи команды
+      operationId: deleteMeeting
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+  /api/v1/admin/team-cards/delete:
+    delete:
+      tags:
+        - Team Cards API
+      summary: Удаление карточки команды
+      operationId: deleteTeamCard_1
+      parameters:
+        - name: id
+          in: query
+          description: Идентификатор карточки команды
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RestError"
+        "200":
+          description: OK
+components:
+  schemas:
+    RestError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+    StreamUpdateDto:
+      required:
+        - endDate
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+        endDate:
+          type: string
+          format: date
+        readinessLevel:
+          type: string
+          enum:
+            - LEVEL_1
+            - LEVEL_2
+            - LEVEL_3
+            - LEVEL_4
+        ntiMarket:
+          type: string
+          enum:
+            - AERO_NET
+            - AUTO_NET
+            - ECO_NET
+            - EDUCATION_NET
+            - ENERGY_NET
+            - FOOD_NET
+            - GAME_NET
+            - HEALTH_NET
+            - HOME_NET
+            - MARI_NET
+            - NEURO_NET
+            - SAFE_NET
+            - SPORT_NET
+            - TECH_NET
+            - WEAR_NET
+    StreamDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        ntiMarket:
+          type: string
+        readinessLevel:
+          type: string
+    UserUpdateDTO:
+      required:
+        - firstName
+        - lastName
+        - middleName
+        - phoneNumber
+        - telegramId
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        phoneNumber:
+          pattern: "^\\+7\\d{10}$"
+          type: string
+          description: Номер телефона в формате +7XXXXXXXXXX
+          example: "+71234567890"
+        telegramId:
+          type: string
+        email:
+          type: string
+      description: DTO для обновления данных пользователя
+    UserDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        phoneNumber:
+          type: string
+        telegramId:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - SUPER_ADMIN
+            - TRACKER
+        photo:
+          $ref: "#/components/schemas/UserPhotoDto"
+        enabled:
+          type: boolean
+    UserPhotoDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        photo:
+          type: array
+          items:
+            type: string
+            format: byte
+    TeamCardCreateOrUpdateDto:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Название карточки команды
+          example: Карточка команды
+        description:
+          type: string
+          description: Описание карточки команды
+          example: Описание карточки команды
+      description: DTO для создания/обновления карточки команды
+    TeamCardDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Идентификатор карточки команды
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        name:
+          type: string
+          description: Название карточки команды
+          example: Карточка команды
+        description:
+          type: string
+          description: Описание карточки команды
+          example: Описание карточки команды
+        status:
+          type: string
+          description: Статус карточки команды
+          example: Все ок
+          enum:
+            - OK
+            - HAS_ISSUES
+            - HAS_MAJOR_ISSUES
+        userId:
+          type: string
+          description: Идентификатор пользователя
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        enabled:
+          type: boolean
+      description: DTO для карточки команды
+    TaskUpdateDto:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        status:
+          type: string
+        link:
+          type: string
+    TaskDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        link:
+          type: string
+        number:
+          type: integer
+          format: int32
+        description:
+          type: string
+        status:
+          type: string
+        meetingId:
+          type: string
+          format: uuid
+      description: Задача на встречу
+    TaskCreateDto:
+      required:
+        - description
+        - link
+      type: object
+      properties:
+        description:
+          type: string
+          description: Описание задачи
+        link:
+          type: string
+          description: Ссылка на задачу
+      description: DTO создания задачи на встречу
+    MeetingUpdateDto:
+      required:
+        - link
+        - number
+        - status
+      type: object
+      properties:
+        link:
+          pattern: ^(http|https)://.*$
+          type: string
+          description: Ссылка на встречу
+        number:
+          type: string
+          description: Номер встречи
+        status:
+          type: string
+          description: Статус встречи
+          enum:
+            - OK
+            - WITH_ISSUES
+            - MANY_ISSUES
+      description: DTO обновления встречи команды
+    MeetingDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Идентификатор встречи
+          format: uuid
+        link:
+          type: string
+          description: Ссылка на встречу
+        number:
+          type: string
+          description: Номер встречи
+        startDate:
+          type: string
+          description: Дата начала встречи
+          format: date-time
+        status:
+          type: string
+          description: Статус встречи
+          enum:
+            - OK
+            - WITH_ISSUES
+            - MANY_ISSUES
+        teamCardId:
+          type: string
+          description: Идентификатор карточки команды
+        tasks:
+          uniqueItems: true
+          type: array
+          description: Список задач на встречу
+          items:
+            $ref: "#/components/schemas/TaskDto"
+      description: DTO встречи команды
+    MeetingCreateDto:
+      required:
+        - link
+        - number
+      type: object
+      properties:
+        link:
+          pattern: ^(http|https)://.*$
+          type: string
+          description: Ссылка на встречу
+        number:
+          type: string
+          description: Номер встречи
+        startDate:
+          type: string
+          description: Дата начала встречи
+          format: date-time
+      description: DTO создания встречи команды
+    SingUpRequest:
+      required:
+        - password
+        - phoneNumber
+        - role
+        - telegramId
+      type: object
+      properties:
+        password:
+          maxLength: 20
+          minLength: 6
+          type: string
+          description: Пароль.
+        firstName:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Имя.
+        lastName:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Фамилия.
+        middleName:
+          maxLength: 255
+          minLength: 0
+          type: string
+          description: Отчество.
+        phoneNumber:
+          pattern: "^\\+7\\d{10}$"
+          type: string
+          description: Номер телефона.
+        telegramId:
+          maxLength: 32
+          minLength: 0
+          type: string
+          description: Telegram ID.
+        email:
+          type: string
+          description: Адрес электронной почты.
+        role:
+          type: string
+          description: Роль.
+          enum:
+            - ADMIN
+            - TRACKER
+            - SUPER_ADMIN
+      description: Запрос на регистрацию.
+    SingInRequest:
+      required:
+        - password
+        - telegramId
+      type: object
+      properties:
+        telegramId:
+          maxLength: 20
+          minLength: 4
+          type: string
+          description: Telegram ID.
+        password:
+          maxLength: 20
+          minLength: 6
+          type: string
+          description: Пароль.
+      description: Запрос на аутентификацию.
+    JwtAuthenticationResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: Токен.
+        tokenType:
+          type: string
+          description: Тип токена.
+      description: Ответ на аутентификацию.
+    StreamCreateDto:
+      required:
+        - endDate
+        - name
+        - ntiMarket
+        - readinessLevel
+      type: object
+      properties:
+        name:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        readinessLevel:
+          type: string
+          enum:
+            - LEVEL_1
+            - LEVEL_2
+            - LEVEL_3
+            - LEVEL_4
+        ntiMarket:
+          type: string
+          enum:
+            - AERO_NET
+            - AUTO_NET
+            - ECO_NET
+            - EDUCATION_NET
+            - ENERGY_NET
+            - FOOD_NET
+            - GAME_NET
+            - HEALTH_NET
+            - HOME_NET
+            - MARI_NET
+            - NEURO_NET
+            - SAFE_NET
+            - SPORT_NET
+            - TECH_NET
+            - WEAR_NET
+    PageMetadata:
+      type: object
+      properties:
+        size:
+          type: integer
+          format: int64
+        number:
+          type: integer
+          format: int64
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int64
+    PagedModelTeamCardDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamCardDto"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+    PagedModelStreamDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/StreamDto"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+    PagedModelMeetingDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/MeetingDto"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+    PageUserDTO:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        first:
+          type: boolean
+        last:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserDTO"
+        number:
+          type: integer
+          format: int32
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/SortObject"
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          type: array
+          items:
+            $ref: "#/components/schemas/SortObject"
+        paged:
+          type: boolean
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        unpaged:
+          type: boolean
+    SortObject:
+      type: object
+      properties:
+        direction:
+          type: string
+        nullHandling:
+          type: string
+        ascending:
+          type: boolean
+        property:
+          type: string
+        ignoreCase:
+          type: boolean
