@@ -9,3 +9,4 @@ public class AclAppProperties {
     private final String classIdentityQuery;
     private final String sidIdentityQuery;
 }
+
