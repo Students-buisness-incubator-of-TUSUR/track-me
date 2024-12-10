@@ -46,9 +46,11 @@ public class Stream {
     private ReadinessLevel readinessLevel;
 
     @ManyToMany(mappedBy = "streams")
+    @Builder.Default
     private Set<TeamCard> teamCards = new HashSet<>();
 
     @ManyToMany(mappedBy = "streams")
+    @Builder.Default
     private Set<User> users = new HashSet<>();
 
     public void addTeamCard(TeamCard teamCard) {
