@@ -17,7 +17,3 @@ configurations {
 repositories {
     mavenCentral()
 }
-
-tasks.named('test') {
-    useJUnitPlatform()
-}

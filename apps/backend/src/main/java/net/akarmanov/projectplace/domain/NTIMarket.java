@@ -32,5 +32,6 @@ public class NTIMarket {
             joinColumns = @JoinColumn(name = "nti_market_id"),
             inverseJoinColumns = @JoinColumn(name = "stream_id")
     )
+    @Builder.Default
     private Set<Stream> streams = new HashSet<>();
 }

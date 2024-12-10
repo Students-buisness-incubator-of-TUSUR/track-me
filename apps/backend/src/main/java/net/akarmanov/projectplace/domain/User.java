@@ -73,6 +73,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "stream_id")
     )
+    @Builder.Default
     private Set<Stream> streams = new HashSet<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
