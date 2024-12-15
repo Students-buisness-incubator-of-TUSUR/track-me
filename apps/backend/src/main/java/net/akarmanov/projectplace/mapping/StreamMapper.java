@@ -1,6 +1,7 @@
 package net.akarmanov.projectplace.mapping;
 
 import net.akarmanov.projectplace.domain.Stream;
+import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamUpdateDto;
 import org.mapstruct.*;
@@ -29,4 +30,10 @@ public interface StreamMapper {
     @Mapping(target = "startDate", ignore = true)
     @Mapping(target = "id", ignore = true)
     void updateFromDto(StreamUpdateDto dto, @MappingTarget Stream entity);
+
+    @Mapping(target = "users", ignore = true)
+    @Mapping(target = "teamCards", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "readinessLevel", expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
+    Stream mapFromDto(StreamCreateDto dto);
 }

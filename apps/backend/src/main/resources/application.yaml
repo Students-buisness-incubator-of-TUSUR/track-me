@@ -27,6 +27,7 @@ error:
 springdoc:
   paths-to-match: /api/v1/**
   enable-spring-security: true
+  show-actuator: true
 
 app:
   acl:

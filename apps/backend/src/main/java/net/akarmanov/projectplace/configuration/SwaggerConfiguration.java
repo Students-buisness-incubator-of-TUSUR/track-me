@@ -35,7 +35,7 @@ public class SwaggerConfiguration {
                 .group("admin")
                 .pathsToMatch("/api/v1/admin/**")
                 .pathsToMatch("/api/v1/auth/**")
-                .packagesToScan("net.akarmanov.projectplace.rest.api.admin", "net.akarmanov.projectplace.rest.api.auth")
+                .packagesToScan("net.akarmanov.projectplace.rest.api.admin")
                 .addOpenApiCustomizer(openAPI -> openAPI
                         .info(new Info().title("Project Place Admin API").version("1.0"))
                         .schemaRequirement("bearerAuth", new SecurityScheme()

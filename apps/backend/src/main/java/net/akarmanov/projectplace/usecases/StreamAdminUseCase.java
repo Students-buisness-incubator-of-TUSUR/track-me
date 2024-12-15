@@ -1,7 +1,6 @@
 package net.akarmanov.projectplace.usecases;
 
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.mapping.StreamMapper;
 import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Component
@@ -23,7 +21,7 @@ public class StreamAdminUseCase {
     private final StreamService streamService;
 
     public StreamDto createStream(StreamCreateDto streamCreateDto) {
-        var stream = buildStream(streamCreateDto);
+        var stream = streamMapper.mapFromDto(streamCreateDto);
         stream = streamService.create(stream);
         return streamMapper.mapToDto(stream);
     }
@@ -48,11 +46,4 @@ public class StreamAdminUseCase {
         return null;
     }
 
-    private Stream buildStream(StreamCreateDto stream) {
-        return Stream.builder()
-                .endDate(stream.endDate())
-                .startDate(stream.startDate() == null ? LocalDate.now() : stream.startDate())
-                .name(stream.name())
-                .build();
-    }
 }

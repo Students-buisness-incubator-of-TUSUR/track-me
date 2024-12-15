@@ -1,18 +1,24 @@
 plugins {
     id 'java'
-    id 'war'
-    id 'org.springframework.boot' version '3.4.0'
-    id 'io.spring.dependency-management' version '1.1.6'
 }
 
-repositories {
-    mavenCentral()
+allprojects {
+    group = 'net.akarmanov.projectplace'
+    version = '0.0.2-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'org.springframework.boot'
 
     repositories {
         mavenCentral()
@@ -22,11 +28,8 @@ subprojects {
         useJUnitPlatform()
     }
 
-    bootWar {
-        enabled = false
-    }
-
-    bootJar {
-        enabled = false
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter-api'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     }
 }
