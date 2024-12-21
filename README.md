@@ -1,8 +1,8 @@
-# Project Place
+# Track Me
 
 [![Java CI with Gradle](https://github.com/akarmanov2022/project-place/actions/workflows/gradle.yml/badge.svg?branch=develop)](https://github.com/akarmanov2022/project-place/actions/workflows/gradle.yml)
 
-Cервис для ведения отчётности трекеров в ходе реализационных программ ТУСУР.
+Онлайн-сервис для автоматизации и мониторинга работы проектных команд (стартапов и стартап-проектов) и их кураторов (трекеров) в рамках университетских акселерационных программ.
 
 ## Стек технологий
 
