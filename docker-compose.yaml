@@ -11,14 +11,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    container_name: project-place-backend
+    container_name: track-me-backend
     build:
       context: ./apps/backend
       dockerfile: Dockerfile
     depends_on:
       - postgres
     environment:
-      #      JWT_SECRET: // hash
+      JWT_SECRET: A755EBDEBB25CBDC55D4A700A9C4E4E7A36AFB3314F5197A470F0A3F47BB7C45EBBF1B11D0ECEB55559AA124C08EBD4920F3FB1EF69BFCD386996AABCD7C7CA0
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project-place
       SPRING_DATASOURCE_USERNAME: project-place
       SPRING_DATASOURCE_PASSWORD: project-place

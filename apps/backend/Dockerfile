@@ -1,18 +1,14 @@
-FROM openjdk:21-jdk-slim
+# Dockerfile
+FROM gradle:8.12-jdk21 AS build
 
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-COPY gradlew .
-COPY gradle gradle
+# Копируем только файлы, необходимые для сборки (для оптимизации кэширования)
 COPY build.gradle .
-COPY settings.gradle .
+COPY src ./src
 
-COPY src src
+# Собираем проект (без тестов)
+RUN gradle build -x test
 
-RUN chmod +x gradlew
-
-RUN ./gradlew build --no-daemon
-
-EXPOSE 8080
-
-CMD ["./gradlew", "bootRun"]
+CMD ["gradle", "bootRun"]

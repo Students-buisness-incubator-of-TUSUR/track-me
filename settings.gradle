@@ -1,2 +1,1 @@
-include 'backend'
-project(':backend').projectDir = file('apps/backend')
+include 'apps:backend'
