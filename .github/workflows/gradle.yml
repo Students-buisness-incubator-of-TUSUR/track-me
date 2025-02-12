@@ -3,12 +3,12 @@
 on:
   push:
     branches: [ "develop" ]
-    paths-ignore:
-      - apps/frontend/**
+    paths:
+      - apps/backend/**
   pull_request:
     branches: [ "develop" ]
-    paths-ignore:
-      - apps/frontend/**
+    paths:
+      - apps/backend/**
 
 jobs:
   build:
