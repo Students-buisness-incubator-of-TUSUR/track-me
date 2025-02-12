@@ -36,7 +36,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           source: track-me-backend.tar
-          target: /home/ubuntu
+          target: /home/vmv94/gpo/track-me
 
       - name: Deploy backend
         uses: appleboy/ssh-action@master
@@ -45,7 +45,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            docker load -i /home/ubuntu/track-me-backend.tar
+            docker load -i /home/vmv94/gpo/track-me/track-me-backend.tar
             docker stop track-me-backend || true
             docker rm track-me-backend || true
             docker run -d --name track-me-backend -p 8080:8080 track-me-backend:${{ github.ref_name }}
