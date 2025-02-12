@@ -23,12 +23,6 @@ jobs:
       - name: Build backend Docker image
         run: docker build -t track-me-backend:${{ github.ref_name }} ./apps/backend
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
       - name: Save Docker image
         run: docker save -o track-me-backend.tar track-me-backend:${{ github.ref_name }}
 
@@ -49,6 +43,6 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             docker load -i /home/vmv94/gpo/track-me/track-me-backend.tar
-            docker stop track-me-backend || true
-            docker rm track-me-backend || true
-            docker run -d --name track-me-backend -p 8080:8080 track-me-backend:${{ github.ref_name }}
+            docker tag track-me-backend:${{ github.ref_name }} track-me-backend:latest
+            docker compose -f /home/vmv94/gpo/track-me/docker-compose.yml down
+            docker compose -f /home/vmv94/gpo/track-me/docker-compose.yml up -d
