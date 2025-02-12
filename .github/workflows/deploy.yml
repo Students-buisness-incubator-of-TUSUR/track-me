@@ -1,6 +1,8 @@
 name: deploy.yml
 on:
   push:
+    branches:
+      - 'develop'
     tags:
       - 'v*'
 jobs:
@@ -24,7 +26,7 @@ jobs:
         run: docker build -t track-me-backend:${{ github.ref_name }} ./apps/backend
 
       - name: Save Docker image
-        run: docker save -o track-me-backend.tar track-me-backend:${{ github.ref_name }}
+        run: docker save track-me-backend:${{ github.ref_name }} -o track-me-backend.tar
 
       - name: Fix permissions
         run: chmod 644 track-me-backend.tar
@@ -55,7 +57,8 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            docker load -i /home/vmv94/gpo/track-me/track-me-backend.tar
+            cd /home/vmv94/gpo/track-me
+            docker load -i track-me-backend.tar
             docker tag track-me-backend:${{ github.ref_name }} track-me-backend:latest
-            docker compose -f /home/vmv94/gpo/track-me/docker-compose.yml down
-            docker compose -f /home/vmv94/gpo/track-me/docker-compose.yml up -d
+            docker compose down
+            docker compose up -d
