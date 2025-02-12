@@ -31,7 +31,7 @@ jobs:
 
       - name: Docker push
         run: |
-            docker tag track-me-backend:${{ github.ref_name }} track-me-backend:latest
+            docker tag track-me-backend:${{ github.ref_name }} ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
             docker push ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
 
       - name: Copy Docker Compose file to server
