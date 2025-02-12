@@ -22,7 +22,7 @@ public interface MeetingRestController {
             @Valid @RequestBody MeetingCreateDto meetingCreateDto);
 
     @Operation(summary = "Получение списка встреч команды")
-    @GetMapping(value = "/list", produces = "application/json")
+    @PostMapping(value = "/list", produces = "application/json")
     ResponseEntity<PagedModel<MeetingDto>> getMeetings(@ParameterObject @PageableDefault Pageable pageable);
 
     @Operation(summary = "Обновление встречи команды")

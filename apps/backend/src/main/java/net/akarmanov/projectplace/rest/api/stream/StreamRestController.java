@@ -10,6 +10,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public interface StreamRestController {
     ResponseEntity<StreamDto> getCurrentStream();
 
     @Operation(summary = "Получить список потоков", description = "Возвращает список потоков с поддержкой пагинации")
-    @GetMapping
+    @PostMapping
     PagedModel<StreamDto> getStreams(@PageableDefault @ParameterObject Pageable pageable);
 
 
