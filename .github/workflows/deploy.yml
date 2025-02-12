@@ -26,6 +26,19 @@ jobs:
       - name: Save Docker image
         run: docker save -o track-me-backend.tar track-me-backend:${{ github.ref_name }}
 
+      - name: Fix permissions
+        run: chmod 644 track-me-backend.tar
+
+      - name: Check if file exists
+        run: |
+          ls -la
+          if [ -f "track-me-backend.tar" ]; then
+            echo "File exists"
+          else
+            echo "File does not exist"
+            exit 1
+          fi
+
       - name: Copy Docker image to server
         uses: appleboy/scp-action@master
         with:
