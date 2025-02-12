@@ -2,9 +2,10 @@ name: deploy.yml
 on:
   push:
     branches:
-      - 'develop'
+      - develop
+      - main
     tags:
-      - 'v*'
+      - v*
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
