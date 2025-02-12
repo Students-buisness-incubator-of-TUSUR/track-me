@@ -13,15 +13,16 @@ on:
     paths-ignore:
       - docs/**
       - apps/frontend/**
+      - .github/workflows/**
   pull_request:
     branches: [ "develop" ]
     paths-ignore:
       - docs/**
       - apps/frontend/**
+      - .github/workflows/**
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
