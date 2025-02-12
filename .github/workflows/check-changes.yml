@@ -1,0 +1,32 @@
+name: check-changes.yml
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for changes in backend
+        id: check-backend-changes
+        run: |
+          changed=$(echo "${{ steps.check-backend-changes.outputs.all_changed_files }}" | tr ' ' '\n' | grep -q '^apps/backend/' && echo "true" || echo "false")
+          echo "backend_modified=$changed" >> $GITHUB_OUTPUT
+
+      - name: Check for changes in frontend
+        id: check-frontend-changes
+        run: |
+          changed=$(echo "${{ steps.check-frontend-changes.outputs.all_changed_files }}" | tr ' ' '\n' | grep -q '^apps/frontend/' && echo "true" || echo "false")
+            echo "frontend_modified=$changed" >> $GITHUB_OUTPUT
+
+      - name: Run backend tests
+        if: ${{ steps.check-backend-changes.outputs.backend_modified == 'true' }}
+        run: ./gradlew :apps:backend:test
+
+      - name: Skip backend tests
+        if: ${{ steps.check-backend-changes.outputs.backend_modified == 'false' }}
+        run: echo "No changes in backend"
