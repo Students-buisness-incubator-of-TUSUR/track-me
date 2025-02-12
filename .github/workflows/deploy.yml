@@ -34,10 +34,6 @@ jobs:
             docker tag track-me-backend:${{ github.ref_name }} ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
             docker push ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
 
-      - name: Copy Docker Compose file to server
-        run: scp docker-compose.yml ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:/home/vmv94/gpo/track-me
-
-
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
