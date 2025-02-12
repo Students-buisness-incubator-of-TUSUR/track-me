@@ -32,7 +32,7 @@ public interface AdministrationRestController {
     ResponseEntity<Void> unconfirm(@RequestParam UUID userId);
 
     @Operation(summary = "Получить список всех пользователей.")
-    @GetMapping(value = "/users/all", produces = APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/users/all", produces = APPLICATION_JSON_VALUE)
     ResponseEntity<Page<UserDTO>> all(@ParameterObject @PageableDefault Pageable pageable);
 
 }

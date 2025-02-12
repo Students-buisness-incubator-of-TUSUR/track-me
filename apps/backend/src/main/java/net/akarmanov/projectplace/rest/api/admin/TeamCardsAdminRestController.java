@@ -29,7 +29,7 @@ public interface TeamCardsAdminRestController {
                                                @Parameter @RequestParam UUID userId,
                                                @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto);
 
-    @GetMapping(produces = "application/json")
+    @PostMapping(produces = "application/json")
     @Operation(summary = "Получение списка карточек команд")
     ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(
             @Parameter(description = "Название карточки команды")

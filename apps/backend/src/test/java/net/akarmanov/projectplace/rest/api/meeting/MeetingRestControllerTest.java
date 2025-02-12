@@ -80,7 +80,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
 
     @Test
     void getMeetings_success() throws Exception {
-        mockMvc.perform(get("/api/v1/meetings/list")
+        mockMvc.perform(post("/api/v1/meetings/list")
                         .param("teamCardId", teamCard.getId().toString()))
                 .andDo(print())
                 .andExpect(status().isOk())

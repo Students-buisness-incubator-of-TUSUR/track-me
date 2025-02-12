@@ -36,7 +36,7 @@ public interface StreamAdminRestController {
             @Parameter(description = "Идентификатор потока", required = true) @PathVariable UUID streamId);
 
     @Operation(summary = "Получить все потоки", description = "Возвращает список всех потоков с поддержкой пагинации")
-    @GetMapping("/all")
+    @PostMapping("/all")
     PagedModel<StreamDto> findAll(@PageableDefault @ParameterObject Pageable pageable);
 
     @Operation(
