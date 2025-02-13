@@ -19,6 +19,7 @@ public interface StreamMapper {
     @Mapping(target = "teamCards", ignore = true)
     Stream mapFromDto(StreamDto dto);
 
+    @Mapping(target = "readinessLevel", expression = "java( entity.getReadinessLevel().getValue() )")
     StreamDto mapToDto(Stream entity);
 
     List<Stream> mapFromDto(List<StreamDto> dtos);
