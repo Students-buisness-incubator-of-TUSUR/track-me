@@ -10,26 +10,26 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final UserMapper userMapper;
+  private final UserMapper userMapper;
 
-    @Override
-    public UserDTO getCurrentUserInfo() {
-        var user = userService.getCurrentUser();
-        return userMapper.mapUserToDto(user);
-    }
+  @Override
+  public UserDTO getCurrentUserInfo() {
+    var user = userService.getCurrentUser();
+    return userMapper.mapUserToDto(user);
+  }
 
-    @Override
-    public UserDTO updateUserInfo(UserUpdateDTO userDTO) {
-        var user = userService.getCurrentUser();
-        userMapper.updateFromDto(userDTO, user);
-        var saved = userService.updateUser(user.getId(), user);
-        return userMapper.mapUserToDto(saved);
-    }
+  @Override
+  public UserDTO updateUserInfo(UserUpdateDTO userDTO) {
+    var user = userService.getCurrentUser();
+    userMapper.updateFromDto(userDTO, user);
+    var saved = userService.updateUser(user.getId(), user);
+    return userMapper.mapUserToDto(saved);
+  }
 
-    @Override
-    public void changePassword(String oldPassword, String newPassword) {
-        userService.changePassword(oldPassword, newPassword);
-    }
+  @Override
+  public void changePassword(String oldPassword, String newPassword) {
+    userService.changePassword(oldPassword, newPassword);
+  }
 }

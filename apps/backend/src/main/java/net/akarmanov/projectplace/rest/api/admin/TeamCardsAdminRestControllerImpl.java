@@ -16,43 +16,43 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestController {
 
-    private final TeamCardsService teamCardsService;
+  private final TeamCardsService teamCardsService;
 
-    private final TeamCardMapper teamCardMapper;
+  private final TeamCardMapper teamCardMapper;
 
-    @Override
-    public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateOrUpdateDto dto, UUID userId) {
-        var teamCard = teamCardMapper.mapToEntity(dto);
-        teamCard = teamCardsService.createTeamCard(teamCard, userId);
-        var teamCardDto = teamCardMapper.mapToDto(teamCard);
-        return ResponseEntity.ok(teamCardDto);
-    }
+  @Override
+  public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateOrUpdateDto dto, UUID userId) {
+    var teamCard = teamCardMapper.mapToEntity(dto);
+    teamCard = teamCardsService.createTeamCard(teamCard, userId);
+    var teamCardDto = teamCardMapper.mapToDto(teamCard);
+    return ResponseEntity.ok(teamCardDto);
+  }
 
-    @Override
-    public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId, UUID userId,
-                                                      TeamCardCreateOrUpdateDto updateDto) {
-        var teamCard = teamCardMapper.mapToEntity(updateDto);
-        teamCard = teamCardsService.updateTeamCard(teamCardId, teamCard, userId);
-        var teamCardDto = teamCardMapper.mapToDto(teamCard);
-        return ResponseEntity.ok(teamCardDto);
-    }
+  @Override
+  public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId, UUID userId,
+                                                    TeamCardCreateOrUpdateDto updateDto) {
+    var teamCard = teamCardMapper.mapToEntity(updateDto);
+    teamCard = teamCardsService.updateTeamCard(teamCardId, teamCard, userId);
+    var teamCardDto = teamCardMapper.mapToDto(teamCard);
+    return ResponseEntity.ok(teamCardDto);
+  }
 
-    @Override
-    public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(String name, String status, Pageable pageable) {
-        var page = teamCardsService.findAll(name, status, pageable)
-                .map(teamCardMapper::mapToDto);
-        return ResponseEntity.ok(new PagedModel<>(page));
-    }
+  @Override
+  public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(String name, String status, Pageable pageable) {
+    var page = teamCardsService.findAll(name, status, pageable)
+        .map(teamCardMapper::mapToDto);
+    return ResponseEntity.ok(new PagedModel<>(page));
+  }
 
-    @Override
-    public ResponseEntity<TeamCardDto> getTeamCard(UUID id, UUID userId) {
-        var teamCard = teamCardsService.getTeamCard(id, userId);
-        return ResponseEntity.ok(teamCardMapper.mapToDto(teamCard));
-    }
+  @Override
+  public ResponseEntity<TeamCardDto> getTeamCard(UUID id, UUID userId) {
+    var teamCard = teamCardsService.getTeamCard(id, userId);
+    return ResponseEntity.ok(teamCardMapper.mapToDto(teamCard));
+  }
 
-    @Override
-    public ResponseEntity<Void> deleteTeamCard(UUID id, UUID userId) {
-        teamCardsService.deleteTeamCard(id, userId);
-        return ResponseEntity.noContent().build();
-    }
+  @Override
+  public ResponseEntity<Void> deleteTeamCard(UUID id, UUID userId) {
+    teamCardsService.deleteTeamCard(id, userId);
+    return ResponseEntity.noContent().build();
+  }
 }

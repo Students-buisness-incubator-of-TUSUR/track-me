@@ -8,13 +8,13 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface MeetingService {
-    Meeting createMeeting(TeamCard teamCard, Meeting createMeeting);
+  Meeting createMeeting(TeamCard teamCard, Meeting createMeeting);
 
-    Page<Meeting> getMeetingsForCurrentUser(Pageable pageable);
+  Page<Meeting> getMeetingsForCurrentUser(Pageable pageable);
 
-    Meeting updateMeeting(UUID meetingId, UUID teamCardId, Meeting createMeeting);
+  Meeting updateMeeting(UUID meetingId, UUID teamCardId, Meeting createMeeting);
 
-    void deleteMeeting(UUID meetingId);
+  void deleteMeeting(UUID meetingId);
 
-    Meeting getById(UUID targetId);
+  Meeting getById(UUID targetId);
 }

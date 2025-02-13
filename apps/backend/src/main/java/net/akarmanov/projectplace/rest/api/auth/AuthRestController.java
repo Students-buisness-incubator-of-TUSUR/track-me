@@ -11,13 +11,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Authentication API")
-@RequestMapping(value = "/api/v1/auth", consumes = "application/json", produces = "application/json")
+@RequestMapping(value = "/api/v1/auth",
+                consumes = "application/json",
+                produces = "application/json")
 public interface AuthRestController {
-    @Operation(summary = "Регистрация пользователя")
-    @PostMapping("/sing-up")
-    ResponseEntity<Void> singUp(@RequestBody @Valid SingUpRequest singUpRequest);
+  @Operation(summary = "Регистрация пользователя")
+  @PostMapping("/sing-up")
+  ResponseEntity<Void> singUp(@RequestBody @Valid SingUpRequest singUpRequest);
 
-    @Operation(summary = "Аутентификация пользователя")
-    @PostMapping("/sing-in")
-    ResponseEntity<JwtAuthenticationResponse> singIn(@RequestBody @Valid SingInRequest singInRequest);
+  @Operation(summary = "Аутентификация пользователя")
+  @PostMapping("/sing-in")
+  ResponseEntity<JwtAuthenticationResponse> singIn(@RequestBody @Valid SingInRequest singInRequest);
 }

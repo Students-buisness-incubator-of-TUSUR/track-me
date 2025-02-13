@@ -10,9 +10,9 @@ import java.util.UUID;
 
 public interface UserPhotoRepository extends JpaRepository<UserPhoto, UUID> {
 
-    Optional<UserPhoto> findByUser(@NotNull User user);
+  Optional<UserPhoto> findByUser(@NotNull User user);
 
-    Optional<UserPhoto> findByUserId(@NotNull UUID userId);
+  Optional<UserPhoto> findByUserId(@NotNull UUID userId);
 
-    void deleteByUserId(UUID userId);
+  void deleteByUserId(UUID userId);
 }

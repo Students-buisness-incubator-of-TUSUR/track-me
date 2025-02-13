@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class NoMatchesPasswordException extends RuntimeException {
-    public NoMatchesPasswordException() {
-        super("Указанный пароль не совпадает с текущим");
-    }
+  public NoMatchesPasswordException() {
+    super("Указанный пароль не совпадает с текущим");
+  }
 }

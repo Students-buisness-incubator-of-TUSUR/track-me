@@ -10,13 +10,17 @@ import lombok.Data;
 @Builder
 @Schema(description = "Запрос на аутентификацию.")
 public class SingInRequest {
-    @Schema(description = "Telegram ID.")
-    @Size(min = 4, max = 20, message = "Telegram ID от 4 до 20 символов.")
-    @NotBlank(message = "Telegram ID не может быть null.")
-    private String telegramId;
+  @Schema(description = "Telegram ID.")
+  @Size(min = 4,
+        max = 20,
+        message = "Telegram ID от 4 до 20 символов.")
+  @NotBlank(message = "Telegram ID не может быть null.")
+  private String telegramId;
 
-    @Schema(description = "Пароль.")
-    @Size(min = 6, max = 20, message = "Пароль должен быть от 6 до 20 символов.")
-    @NotBlank(message = "Пароль не может быть null.")
-    private String password;
+  @Schema(description = "Пароль.")
+  @Size(min = 6,
+        max = 20,
+        message = "Пароль должен быть от 6 до 20 символов.")
+  @NotBlank(message = "Пароль не может быть null.")
+  private String password;
 }

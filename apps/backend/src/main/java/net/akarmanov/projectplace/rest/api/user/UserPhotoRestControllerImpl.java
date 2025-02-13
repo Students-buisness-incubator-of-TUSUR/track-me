@@ -16,28 +16,28 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 @RequiredArgsConstructor
 public class UserPhotoRestControllerImpl implements UserPhotoRestController {
 
-    private final UserPhotoService userPhotoService;
+  private final UserPhotoService userPhotoService;
 
-    @Override
-    public ResponseEntity<Void> addPhoto(UUID userId, MultipartFile file) {
-        userPhotoService.addPhotoToUser(userId, file);
-        return ResponseEntity.ok().build();
-    }
+  @Override
+  public ResponseEntity<Void> addPhoto(UUID userId, MultipartFile file) {
+    userPhotoService.addPhotoToUser(userId, file);
+    return ResponseEntity.ok().build();
+  }
 
-    @Override
-    public ResponseEntity<Resource> getPhoto(UUID userId) {
-        var userPhoto = userPhotoService.getPhotoByUserId(userId);
-        var photo = userPhoto.photo();
-        return ResponseEntity.ok()
-                .contentLength(photo.length)
-                .header("Content-Disposition", "attachment; filename=" + userPhoto.fileName())
-                .contentType(APPLICATION_OCTET_STREAM)
-                .body(new ByteArrayResource(photo));
-    }
+  @Override
+  public ResponseEntity<Resource> getPhoto(UUID userId) {
+    var userPhoto = userPhotoService.getPhotoByUserId(userId);
+    var photo = userPhoto.photo();
+    return ResponseEntity.ok()
+        .contentLength(photo.length)
+        .header("Content-Disposition", "attachment; filename=" + userPhoto.fileName())
+        .contentType(APPLICATION_OCTET_STREAM)
+        .body(new ByteArrayResource(photo));
+  }
 
-    @Override
-    public ResponseEntity<Void> deletePhoto(UUID userId) {
-        userPhotoService.deletePhoto(userId);
-        return ResponseEntity.ok().build();
-    }
+  @Override
+  public ResponseEntity<Void> deletePhoto(UUID userId) {
+    userPhotoService.deletePhoto(userId);
+    return ResponseEntity.ok().build();
+  }
 }

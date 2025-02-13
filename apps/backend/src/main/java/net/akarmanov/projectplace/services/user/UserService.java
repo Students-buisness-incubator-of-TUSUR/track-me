@@ -8,25 +8,25 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import java.util.UUID;
 
 public interface UserService extends UserDetailsService {
-    User getUser(UUID id);
+  User getUser(UUID id);
 
-    User getUserByTelegramId(String telegramId);
+  User getUserByTelegramId(String telegramId);
 
-    User createUser(User userCreateDTO);
+  User createUser(User userCreateDTO);
 
-    User updateUser(UUID id, User userDTO);
+  User updateUser(UUID id, User userDTO);
 
-    void deleteUser(String id);
+  void deleteUser(String id);
 
-    User getCurrentUser();
+  User getCurrentUser();
 
-    boolean existsByUsername(String username);
+  boolean existsByUsername(String username);
 
-    Page<User> findAll(Pageable pageable);
+  Page<User> findAll(Pageable pageable);
 
-    void enableUser(UUID userId);
+  void enableUser(UUID userId);
 
-    void disableUser(UUID userId);
+  void disableUser(UUID userId);
 
-    void changePassword(String oldPassword, String newPassword);
+  void changePassword(String oldPassword, String newPassword);
 }

@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface NtiMarketRepository extends JpaRepository<NTIMarket, UUID> {
-    NTIMarket findByName(String name);
+  NTIMarket findByName(String name);
 }

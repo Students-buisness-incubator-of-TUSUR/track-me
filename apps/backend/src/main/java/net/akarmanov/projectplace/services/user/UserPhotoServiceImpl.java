@@ -18,62 +18,62 @@ import java.util.UUID;
 @RequiredArgsConstructor
 class UserPhotoServiceImpl implements UserPhotoService {
 
-    private final UserPhotoRepository userPhotoRepository;
+  private final UserPhotoRepository userPhotoRepository;
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    private final UserPhotoMapper userPhotoMapper;
+  private final UserPhotoMapper userPhotoMapper;
 
-    @Override
-    public UserPhotoDto getPhoto(UUID photoId) {
-        var userPhoto = userPhotoRepository.findById(photoId)
-                .orElseThrow(() -> new PhotoNotFoundException(photoId));
-        return userPhotoMapper.toModel(userPhoto);
+  @Override
+  public UserPhotoDto getPhoto(UUID photoId) {
+    var userPhoto = userPhotoRepository.findById(photoId)
+        .orElseThrow(() -> new PhotoNotFoundException(photoId));
+    return userPhotoMapper.toModel(userPhoto);
+  }
+
+  @SneakyThrows
+  @Override
+  @Transactional
+  public void addPhotoToUser(UUID userId, MultipartFile file) {
+
+    var user = userRepository.findById(userId);
+    if (user.isEmpty()) {
+      deletePhoto(userId);
+    } else {
+      addPhoto(user.get(), file);
     }
+  }
 
-    @SneakyThrows
-    @Override
-    @Transactional
-    public void addPhotoToUser(UUID userId, MultipartFile file) {
+  @Override
+  public void addPhoto(MultipartFile file) {
 
-        var user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            deletePhoto(userId);
-        } else {
-            addPhoto(user.get(), file);
-        }
+  }
+
+  @Override
+  @Transactional
+  public void deletePhoto(UUID userId) {
+    var userPhoto = userPhotoRepository.findByUserId(userId)
+        .orElseThrow(() -> new PhotoNotFoundException(userId));
+    userPhotoRepository.delete(userPhoto);
+  }
+
+  @Override
+  @Transactional
+  public UserPhotoDto getPhotoByUserId(UUID userId) {
+    var userPhoto = userPhotoRepository.findByUserId(userId)
+        .orElseThrow(() -> new PhotoNotFoundException(userId));
+    return userPhotoMapper.toModel(userPhoto);
+  }
+
+  @SneakyThrows
+  private void addPhoto(User user, MultipartFile file) {
+    try (var is = file.getInputStream()) {
+      var photo = UserPhoto.builder()
+          .user(user)
+          .photo(is.readAllBytes())
+          .fileName(file.getOriginalFilename())
+          .build();
+      userPhotoRepository.save(photo);
     }
-
-    @Override
-    public void addPhoto(MultipartFile file) {
-
-    }
-
-    @Override
-    @Transactional
-    public void deletePhoto(UUID userId) {
-        var userPhoto = userPhotoRepository.findByUserId(userId)
-                .orElseThrow(() -> new PhotoNotFoundException(userId));
-        userPhotoRepository.delete(userPhoto);
-    }
-
-    @Override
-    @Transactional
-    public UserPhotoDto getPhotoByUserId(UUID userId) {
-        var userPhoto = userPhotoRepository.findByUserId(userId)
-                .orElseThrow(() -> new PhotoNotFoundException(userId));
-        return userPhotoMapper.toModel(userPhoto);
-    }
-
-    @SneakyThrows
-    private void addPhoto(User user, MultipartFile file) {
-        try (var is = file.getInputStream()) {
-            var photo = UserPhoto.builder()
-                    .user(user)
-                    .photo(is.readAllBytes())
-                    .fileName(file.getOriginalFilename())
-                    .build();
-            userPhotoRepository.save(photo);
-        }
-    }
+  }
 }

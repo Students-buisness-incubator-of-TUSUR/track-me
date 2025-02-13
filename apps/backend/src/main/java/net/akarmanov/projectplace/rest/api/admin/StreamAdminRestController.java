@@ -11,38 +11,57 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.UUID;
 
-@Tag(name = "Stream API", description = "API для работы с потоками")
+@Tag(name = "Stream API",
+     description = "API для работы с потоками")
 @RequestMapping(value = "/api/v1/admin/streams")
 public interface StreamAdminRestController {
 
-    @Operation(summary = "Создать новый поток", description = "Создает новый поток с заданными параметрами")
-    @PostMapping(value = "/create", consumes = "application/json", produces = "application/json")
-    ResponseEntity<StreamDto> create(@RequestBody @Valid StreamCreateDto stream);
+  @Operation(summary = "Создать новый поток",
+             description = "Создает новый поток с заданными параметрами")
+  @PostMapping(value = "/create",
+               consumes = "application/json",
+               produces = "application/json")
+  ResponseEntity<StreamDto> create(@RequestBody @Valid StreamCreateDto stream);
 
-    @Operation(summary = "Обновить существующий поток", description = "Обновляет поток по заданному идентификатору")
-    @PutMapping(value = "/{streamId}", consumes = "application/json", produces = "application/json")
-    ResponseEntity<StreamDto> update(
-            @Parameter(description = "Идентификатор потока", required = true) @PathVariable UUID streamId,
-            @RequestBody @Valid StreamUpdateDto stream);
+  @Operation(summary = "Обновить существующий поток",
+             description = "Обновляет поток по заданному идентификатору")
+  @PutMapping(value = "/{streamId}",
+              consumes = "application/json",
+              produces = "application/json")
+  ResponseEntity<StreamDto> update(
+      @Parameter(description = "Идентификатор потока",
+                 required = true) @PathVariable UUID streamId,
+      @RequestBody @Valid StreamUpdateDto stream);
 
-    @Operation(summary = "Удалить поток", description = "Удаляет поток по заданному идентификатору")
-    @DeleteMapping(value = "/{streamId}")
-    ResponseEntity<Void> delete(
-            @Parameter(description = "Идентификатор потока", required = true) @PathVariable UUID streamId);
+  @Operation(summary = "Удалить поток",
+             description = "Удаляет поток по заданному идентификатору")
+  @DeleteMapping(value = "/{streamId}")
+  ResponseEntity<Void> delete(
+      @Parameter(description = "Идентификатор потока",
+                 required = true) @PathVariable UUID streamId);
 
-    @Operation(summary = "Получить все потоки", description = "Возвращает список всех потоков с поддержкой пагинации")
-    @PostMapping("/all")
-    PagedModel<StreamDto> findAll(@PageableDefault @ParameterObject Pageable pageable);
+  @Operation(summary = "Получить все потоки",
+             description = "Возвращает список всех потоков с поддержкой пагинации")
+  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  PagedModel<StreamDto> findAll(@PageableDefault @ParameterObject Pageable pageable);
 
-    @Operation(
-            summary = "Получить поток по идентификатору",
-            description = "Возвращает поток по заданному идентификатору")
-    @GetMapping("/{streamId}")
-    ResponseEntity<StreamDto> getById(
-            @Parameter(description = "Идентификатор потока", required = true) @PathVariable("streamId") UUID streamId);
+  @Operation(
+      summary = "Получить поток по идентификатору",
+      description = "Возвращает поток по заданному идентификатору")
+  @GetMapping("/{streamId}")
+  ResponseEntity<StreamDto> getById(
+      @Parameter(description = "Идентификатор потока",
+                 required = true) @PathVariable("streamId") UUID streamId);
 }

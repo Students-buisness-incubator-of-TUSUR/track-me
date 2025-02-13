@@ -10,30 +10,30 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RequiredArgsConstructor
 public class SuperAdminSetupConfigurer {
-    private final UserService userService;
+  private final UserService userService;
 
-    private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.superadmin.username}")
-    private String superAdminUsername;
+  @Value("${app.superadmin.username}")
+  private String superAdminUsername;
 
-    @Value("${app.superadmin.password}")
-    private String superAdminPassword;
+  @Value("${app.superadmin.password}")
+  private String superAdminPassword;
 
-    @Value("${app.superadmin.email}")
-    private String getSuperAdminEmail;
+  @Value("${app.superadmin.email}")
+  private String getSuperAdminEmail;
 
-    @PostConstruct
-    public void setupSuperAdmin() {
-        if (!userService.existsByUsername(superAdminUsername)) {
-            var superAdmin = User.builder()
-                    .telegramId(superAdminUsername)
-                    .password(passwordEncoder.encode(superAdminPassword))
-                    .role(UserRole.SUPER_ADMIN)
-                    .email(getSuperAdminEmail)
-                    .enabled(true)
-                    .build();
-            userService.createUser(superAdmin);
-        }
+  @PostConstruct
+  public void setupSuperAdmin() {
+    if (!userService.existsByUsername(superAdminUsername)) {
+      var superAdmin = User.builder()
+          .telegramId(superAdminUsername)
+          .password(passwordEncoder.encode(superAdminPassword))
+          .role(UserRole.SUPER_ADMIN)
+          .email(getSuperAdminEmail)
+          .enabled(true)
+          .build();
+      userService.createUser(superAdmin);
     }
+  }
 }

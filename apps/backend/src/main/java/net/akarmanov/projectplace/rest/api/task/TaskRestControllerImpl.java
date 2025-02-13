@@ -14,29 +14,29 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TaskRestControllerImpl implements TaskRestController {
 
-    private final TaskUseCase taskUseCase;
+  private final TaskUseCase taskUseCase;
 
-    @Override
-    public ResponseEntity<TaskDto> addTask(TaskCreateDto taskDto, UUID meetingId) {
-        var task = taskUseCase.addTask(meetingId, taskDto);
-        return ResponseEntity.ok(task);
-    }
+  @Override
+  public ResponseEntity<TaskDto> addTask(TaskCreateDto taskDto, UUID meetingId) {
+    var task = taskUseCase.addTask(meetingId, taskDto);
+    return ResponseEntity.ok(task);
+  }
 
-    @Override
-    public ResponseEntity<TaskDto> updateTask(TaskUpdateDto taskDto) {
-        var task = taskUseCase.updateTask(taskDto);
-        return ResponseEntity.ok(task);
-    }
+  @Override
+  public ResponseEntity<TaskDto> updateTask(TaskUpdateDto taskDto) {
+    var task = taskUseCase.updateTask(taskDto);
+    return ResponseEntity.ok(task);
+  }
 
-    @Override
-    public ResponseEntity<Void> deleteTask(UUID taskId) {
-        taskUseCase.deleteTask(taskId);
-        return ResponseEntity.noContent().build();
-    }
+  @Override
+  public ResponseEntity<Void> deleteTask(UUID taskId) {
+    taskUseCase.deleteTask(taskId);
+    return ResponseEntity.noContent().build();
+  }
 
-    @Override
-    public ResponseEntity<TaskDto> copyTask(UUID taskId, UUID meetingId) {
-        taskUseCase.copyTask(taskId, meetingId);
-        return ResponseEntity.noContent().build();
-    }
+  @Override
+  public ResponseEntity<TaskDto> copyTask(UUID taskId, UUID meetingId) {
+    taskUseCase.copyTask(taskId, meetingId);
+    return ResponseEntity.noContent().build();
+  }
 }

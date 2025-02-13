@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface AdministrationService {
-    void confirmUser(UUID userId);
+  void confirmUser(UUID userId);
 
-    void unconfirmUser(UUID userId);
+  void unconfirmUser(UUID userId);
 
-    Page<UserDTO> getAllUsers(Pageable pageable);
+  Page<UserDTO> getAllUsers(Pageable pageable);
 }

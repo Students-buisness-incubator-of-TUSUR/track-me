@@ -16,34 +16,34 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StreamAdminUseCase {
 
-    private final StreamMapper streamMapper;
+  private final StreamMapper streamMapper;
 
-    private final StreamService streamService;
+  private final StreamService streamService;
 
-    public StreamDto createStream(StreamCreateDto streamCreateDto) {
-        var stream = streamMapper.mapFromDto(streamCreateDto);
-        stream = streamService.create(stream);
-        return streamMapper.mapToDto(stream);
-    }
+  public StreamDto createStream(StreamCreateDto streamCreateDto) {
+    var stream = streamMapper.mapFromDto(streamCreateDto);
+    stream = streamService.create(stream);
+    return streamMapper.mapToDto(stream);
+  }
 
-    public StreamDto updateStream(UUID streamId, StreamUpdateDto stream) {
-        var oldStream = streamService.getById(streamId);
-        streamMapper.updateFromDto(stream, oldStream);
-        oldStream = streamService.save(oldStream);
-        return streamMapper.mapToDto(oldStream);
-    }
+  public StreamDto updateStream(UUID streamId, StreamUpdateDto stream) {
+    var oldStream = streamService.getById(streamId);
+    streamMapper.updateFromDto(stream, oldStream);
+    oldStream = streamService.save(oldStream);
+    return streamMapper.mapToDto(oldStream);
+  }
 
-    public void deleteStream(UUID streamId) {
-        streamService.delete(streamId);
-    }
+  public void deleteStream(UUID streamId) {
+    streamService.delete(streamId);
+  }
 
-    public Page<StreamDto> findAllStreams(Pageable pageable) {
-        return streamService.find(pageable)
-                .map(streamMapper::mapToDto);
-    }
+  public Page<StreamDto> findAllStreams(Pageable pageable) {
+    return streamService.find(pageable)
+        .map(streamMapper::mapToDto);
+  }
 
-    public StreamDto getById(UUID streamId) {
-        return null;
-    }
+  public StreamDto getById(UUID streamId) {
+    return null;
+  }
 
 }

@@ -11,23 +11,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AccountRestControllerImpl implements AccountRestController {
 
-    private final AccountService accountService;
+  private final AccountService accountService;
 
-    @Override
-    public ResponseEntity<UserDTO> getCurrentUserInfo() {
-        var userDTO = accountService.getCurrentUserInfo();
-        return ResponseEntity.ok(userDTO);
-    }
+  @Override
+  public ResponseEntity<UserDTO> getCurrentUserInfo() {
+    var userDTO = accountService.getCurrentUserInfo();
+    return ResponseEntity.ok(userDTO);
+  }
 
-    @Override
-    public ResponseEntity<UserDTO> updateCurrentUserInfo(UserUpdateDTO userDTO) {
-        var userDto = accountService.updateUserInfo(userDTO);
-        return ResponseEntity.ok(userDto);
-    }
+  @Override
+  public ResponseEntity<UserDTO> updateCurrentUserInfo(UserUpdateDTO userDTO) {
+    var userDto = accountService.updateUserInfo(userDTO);
+    return ResponseEntity.ok(userDto);
+  }
 
-    @Override
-    public ResponseEntity<Void> changePassword(String oldPassword, String newPassword) {
-        accountService.changePassword(oldPassword, newPassword);
-        return ResponseEntity.noContent().build();
-    }
+  @Override
+  public ResponseEntity<Void> changePassword(String oldPassword, String newPassword) {
+    accountService.changePassword(oldPassword, newPassword);
+    return ResponseEntity.noContent().build();
+  }
 }

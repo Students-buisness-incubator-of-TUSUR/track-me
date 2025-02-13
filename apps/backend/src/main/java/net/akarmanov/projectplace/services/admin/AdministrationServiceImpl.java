@@ -14,23 +14,23 @@ import java.util.UUID;
 @RequiredArgsConstructor
 class AdministrationServiceImpl implements AdministrationService {
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final UserMapper userMapper;
+  private final UserMapper userMapper;
 
-    @Override
-    public void confirmUser(UUID userId) {
-        userService.enableUser(userId);
-    }
+  @Override
+  public void confirmUser(UUID userId) {
+    userService.enableUser(userId);
+  }
 
-    @Override
-    public void unconfirmUser(UUID userId) {
-        userService.disableUser(userId);
-    }
+  @Override
+  public void unconfirmUser(UUID userId) {
+    userService.disableUser(userId);
+  }
 
-    @Override
-    public Page<UserDTO> getAllUsers(Pageable pageable) {
-        var users = userService.findAll(pageable);
-        return users.map(userMapper::mapUserToDto);
-    }
+  @Override
+  public Page<UserDTO> getAllUsers(Pageable pageable) {
+    var users = userService.findAll(pageable);
+    return users.map(userMapper::mapUserToDto);
+  }
 }

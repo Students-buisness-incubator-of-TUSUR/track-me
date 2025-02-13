@@ -9,11 +9,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
-    Optional<User> findByTelegramId(String telegramId);
+  Optional<User> findByTelegramId(String telegramId);
 
-    boolean existsUserByTelegramId(String telegramId);
+  boolean existsUserByTelegramId(String telegramId);
 
-    boolean existsByTelegramIdOrPhoneNumber(@Size(max = 32) String telegramId, @Size(max = 32) String phoneNumber);
+  boolean existsByTelegramIdOrPhoneNumber(@Size(max = 32) String telegramId, @Size(max = 32) String phoneNumber);
 
-    boolean existsByPhoneNumber(@Size(max = 32) String phoneNumber);
+  boolean existsByPhoneNumber(@Size(max = 32) String phoneNumber);
 }

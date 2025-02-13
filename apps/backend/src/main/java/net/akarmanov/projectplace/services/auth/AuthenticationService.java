@@ -5,7 +5,7 @@ import net.akarmanov.projectplace.rest.api.dto.SingInRequest;
 import net.akarmanov.projectplace.rest.api.dto.SingUpRequest;
 
 public interface AuthenticationService {
-    JwtAuthenticationResponse singUp(SingUpRequest singUpRequest);
+  JwtAuthenticationResponse singUp(SingUpRequest singUpRequest);
 
-    JwtAuthenticationResponse singIn(SingInRequest request);
+  JwtAuthenticationResponse singIn(SingInRequest request);
 }

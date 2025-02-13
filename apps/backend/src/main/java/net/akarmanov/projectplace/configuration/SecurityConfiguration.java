@@ -32,73 +32,73 @@ import static net.akarmanov.projectplace.models.UserRole.SUPER_ADMIN;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-    private final UserService userService;
+  private final UserService userService;
 
-    private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    private final AuthenticationEntryPoint authenticationEntryPoint;
+  private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(request -> {
-                    var corsConfiguration = new CorsConfiguration();
-                    corsConfiguration.setAllowedOriginPatterns(List.of("*"));
-                    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    corsConfiguration.setAllowedHeaders(List.of("*"));
-                    corsConfiguration.setAllowCredentials(true);
-                    return corsConfiguration;
-                }))
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-resources/*",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs.yaml/**",
-                                "/v3/api-docs.yaml").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole(ADMIN.toString())
-                        .requestMatchers("/api/v1/super-admin/**").hasRole(SUPER_ADMIN.toString())
-                        .anyRequest().authenticated())
-                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(handler -> handler.authenticationEntryPoint(authenticationEntryPoint));
-        return http.build();
-    }
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(AbstractHttpConfigurer::disable)
+        .cors(cors -> cors.configurationSource(request -> {
+          var corsConfiguration = new CorsConfiguration();
+          corsConfiguration.setAllowedOriginPatterns(List.of("*"));
+          corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+          corsConfiguration.setAllowedHeaders(List.of("*"));
+          corsConfiguration.setAllowCredentials(true);
+          return corsConfiguration;
+        }))
+        .authorizeHttpRequests(request -> request
+            .requestMatchers("/api/v1/auth/**").permitAll()
+            .requestMatchers(
+                "/swagger-ui/**",
+                "/swagger-resources/*",
+                "/v3/api-docs/**",
+                "/v3/api-docs.yaml/**",
+                "/v3/api-docs.yaml").permitAll()
+            .requestMatchers("/api/v1/admin/**").hasRole(ADMIN.toString())
+            .requestMatchers("/api/v1/super-admin/**").hasRole(SUPER_ADMIN.toString())
+            .anyRequest().authenticated())
+        .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authenticationProvider(authenticationProvider())
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        .exceptionHandling(handler -> handler.authenticationEntryPoint(authenticationEntryPoint));
+    return http.build();
+  }
 
-    private AuthenticationProvider authenticationProvider() {
-        var daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setUserDetailsService(userService);
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
-        return daoAuthenticationProvider;
-    }
+  private AuthenticationProvider authenticationProvider() {
+    var daoAuthenticationProvider = new DaoAuthenticationProvider();
+    daoAuthenticationProvider.setUserDetailsService(userService);
+    daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
+    return daoAuthenticationProvider;
+  }
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userService);
-        authenticationProvider.setPasswordEncoder(passwordEncoder);
+  @Bean
+  public AuthenticationManager authenticationManager(
+      PasswordEncoder passwordEncoder) {
+    DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+    authenticationProvider.setUserDetailsService(userService);
+    authenticationProvider.setPasswordEncoder(passwordEncoder);
 
-        ProviderManager providerManager = new ProviderManager(authenticationProvider);
-        providerManager.setEraseCredentialsAfterAuthentication(false);
+    ProviderManager providerManager = new ProviderManager(authenticationProvider);
+    providerManager.setEraseCredentialsAfterAuthentication(false);
 
-        return providerManager;
-    }
+    return providerManager;
+  }
 
-    @Bean
-    public RoleHierarchy roleHierarchy() {
-        String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
-                           "ROLE_ADMIN > ROLE_TRACKER";
-        return RoleHierarchyImpl.fromHierarchy(hierarchy);
-    }
+  @Bean
+  public RoleHierarchy roleHierarchy() {
+    String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
+                       "ROLE_ADMIN > ROLE_TRACKER";
+    return RoleHierarchyImpl.fromHierarchy(hierarchy);
+  }
 
-    @Bean
-    public SuperAdminSetupConfigurer superAdminSetupConfigurer() {
-        return new SuperAdminSetupConfigurer(userService, passwordEncoder);
-    }
+  @Bean
+  public SuperAdminSetupConfigurer superAdminSetupConfigurer() {
+    return new SuperAdminSetupConfigurer(userService, passwordEncoder);
+  }
 }

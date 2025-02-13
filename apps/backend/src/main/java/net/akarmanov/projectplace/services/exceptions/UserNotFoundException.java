@@ -7,11 +7,11 @@ import java.util.UUID;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class UserNotFoundException extends PPNotFoundException {
-    public UserNotFoundException(UUID id) {
-        super("Пользователь с ID " + id + " не найден!");
-    }
+  public UserNotFoundException(UUID id) {
+    super("Пользователь с ID " + id + " не найден!");
+  }
 
-    public UserNotFoundException(String telegramId) {
-        super("Пользователь с telegramId " + telegramId + " не найден!");
-    }
+  public UserNotFoundException(String telegramId) {
+    super("Пользователь с telegramId " + telegramId + " не найден!");
+  }
 }

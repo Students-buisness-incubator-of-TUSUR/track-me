@@ -15,22 +15,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StreamRestControllerImpl implements StreamRestController {
 
-    private final StreamUseCase streamUseCase;
+  private final StreamUseCase streamUseCase;
 
-    @Override
-    public ResponseEntity<StreamDto> getCurrentStream() {
-        var stream = streamUseCase.getCurrentStream();
-        return ResponseEntity.ok(stream);
-    }
+  @Override
+  public ResponseEntity<StreamDto> getCurrentStream() {
+    var stream = streamUseCase.getCurrentStream();
+    return ResponseEntity.ok(stream);
+  }
 
-    @Override
-    public PagedModel<StreamDto> getStreams(Pageable pageable) {
-        var streams = streamUseCase.getStreams(pageable);
-        return new PagedModel<>(streams);
-    }
+  @Override
+  public PagedModel<StreamDto> getStreams(Pageable pageable) {
+    var streams = streamUseCase.getStreams(pageable);
+    return new PagedModel<>(streams);
+  }
 
-    @Override
-    public List<NTIMarketDto> getNTIMarkets() {
-        return streamUseCase.getNTIMarkets();
-    }
+  @Override
+  public List<NTIMarketDto> getNTIMarkets() {
+    return streamUseCase.getNTIMarkets();
+  }
 }

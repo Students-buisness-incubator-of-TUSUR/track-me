@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class PhoneNumberExistsException extends RuntimeException {
-    public PhoneNumberExistsException(String phoneNumber) {
-        super("Пользователь с номером телефона " + phoneNumber + " уже существует");
-    }
+  public PhoneNumberExistsException(String phoneNumber) {
+    super("Пользователь с номером телефона " + phoneNumber + " уже существует");
+  }
 }

@@ -11,12 +11,12 @@ import javax.crypto.SecretKey;
 @Configuration
 public class JwtConfiguration {
 
-    @Value("${JWT_SECRET}")
-    private String jwtSecret;
+  @Value("${JWT_SECRET}")
+  private String jwtSecret;
 
-    @Bean
-    public SecretKey secretKey() {
-        var bytes = Decoders.BASE64.decode(jwtSecret);
-        return Keys.hmacShaKeyFor(bytes);
-    }
+  @Bean
+  public SecretKey secretKey() {
+    var bytes = Decoders.BASE64.decode(jwtSecret);
+    return Keys.hmacShaKeyFor(bytes);
+  }
 }

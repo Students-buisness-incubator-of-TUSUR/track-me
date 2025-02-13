@@ -23,55 +23,58 @@ import java.time.LocalDate;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @TestPropertySource(
-        properties = {
-                "JWT_SECRET=12345678905675675674564564566756756756745645656"
-        })
-@Sql(value = {"classpath:init-test-schema.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@Sql(value = {"classpath:initial-data.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(value = "classpath:cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
+    properties = {
+        "JWT_SECRET=12345678905675675674564564566756756756745645656"
+    })
+@Sql(value = {"classpath:init-test-schema.sql"},
+     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@Sql(value = {"classpath:initial-data.sql"},
+     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(value = "classpath:cleanup.sql",
+     executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
 public abstract class BaseApplicationTest {
 
-    public static final String USERNAME = "test_superadmin";
+  public static final String USERNAME = "test_superadmin";
 
-    public static final String PASSWORD = "123456";
+  public static final String PASSWORD = "123456";
 
-    @Autowired
-    protected MockMvc mockMvc;
+  @Autowired
+  protected MockMvc mockMvc;
 
-    protected User user;
+  protected User user;
 
-    @Autowired
-    protected UserRepository userRepository;
+  @Autowired
+  protected UserRepository userRepository;
 
-    @Autowired
-    protected StreamRepository streamRepository;
+  @Autowired
+  protected StreamRepository streamRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+  @Autowired
+  private PasswordEncoder passwordEncoder;
 
-    @BeforeEach
-    void initUser() {
-        streamRepository.save(Stream.builder()
-                .name("stream 1")
-                .startDate(LocalDate.now())
-                .endDate(LocalDate.now().plusDays(1))
-                .readinessLevel(ReadinessLevel.LEVEL_1)
-                .build());
-        user = userRepository.save(User.builder()
-                .enabled(true)
-                .firstName("Иван")
-                .lastName("Иванов")
-                .telegramId(USERNAME)
-                .email("")
-                .password(passwordEncoder.encode(PASSWORD))
-                .role(UserRole.SUPER_ADMIN)
-                .build()
-        );
-    }
+  @BeforeEach
+  void initUser() {
+    streamRepository.save(Stream.builder()
+        .name("stream 1")
+        .startDate(LocalDate.now())
+        .endDate(LocalDate.now().plusDays(1))
+        .readinessLevel(ReadinessLevel.LEVEL_1)
+        .build());
+    user = userRepository.save(User.builder()
+        .enabled(true)
+        .firstName("Иван")
+        .lastName("Иванов")
+        .telegramId(USERNAME)
+        .email("")
+        .password(passwordEncoder.encode(PASSWORD))
+        .role(UserRole.SUPER_ADMIN)
+        .build()
+    );
+  }
 
-    @AfterEach
-    void deleteUser() {
-        userRepository.deleteAll();
-        streamRepository.deleteAll();
-    }
+  @AfterEach
+  void deleteUser() {
+    userRepository.deleteAll();
+    streamRepository.deleteAll();
+  }
 }

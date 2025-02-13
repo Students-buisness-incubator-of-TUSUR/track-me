@@ -18,46 +18,46 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 class AuthenticationServiceImpl implements AuthenticationService {
-    private final UserService userService;
+  private final UserService userService;
 
-    private final JwtService jwtService;
+  private final JwtService jwtService;
 
-    private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-    private final AuthenticationManager authenticationManager;
+  private final AuthenticationManager authenticationManager;
 
-    private final StreamService streamService;
+  private final StreamService streamService;
 
-    @Override
-    @Transactional
-    public JwtAuthenticationResponse singUp(SingUpRequest singUpRequest) {
-        var stream = streamService.getCurrentStream();
-        var user = User.builder()
-                .firstName(singUpRequest.getFirstName())
-                .lastName(singUpRequest.getLastName())
-                .middleName(singUpRequest.getMiddleName())
-                .telegramId(singUpRequest.getTelegramId())
-                .phoneNumber(singUpRequest.getPhoneNumber())
-                .role(UserRole.valueOf(singUpRequest.getRole().toString()))
-                .password(passwordEncoder.encode(singUpRequest.getPassword()))
-                .email(singUpRequest.getEmail())
-                .build();
+  @Override
+  @Transactional
+  public JwtAuthenticationResponse singUp(SingUpRequest singUpRequest) {
+    var stream = streamService.getCurrentStream();
+    var user = User.builder()
+        .firstName(singUpRequest.getFirstName())
+        .lastName(singUpRequest.getLastName())
+        .middleName(singUpRequest.getMiddleName())
+        .telegramId(singUpRequest.getTelegramId())
+        .phoneNumber(singUpRequest.getPhoneNumber())
+        .role(UserRole.valueOf(singUpRequest.getRole().toString()))
+        .password(passwordEncoder.encode(singUpRequest.getPassword()))
+        .email(singUpRequest.getEmail())
+        .build();
 
-        stream.addUser(userService.createUser(user));
-        streamService.save(stream);
-        var token = jwtService.generateToken(user);
-        return new JwtAuthenticationResponse(token);
-    }
+    stream.addUser(userService.createUser(user));
+    streamService.save(stream);
+    var token = jwtService.generateToken(user);
+    return new JwtAuthenticationResponse(token);
+  }
 
-    @Override
-    public JwtAuthenticationResponse singIn(SingInRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                request.getTelegramId(),
-                request.getPassword())
-        );
-        var user = userService.loadUserByUsername(request.getTelegramId());
+  @Override
+  public JwtAuthenticationResponse singIn(SingInRequest request) {
+    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+        request.getTelegramId(),
+        request.getPassword())
+    );
+    var user = userService.loadUserByUsername(request.getTelegramId());
 
-        var token = jwtService.generateToken(user);
-        return new JwtAuthenticationResponse(token);
-    }
+    var token = jwtService.generateToken(user);
+    return new JwtAuthenticationResponse(token);
+  }
 }

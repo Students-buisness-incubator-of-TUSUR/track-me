@@ -5,10 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface StreamRepository extends JpaRepository<Stream, UUID>, JpaSpecificationExecutor<Stream> {
-    Optional<Stream> getFirstByEndDateAfter(LocalDate now);
+  Optional<Stream> getFirstByEndDateAfter(LocalDate now);
 }

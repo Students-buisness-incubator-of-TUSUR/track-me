@@ -16,35 +16,35 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class StreamAdminRestControllerImpl implements StreamAdminRestController {
 
-    private final StreamAdminUseCase streamAdminUseCase;
+  private final StreamAdminUseCase streamAdminUseCase;
 
-    @Override
-    public ResponseEntity<StreamDto> create(StreamCreateDto stream) {
-        var streamDto = streamAdminUseCase.createStream(stream);
-        return ResponseEntity.ok(streamDto);
-    }
+  @Override
+  public ResponseEntity<StreamDto> create(StreamCreateDto stream) {
+    var streamDto = streamAdminUseCase.createStream(stream);
+    return ResponseEntity.ok(streamDto);
+  }
 
-    @Override
-    public ResponseEntity<StreamDto> update(UUID streamId, StreamUpdateDto stream) {
-        var streamDto = streamAdminUseCase.updateStream(streamId, stream);
-        return ResponseEntity.ok(streamDto);
-    }
+  @Override
+  public ResponseEntity<StreamDto> update(UUID streamId, StreamUpdateDto stream) {
+    var streamDto = streamAdminUseCase.updateStream(streamId, stream);
+    return ResponseEntity.ok(streamDto);
+  }
 
-    @Override
-    public ResponseEntity<Void> delete(UUID streamId) {
-        streamAdminUseCase.deleteStream(streamId);
-        return ResponseEntity.noContent().build();
-    }
+  @Override
+  public ResponseEntity<Void> delete(UUID streamId) {
+    streamAdminUseCase.deleteStream(streamId);
+    return ResponseEntity.noContent().build();
+  }
 
-    @Override
-    public PagedModel<StreamDto> findAll(Pageable pageable) {
-        var streams = streamAdminUseCase.findAllStreams(pageable);
-        return new PagedModel<>(streams);
-    }
+  @Override
+  public PagedModel<StreamDto> findAll(Pageable pageable) {
+    var streams = streamAdminUseCase.findAllStreams(pageable);
+    return new PagedModel<>(streams);
+  }
 
-    @Override
-    public ResponseEntity<StreamDto> getById(UUID streamId) {
-        var stream = streamAdminUseCase.getById(streamId);
-        return ResponseEntity.ok(stream);
-    }
+  @Override
+  public ResponseEntity<StreamDto> getById(UUID streamId) {
+    var stream = streamAdminUseCase.getById(streamId);
+    return ResponseEntity.ok(stream);
+  }
 }

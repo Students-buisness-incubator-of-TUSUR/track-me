@@ -8,7 +8,6 @@ import net.akarmanov.projectplace.services.exceptions.NoMatchesPasswordException
 import net.akarmanov.projectplace.services.exceptions.PhoneNumberExistsException;
 import net.akarmanov.projectplace.services.exceptions.TelegramIdExistsException;
 import net.akarmanov.projectplace.services.exceptions.UserNotFoundException;
-import net.akarmanov.projectplace.services.stream.StreamService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,98 +22,98 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-    @Override
-    public User getUser(UUID id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
+  @Override
+  public User getUser(UUID id) {
+    return userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException(id));
+  }
+
+  @Override
+  public User getUserByTelegramId(String telegramId) {
+    return userRepository.findByTelegramId(telegramId)
+        .orElseThrow(() -> new UserNotFoundException(telegramId));
+  }
+
+  @Override
+  public User createUser(User userCreate) {
+    if (userRepository.existsUserByTelegramId(userCreate.getTelegramId())) {
+      throw new TelegramIdExistsException(userCreate.getTelegramId());
     }
-
-    @Override
-    public User getUserByTelegramId(String telegramId) {
-        return userRepository.findByTelegramId(telegramId)
-                .orElseThrow(() -> new UserNotFoundException(telegramId));
+    if (userRepository.existsByPhoneNumber(userCreate.getPhoneNumber())) {
+      throw new PhoneNumberExistsException(userCreate.getPhoneNumber());
     }
+    return userRepository.save(userCreate);
+  }
 
-    @Override
-    public User createUser(User userCreate) {
-        if (userRepository.existsUserByTelegramId(userCreate.getTelegramId())) {
-            throw new TelegramIdExistsException(userCreate.getTelegramId());
-        }
-        if (userRepository.existsByPhoneNumber(userCreate.getPhoneNumber())) {
-            throw new PhoneNumberExistsException(userCreate.getPhoneNumber());
-        }
-        return userRepository.save(userCreate);
-    }
+  @Override
+  @Transactional
+  public User updateUser(UUID id, User userDTO) {
+    var user = userRepository.findById(id)
+        .orElseThrow(() -> new UserNotFoundException(id));
+    user.setTelegramId(userDTO.getTelegramId());
+    user.setFirstName(userDTO.getFirstName());
+    user.setLastName(userDTO.getLastName());
+    user.setRole(userDTO.getRole());
+    user.setPhoneNumber(userDTO.getPhoneNumber());
+    user.setMiddleName(userDTO.getMiddleName());
+    return userRepository.save(user);
+  }
 
-    @Override
-    @Transactional
-    public User updateUser(UUID id, User userDTO) {
-        var user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-        user.setTelegramId(userDTO.getTelegramId());
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-        user.setRole(userDTO.getRole());
-        user.setPhoneNumber(userDTO.getPhoneNumber());
-        user.setMiddleName(userDTO.getMiddleName());
-        return userRepository.save(user);
-    }
+  @Override
+  public void deleteUser(String id) {
+    var user = getUser(UUID.fromString(id));
+    userRepository.delete(user);
+  }
 
-    @Override
-    public void deleteUser(String id) {
-        var user = getUser(UUID.fromString(id));
-        userRepository.delete(user);
-    }
+  @Override
+  public User getCurrentUser() {
+    var auth = SecurityContextHolder.getContext().getAuthentication();
+    return getUserByTelegramId(auth.getName());
+  }
 
-    @Override
-    public User getCurrentUser() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        return getUserByTelegramId(auth.getName());
-    }
+  @Override
+  public boolean existsByUsername(String username) {
+    return userRepository.existsUserByTelegramId(username);
+  }
 
-    @Override
-    public boolean existsByUsername(String username) {
-        return userRepository.existsUserByTelegramId(username);
-    }
+  @Override
+  public Page<User> findAll(Pageable pageable) {
+    return userRepository.findAll(pageable);
+  }
 
-    @Override
-    public Page<User> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable);
-    }
+  @Override
+  public void enableUser(UUID userId) {
+    changeUserState(userId, true);
+  }
 
-    @Override
-    public void enableUser(UUID userId) {
-        changeUserState(userId, true);
-    }
+  @Override
+  public void disableUser(UUID userId) {
+    changeUserState(userId, false);
+  }
 
-    @Override
-    public void disableUser(UUID userId) {
-        changeUserState(userId, false);
+  @Override
+  public void changePassword(String oldPassword, String newPassword) {
+    var user = getCurrentUser();
+    if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+      throw new NoMatchesPasswordException();
     }
+    user.setPassword(passwordEncoder.encode(newPassword));
+    userRepository.save(user);
+  }
 
-    @Override
-    public void changePassword(String oldPassword, String newPassword) {
-        var user = getCurrentUser();
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new NoMatchesPasswordException();
-        }
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-    }
+  private void changeUserState(UUID userId, boolean enabled) {
+    var user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
+    user.setEnabled(enabled);
+    userRepository.save(user);
+  }
 
-    private void changeUserState(UUID userId, boolean enabled) {
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-        user.setEnabled(enabled);
-        userRepository.save(user);
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return getUserByTelegramId(username);
-    }
+  @Override
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    return getUserByTelegramId(username);
+  }
 }

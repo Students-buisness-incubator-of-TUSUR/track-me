@@ -14,27 +14,27 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TaskUseCase {
 
-    private final TaskService taskService;
+  private final TaskService taskService;
 
-    private final TaskMapper taskMapper;
+  private final TaskMapper taskMapper;
 
-    public TaskDto addTask(UUID meetingId, TaskCreateDto createDto) {
-        var task = taskMapper.mapToEntity(createDto);
-        var createdTask = taskService.addTask(meetingId, task);
-        return taskMapper.mapToDto(createdTask);
-    }
+  public TaskDto addTask(UUID meetingId, TaskCreateDto createDto) {
+    var task = taskMapper.mapToEntity(createDto);
+    var createdTask = taskService.addTask(meetingId, task);
+    return taskMapper.mapToDto(createdTask);
+  }
 
-    public TaskDto updateTask(TaskUpdateDto updateDto) {
-        var updateTask = taskMapper.mapToEntity(updateDto);
-        var updatedTask = taskService.updateTask(updateTask);
-        return taskMapper.mapToDto(updatedTask);
-    }
+  public TaskDto updateTask(TaskUpdateDto updateDto) {
+    var updateTask = taskMapper.mapToEntity(updateDto);
+    var updatedTask = taskService.updateTask(updateTask);
+    return taskMapper.mapToDto(updatedTask);
+  }
 
-    public void deleteTask(UUID taskId) {
-        taskService.deleteTask(taskId);
-    }
+  public void deleteTask(UUID taskId) {
+    taskService.deleteTask(taskId);
+  }
 
-    public void copyTask(UUID taskId, UUID meetingId) {
-        taskService.copyTask(taskId, meetingId);
-    }
+  public void copyTask(UUID taskId, UUID meetingId) {
+    taskService.copyTask(taskId, meetingId);
+  }
 }

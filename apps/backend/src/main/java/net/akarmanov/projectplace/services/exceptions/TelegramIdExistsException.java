@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class TelegramIdExistsException extends RuntimeException {
-    public TelegramIdExistsException(@Size(min = 1) String telegramId) {
-        super("Пользователь с telegramId " + telegramId + " уже существует.");
-    }
+  public TelegramIdExistsException(@Size(min = 1) String telegramId) {
+    super("Пользователь с telegramId " + telegramId + " уже существует.");
+  }
 }

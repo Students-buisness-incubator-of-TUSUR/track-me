@@ -6,11 +6,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(
-        componentModel = "spring")
+    componentModel = "spring")
 public interface UserPhotoMapper {
 
-    UserPhotoDto toModel(UserPhoto userPhoto);
+  UserPhotoDto toModel(UserPhoto userPhoto);
 
-    @Mapping(target = "user", ignore = true)
-    UserPhoto toEntity(UserPhotoDto userPhotoDto);
+  @Mapping(target = "user",
+           ignore = true)
+  UserPhoto toEntity(UserPhotoDto userPhotoDto);
 }

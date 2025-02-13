@@ -8,11 +8,11 @@ import org.springframework.security.acls.model.AclCache;
 import javax.sql.DataSource;
 
 public class PostgresJdbcMutableAclService extends JdbcMutableAclService {
-    public PostgresJdbcMutableAclService(DataSource dataSource, LookupStrategy lookupStrategy, AclCache aclCache,
-                                         AclAppProperties properties) {
-        super(dataSource, lookupStrategy, aclCache);
-        super.setClassIdentityQuery(properties.getClassIdentityQuery());
-        super.setSidIdentityQuery(properties.getSidIdentityQuery());
-        super.setAclClassIdSupported(true);
-    }
+  public PostgresJdbcMutableAclService(DataSource dataSource, LookupStrategy lookupStrategy, AclCache aclCache,
+                                       AclAppProperties properties) {
+    super(dataSource, lookupStrategy, aclCache);
+    super.setClassIdentityQuery(properties.getClassIdentityQuery());
+    super.setSidIdentityQuery(properties.getSidIdentityQuery());
+    super.setAclClassIdSupported(true);
+  }
 }

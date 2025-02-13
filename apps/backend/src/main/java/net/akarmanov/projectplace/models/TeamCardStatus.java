@@ -8,11 +8,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Schema(description = "Статус карточки команды")
 public enum TeamCardStatus {
-    @Schema(description = "Все ок")
-    OK("Все ок"),
-    @Schema(description = "Есть проблемы")
-    HAS_ISSUES("Есть проблемы"),
-    @Schema(description = "Есть серьезные проблемы")
-    HAS_MAJOR_ISSUES("Есть серьезные проблемы");
-    private final String description;
+  @Schema(description = "Все ок")
+  OK("Все ок"),
+  @Schema(description = "Есть проблемы")
+  HAS_ISSUES("Есть проблемы"),
+  @Schema(description = "Есть серьезные проблемы")
+  HAS_MAJOR_ISSUES("Есть серьезные проблемы");
+
+  private final String description;
 }

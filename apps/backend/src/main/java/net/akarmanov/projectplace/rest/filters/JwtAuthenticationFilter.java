@@ -26,40 +26,41 @@ import static org.springframework.util.StringUtils.hasText;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    public static final String BEARER_PREFIX = "Bearer ";
+  public static final String BEARER_PREFIX = "Bearer ";
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final JwtService jwtService;
+  private final JwtService jwtService;
 
-    private final SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
+  private final SecurityContextHolderStrategy securityContextHolderStrategy =
+      SecurityContextHolder.getContextHolderStrategy();
 
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        var token = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (!StringUtils.hasText(token) || !StringUtils.startsWithIgnoreCase(token, BEARER_PREFIX)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        token = token.substring(BEARER_PREFIX.length());
-        var username = jwtService.getUsernameFromToken(token);
-        if (hasText(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var userDetails = userService.loadUserByUsername(username);
-            if (jwtService.isTokenValid(token, userDetails)) {
-                var context = securityContextHolderStrategy.createEmptyContext();
-                var authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
-
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                context.setAuthentication(authentication);
-                securityContextHolderStrategy.setContext(context);
-            }
-        }
-        filterChain.doFilter(request, response);
+  @Override
+  protected void doFilterInternal(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  FilterChain filterChain) throws ServletException, IOException {
+    var token = request.getHeader(HttpHeaders.AUTHORIZATION);
+    if (!StringUtils.hasText(token) || !StringUtils.startsWithIgnoreCase(token, BEARER_PREFIX)) {
+      filterChain.doFilter(request, response);
+      return;
     }
+    token = token.substring(BEARER_PREFIX.length());
+    var username = jwtService.getUsernameFromToken(token);
+    if (hasText(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
+      var userDetails = userService.loadUserByUsername(username);
+      if (jwtService.isTokenValid(token, userDetails)) {
+        var context = securityContextHolderStrategy.createEmptyContext();
+        var authentication = new UsernamePasswordAuthenticationToken(
+            userDetails,
+            null,
+            userDetails.getAuthorities());
+
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        context.setAuthentication(authentication);
+        securityContextHolderStrategy.setContext(context);
+      }
+    }
+    filterChain.doFilter(request, response);
+  }
 }

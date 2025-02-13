@@ -7,26 +7,25 @@ import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
 public interface TeamCardsService {
-    TeamCard createTeamCard(TeamCard createTeamCardDto);
+  TeamCard createTeamCard(TeamCard createTeamCardDto);
 
-    TeamCard updateTeamCard(UUID teamCardId, TeamCard updateTeamCardDto);
+  TeamCard updateTeamCard(UUID teamCardId, TeamCard updateTeamCardDto);
 
-    Page<TeamCard> getTeamCards(String name, String status, Pageable pageable, UUID userId);
+  Page<TeamCard> getTeamCards(String name, String status, Pageable pageable, UUID userId);
 
-    TeamCard getTeamCard(UUID id);
+  TeamCard getTeamCard(UUID id);
 
-    void deleteTeamCard(UUID id);
+  void deleteTeamCard(UUID id);
 
-    TeamCard createTeamCard(TeamCard teamCard, UUID userId);
+  TeamCard createTeamCard(TeamCard teamCard, UUID userId);
 
-    TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCard, UUID userId);
+  TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCard, UUID userId);
 
-    Page<TeamCard> findAll(String name, String status, Pageable pageable);
+  Page<TeamCard> findAll(String name, String status, Pageable pageable);
 
-    TeamCard getTeamCard(UUID id, UUID userId);
+  TeamCard getTeamCard(UUID id, UUID userId);
 
-    void deleteTeamCard(UUID id, UUID userId);
-
+  void deleteTeamCard(UUID id, UUID userId);
 
 
 }

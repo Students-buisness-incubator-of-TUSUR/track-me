@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class PhotoNotFoundException extends PPNotFoundException {
-    public PhotoNotFoundException(UUID photoId) {
-        super("Фотография пользователя с ID " + photoId + " не найдена!");
-    }
+  public PhotoNotFoundException(UUID photoId) {
+    super("Фотография пользователя с ID " + photoId + " не найдена!");
+  }
 }

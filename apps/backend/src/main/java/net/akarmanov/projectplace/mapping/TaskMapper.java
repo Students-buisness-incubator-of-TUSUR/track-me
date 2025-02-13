@@ -8,21 +8,30 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+@Mapper(componentModel = "spring",
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface TaskMapper {
-    @Mapping(target = "meetingId", source = "meeting.id")
-    TaskDto mapToDto(Task task);
+  @Mapping(target = "meetingId",
+           source = "meeting.id")
+  TaskDto mapToDto(Task task);
 
-    @Mapping(target = "meeting", ignore = true)
-    Task mapToEntity(TaskDto taskDto);
+  @Mapping(target = "meeting",
+           ignore = true)
+  Task mapToEntity(TaskDto taskDto);
 
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "number", ignore = true)
-    @Mapping(target = "meeting", ignore = true)
-    @Mapping(target = "id", ignore = true)
-    Task mapToEntity(TaskCreateDto createDto);
+  @Mapping(target = "status",
+           ignore = true)
+  @Mapping(target = "number",
+           ignore = true)
+  @Mapping(target = "meeting",
+           ignore = true)
+  @Mapping(target = "id",
+           ignore = true)
+  Task mapToEntity(TaskCreateDto createDto);
 
-    @Mapping(target = "number", ignore = true)
-    @Mapping(target = "meeting", ignore = true)
-    Task mapToEntity(TaskUpdateDto updateDto);
+  @Mapping(target = "number",
+           ignore = true)
+  @Mapping(target = "meeting",
+           ignore = true)
+  Task mapToEntity(TaskUpdateDto updateDto);
 }

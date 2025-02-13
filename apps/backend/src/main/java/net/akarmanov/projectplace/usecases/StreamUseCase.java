@@ -16,27 +16,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StreamUseCase {
 
-    private final StreamService streamService;
+  private final StreamService streamService;
 
-    private final StreamMapper streamMapper;
+  private final StreamMapper streamMapper;
 
-    private final NtiMarketMapper ntiMarketMapper;
+  private final NtiMarketMapper ntiMarketMapper;
 
 
-    public StreamDto getCurrentStream() {
-        var stream = streamService.getCurrentStream();
-        return streamMapper.mapToDto(stream);
-    }
+  public StreamDto getCurrentStream() {
+    var stream = streamService.getCurrentStream();
+    return streamMapper.mapToDto(stream);
+  }
 
-    public Page<StreamDto> getStreams(Pageable pageable) {
-        var streams = streamService.findAll(pageable);
-        return streams.map(streamMapper::mapToDto);
-    }
+  public Page<StreamDto> getStreams(Pageable pageable) {
+    var streams = streamService.findAll(pageable);
+    return streams.map(streamMapper::mapToDto);
+  }
 
-    public List<NTIMarketDto> getNTIMarkets() {
-        var ntiMarkets = streamService.getNTIMarkets();
-        return ntiMarkets.stream()
-                .map(ntiMarketMapper::mapToDto)
-                .toList();
-    }
+  public List<NTIMarketDto> getNTIMarkets() {
+    var ntiMarkets = streamService.getNTIMarkets();
+    return ntiMarkets.stream()
+        .map(ntiMarketMapper::mapToDto)
+        .toList();
+  }
 }

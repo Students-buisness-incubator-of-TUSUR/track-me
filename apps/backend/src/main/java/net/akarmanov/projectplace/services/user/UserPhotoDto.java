@@ -6,8 +6,8 @@ import java.util.UUID;
 
 @Builder
 public record UserPhotoDto(
-        UUID id,
-        String fileName,
-        byte[] photo
+    UUID id,
+    String fileName,
+    byte[] photo
 ) {
 }

@@ -21,83 +21,84 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
-    private static final UsernamePasswordAuthenticationToken superadmin = new UsernamePasswordAuthenticationToken(
-            "superadmin", "superadmin");
+  private static final UsernamePasswordAuthenticationToken superadmin = new UsernamePasswordAuthenticationToken(
+      "superadmin", "superadmin");
 
-    @Autowired
-    private TeamCardsService teamCardsService;
+  @Autowired
+  private TeamCardsService teamCardsService;
 
-    @Autowired
-    private TeamCardsRepository teamCardsRepository;
+  @Autowired
+  private TeamCardsRepository teamCardsRepository;
 
-    @AfterEach
-    void tearDown() {
-        teamCardsRepository.deleteAll();
-    }
+  @AfterEach
+  void tearDown() {
+    teamCardsRepository.deleteAll();
+  }
 
-    @Test
-    @WithMockUser(value = "test_tracker")
-    void createTeamCard_success() throws Exception {
-        mockMvc.perform(post("/api/v1/team-cards/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "name": "Test",
-                                  "description": "Test description"
-                                }
-                                """))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.name", is("Test")));
-    }
+  @Test
+  @WithMockUser(value = "test_tracker")
+  void createTeamCard_success() throws Exception {
+    mockMvc.perform(post("/api/v1/team-cards/create")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "name": "Test",
+                  "description": "Test description"
+                }
+                """))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.name", is("Test")));
+  }
 
-    @Test
-    @WithMockUser("test_tracker")
-    void createTeamCard_validationError() throws Exception {
-        mockMvc.perform(post("/api/v1/team-cards/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
+  @Test
+  @WithMockUser("test_tracker")
+  void createTeamCard_validationError() throws Exception {
+    mockMvc.perform(post("/api/v1/team-cards/create")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{}"))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+  }
 
-    @Test
-    @WithMockUser("test_tracker")
-    void updateTeamCard_success() throws Exception {
-        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
-                .status(TeamCardStatus.OK)
-                .name("Team card1")
-                .build());
+  @Test
+  @WithMockUser("test_tracker")
+  void updateTeamCard_success() throws Exception {
+    var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .build());
 
-        mockMvc.perform(post("/api/v1/team-cards/update")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("teamCardId", teamCard.getId().toString())
-                        .content("""
-                                {
-                                  "name": "Updated name",
-                                  "description": "Updated description"
-                                }
-                                """))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
-                .andExpect(jsonPath("$.name", is("Updated name")));
-    }
+    mockMvc.perform(post("/api/v1/team-cards/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .param("teamCardId", teamCard.getId().toString())
+            .content("""
+                {
+                  "name": "Updated name",
+                  "description": "Updated description"
+                }
+                """))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
+        .andExpect(jsonPath("$.name", is("Updated name")));
+  }
 
-    @Test
-    @WithMockUser(value = "test_tracker", roles = "TRACKER")
-    void getTeamCard_success() throws Exception {
-        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
-                .status(TeamCardStatus.OK)
-                .name("Team card1")
-                .build());
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCard_success() throws Exception {
+    var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .build());
 
-        mockMvc.perform(get("/api/v1/team-cards/get")
-                        .param("id", teamCard.getId().toString()))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
-                .andExpect(jsonPath("$.name", is("Team card1")));
-    }
+    mockMvc.perform(get("/api/v1/team-cards/get")
+            .param("id", teamCard.getId().toString()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
+        .andExpect(jsonPath("$.name", is("Team card1")));
+  }
 }

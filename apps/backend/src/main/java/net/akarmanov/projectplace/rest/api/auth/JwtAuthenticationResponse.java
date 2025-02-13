@@ -7,13 +7,13 @@ import lombok.Data;
 @Data
 @Schema(description = "Ответ на аутентификацию.")
 public class JwtAuthenticationResponse {
-    @Schema(description = "Токен.")
-    private String accessToken;
+  @Schema(description = "Токен.")
+  private String accessToken;
 
-    @Schema(description = "Тип токена.")
-    private String tokenType = "Bearer";
+  @Schema(description = "Тип токена.")
+  private String tokenType = "Bearer";
 
-    public JwtAuthenticationResponse(String accessToken) {
-        this.accessToken = accessToken;
-    }
+  public JwtAuthenticationResponse(String accessToken) {
+    this.accessToken = accessToken;
+  }
 }

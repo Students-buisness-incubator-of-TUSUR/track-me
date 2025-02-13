@@ -6,8 +6,8 @@ databaseChangeLog:
       preConditions:
         - onFail: MARK_RAN
           columnExists:
-              tableName: stream
-              columnName: nti_market
+            tableName: stream
+            columnName: nti_market
       changes:
         - dropColumn:
             tableName: stream

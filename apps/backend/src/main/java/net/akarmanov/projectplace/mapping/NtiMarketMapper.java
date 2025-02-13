@@ -9,10 +9,13 @@ import static org.mapstruct.NullValueCheckStrategy.ALWAYS;
 import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
 
 @Mapper(
-        componentModel = "spring", nullValueCheckStrategy = ALWAYS, nullValuePropertyMappingStrategy = IGNORE)
+    componentModel = "spring",
+    nullValueCheckStrategy = ALWAYS,
+    nullValuePropertyMappingStrategy = IGNORE)
 public interface NtiMarketMapper {
-    @Mapping(target = "streams", ignore = true)
-    NTIMarket mapToEntity(NTIMarketDto dto);
+  @Mapping(target = "streams",
+           ignore = true)
+  NTIMarket mapToEntity(NTIMarketDto dto);
 
-    NTIMarketDto mapToDto(NTIMarket entity);
+  NTIMarketDto mapToDto(NTIMarket entity);
 }

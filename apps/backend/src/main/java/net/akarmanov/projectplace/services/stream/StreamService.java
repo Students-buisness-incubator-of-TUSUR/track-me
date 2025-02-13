@@ -9,19 +9,19 @@ import java.util.List;
 import java.util.UUID;
 
 public interface StreamService {
-    Stream create(Stream createdStream);
+  Stream create(Stream createdStream);
 
-    Stream getById(UUID id);
+  Stream getById(UUID id);
 
-    Stream getCurrentStream();
+  Stream getCurrentStream();
 
-    Stream save(Stream stream);
+  Stream save(Stream stream);
 
-    Page<Stream> find(Pageable pageable);
+  Page<Stream> find(Pageable pageable);
 
-    void delete(UUID streamId);
+  void delete(UUID streamId);
 
-    Page<Stream> findAll(Pageable pageable);
+  Page<Stream> findAll(Pageable pageable);
 
-    List<NTIMarket> getNTIMarkets();
+  List<NTIMarket> getNTIMarkets();
 }

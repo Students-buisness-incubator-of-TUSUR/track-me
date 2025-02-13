@@ -16,23 +16,23 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminTrackerRestControllerImpl implements AdministrationRestController {
 
-    private final AdministrationService administrationService;
+  private final AdministrationService administrationService;
 
-    @Override
-    public ResponseEntity<Void> confirm(UUID userId) {
-        administrationService.confirmUser(userId);
-        return ResponseEntity.ok().build();
-    }
+  @Override
+  public ResponseEntity<Void> confirm(UUID userId) {
+    administrationService.confirmUser(userId);
+    return ResponseEntity.ok().build();
+  }
 
-    @Override
-    public ResponseEntity<Void> unconfirm(UUID userId) {
-        administrationService.unconfirmUser(userId);
-        return ResponseEntity.ok().build();
-    }
+  @Override
+  public ResponseEntity<Void> unconfirm(UUID userId) {
+    administrationService.unconfirmUser(userId);
+    return ResponseEntity.ok().build();
+  }
 
-    @Override
-    public ResponseEntity<Page<UserDTO>> all(Pageable pageable) {
-        var trackers = administrationService.getAllUsers(pageable);
-        return ResponseEntity.ok(trackers);
-    }
+  @Override
+  public ResponseEntity<Page<UserDTO>> all(Pageable pageable) {
+    var trackers = administrationService.getAllUsers(pageable);
+    return ResponseEntity.ok(trackers);
+  }
 }
