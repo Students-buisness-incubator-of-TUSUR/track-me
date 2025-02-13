@@ -17,6 +17,17 @@ jobs:
         with:
           base_sha: ${{ github.pull_request.base.sha }}
 
+      - name: Cache Gradle dependencies
+        id: gradle-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle', '**/gradle.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
       - name: Check if backend files changed
         id: backend-changed
         run: |
@@ -26,3 +37,37 @@ jobs:
       - name: Run backend tests
         if: steps.backend-changed.outputs.changed == 'true'
         run: ./gradlew :apps:backend:test
+
+      - name: Check if frontend files changed
+        id: frontend-changed
+        run: |
+          changed=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep -q '^apps/frontend/' && echo true || echo false)
+          echo "::set-output name=changed::$changed"
+
+      - name: Set up Node.js
+        if: steps.frontend-changed.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Укажите нужную версию Node.js
+
+      - name: Cache Node.js modules
+        if: steps.frontend-changed.outputs.changed == 'true'
+        id: node-cache
+        uses: actions/cache@v4
+        with:
+          path: apps/frontend/node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('apps/frontend/package-lock.json') }}
+          restore-keys: |
+            node-modules-${{ runner.os }}-
+
+      - name: Install frontend dependencies
+        if: steps.frontend-changed.outputs.changed == 'true'
+        run: |
+          cd apps/frontend
+          npm install
+
+      - name: Run frontend tests
+        if: steps.frontend-changed.outputs.changed == 'true'
+        run: |
+          cd apps/frontend
+          npm test
