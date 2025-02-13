@@ -31,5 +31,6 @@ public interface AccountRestController {
 
   @PostMapping("/current/changePassword")
   @Operation(summary = "Изменение пароля текущего пользователя")
-  ResponseEntity<Void> changePassword(@RequestParam String oldPassword, @RequestParam String newPassword);
+  ResponseEntity<Void> changePassword(@RequestParam String oldPassword,
+                                      @RequestParam String newPassword);
 }

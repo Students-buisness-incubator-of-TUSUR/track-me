@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class AclService {
-  private final MutableAclService aclService;
+  private final MutableAclService mutableAclService;
 
   public MutableAcl createAcl(Object identity) {
     var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -41,39 +41,39 @@ public class AclService {
   public MutableAcl createAcl(Object identity, String principle, List<? extends Permission> permissions) {
     var objectIdentity = new ObjectIdentityImpl(identity);
     var sid = new PrincipalSid(principle);
-    aclService.createAcl(objectIdentity);
+    mutableAclService.createAcl(objectIdentity);
     return addPermissions(objectIdentity, sid, permissions);
   }
 
   public void updateAcl(Object identity, String principle) {
     var objectIdentity = new ObjectIdentityImpl(identity);
     var sid = new PrincipalSid(principle);
-    var acl = (MutableAcl) aclService.readAclById(objectIdentity);
+    var acl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
     acl.setOwner(sid);
-    aclService.updateAcl(acl);
+    mutableAclService.updateAcl(acl);
   }
 
   public MutableAcl addPermissions(ObjectIdentity objectIdentity, Sid sid, List<? extends Permission> permissions) {
     // Add permission to the ACL for the given object identity and SID
-    MutableAcl acl = (MutableAcl) aclService.readAclById(objectIdentity);
+    MutableAcl acl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
     acl.setOwner(sid);
     for (var permission : permissions) {
       acl.insertAce(acl.getEntries().size(), permission, sid, true);
     }
-    return aclService.updateAcl(acl);
+    return mutableAclService.updateAcl(acl);
   }
 
   public void createAclWithParent(Object identity, Object parent) {
     var parentObjectIdentity = new ObjectIdentityImpl(parent);
     var acl = createAcl(identity);
-    var parentAcl = (MutableAcl) aclService.readAclById(parentObjectIdentity);
+    var parentAcl = (MutableAcl) mutableAclService.readAclById(parentObjectIdentity);
     acl.setParent(parentAcl);
-    aclService.updateAcl(acl);
+    mutableAclService.updateAcl(acl);
   }
 
   public void removePermission(ObjectIdentity objectIdentity, Sid sid, Permission permission) {
     // Remove permission from the ACL for the given object identity and SID
-    MutableAcl acl = (MutableAcl) aclService.readAclById(objectIdentity);
+    MutableAcl acl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
     List<AccessControlEntry> entries = acl.getEntries();
     for (int i = 0; i < entries.size(); i++) {
       AccessControlEntry entry = entries.get(i);
@@ -82,11 +82,11 @@ public class AclService {
         break;
       }
     }
-    aclService.updateAcl(acl);
+    mutableAclService.updateAcl(acl);
   }
 
   public void deleteAcl(TeamCard teamCard) {
     var objectIdentity = new ObjectIdentityImpl(teamCard);
-    aclService.deleteAcl(objectIdentity, true);
+    mutableAclService.deleteAcl(objectIdentity, true);
   }
 }

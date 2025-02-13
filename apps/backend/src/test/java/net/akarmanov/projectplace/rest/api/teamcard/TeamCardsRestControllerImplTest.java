@@ -14,6 +14,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,7 +39,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   @Test
   @WithMockUser(value = "test_tracker")
   void createTeamCard_success() throws Exception {
-    mockMvc.perform(post("/api/v1/team-cards/create")
+    mockMvc.perform(post("/api/v1/team-card")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
                 {
@@ -55,7 +56,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   @Test
   @WithMockUser("test_tracker")
   void createTeamCard_validationError() throws Exception {
-    mockMvc.perform(post("/api/v1/team-cards/create")
+    mockMvc.perform(post("/api/v1/team-card")
             .contentType(MediaType.APPLICATION_JSON)
             .content("{}"))
         .andDo(print())
@@ -70,7 +71,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .name("Team card1")
         .build());
 
-    mockMvc.perform(post("/api/v1/team-cards/update")
+    mockMvc.perform(patch("/api/v1/team-card")
             .contentType(MediaType.APPLICATION_JSON)
             .param("teamCardId", teamCard.getId().toString())
             .content("""
@@ -94,7 +95,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .name("Team card1")
         .build());
 
-    mockMvc.perform(get("/api/v1/team-cards/get")
+    mockMvc.perform(get("/api/v1/team-card")
             .param("id", teamCard.getId().toString()))
         .andDo(print())
         .andExpect(status().isOk())
