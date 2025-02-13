@@ -27,7 +27,7 @@ public interface AccountRestController {
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   @Operation(summary = "Обновление информации о текущем пользователе")
-  ResponseEntity<UserDTO> updateCurrentUserInfo(@Valid @RequestBody UserUpdateDTO userDTO);
+  ResponseEntity<UserDTO> updateCurrentUserInfo(@Valid @RequestBody UserUpdateDTO userDto);
 
   @PostMapping("/current/changePassword")
   @Operation(summary = "Изменение пароля текущего пользователя")
