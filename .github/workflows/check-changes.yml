@@ -11,16 +11,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check for changes in backend
-        id: backend
-        run: |
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qE '^apps/backend/' || exit 1
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          base_sha: ${{ github.pull_request.base.sha }}
 
-      - name: Check for changes in frontend
-        id: frontend
+      - name: Check if backend files changed
+        id: backend-changed
         run: |
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -qE '^apps/frontend/' || exit 1
+          changed=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep -q '^apps/backend/' && echo true || echo false)
+          echo "::set-output name=changed::$changed"
 
-      - name: Run tests for backend
-        if: steps.backend.outcome == 'success'
+      - name: Run backend tests
+        if: steps.backend-changed.outputs.changed == 'true'
         run: ./gradlew :apps:backend:test

@@ -5,10 +5,9 @@ databaseChangeLog:
       dbms: h2, postgresql
       preConditions:
         - onFail: MARK_RAN
-          not:
-            - columnExists:
-                tableName: stream
-                columnName: nti_market
+          columnExists:
+              tableName: stream
+              columnName: nti_market
       changes:
         - dropColumn:
             tableName: stream
