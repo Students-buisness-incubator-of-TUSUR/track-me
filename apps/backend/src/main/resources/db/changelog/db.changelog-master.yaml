@@ -7,3 +7,5 @@ databaseChangeLog:
       file: db/changelog/update-db-schema-1.yaml
   - include:
       file: db/changelog/insert-nti-markets.yaml
+  - include:
+      file: db/changelog/remove-nti-market-column.yaml

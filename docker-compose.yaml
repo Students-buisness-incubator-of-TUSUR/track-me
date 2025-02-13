@@ -9,24 +9,31 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - demo
 
   backend:
     container_name: track-me-backend
-    image: track-me-backend:latest
+    image: akarmanoff/track-me-backend:latest
     restart: always
+    env_file:
+      - .env
     depends_on:
       - postgres
     environment:
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project-place
       SPRING_DATASOURCE_USERNAME: project-place
       SPRING_DATASOURCE_PASSWORD: project-place
     ports:
       - '8080:8080'
     volumes:
-      - .:/app
       - /var/run/docker.sock:/var/run/docker.sock
-    working_dir: /app
+    networks:
+      - demo
 
 volumes:
   postgres_data:
+
+networks:
+  demo:
+    driver: bridge

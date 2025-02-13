@@ -1,9 +1,6 @@
 name: deploy.yml
 on:
   push:
-    branches:
-      - develop
-      - main
     tags:
       - v*
 jobs:

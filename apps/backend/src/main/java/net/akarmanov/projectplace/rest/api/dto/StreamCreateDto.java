@@ -19,8 +19,9 @@ public record StreamCreateDto(
         @NotNull(message = "Дата окончания потока не может быть пустой")
         @Future(message = "Дата окончания потока должна быть в будущем")
         LocalDate endDate,
-        @Schema(description = "Уровень готовности", implementation = ReadinessLevel.class)
+        @Schema(description = "Уровень готовности", example = "0-2", allowableValues = {"0-2", "3-5", "6-8", "9-10"})
         @NotBlank(message = "Уровень готовности не может быть пустым")
+        @Pattern(regexp = "^\\d-\\d$", message = "Уровень готовности должен быть в формате '1-1'")
         String readinessLevel,
         @Schema(description = "Рынки НТИ")
         @Size(min = 1, message = "Должен быть выбран хотя бы один рынок НТИ")

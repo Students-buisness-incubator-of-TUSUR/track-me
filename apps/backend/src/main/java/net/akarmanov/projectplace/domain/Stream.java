@@ -39,7 +39,7 @@ public class Stream {
             joinColumns = @JoinColumn(name = "stream_id"),
             inverseJoinColumns = @JoinColumn(name = "nti_market_id")
     )
-    private Set<NTIMarket> ntiMarkets;
+    private Set<NTIMarket> ntiMarkets = new HashSet<>();
 
     @Column
     @Enumerated(EnumType.STRING)
