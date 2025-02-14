@@ -3,6 +3,7 @@ package net.akarmanov.projectplace.services.teamcard;
 import net.akarmanov.projectplace.domain.TeamCard;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.UUID;
 
@@ -11,7 +12,7 @@ public interface TeamCardsService {
 
   TeamCard updateTeamCard(UUID teamCardId, TeamCard updateTeamCardDto);
 
-  Page<TeamCard> getTeamCards(String name, String status, Pageable pageable, UUID userId);
+  Page<TeamCard> getTeamCards(Specification<TeamCard> specification, Pageable pageable, UUID userId);
 
   TeamCard getTeamCard(UUID id);
 
@@ -21,11 +22,9 @@ public interface TeamCardsService {
 
   TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCard, UUID userId);
 
-  Page<TeamCard> findAll(String name, String status, Pageable pageable);
+  Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable);
 
   TeamCard getTeamCard(UUID id, UUID userId);
 
   void deleteTeamCard(UUID id, UUID userId);
-
-
 }

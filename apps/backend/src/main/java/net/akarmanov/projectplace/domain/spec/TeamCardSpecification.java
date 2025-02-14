@@ -1,11 +1,25 @@
 package net.akarmanov.projectplace.domain.spec;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import net.akarmanov.projectplace.domain.TeamCard;
+import net.akarmanov.projectplace.models.Filter;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-public class TeamCardSpecification {
+public class TeamCardSpecification implements Specification<TeamCard> {
+
+  private final transient List<Filter> filters;
+
+  private TeamCardSpecification(List<Filter> filters) {
+    this.filters = filters;
+  }
+
   public static Specification<TeamCard> nameLike(String name) {
     return (root, query, builder) -> {
       if (name == null) {
@@ -29,5 +43,20 @@ public class TeamCardSpecification {
       var userJoin = root.join("user");
       return criteriaBuilder.equal(userJoin.get("id"), userId);
     };
+  }
+
+  public static TeamCardSpecification withFilters(List<Filter> filters) {
+    return new TeamCardSpecification(filters);
+  }
+
+  @Override
+  public Predicate toPredicate(Root<TeamCard> root,
+                               CriteriaQuery<?> query,
+                               CriteriaBuilder criteriaBuilder) {
+    List<Predicate> predicates = new ArrayList<>();
+    for (var filter : filters) {
+      predicates.add(filter.toPredicate(root, criteriaBuilder));
+    }
+    return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
   }
 }

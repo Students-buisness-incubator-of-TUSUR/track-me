@@ -10,15 +10,13 @@ import net.akarmanov.projectplace.services.exceptions.TeamCardNotFoundException;
 import net.akarmanov.projectplace.services.user.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-import static net.akarmanov.projectplace.domain.spec.TeamCardSpecification.nameLike;
-import static net.akarmanov.projectplace.domain.spec.TeamCardSpecification.statusEquals;
 import static net.akarmanov.projectplace.domain.spec.TeamCardSpecification.userEquals;
-import static org.springframework.data.jpa.domain.Specification.where;
 
 @Service
 @Transactional
@@ -56,10 +54,11 @@ public class DomainTeamCardsService implements TeamCardsService {
   }
 
   @Override
-  public Page<TeamCard> getTeamCards(String name, String status, Pageable pageable, UUID userId) {
-    return teamCardsRepository.findAll(
-        where(nameLike(name).or(statusEquals(status)))
-            .and(userEquals(userId)), pageable);
+  public Page<TeamCard> getTeamCards(Specification<TeamCard> specification,
+                                     Pageable pageable,
+                                     UUID userId) {
+    return teamCardsRepository.findAll(specification
+        .and(userEquals(userId)), pageable);
   }
 
   @Override
@@ -97,9 +96,8 @@ public class DomainTeamCardsService implements TeamCardsService {
   }
 
   @Override
-  public Page<TeamCard> findAll(String name, String status, Pageable pageable) {
-    return teamCardsRepository.findAll(
-        where(nameLike(name).or(statusEquals(status))), pageable);
+  public Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable) {
+    return teamCardsRepository.findAll(specification, pageable);
   }
 
   @Override

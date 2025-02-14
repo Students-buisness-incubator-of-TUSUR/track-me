@@ -81,4 +81,16 @@ public class DefaultExceptionHandler {
         .build();
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(restError);
   }
+
+  // обработчик ошибок фильтрации сущностей JPA Specification
+  @ResponseBody
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<RestError> handleIllegalArgumentException(IllegalArgumentException ex) {
+    var restError = RestError.builder()
+        .code(HttpStatus.BAD_REQUEST.toString())
+        .message(ex.getMessage())
+        .build();
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(restError);
+  }
 }

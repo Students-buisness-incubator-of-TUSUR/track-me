@@ -9,7 +9,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.hamcrest.Matchers.is;
@@ -21,9 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class TeamCardsRestControllerImplTest extends BaseApplicationTest {
-
-  private static final UsernamePasswordAuthenticationToken superadmin = new UsernamePasswordAuthenticationToken(
-      "superadmin", "superadmin");
 
   @Autowired
   private TeamCardsService teamCardsService;
@@ -101,5 +97,205 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
         .andExpect(jsonPath("$.name", is("Team card1")));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withoutFilters_success() throws Exception {
+    teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .description("Team card1 description")
+        .build());
+    teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card2")
+        .description("Team card2 description")
+        .build());
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("[]"))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(2)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_likeName_success() throws Exception {
+    var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .description("Team card1 description")
+        .build());
+    teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card2")
+        .description("Team card2 description")
+        .build());
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                [
+                  {
+                    "fieldName": "name",
+                    "value": "card1",
+                    "operationType": "LIKE"
+                  }
+                ]
+                """))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].id", is(teamCard1.getId().toString())))
+        .andExpect(jsonPath("$.content[0].name", is("Team card1")))
+        .andExpect(jsonPath("$.page.totalElements", is(1)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_emptyResult() throws Exception {
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                [
+                  {
+                    "fieldName": "name",
+                    "value": "card1",
+                    "operationType": "LIKE"
+                  }
+                ]
+                """))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isEmpty());
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_validationError() throws Exception {
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{}"))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_in_success() throws Exception {
+    var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .description("Team card1 description")
+        .build());
+    var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card2")
+        .description("Team card2 description")
+        .build());
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .param("sort", "name,asc")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                [
+                  {
+                    "fieldName": "name",
+                    "values": ["%s", "%s"],
+                    "operationType": "IN"
+                  }
+                ]
+                """.formatted(teamCard1.getName(), teamCard2.getName()))
+        )
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].id", is(teamCard1.getId().toString())))
+        .andExpect(jsonPath("$.content[0].name", is("Team card1")))
+        .andExpect(jsonPath("$.content[1].id", is(teamCard2.getId().toString())))
+        .andExpect(jsonPath("$.content[1].name", is("Team card2")))
+        .andExpect(jsonPath("$.page.totalElements", is(2)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_join_success() throws Exception {
+    var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .description("Team card1 description")
+        .build());
+    var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card2")
+        .description("Team card2 description")
+        .build());
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .param("sort", "name,asc")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                [
+                  {
+                    "fieldName": "telegramId",
+                    "value": "%s",
+                    "joinFieldName": "user",
+                    "operationType": "EQUAL"
+                  }
+                ]
+                """.formatted("test_tracker"))
+        )
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].id", is(teamCard1.getId().toString())))
+        .andExpect(jsonPath("$.content[0].name", is("Team card1")))
+        .andExpect(jsonPath("$.content[1].id", is(teamCard2.getId().toString())))
+        .andExpect(jsonPath("$.content[1].name", is("Team card2")))
+        .andExpect(jsonPath("$.page.totalElements", is(2)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withSomeFilters_success() throws Exception {
+    var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .description("Team card1 description")
+        .build());
+    teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card2")
+        .description("Team card2 description")
+        .build());
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                [
+                  {
+                    "fieldName": "name",
+                    "value": "card1",
+                    "operationType": "LIKE"
+                  },
+                  {
+                    "fieldName": "status",
+                    "value": "OK",
+                    "operationType": "EQUAL"
+                  }
+                ]
+                """))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].id", is(teamCard1.getId().toString())))
+        .andExpect(jsonPath("$.content[0].name", is("Team card1")))
+        .andExpect(jsonPath("$.page.totalElements", is(1)));
   }
 }

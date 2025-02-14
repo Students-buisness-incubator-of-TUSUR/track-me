@@ -1,7 +1,9 @@
 package net.akarmanov.projectplace.rest.api.admin;
 
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.domain.spec.TeamCardSpecification;
 import net.akarmanov.projectplace.mapping.TeamCardMapper;
+import net.akarmanov.projectplace.models.Filter;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
@@ -10,6 +12,7 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -38,8 +41,10 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   }
 
   @Override
-  public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(String name, String status, Pageable pageable) {
-    var page = teamCardsService.findAll(name, status, pageable)
+  public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(Pageable pageable,
+                                                              List<Filter> filters) {
+    var specs = TeamCardSpecification.withFilters(filters);
+    var page = teamCardsService.findAll(specs, pageable)
         .map(teamCardMapper::mapToDto);
     return ResponseEntity.ok(new PagedModel<>(page));
   }

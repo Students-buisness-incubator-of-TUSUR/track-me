@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import net.akarmanov.projectplace.models.Filter;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import org.springdoc.core.annotations.ParameterObject;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Team Cards API",
@@ -29,25 +31,23 @@ public interface TeamCardsRestController {
                consumes = "application/json",
                produces = "application/json")
   @Operation(summary = "Создание карточки команды")
-  ResponseEntity<TeamCardDto> createTeamCard(@Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto);
+  ResponseEntity<TeamCardDto> createTeamCard(
+      @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto);
 
   @PatchMapping(value = "team-card",
                 consumes = "application/json",
                 produces = "application/json")
   @Operation(summary = "Обновление карточки команды")
   ResponseEntity<TeamCardDto> updateTeamCard(@RequestParam UUID teamCardId,
-                                             @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto);
+                                             @Valid @RequestBody
+                                             TeamCardCreateOrUpdateDto teamCardDto);
 
-  @GetMapping(value = "team-cards",
+  @PostMapping(value = "team-cards",
               produces = "application/json")
   @Operation(summary = "Получение списка карточек команд")
   ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(
-      @Parameter(description = "Название карточки команды")
-      @RequestParam(required = false)
-      String name,
-      @Parameter(description = "Статус карточки команды")
-      @RequestParam(required = false)
-      String status,
+      @Parameter(description = "Фильтры для поиска карточек команд")
+      @RequestBody @Valid List<Filter> filters,
       @ParameterObject
       @PageableDefault
       Pageable pageable);

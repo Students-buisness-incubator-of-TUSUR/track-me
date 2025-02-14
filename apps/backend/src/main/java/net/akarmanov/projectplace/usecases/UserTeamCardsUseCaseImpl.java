@@ -2,7 +2,9 @@ package net.akarmanov.projectplace.usecases;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.domain.spec.TeamCardSpecification;
 import net.akarmanov.projectplace.mapping.TeamCardMapper;
+import net.akarmanov.projectplace.models.Filter;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.services.stream.StreamService;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -47,9 +50,10 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
   }
 
   @Override
-  public Page<TeamCardDto> getTeamCards(String name, String status, Pageable pageable) {
+  public Page<TeamCardDto> getTeamCards(List<Filter> filters, Pageable pageable) {
     var user = userService.getCurrentUser();
-    var page = teamCardsService.getTeamCards(name, status, pageable, user.getId());
+    var specs = TeamCardSpecification.withFilters(filters);
+    var page = teamCardsService.getTeamCards(specs, pageable, user.getId());
     return page.map(teamCardMapper::mapToDto);
   }
 
