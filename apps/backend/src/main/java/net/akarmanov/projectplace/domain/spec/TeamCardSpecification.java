@@ -5,7 +5,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import net.akarmanov.projectplace.domain.TeamCard;
-import net.akarmanov.projectplace.models.Filter;
+import net.akarmanov.projectplace.filters.Filter;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;

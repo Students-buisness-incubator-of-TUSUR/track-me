@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.models;
+package net.akarmanov.projectplace.filters;
 
 public enum OperationType {
   EQUAL,
