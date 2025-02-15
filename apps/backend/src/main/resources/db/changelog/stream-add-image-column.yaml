@@ -4,9 +4,10 @@ databaseChangeLog:
       author: akarmanov
       preConditions:
         - onFail: MARK_RAN
-          columnExists:
-            tableName: stream
-            columnName: image
+          not:
+            columnExists:
+              tableName: stream
+              columnName: image
       changes:
         - addColumn:
             tableName: stream
