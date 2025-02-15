@@ -31,6 +31,15 @@ services:
     networks:
       - demo
 
+  frontend:
+    container_name: track-me-frontend
+    image: akarmanoff/track-me-frontend:latest
+    restart: always
+    ports:
+      - '3000:3000'
+    networks:
+      - demo
+
 volumes:
   postgres_data:
 

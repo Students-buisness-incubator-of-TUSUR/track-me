@@ -17,19 +17,39 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Build backend
         run: ./gradlew :apps:backend:build
+
+      - name: Build frontend
+        run: |
+          cd apps/frontend
+          npm install
+          npm run build
+          cd ../..
 
       - name: Build backend Docker image
         run: docker build -t track-me-backend:${{ github.ref_name }} ./apps/backend
 
+      - name: Build frontend Docker image
+        run: docker build -t track-me-frontend:${{ github.ref_name }} ./apps/frontend
+
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Docker push
+      - name: Docker push backend
         run: |
-            docker tag track-me-backend:${{ github.ref_name }} ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
-            docker push ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
+          docker tag track-me-backend:${{ github.ref_name }} ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
+
+      - name: Docker push frontend
+        run: |
+          docker tag track-me-frontend:${{ github.ref_name }} ${{ secrets.DOCKER_USERNAME }}/track-me-frontend:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/track-me-frontend:latest
 
       - name: Deploy backend
         uses: appleboy/ssh-action@master
@@ -43,5 +63,18 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
             docker stop track-me-backend || true
             docker rm track-me-backend || true
-            docker compose up -d backend
+            docker compose up -d backend postgres
+
+      - name: Deploy frontend
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd /home/${{ secrets.SSH_USERNAME }}/track-me
+            docker pull ${{ secrets.DOCKER_USERNAME }}/track-me-frontend:latest
+            docker stop track-me-frontend || true
+            docker rm track-me-frontend || true
+            docker compose up -d frontend
           
