@@ -1,5 +1,6 @@
 package net.akarmanov.projectplace.domain;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -60,6 +62,11 @@ public class Stream {
   @Column
   @Enumerated(EnumType.STRING)
   private ReadinessLevel readinessLevel;
+
+  @Lob
+  @Basic(fetch = FetchType.LAZY)
+  @Column(name = "image")
+  private byte[] imageBytes;
 
   @ManyToMany(mappedBy = "streams")
   @Builder.Default

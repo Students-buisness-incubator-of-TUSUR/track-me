@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamUpdateDto;
@@ -55,7 +56,8 @@ public interface StreamAdminRestController {
   @Operation(summary = "Получить все потоки",
              description = "Возвращает список всех потоков с поддержкой пагинации")
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  PagedModel<StreamDto> findAll(@PageableDefault @ParameterObject Pageable pageable);
+  PagedModel<StreamDto> findAll(@RequestBody FilterRequest filterRequest,
+                                @PageableDefault @ParameterObject Pageable pageable);
 
   @Operation(
       summary = "Получить поток по идентификатору",
