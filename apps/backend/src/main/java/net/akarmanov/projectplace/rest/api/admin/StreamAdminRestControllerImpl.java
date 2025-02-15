@@ -1,6 +1,7 @@
 package net.akarmanov.projectplace.rest.api.admin;
 
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamUpdateDto;
@@ -37,8 +38,8 @@ public class StreamAdminRestControllerImpl implements StreamAdminRestController 
   }
 
   @Override
-  public PagedModel<StreamDto> findAll(Pageable pageable) {
-    var streams = streamAdminUseCase.findAllStreams(pageable);
+  public PagedModel<StreamDto> findAll(FilterRequest filterRequest, Pageable pageable) {
+    var streams = streamAdminUseCase.findAllStreams(filterRequest, pageable);
     return new PagedModel<>(streams);
   }
 

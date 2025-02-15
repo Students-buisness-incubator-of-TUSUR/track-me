@@ -1,6 +1,8 @@
 package net.akarmanov.projectplace.usecases;
 
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.domain.spec.StreamSpecification;
+import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.mapping.StreamMapper;
 import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
@@ -37,13 +39,16 @@ public class StreamAdminUseCase {
     streamService.delete(streamId);
   }
 
-  public Page<StreamDto> findAllStreams(Pageable pageable) {
-    return streamService.find(pageable)
+  public Page<StreamDto> findAllStreams(FilterRequest filterRequest, Pageable pageable) {
+    var filters = filterRequest.filters();
+    var specification = StreamSpecification.withFilters(filters);
+    return streamService.findAll(specification, pageable)
         .map(streamMapper::mapToDto);
   }
 
   public StreamDto getById(UUID streamId) {
-    return null;
+    var stream = streamService.getById(streamId);
+    return streamMapper.mapToDto(stream);
   }
 
 }
