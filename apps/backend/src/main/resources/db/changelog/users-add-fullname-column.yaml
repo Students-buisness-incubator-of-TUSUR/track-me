@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: users-add-fullname-column-1
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              tableName: pp_user
+              columnName: full_name
+      changes:
+        - addColumn:
+            tableName: pp_user
+            columns:
+              - column:
+                  name: full_name
+                  type: varchar(255)
+  #      Надо перенести значения из first_тame Last_name и middle_name в fullname
+  - changeSet:
+      id: users-add-fullname-column-2
+      author: akarmanov
+      dbms: h2, postgresql
+      changes:
+        - sql:
+            sql: "UPDATE pp_user SET full_name = CONCAT_WS(' ', last_name, middle_name, first_name)"

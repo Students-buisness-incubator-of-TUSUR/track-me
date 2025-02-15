@@ -9,3 +9,6 @@ databaseChangeLog:
       file: db/changelog/insert-nti-markets.yaml
   - include:
       file: db/changelog/remove-nti-market-column.yaml
+
+  - include:
+      file: db/changelog/users-add-fullname-column.yaml
