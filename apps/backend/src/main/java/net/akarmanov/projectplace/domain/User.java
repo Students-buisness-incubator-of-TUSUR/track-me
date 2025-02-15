@@ -58,15 +58,22 @@ public class User implements UserDetails {
 
   @Size(max = 255)
   @Column(name = "first_name")
+  @Deprecated(forRemoval = true)
   private String firstName;
 
   @Size(max = 255)
   @Column(name = "last_name")
+  @Deprecated(forRemoval = true)
   private String lastName;
 
   @Size(max = 255)
   @Column(name = "middle_name")
+  @Deprecated(forRemoval = true)
   private String middleName;
+
+  @Size(max = 255)
+  @Column(name = "full_name")
+  private String fullName;
 
   @Size(max = 32)
   @Column(name = "phone_number",
