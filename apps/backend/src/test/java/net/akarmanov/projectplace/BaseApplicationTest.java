@@ -28,6 +28,8 @@ import java.time.LocalDate;
     })
 @Sql(value = {"classpath:init-test-schema.sql"},
      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@Sql(value = {"classpath:insert-nti-markets.sql"},
+     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(value = {"classpath:initial-data.sql"},
      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(value = "classpath:cleanup.sql",

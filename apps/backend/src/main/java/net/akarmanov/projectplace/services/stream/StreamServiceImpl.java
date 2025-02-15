@@ -10,6 +10,7 @@ import net.akarmanov.projectplace.services.exceptions.CurrentStreamNotExistsExce
 import net.akarmanov.projectplace.services.exceptions.StreamNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -61,8 +62,8 @@ public class StreamServiceImpl implements StreamService {
   }
 
   @Override
-  public Page<Stream> findAll(Pageable pageable) {
-    return streamRepository.findAll(pageable);
+  public Page<Stream> findAll(Specification<Stream> specification, Pageable pageable) {
+    return streamRepository.findAll(specification, pageable);
   }
 
   @Override

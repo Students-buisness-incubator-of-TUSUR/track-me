@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.filters.Filter;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,13 +14,15 @@ import java.util.List;
 
 public class StreamSpecification implements Specification<Stream> {
 
+  public static final String READINESS_LEVEL_FIELD_NAME = "readinessLevel";
+
   private final transient List<Filter> filters;
 
   private StreamSpecification(List<Filter> filters) {
     this.filters = filters;
   }
 
-  public static StreamSpecification withFilters(List<Filter> filters) {
+  public static Specification<Stream> withFilters(List<Filter> filters) {
     return new StreamSpecification(filters);
   }
 
@@ -29,6 +32,19 @@ public class StreamSpecification implements Specification<Stream> {
                                CriteriaBuilder criteriaBuilder) {
     List<Predicate> predicates = new ArrayList<>();
     for (var filter : filters) {
+      if (READINESS_LEVEL_FIELD_NAME.equals(filter.fieldName())) {
+        filter = Filter.builder()
+            .fieldName(filter.fieldName())
+            .operationType(filter.operationType())
+            .singleValue(ReadinessLevel.fromValue(filter.singleValue()).name())
+            .values(filter.values() != null
+                ? filter.values().stream()
+                .map(ReadinessLevel::fromValue)
+                .map(ReadinessLevel::name)
+                .toList()
+                : null)
+            .build();
+      }
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }
     return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

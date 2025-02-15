@@ -2,6 +2,7 @@ package net.akarmanov.projectplace.rest;
 
 import jakarta.validation.ConstraintViolationException;
 import net.akarmanov.projectplace.services.exceptions.PPNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -87,6 +88,17 @@ public class DefaultExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<RestError> handleIllegalArgumentException(IllegalArgumentException ex) {
+    var restError = RestError.builder()
+        .code(HttpStatus.BAD_REQUEST.toString())
+        .message(ex.getMessage())
+        .build();
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(restError);
+  }
+
+  @ResponseBody
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  public ResponseEntity<RestError> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
     var restError = RestError.builder()
         .code(HttpStatus.BAD_REQUEST.toString())
         .message(ex.getMessage())

@@ -4,6 +4,7 @@ import net.akarmanov.projectplace.domain.NTIMarket;
 import net.akarmanov.projectplace.domain.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +22,7 @@ public interface StreamService {
 
   void delete(UUID streamId);
 
-  Page<Stream> findAll(Pageable pageable);
+  Page<Stream> findAll(Specification<Stream> specification, Pageable pageable);
 
   List<NTIMarket> getNTIMarkets();
 }

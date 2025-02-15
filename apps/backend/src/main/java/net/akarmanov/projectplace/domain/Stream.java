@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -47,12 +48,13 @@ public class Stream {
   @Column
   private LocalDate endDate;
 
-  @ManyToMany
+  @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
       name = "stream_nti_market",
       joinColumns = @JoinColumn(name = "stream_id"),
       inverseJoinColumns = @JoinColumn(name = "nti_market_id")
   )
+  @Builder.Default
   private Set<NTIMarket> ntiMarkets = new HashSet<>();
 
   @Column
