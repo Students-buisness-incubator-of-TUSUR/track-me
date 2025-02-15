@@ -1,8 +1,10 @@
-package net.akarmanov.projectplace.models;
+package net.akarmanov.projectplace.filters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.validation.constraints.NotBlank;
@@ -24,8 +26,6 @@ public record Filter(
     @NotBlank(message = "Имя поля не может быть пустым")
     @Schema(description = "Имя поля")
     String fieldName,
-    @Schema(description = "Имя поля для объединения")
-    String joinFieldName,
     @Schema(description = "Тип операции",
             implementation = OperationType.class)
     @NotNull(message = "Тип операции не может быть пустым")
@@ -37,24 +37,34 @@ public record Filter(
     @JsonProperty("value")
     String singleValue
 ) {
+  private static Path<?> getPath(Root<?> root, String[] fields) {
+    From<?, ?> path = root;
+    for (int i = 0; i < fields.length - 1; i++) {
+      String field = fields[i];
+      path = path.join(field);
+    }
+    return path.get(fields[fields.length - 1]);
+  }
+
   public Predicate toPredicate(Root<?> root,
-                               CriteriaBuilder criteriaBuilder) {
-    if (joinFieldName != null) {
-      return switch (operationType) {
-        case EQUAL ->
-            criteriaBuilder.equal(root.join(joinFieldName).get(fieldName).as(String.class),
-                singleValue);
-        case IN -> root.join(joinFieldName).get(fieldName).as(String.class).in(values);
-        case LIKE -> criteriaBuilder.like(root.join(joinFieldName).get(fieldName).as(String.class),
-            "%" + singleValue + "%");
-      };
-    } else {
-      return switch (operationType) {
-        case EQUAL -> criteriaBuilder.equal(root.get(fieldName).as(String.class), singleValue);
-        case IN -> root.get(fieldName).as(String.class).in(values);
-        case LIKE ->
-            criteriaBuilder.like(root.get(fieldName).as(String.class), "%" + singleValue + "%");
-      };
+                               CriteriaBuilder cb) {
+    var partPath = fieldName.split("\\.");
+    var path = partPath.length > 1 ? getPath(root, partPath) : root.get(fieldName);
+    switch (operationType) {
+      case EQUAL -> {
+        if (values != null) {
+          return path.as(String.class).in(values);
+        } else {
+          return cb.equal(path.as(String.class), singleValue);
+        }
+      }
+      case LIKE -> {
+        return cb.like(cb.lower(path.as(String.class)), "%" + singleValue.toLowerCase() + "%");
+      }
+      case IN -> {
+        return path.as(String.class).in(values);
+      }
+      default -> throw new IllegalArgumentException("Неизвестный тип операции");
     }
   }
 }

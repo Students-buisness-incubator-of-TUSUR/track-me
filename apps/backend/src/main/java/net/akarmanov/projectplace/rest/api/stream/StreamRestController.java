@@ -2,6 +2,8 @@ package net.akarmanov.projectplace.rest.api.stream;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.NTIMarketDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import org.springdoc.core.annotations.ParameterObject;
@@ -9,8 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -24,10 +28,13 @@ public interface StreamRestController {
   @GetMapping("/current")
   ResponseEntity<StreamDto> getCurrentStream();
 
+  @Validated
   @Operation(summary = "Получить список потоков",
              description = "Возвращает список потоков с поддержкой пагинации")
-  @PostMapping
-  PagedModel<StreamDto> getStreams(@PageableDefault @ParameterObject Pageable pageable);
+  @PostMapping(consumes = "application/json",
+               produces = "application/json")
+  PagedModel<StreamDto> getStreams(@RequestBody @Valid FilterRequest filterRequest,
+                                   @PageableDefault @ParameterObject Pageable pageable);
 
 
   @Operation(summary = "Получить список рынков НТИ",

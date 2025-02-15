@@ -1,6 +1,7 @@
 package net.akarmanov.projectplace.rest.api.stream;
 
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.NTIMarketDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import net.akarmanov.projectplace.usecases.StreamUseCase;
@@ -24,8 +25,8 @@ public class StreamRestControllerImpl implements StreamRestController {
   }
 
   @Override
-  public PagedModel<StreamDto> getStreams(Pageable pageable) {
-    var streams = streamUseCase.getStreams(pageable);
+  public PagedModel<StreamDto> getStreams(FilterRequest filterRequest, Pageable pageable) {
+    var streams = streamUseCase.getStreams(filterRequest.filters(), pageable);
     return new PagedModel<>(streams);
   }
 

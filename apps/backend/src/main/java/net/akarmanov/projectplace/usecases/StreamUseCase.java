@@ -1,6 +1,8 @@
 package net.akarmanov.projectplace.usecases;
 
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.domain.spec.StreamSpecification;
+import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.mapping.NtiMarketMapper;
 import net.akarmanov.projectplace.mapping.StreamMapper;
 import net.akarmanov.projectplace.rest.api.dto.NTIMarketDto;
@@ -28,8 +30,9 @@ public class StreamUseCase {
     return streamMapper.mapToDto(stream);
   }
 
-  public Page<StreamDto> getStreams(Pageable pageable) {
-    var streams = streamService.findAll(pageable);
+  public Page<StreamDto> getStreams(List<Filter> filters, Pageable pageable) {
+    var specification = StreamSpecification.withFilters(filters);
+    var streams = streamService.findAll(specification, pageable);
     return streams.map(streamMapper::mapToDto);
   }
 

@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.domain.spec.TeamCardSpecification;
 import net.akarmanov.projectplace.mapping.TeamCardMapper;
-import net.akarmanov.projectplace.models.Filter;
+import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.services.stream.StreamService;

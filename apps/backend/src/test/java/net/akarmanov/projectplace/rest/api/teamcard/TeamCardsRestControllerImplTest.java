@@ -244,7 +244,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             .content("""
                 [
                   {
-                    "fieldName": "telegramId",
+                    "fieldName": "user.telegramId",
                     "value": "%s",
                     "joinFieldName": "user",
                     "operationType": "EQUAL"
