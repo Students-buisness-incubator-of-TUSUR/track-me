@@ -1,38 +1,179 @@
-.App {
+.Stream-header {
+  text-align: center;
+  max-height: 365px;
+}
+.Stream-header-cont{
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+  justify-content: space-between;
+  max-height: 95px;
+  background-color: #8202CD;
+  border-bottom-left-radius: 50px 50px;
+  border-bottom-right-radius: 50px 50px;
+}
+.Stream-header-bottom-cont{
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+  justify-content: space-between;
+  margin-right: 121px;
+  margin-left: 157px;
+  margin-top: 20px;
+}
+.Stream-title{
+  color: white;
+  width: 400;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+.Stream-buttons{
+  display: flex;
   text-align: center;
 }
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.Stream-butt{ 
+  width: 223px;
+  height: 49px;
+  margin: 10px;
+  border-radius: 50px;
+  color: #44069A;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 20px;
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.Stream-title{
+  margin-left: 127px;
 }
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.Stream-pic{
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-self: center;
+  background-image: url("accets/stream-page/personal_account_1.png");
+  width: 42px;
+  height: 42px;
+  margin-left: 59px;
+  margin-right: 121px;
+}
+.Stream-settings-pic{
+  display: flex;
+  align-self: center;
+  width: 101px;
+  height: 60px;
+  background-image: url("accets/stream-page/image.png");
+  background-size: cover;
+  border-radius: 60px;
+  border-color: white;
+}
+.Stream-settings-pic2{
+  background-color: transparent;
+  display: flex;
+  align-self: center;
+  width: 28px;
+  height: 27px;
+  margin: 59px;
+  background-image: url("accets/stream-page/Group.png");
+  background-size:auto;
+  border: transparent;
+}
+.Stream-bottom-buttons{
+  display: flex;
+  }
+.Stream-search-cont{
+  display: flex;
+  text-align: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  flex-direction: row;
+}
+
+.Stream-search-contcont{
+  display: flex;
+  align-self: center;
+  justify-self: end;
+  width: 649px;
+  height: 60px;
+  border-radius: 50px;
+  margin-left: 20px;
+  background-color: rgba(131, 56, 234, 0.4);
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 24px;
   color: white;
 }
-
-.App-link {
-  color: #61dafb;
+.Stream-search {
+  display: flex;
+  justify-self: end;
+  width: 563px;
+  height: 60px;
+  border-top-right-radius: 60px;
+  border-bottom-right-radius: 60px;
+  background-color: transparent;
+  border-color: transparent;
+  color: white;
+}
+.Stream-search {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 24px;
+  background-color: transparent;
+  border-color: transparent;
+  color: white;
+}
+.Stream-search::placeholder{
+  color: white; 
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.Stream-main{
+  margin-top: 26px;
+  display: flex;
+  align-content: space-between;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-right: 101px;
+  margin-left: 101px;
+}
+.Stream-card{
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  border-color: rgb(230, 230, 230);
+  border-width: 1px;
+  border-style: groove;
+  border-radius: 80px;
+  height: 498px;
+  width: 498px;
+  margin-bottom: 71px;
+  box-shadow: 8px 10px 8px rgba(122, 0, 229, 0.39);
+}
+.Stream-card-pic{
+  display: flex;
+  align-self: center;
+  background-image: url("accets/stream-page/rabbit.png");
+  width: 383px;
+  height: 264px;
+  background-position: 50%;
+  background-size: cover;
+  border-radius: 80px;
+}
+.Stream-card-headText{
+  text-align: center;
+  font-weight: 800;
+  font-size: 36px;
+  color: rgba(131, 56, 235, 1);
+}
+.Stream-card-bodyText{
+  text-align: center;
+  font-weight: 400;
+  font-size: 14px;
+  color: black;
+}
+.Stream-footer{
+  display: flex;
+  bottom: 0;
+  min-height: 100px;
+  justify-content: center;
+  align-content: center;
+}
+.Stream-footer-pic{
+  display: flex;
+  align-self: center;
+  background-image: url("accets/stream-page/prokrutka.png");
+  width: 200px;
+  height: 24px;
+  background-size: cover;
 }

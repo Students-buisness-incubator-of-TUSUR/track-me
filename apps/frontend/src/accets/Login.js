@@ -72,14 +72,15 @@ const Login = () => {
   };
 
   return (
-    <div className="container">
+    <div className="login-container">
       <div className="login-box">
-        <h2>ВХОД</h2>
+        <h2 className="login-h2">ВХОД</h2>
         {errorMessage && <p className="error-message oval">{errorMessage}</p>}
         <form onSubmit={handleSubmit}>
           <div className="input-container">
-            <label htmlFor="username">Имя пользователя telegram</label>
+            <label className="login-label" htmlFor="username">Имя пользователя telegram</label>
             <input
+              className="login-input"
               id="username"
               type="text"
               placeholder="Введите имя"
@@ -90,9 +91,10 @@ const Login = () => {
           </div>
 
           <div className="input-container">
-            <label htmlFor="password">Пароль</label>
+            <label className="login-label" htmlFor="password">Пароль</label>
             <div className="password-container">
               <input
+                className="login-input"
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Введите пароль"
@@ -115,7 +117,7 @@ const Login = () => {
             Забыли пароль? Восстановить?
           </a>
 
-          <button type="submit" disabled={loading}>
+          <button className="login-button" type="submit" disabled={loading}>
             {loading ? "Вход..." : "Войти"}
           </button>
 
