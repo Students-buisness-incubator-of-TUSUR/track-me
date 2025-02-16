@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: stream-add-image-column-1
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              tableName: stream
+              columnName: image
+      changes:
+        - addColumn:
+            tableName: stream
+            columns:
+              - column:
+                  name: image
+                  type: BLOB
+                  constraints:
+                    nullable: true
