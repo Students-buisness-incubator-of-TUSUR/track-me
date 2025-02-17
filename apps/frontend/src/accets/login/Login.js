@@ -115,7 +115,7 @@ const Login = () => {
             </div>
           </div>
 
-          <a href="#" className="forgot-password">
+          <a href="/register" className="forgot-password">
             Забыли пароль? Восстановить?
           </a>
 
@@ -124,7 +124,7 @@ const Login = () => {
           </button>
 
           <a
-            href="#"
+            href="/register"
             className="register"
             onClick={handleRegisterClick}
           >
