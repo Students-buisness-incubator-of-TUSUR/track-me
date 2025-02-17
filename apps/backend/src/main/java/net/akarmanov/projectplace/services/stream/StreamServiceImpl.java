@@ -7,12 +7,14 @@ import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.repos.StreamRepository;
 import net.akarmanov.projectplace.services.exceptions.CurrentStreamNotExistsException;
+import net.akarmanov.projectplace.services.exceptions.StreamImageUploadException;
 import net.akarmanov.projectplace.services.exceptions.StreamNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -51,11 +53,6 @@ public class StreamServiceImpl implements StreamService {
   }
 
   @Override
-  public Page<Stream> find(Pageable pageable) {
-    return streamRepository.findAll(pageable);
-  }
-
-  @Override
   @PreAuthorize("hasRole('SUPER_ADMIN')")
   public void delete(UUID streamId) {
     streamRepository.deleteById(streamId);
@@ -69,5 +66,16 @@ public class StreamServiceImpl implements StreamService {
   @Override
   public List<NTIMarket> getNTIMarkets() {
     return ntiMarketRepository.findAll();
+  }
+
+  @Override
+  public void addImage(UUID streamId, MultipartFile file) {
+    var stream = getById(streamId);
+    try {
+      stream.setImageBytes(file.getBytes());
+      streamRepository.save(stream);
+    } catch (Exception e) {
+      throw new StreamImageUploadException(e);
+    }
   }
 }

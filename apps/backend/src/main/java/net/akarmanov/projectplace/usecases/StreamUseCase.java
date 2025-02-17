@@ -11,8 +11,10 @@ import net.akarmanov.projectplace.services.stream.StreamService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -41,5 +43,15 @@ public class StreamUseCase {
     return ntiMarkets.stream()
         .map(ntiMarketMapper::mapToDto)
         .toList();
+  }
+
+
+  public byte[] getStreamImage(UUID streamId) {
+    var stream = streamService.getById(streamId);
+    return stream.getImageBytes();
+  }
+
+  public void addImage(UUID streamId, MultipartFile file) {
+    streamService.addImage(streamId, file);
   }
 }

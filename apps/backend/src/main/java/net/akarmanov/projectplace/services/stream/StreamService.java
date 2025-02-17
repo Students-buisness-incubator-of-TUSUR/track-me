@@ -5,6 +5,7 @@ import net.akarmanov.projectplace.domain.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,11 +19,11 @@ public interface StreamService {
 
   Stream save(Stream stream);
 
-  Page<Stream> find(Pageable pageable);
-
   void delete(UUID streamId);
 
   Page<Stream> findAll(Specification<Stream> specification, Pageable pageable);
 
   List<NTIMarket> getNTIMarkets();
+
+  void addImage(UUID streamId, MultipartFile file);
 }
