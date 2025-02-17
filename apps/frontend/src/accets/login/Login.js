@@ -90,8 +90,8 @@ const Login = () => {
               required
             />
           </div>
-          
-          {/* <div className="input-container">
+
+          <div className="input-container">
             <label className="login-label" htmlFor="password">Пароль</label>
             <div className="password-container">
               <input
@@ -113,9 +113,9 @@ const Login = () => {
                 style={{ cursor: "pointer" }}
               />
             </div>
-          </div> */}
+          </div>
 
-          <a href="#" className="forgot-password">
+          <a href="#" className="forgot-password" onClick={handleRegisterClick}>
             Забыли пароль? Восстановить?
           </a>
 
