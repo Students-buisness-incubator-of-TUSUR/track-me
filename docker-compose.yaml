@@ -35,10 +35,14 @@ services:
     container_name: track-me-frontend
     image: akarmanoff/track-me-frontend:latest
     restart: always
+    depends_on:
+      - backend
     ports:
-      - '3000:3000'
+      - '3001:3000'
     networks:
       - demo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
   postgres_data:
