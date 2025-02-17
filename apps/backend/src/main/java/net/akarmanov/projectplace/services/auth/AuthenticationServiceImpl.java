@@ -33,9 +33,7 @@ class AuthenticationServiceImpl implements AuthenticationService {
   public JwtAuthenticationResponse singUp(SingUpRequest singUpRequest) {
     var stream = streamService.getCurrentStream();
     var user = User.builder()
-        .firstName(singUpRequest.getFirstName())
-        .lastName(singUpRequest.getLastName())
-        .middleName(singUpRequest.getMiddleName())
+        .fullName(singUpRequest.getFullName())
         .telegramId(singUpRequest.getTelegramId())
         .phoneNumber(singUpRequest.getPhoneNumber())
         .role(UserRole.valueOf(singUpRequest.getRole().toString()))

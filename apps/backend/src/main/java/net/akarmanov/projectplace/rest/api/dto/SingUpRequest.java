@@ -22,19 +22,10 @@ public class SingUpRequest {
   private String password;
 
   @Size(max = 255,
-        message = "Имя должно быть не более 255 символов.")
-  @Schema(description = "Имя.")
-  private String firstName;
-
-  @Size(max = 255,
-        message = "Фамилия должна быть не более 255 символов.")
-  @Schema(description = "Фамилия.")
-  private String lastName;
-
-  @Size(max = 255,
-        message = "Отчество должно быть не более 255 символов.")
-  @Schema(description = "Отчество.")
-  private String middleName;
+        message = "Полное имя должно быть не более 255 символов.")
+  @Schema(description = "Полное имя.")
+  @NotBlank(message = "Полное имя не может быть null.")
+  private String fullName;
 
   @Pattern(regexp = "^\\+7\\d{10}$",
            message = "Номер телефона должен быть в формате +7XXXXXXXXXX.")

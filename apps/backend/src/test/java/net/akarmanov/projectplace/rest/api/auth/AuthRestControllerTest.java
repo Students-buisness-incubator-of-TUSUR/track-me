@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -39,9 +38,6 @@ class AuthRestControllerTest extends BaseApplicationTest {
 
   public static final String PASSWORD = "password";
 
-  private static final UsernamePasswordAuthenticationToken principal =
-      new UsernamePasswordAuthenticationToken(USERNAME, PASSWORD);
-
   @Autowired
   private UserRepository userRepository;
 
@@ -60,7 +56,7 @@ class AuthRestControllerTest extends BaseApplicationTest {
         .password(passwordEncoder.encode(PASSWORD))
         .phoneNumber("+71234567890")
         .telegramId(USERNAME)
-        .firstName("John")
+        .fullName("John Doe")
         .enabled(true)
         .role(UserRole.ADMIN)
         .build());
@@ -104,7 +100,7 @@ class AuthRestControllerTest extends BaseApplicationTest {
         .password("newPassword")
         .phoneNumber("+71234567891")
         .telegramId("newTelegramId")
-        .firstName("John")
+        .fullName("John Doe")
         .role(UserRoleDto.ADMIN)
         .build();
     mockMvc.perform(post("/api/v1/auth/sing-up")
@@ -120,6 +116,7 @@ class AuthRestControllerTest extends BaseApplicationTest {
         .password(PASSWORD)
         .phoneNumber("+71234567892")
         .role(UserRoleDto.ADMIN)
+        .fullName("John Doe")
         .build();
     mockMvc.perform(post("/api/v1/auth/sing-up")
             .contentType(APPLICATION_JSON)
