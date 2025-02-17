@@ -36,7 +36,7 @@ jobs:
 
       - name: Run backend tests
         if: steps.backend-changed.outputs.changed == 'true'
-        run: ./gradlew :apps:backend:test
+        run: ./gradlew :apps:backend:build
 
       - name: Check if frontend files changed
         id: frontend-changed
@@ -66,8 +66,16 @@ jobs:
           cd apps/frontend
           npm install
 
+      - name: Build frontend
+        if: steps.frontend-changed.outputs.changed == 'true'
+        run: |
+          cd apps/frontend
+          npm run build
+          cd ../..
+
       - name: Run frontend tests
         if: steps.frontend-changed.outputs.changed == 'true'
         run: |
           cd apps/frontend
           npm test
+          cd ../..
