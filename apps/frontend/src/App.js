@@ -1,13 +1,13 @@
 import React from "react";
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./accets/Login.js";
+import Login from "./accets/login/Login.js";
 import Stream from "./accets/stream-page/stream-page.js";
-
+import TrackerPage from "./accets/teamcard/TrackerPage.js";
 const Register = () => <h1>Страница регистрации</h1>;
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
-const TrackerPage = () => <h1>Страница Трекера</h1>;
+
 
 function App() {
   return (

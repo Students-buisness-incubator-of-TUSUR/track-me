@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "./Login.css"; // Подключаем стили
-
+import eyeOpen from "./Eye-open.png";
+import eyeClosed from "./Eye-closed.png";
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
@@ -102,14 +103,15 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <span
+              <img
+                src={showPassword ? eyeClosed : eyeOpen}
+                alt={showPassword ? "Скрыть пароль" : "Показать пароль"}
                 className="eye-icon"
                 onMouseDown={() => setShowPassword(true)}
                 onMouseUp={() => setShowPassword(false)}
-                onMouseLeave={() => setShowPassword(false)} // Скрыть пароль, если курсор уходит
-              >
-                {showPassword ? "👁‍🗨" : "👁‍🗨"}
-              </span>
+                onMouseLeave={() => setShowPassword(false)}
+                style={{ cursor: "pointer" }}
+              />
             </div>
           </div>
 
