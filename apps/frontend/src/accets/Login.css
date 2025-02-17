@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 /* Общий контейнер */
-.container {
+.login-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -29,7 +29,7 @@
 }
 
 /* Заголовок */
-h2 {
+.login-h2 {
   font-family: 'Montserrat',  monospace;
   font-weight: 450; /* Указываем тонкий шрифт */
   font-size: 96px;
@@ -61,7 +61,7 @@ h2 {
 }
 
 /* Текст над полями */
-label {
+.login-label {
   font-size: 24px;
   color: white;
   font-family: 'Montserrat', sans-serif;
@@ -72,7 +72,7 @@ label {
 }
 
 /* Поля ввода */
-input {
+.login-input {
   width: 470px;
   padding: 25px;
   border: none;
@@ -126,7 +126,7 @@ input {
 }
 
 /* Кнопка входа */
-button {
+.login-button {
   width: 100%;
   max-width: 276px;
   background: white;
@@ -142,6 +142,6 @@ button {
   font-family: 'Montserrat', sans-serif; /* Применяем шрифт к кнопке */
 }
 
-button:hover {
+.login-button:hover {
   background: #e6d7fb;
 }
