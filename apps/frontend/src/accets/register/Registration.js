@@ -18,7 +18,7 @@ const Registration = () => {
   });
 
   const [avatar, setAvatar] = useState(photo1);
-  const [selectedFile, setSelectedFile] = useState(null);
+  //const [selectedFile, setSelectedFile] = useState(null);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
