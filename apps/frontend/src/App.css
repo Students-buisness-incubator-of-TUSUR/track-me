@@ -1,3 +1,6 @@
+body{
+  margin: 0;
+}
 .Stream-header {
   text-align: center;
   max-height: 365px;
@@ -165,16 +168,86 @@
 }
 .Stream-footer{
   display: flex;
+  flex-direction: column;
   bottom: 0;
   min-height: 100px;
   justify-content: center;
   align-content: center;
 }
-.Stream-footer-pic{
+
+.Stream-footer-butts{
+  justify-content: space-between;
   display: flex;
   align-self: center;
-  background-image: url("accets/stream-page/prokrutka.png");
   width: 200px;
   height: 24px;
-  background-size: cover;
+}
+.Stream-footer-button{
+  padding: 0;
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none; 
+}
+.Stream-footer-button-1{
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("accets/stream-page/Polygon-4.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+}
+.Stream-footer-button-2{
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("accets/stream-page/Ellipse\ 6.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+}
+.Stream-footer-button-3{
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("accets/stream-page/Group\ 58.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+}
+.Stream-footer-button-4{
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("accets/stream-page/Ellipse\ 6.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+}
+.Stream-footer-button-5{
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("accets/stream-page/Polygon-3.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+}
+.Stream-footer-p-butts{
+  justify-content: space-between;
+  display: flex;
+  align-self: center;
+  width: 94px;
+  height: 24px;
 }

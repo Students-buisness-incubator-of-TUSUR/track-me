@@ -50,7 +50,7 @@ const Login = () => {
         console.log("Роль пользователя:", userRole);
         // Перенаправление в зависимости от роли
         if (userRole === "SUPER_ADMIN") {
-          navigate("/superadmin");
+          navigate("/stream");
         } else if (userRole === "ADMIN") {
           navigate("/admin");
         } else if (userRole === "TRACKER") {

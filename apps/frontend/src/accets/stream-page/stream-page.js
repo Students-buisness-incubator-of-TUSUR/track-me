@@ -88,7 +88,15 @@ export default function Stream() {
 
           </main>
           <footer className="Stream-footer">
-          <div className="Stream-footer-pic"></div>
+          <div className="Stream-footer-butts">
+            <button className="Stream-footer-button-1"></button>
+            <div className="Stream-footer-p-butts">
+              <button className="Stream-footer-button-2"></button>
+              <button className="Stream-footer-button-3"></button>
+              <button className="Stream-footer-button-4"></button>
+            </div>
+            <button className="Stream-footer-button-5"></button>
+          </div>
           </footer>
         </body>
       </div>
