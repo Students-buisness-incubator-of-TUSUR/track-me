@@ -30,6 +30,7 @@ body{
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 .Stream-buttons{
+  align-items: center;
   display: flex;
   text-align: center;
 }
@@ -45,6 +46,8 @@ body{
 }
 .Stream-title{
   margin-left: 127px;
+  font-size: 40px;
+  font-weight: 400;
 }
 .Stream-pic{
   display: flex;
