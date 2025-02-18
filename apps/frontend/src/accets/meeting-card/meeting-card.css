@@ -1,0 +1,154 @@
+/* Контейнер для центрирования карточки */
+.meeting-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #ffffff; /* Темный фон для контраста */
+}
+
+/* Стили для карточки */
+.meeting-card {
+    width: 1719px;
+    height: 908px;
+    border-radius: 70px;
+    background: linear-gradient(135deg, #c19bf5, #c19bf5);
+    padding: 40px;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Информационные блоки */
+.meeting-info {
+    margin-bottom: 15px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+}
+
+/* Подписи */
+.label {
+    font-weight: bold;
+    font-size: 16px;
+    color: #e8e8e8;
+    margin-right: 10px; /* Отступ между меткой и датой */
+}
+
+/* Оформление данных */
+.meeting-number,
+.meeting-date,
+.task,
+.status {
+    background: #fff;
+    color: #333;
+    padding: 12px 16px;
+    border-radius: 15px;
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Статус команды */
+.status {
+    background: #0db862;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    width: 251px;
+    height: 40px;
+}
+
+/* Скриншот встречи */
+.screenshot {
+    width: 500px;
+    height: 250px;
+    background: #ccc;
+    border-radius: 20px;
+    margin-top: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Поле ссылки */
+.link {
+    background: #fff;
+    color: #333;
+    padding: 12px;
+    border-radius: 12px;
+    width: 400px;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+/* Оформление для даты */
+.meeting-date {
+    background-color: #f0f0f0; /* Цвет фона для даты */
+    padding: 5px 10px;
+    border-radius: 8px; /* Закругленные углы для даты */
+    font-size: 18px;
+}
+
+/* Кнопка редактирования */
+.edit-button {
+    background: #7b52ab;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s ease;
+    align-self: flex-end;
+}
+
+.edit-button:hover {
+    background: #6a4298;
+    transform: scale(1.05);
+}
+
+/* Кнопка удаления */
+.delete-button {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s ease;
+    align-self: flex-end;
+}
+
+.delete-button:hover {
+    background: #c82333;
+    transform: scale(1.05);
+}
+
+/* Кнопка завершения */
+.complete-button {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s ease;
+    align-self: flex-end;
+}
+
+.complete-button:hover {
+    background: #218838;
+    transform: scale(1.05);
+}

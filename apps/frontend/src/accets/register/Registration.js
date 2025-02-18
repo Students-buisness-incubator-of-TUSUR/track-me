@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import './Registration.css';
 import axios from 'axios';
 
+// Импорт картинок
+import photo1 from './folder/1.jpg';
+import photo2 from './folder/2.jpg';
+
 const Registration = () => {
   const [form, setForm] = useState({
     fullName: '',
@@ -13,8 +17,19 @@ const Registration = () => {
     role: '',
   });
 
+  const [avatar, setAvatar] = useState(photo1);
+  const [selectedFile, setSelectedFile] = useState(null);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setAvatar(URL.createObjectURL(file)); // Показываем загруженное фото
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -25,7 +40,6 @@ const Registration = () => {
       return;
     }
 
-    // Разделяем ФИО
     const [lastName = '', firstName = '', middleName = ''] = form.fullName.split(' ');
 
     const userData = {
@@ -50,11 +64,7 @@ const Registration = () => {
       alert('Регистрация прошла успешно!');
     } catch (error) {
       console.error('Registration failed:', error.response?.data || error.message);
-      if (error.response) {
-        alert(`Ошибка при регистрации: ${error.response.data.message || error.response.statusText}`);
-      } else {
-        alert('Ошибка при отправке запроса');
-      }
+      alert('Ошибка при регистрации');
     }
   };
 
@@ -98,6 +108,15 @@ const Registration = () => {
             <option value="TRACKER">Трекер</option>
             <option value="ADMIN">Администратор</option>
           </select>
+        </div>
+
+        {/* Контейнер для аватара */}
+        <div className="avatar-container">
+          <div className="avatar-box">
+            <img src={avatar} alt="Avatar" />
+          </div>
+          <input type="file" accept="image/*" onChange={handleFileChange} />
+          <button type="button" onClick={() => setAvatar(photo2)}>Выбрать другое фото</button>
         </div>
 
         <button type="submit" className="register-button">Зарегистрироваться</button>
