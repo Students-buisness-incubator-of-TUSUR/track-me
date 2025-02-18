@@ -9,12 +9,10 @@ import lombok.Builder;
 @Schema(description = "DTO для обновления данных пользователя")
 @Builder
 public record UserUpdateDTO(
-    @NotBlank(message = "Имя не может быть пустым")
-    String firstName,
-    @NotBlank(message = "Фамилия не может быть пустой")
-    String lastName,
-    @NotBlank(message = "Отчество не может быть пустым")
-    String middleName,
+    @Schema(description = "Полное имя пользователя",
+            example = "Иванов Иван Иванович")
+    @NotBlank(message = "Полное имя не может быть пустым")
+    String fullName,
     @Schema(description = "Номер телефона в формате +7XXXXXXXXXX",
             example = "+71234567890")
     @Pattern(regexp = "^\\+7\\d{10}$",

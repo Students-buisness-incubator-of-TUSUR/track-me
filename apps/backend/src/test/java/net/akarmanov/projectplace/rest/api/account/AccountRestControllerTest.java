@@ -34,18 +34,14 @@ class AccountRestControllerTest extends BaseApplicationTest {
             .contentType("application/json")
             .content("""
                 {
-                  "firstName": "Jane",
-                  "lastName": "Doe",
-                  "middleName": "Middle",
+                  "fullName": "Jane Doe Middle",
                   "phoneNumber": "+71234567890",
                   "telegramId": "telegramId"
                 }
                 """))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.firstName", is("Jane")))
-        .andExpect(jsonPath("$.lastName", is("Doe")))
-        .andExpect(jsonPath("$.middleName", is("Middle")))
+        .andExpect(jsonPath("$.fullName", is("Jane Doe Middle")))
         .andExpect(jsonPath("$.phoneNumber", is("+71234567890")))
         .andExpect(jsonPath("$.telegramId", is("telegramId")));
   }

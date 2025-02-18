@@ -22,6 +22,7 @@ import lombok.Setter;
 import net.akarmanov.projectplace.models.TeamCardStatus;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -47,7 +48,9 @@ public class TeamCard {
   @Column(columnDefinition = "text")
   private String description;
 
-  private Boolean enabled;
+  @Column(nullable = false)
+  @Builder.Default
+  private Boolean enabled = true;
 
   @Column(length = 32)
   @Enumerated(EnumType.STRING)
@@ -60,7 +63,8 @@ public class TeamCard {
 
   @OneToMany(mappedBy = "teamCard",
              cascade = CascadeType.ALL)
-  private Set<Meeting> teamMeetings;
+  @Builder.Default
+  private Set<Meeting> teamMeetings = new HashSet<>();
 
   @ManyToMany
   @JoinTable(
@@ -68,5 +72,6 @@ public class TeamCard {
       joinColumns = @JoinColumn(name = "team_id"),
       inverseJoinColumns = @JoinColumn(name = "stream_id")
   )
-  private Set<Stream> streams;
+  @Builder.Default
+  private Set<Stream> streams = new HashSet<>();
 }
