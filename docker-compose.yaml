@@ -21,7 +21,7 @@ services:
     depends_on:
       - postgres
     environment:
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+#      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project-place
       SPRING_DATASOURCE_USERNAME: project-place
       SPRING_DATASOURCE_PASSWORD: project-place
