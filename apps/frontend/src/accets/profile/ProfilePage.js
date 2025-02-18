@@ -6,7 +6,7 @@ function ProfilePage() {
     <div className="profile-container">
       <div className="profile-header">
         <h1>Личный кабинет</h1>
-        <button className="edit-button">Редактировать</button>
+        <button className="edit-button12">Редактировать</button>
       </div>
 
       <div className="profile-content">
