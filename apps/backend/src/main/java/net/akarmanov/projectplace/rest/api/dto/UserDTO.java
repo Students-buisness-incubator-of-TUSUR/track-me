@@ -7,9 +7,7 @@ import java.util.UUID;
 
 public record UserDTO(
     UUID id,
-    String firstName,
-    String lastName,
-    String middleName,
+    String fullName,
     String phoneNumber,
     String telegramId,
     String email,

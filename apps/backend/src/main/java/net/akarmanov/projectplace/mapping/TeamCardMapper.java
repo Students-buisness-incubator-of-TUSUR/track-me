@@ -7,25 +7,29 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(
-    componentModel = "spring",
-    uses = {UserMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface TeamCardMapper {
-  @Mapping(target = "user",
-           ignore = true)
+  @Mapping(target = "teamMeetings", ignore = true)
+  @Mapping(target = "streams", ignore = true)
+  @Mapping(target = "user", ignore = true)
   TeamCard mapToEntity(TeamCardDto dto);
 
+  @Mapping(target = "user", ignore = true)
+  @Mapping(target = "teamMeetings", ignore = true)
+  @Mapping(target = "streams", ignore = true)
+  @Mapping(target = "status", ignore = true)
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "enabled", ignore = true)
   TeamCard mapToEntity(TeamCardCreateOrUpdateDto dto);
 
-  @Mapping(target = "userId",
-           source = "user.id")
+  @Mapping(target = "userId", source = "user.id")
   TeamCardDto mapToDto(TeamCard entity);
 
-  @Mapping(target = "id",
-           ignore = true)
-  @Mapping(target = "user",
-           ignore = true)
-  @Mapping(target = "status",
-           ignore = true)
+  @Mapping(target = "teamMeetings", ignore = true)
+  @Mapping(target = "streams", ignore = true)
+  @Mapping(target = "enabled", ignore = true)
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "user", ignore = true)
+  @Mapping(target = "status", ignore = true)
   void updateFromDto(TeamCardCreateOrUpdateDto dto, @MappingTarget TeamCard entity);
 }

@@ -12,8 +12,6 @@ import net.akarmanov.projectplace.services.exceptions.PhotoNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 class UserPhotoServiceImpl implements UserPhotoService {
@@ -24,44 +22,32 @@ class UserPhotoServiceImpl implements UserPhotoService {
 
   private final UserPhotoMapper userPhotoMapper;
 
-  @Override
-  public UserPhotoDto getPhoto(UUID photoId) {
-    var userPhoto = userPhotoRepository.findById(photoId)
-        .orElseThrow(() -> new PhotoNotFoundException(photoId));
-    return userPhotoMapper.toModel(userPhoto);
-  }
-
   @SneakyThrows
   @Override
   @Transactional
-  public void addPhotoToUser(UUID userId, MultipartFile file) {
+  public void addPhotoToUser(String telegramId, MultipartFile file) {
 
-    var user = userRepository.findById(userId);
+    var user = userRepository.findByTelegramId(telegramId);
     if (user.isEmpty()) {
-      deletePhoto(userId);
+      deletePhoto(telegramId);
     } else {
       addPhoto(user.get(), file);
     }
   }
 
   @Override
-  public void addPhoto(MultipartFile file) {
-
-  }
-
-  @Override
   @Transactional
-  public void deletePhoto(UUID userId) {
-    var userPhoto = userPhotoRepository.findByUserId(userId)
-        .orElseThrow(() -> new PhotoNotFoundException(userId));
+  public void deletePhoto(String telegramId) {
+    var userPhoto = userPhotoRepository.findByTelegramId(telegramId)
+        .orElseThrow(() -> new PhotoNotFoundException(telegramId));
     userPhotoRepository.delete(userPhoto);
   }
 
   @Override
   @Transactional
-  public UserPhotoDto getPhotoByUserId(UUID userId) {
-    var userPhoto = userPhotoRepository.findByUserId(userId)
-        .orElseThrow(() -> new PhotoNotFoundException(userId));
+  public UserPhotoDto getPhotoByTelegramId(String telegramId) {
+    var userPhoto = userPhotoRepository.findByTelegramId(telegramId)
+        .orElseThrow(() -> new PhotoNotFoundException(telegramId));
     return userPhotoMapper.toModel(userPhoto);
   }
 

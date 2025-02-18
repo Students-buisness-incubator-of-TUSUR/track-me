@@ -6,9 +6,10 @@ import Stream from "./accets/stream-page/stream-page.js";
 import TrackerPage from "./accets/teamcard/TrackerPage.js";
 import Register from "./accets/register/Registration.js"
 import MeetingCard from "./accets/meeting-card/meeting-card.js"
+import ProfilePage from "./accets/profile/ProfilePage.js"; 
+
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
-
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/superadmin" element={<SuperAdminPage />} />
         <Route path="/tracker" element={<TrackerPage />} />
         <Route path="/meetings" element={<MeetingCard />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>
   );
