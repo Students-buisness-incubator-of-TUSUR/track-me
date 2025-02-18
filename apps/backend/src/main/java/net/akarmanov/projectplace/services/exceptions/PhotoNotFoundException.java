@@ -10,4 +10,8 @@ public class PhotoNotFoundException extends PPNotFoundException {
   public PhotoNotFoundException(UUID photoId) {
     super("Фотография пользователя с ID " + photoId + " не найдена!");
   }
+
+  public PhotoNotFoundException(String telegramId) {
+    super("Фотография пользователя с telegramId " + telegramId + " не найдена!");
+  }
 }
