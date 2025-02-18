@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.Root;
 import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.filters.Filter;
+import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -15,6 +16,14 @@ import java.util.List;
 public class StreamSpecification implements Specification<Stream> {
 
   public static final String READINESS_LEVEL_FIELD_NAME = "readinessLevel";
+
+  public static final List<String> ALLOWED_FIELDS = List.of(
+      READINESS_LEVEL_FIELD_NAME,
+      "name",
+      "startDate",
+      "endDate",
+      "ntiMarkets.name"
+  );
 
   private final transient List<Filter> filters;
 
@@ -32,6 +41,10 @@ public class StreamSpecification implements Specification<Stream> {
                                CriteriaBuilder criteriaBuilder) {
     List<Predicate> predicates = new ArrayList<>();
     for (var filter : filters) {
+      if (!ALLOWED_FIELDS.contains(filter.fieldName())) {
+        throw new FilterFieldNotAllowedException(filter.fieldName(), ALLOWED_FIELDS);
+      }
+
       if (READINESS_LEVEL_FIELD_NAME.equals(filter.fieldName())) {
         filter = Filter.builder()
             .fieldName(filter.fieldName())

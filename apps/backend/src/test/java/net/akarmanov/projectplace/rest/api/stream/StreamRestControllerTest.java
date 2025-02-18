@@ -131,6 +131,24 @@ class StreamRestControllerTest extends BaseApplicationTest {
   }
 
   @Test
+  void getStreams_withFilters_withNotExistingField() throws Exception {
+    mockMvc.perform(post("/api/v1/streams")
+            .contentType("application/json")
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "notExistingField",
+                      "operationType": "EQUAL",
+                      "value": "stream 1"
+                    }
+                  ]
+                }"""))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void addImage_success() throws Exception {
     var file = new MockMultipartFile("image", "image".getBytes());
 
