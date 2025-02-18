@@ -1,5 +1,6 @@
 import React from "react";
 import "./TrackerPage.css";
+import { Link } from "react-router-dom";
 
 function TrackerPage() {
   return (
@@ -8,7 +9,7 @@ function TrackerPage() {
         <div className="Stream-header-cont">
           <h1 className="Stream-title">Название</h1>
           <div className="Stream-buttons">
-            <div className="Stream-pic"></div>
+          <Link to="/profile" className="Stream-pic"></Link>
           </div>
         </div>
         <div className="Stream-header-bottom-cont">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'; // Импортируем useState
+import { Link } from "react-router-dom";
 
 export default function Stream() {
   // Состояние для управления видимостью элементов
@@ -18,7 +19,7 @@ export default function Stream() {
             <button className="Stream-butt">Администраторы</button>
             <button className="Stream-butt">Трекеры</button>
             <button className="Stream-butt">Все команды</button>
-            <div className="Stream-pic"></div>
+            <Link to="/profile" className="Stream-pic"></Link>
           </div>
         </div>
         <div className="Stream-header-bottom-cont">
