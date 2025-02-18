@@ -16,7 +16,7 @@ services:
     container_name: track-me-backend
     image: akarmanoff/track-me-backend:latest
     restart: always
-
+    
     depends_on:
       - postgres
     environment:
