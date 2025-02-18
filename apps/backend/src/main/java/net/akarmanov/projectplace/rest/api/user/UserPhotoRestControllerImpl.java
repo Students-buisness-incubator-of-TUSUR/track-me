@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
-
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 
 @RestController
@@ -19,14 +17,14 @@ public class UserPhotoRestControllerImpl implements UserPhotoRestController {
   private final UserPhotoService userPhotoService;
 
   @Override
-  public ResponseEntity<Void> addPhoto(UUID userId, MultipartFile file) {
-    userPhotoService.addPhotoToUser(userId, file);
+  public ResponseEntity<Void> addPhoto(String telegramId, MultipartFile file) {
+    userPhotoService.addPhotoToUser(telegramId, file);
     return ResponseEntity.ok().build();
   }
 
   @Override
-  public ResponseEntity<Resource> getPhoto(UUID userId) {
-    var userPhoto = userPhotoService.getPhotoByUserId(userId);
+  public ResponseEntity<Resource> getPhoto(String telegramId) {
+    var userPhoto = userPhotoService.getPhotoByTelegramId(telegramId);
     var photo = userPhoto.photo();
     return ResponseEntity.ok()
         .contentLength(photo.length)
@@ -36,8 +34,8 @@ public class UserPhotoRestControllerImpl implements UserPhotoRestController {
   }
 
   @Override
-  public ResponseEntity<Void> deletePhoto(UUID userId) {
-    userPhotoService.deletePhoto(userId);
+  public ResponseEntity<Void> deletePhoto(String telegramId) {
+    userPhotoService.deletePhoto(telegramId);
     return ResponseEntity.ok().build();
   }
 }

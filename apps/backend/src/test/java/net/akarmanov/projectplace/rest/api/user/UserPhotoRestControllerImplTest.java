@@ -36,7 +36,7 @@ class UserPhotoRestControllerImplTest extends BaseApplicationTest {
 
   @Test
   void addPhoto_success() throws Exception {
-    mockMvc.perform(multipart("/api/v1/users/{userId}/photo", user.getId())
+    mockMvc.perform(multipart("/api/v1/users/{telegramId}/photo", user.getTelegramId())
             .file("file", testImage.getContentAsByteArray())
             .contentType(MediaType.MULTIPART_FORM_DATA))
         .andDo(print())
@@ -52,7 +52,7 @@ class UserPhotoRestControllerImplTest extends BaseApplicationTest {
         .fileName("test-image.jpg")
         .build());
 
-    mockMvc.perform(get("/api/v1/users/{userId}/photo", user.getId()))
+    mockMvc.perform(get("/api/v1/users/{telegramId}/photo", user.getTelegramId()))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
@@ -67,29 +67,29 @@ class UserPhotoRestControllerImplTest extends BaseApplicationTest {
         .fileName("test-image.jpg")
         .build());
 
-    mockMvc.perform(delete("/api/v1/users/{userId}/photo", user.getId()))
+    mockMvc.perform(delete("/api/v1/users/{telegramId}/photo", user.getTelegramId()))
         .andDo(print())
         .andExpect(status().isOk());
 
-    mockMvc.perform(get("/api/v1/users/{userId}/photo", user.getId()))
+    mockMvc.perform(get("/api/v1/users/{telegramId}/photo", user.getTelegramId()))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString(user.getId().toString())));
+        .andExpect(content().string(containsString(user.getTelegramId())));
   }
 
   @Test
   void getPhoto_notFound() throws Exception {
-    mockMvc.perform(get("/api/v1/users/{userId}/photo", user.getId()))
+    mockMvc.perform(get("/api/v1/users/{telegramId}/photo", user.getTelegramId()))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString(user.getId().toString())));
+        .andExpect(content().string(containsString(user.getTelegramId())));
   }
 
   @Test
   void deletePhoto_notFound() throws Exception {
-    mockMvc.perform(delete("/api/v1/users/{userId}/photo", user.getId()))
+    mockMvc.perform(delete("/api/v1/users/{telegramId}/photo", user.getTelegramId()))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString(user.getId().toString())));
+        .andExpect(content().string(containsString(user.getTelegramId())));
   }
 }
