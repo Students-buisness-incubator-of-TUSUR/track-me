@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 export default function Stream() {
     return (
       <div className="Stream">
@@ -11,6 +12,51 @@ export default function Stream() {
                       <button className = "Stream-butt">Все команды</button>
                       <div class="Stream-pic"></div>
                   </div>
+=======
+import React, { useState } from 'react'; // Импортируем useState
+import { Link } from "react-router-dom";
+
+export default function Stream() {
+  // Состояние для управления видимостью элементов
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Функция для обработки клика
+  const handleClick = () => {
+    setIsVisible(!isVisible); // Переключаем состояние
+  };
+
+  return (
+    <div className="Stream">
+      <header className="Stream-header">
+        <div className="Stream-header-cont">
+          <h1 className="Stream-title">Название</h1>
+          <div className="Stream-buttons">
+            <button className="Stream-butt">Администраторы</button>
+            <button className="Stream-butt">Трекеры</button>
+            <button className="Stream-butt">Все команды</button>
+            <Link to="/profile" className="Stream-pic"></Link>
+          </div>
+        </div>
+        <div className="Stream-header-bottom-cont">
+          <div className="Stream-search-cont">
+            {/* Кнопка с обработчиком onClick */}
+            <button onClick={handleClick} className="Stream-settings-pic">
+            </button>
+            <div className="Stream-search-contcont">
+              <button className="Stream-settings-pic2"> </button>
+              <input type="search" placeholder="Найти" className="Stream-search" />
+            </div>
+          </div>
+          <button className="Stream-butt">+ Создать карточку</button>
+        </div>
+        {/* Элементы, которые будут появляться и скрываться */}
+        {isVisible && (
+          <div className="Stream-header-afterclick-cont">
+            <div className="Stream-header-afterclick-left">
+              <div className="Stream-header-afterclick-left-up">
+                <button className="Stream-header-chose-butt">Год [0]</button>
+                <button className="Stream-header-chose-butt">Рынок [0]</button>
+>>>>>>> Stashed changes
               </div>
               <div className = "Stream-header-bottom-cont">
                 <div className = "Stream-search-cont">
