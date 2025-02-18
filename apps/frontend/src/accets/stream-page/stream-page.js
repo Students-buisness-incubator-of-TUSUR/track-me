@@ -1,14 +1,31 @@
-import React, { useState } from 'react'; // Импортируем useState
+import React, { useState } from 'react';
 import { Link } from "react-router-dom";
 
 export default function Stream() {
-  // Состояние для управления видимостью элементов
   const [isVisible, setIsVisible] = useState(false);
+  const [visibleCardsStart, setVisibleCardsStart] = useState(0); // Индекс начала отображаемых карточек
 
-  // Функция для обработки клика
   const handleClick = () => {
-    setIsVisible(!isVisible); // Переключаем состояние
+    setIsVisible(!isVisible);
   };
+
+  const handleShowMore = () => {
+    setVisibleCardsStart(prev => prev + 9); // Переключаем на следующие 9 карточек
+  };
+
+  const handleShowPrevious = () => {
+    setVisibleCardsStart(prev => Math.max(prev - 9, 0)); // Переключаем на предыдущие 9 карточек
+  };
+
+  // Пример массива карточек (замените на ваш реальный массив данных)
+  const cards = Array.from({ length: 20 }, (_, index) => ({
+    id: index + 1,
+    title: `Карточка ${index + 1}`,
+    content: `Содержимое карточки ${index + 1}`,
+  }));
+
+  // Вычисляем текущий диапазон карточек для отображения
+  const visibleCards = cards.slice(visibleCardsStart, visibleCardsStart + 9);
 
   return (
     <div className="Stream">
@@ -24,9 +41,7 @@ export default function Stream() {
         </div>
         <div className="Stream-header-bottom-cont">
           <div className="Stream-search-cont">
-            {/* Кнопка с обработчиком onClick */}
-            <button onClick={handleClick} className="Stream-settings-pic">
-            </button>
+            <button onClick={handleClick} className="Stream-settings-pic"></button>
             <div className="Stream-search-contcont">
               <button className="Stream-settings-pic2"> </button>
               <input type="search" placeholder="Найти" className="Stream-search" />
@@ -34,7 +49,6 @@ export default function Stream() {
           </div>
           <button className="Stream-butt">+ Создать карточку</button>
         </div>
-        {/* Элементы, которые будут появляться и скрываться */}
         {isVisible && (
           <div className="Stream-header-afterclick-cont">
             <div className="Stream-header-afterclick-left">
@@ -55,21 +69,35 @@ export default function Stream() {
         )}
       </header>
       <main className="Stream-main">
-        <div className="Stream-card">
-          <div className="Stream-card-pic"></div>
-          <h1 className="Stream-card-headText">asdas</h1>
-          <div className="Stream-card-bodyText">xasx</div>
-        </div>
+        {visibleCards.map(card => (
+          <div key={card.id} className="Stream-card">
+            <div className="Stream-card-pic"></div>
+            <h1 className="Stream-card-headText">{card.title}</h1>
+            <div className="Stream-card-bodyText">{card.content}</div>
+          </div>
+        ))}
       </main>
       <footer className="Stream-footer">
         <div className="Stream-footer-butts">
-          <button className="Stream-footer-button-1"></button>
+        <div className="Stream-footer-p-butt-1">
+          {visibleCardsStart > 0 && (
+            <button onClick={handleShowPrevious} className="Stream-footer-button-1"></button>
+          )}
+        </div>
           <div className="Stream-footer-p-butts">
-            <button className="Stream-footer-button-2"></button>
+          {visibleCardsStart > 0 && (
+            <button onClick={handleShowPrevious} className="Stream-footer-button-2"></button>
+          )}
             <button className="Stream-footer-button-3"></button>
-            <button className="Stream-footer-button-4"></button>
+            {visibleCardsStart + 9 < cards.length && (
+            <button onClick={handleShowMore} className="Stream-footer-button-4"></button>
+          )}
           </div>
-          <button className="Stream-footer-button-5"></button>
+          <div className="Stream-footer-p-butt-5">
+            {visibleCardsStart + 9 < cards.length && (
+              <button onClick={handleShowMore} className="Stream-footer-button-5"></button>
+            )}
+          </div>
         </div>
       </footer>
     </div>
