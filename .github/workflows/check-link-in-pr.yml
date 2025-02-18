@@ -1,0 +1,20 @@
+name: Check Task Link in PR
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  check-task-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for task link
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            const taskLink = /#^SBI-\d+/.test(pr.title);
+            if (!taskLink) {
+              core.setFailed('Pull request title must contain a task link');
+            }
