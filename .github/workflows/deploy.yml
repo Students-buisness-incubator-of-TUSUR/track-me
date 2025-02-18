@@ -63,7 +63,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
             docker stop track-me-backend || true
             docker rm track-me-backend || true
-            docker compose up -d backend postgres
+            docker compose up -d postgres backend
 
       - name: Deploy frontend
         uses: appleboy/ssh-action@master
