@@ -12,6 +12,7 @@ public record FilterRequest(
     @Schema(description = "Фильтры",
             implementation = Filter.class)
     @NotNull(message = "Фильтры не могут быть пустыми")
+
     List<Filter> filters
 ) {
 }

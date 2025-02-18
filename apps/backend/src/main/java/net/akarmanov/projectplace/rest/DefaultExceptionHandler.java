@@ -1,6 +1,7 @@
 package net.akarmanov.projectplace.rest;
 
 import jakarta.validation.ConstraintViolationException;
+import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
 import net.akarmanov.projectplace.services.exceptions.PPNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -86,8 +87,8 @@ public class DefaultExceptionHandler {
   // обработчик ошибок фильтрации сущностей JPA Specification
   @ResponseBody
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(IllegalArgumentException.class)
-  public ResponseEntity<RestError> handleIllegalArgumentException(IllegalArgumentException ex) {
+  @ExceptionHandler({IllegalArgumentException.class, FilterFieldNotAllowedException.class})
+  public ResponseEntity<RestError> handleIllegalArgumentException(Exception ex) {
     var restError = RestError.builder()
         .code(HttpStatus.BAD_REQUEST.toString())
         .message(ex.getMessage())
