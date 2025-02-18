@@ -1,31 +1,41 @@
 import React, { useState } from 'react';
 import { Link } from "react-router-dom";
 import './stream-page.css';
+
 export default function Stream() {
   const [isVisible, setIsVisible] = useState(false);
-  const [visibleCardsStart, setVisibleCardsStart] = useState(0); // Индекс начала отображаемых карточек
+  const [visibleCardsStart, setVisibleCardsStart] = useState(0);
+  const [showCheckboxes, setShowCheckboxes] = useState(false); // Состояние для управления видимостью чекбоксов
 
   const handleClick = () => {
     setIsVisible(!isVisible);
   };
 
   const handleShowMore = () => {
-    setVisibleCardsStart(prev => prev + 9); // Переключаем на следующие 9 карточек
+    setVisibleCardsStart(prev => prev + 9);
   };
 
   const handleShowPrevious = () => {
-    setVisibleCardsStart(prev => Math.max(prev - 9, 0)); // Переключаем на предыдущие 9 карточек
+    setVisibleCardsStart(prev => Math.max(prev - 9, 0));
   };
 
-  // Пример массива карточек (замените на ваш реальный массив данных)
+  const handleShowCheckboxes = () => {
+    setShowCheckboxes(!showCheckboxes); // Переключаем видимость чекбоксов
+  };
+
   const cards = Array.from({ length: 20 }, (_, index) => ({
     id: index + 1,
     title: `Карточка ${index + 1}`,
     content: `Содержимое карточки ${index + 1}`,
   }));
 
-  // Вычисляем текущий диапазон карточек для отображения
   const visibleCards = cards.slice(visibleCardsStart, visibleCardsStart + 9);
+
+  // Пример данных для чекбоксов
+  const checkboxesData = Array.from({ length: 9 }, (_, index) => ({
+    id: `checkbox-${index + 1}`,
+    label: `Чекбокс ${index + 1}`,
+  }));
 
   return (
     <div className="Stream">
@@ -56,9 +66,29 @@ export default function Stream() {
                 <button className="Stream-header-chose-butt">Год [0]</button>
                 <button className="Stream-header-chose-butt">Рынок [0]</button>
               </div>
-              <div className="">
-                <button className="Stream-header-chosefrom-butt">Год</button>
-                <button className="Stream-header-chosefrom-butt">Рынок НТИ</button>
+              <div className="Stream-header-chosefrom-cont">
+                <div className="Stream-header-chosefrom-butt">
+                  <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes}>
+                    <b className="Stream-header-chosefrom-butt-label">Год</b>
+                    <div className="Stream-header-chosefrom-butt-pic"></div>
+                  </div>
+                  {showCheckboxes && (
+                    <div className="Stream-header-checkboxes">
+                      {checkboxesData.map((checkbox, index) => (
+                        <div key={checkbox.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
+                          <input type="checkbox" id={checkbox.id} />
+                          <label htmlFor={checkbox.id}>{checkbox.label}</label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="Stream-header-chosefrom-butt2">
+                  <div className="Stream-header-chosefrom-butt-cont">
+                    <b className="Stream-header-chosefrom-butt-label">Рынок</b>
+                    <div className="Stream-header-chosefrom-butt-pic"></div>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="Stream-header-afterclick-right">
@@ -79,19 +109,19 @@ export default function Stream() {
       </main>
       <footer className="Stream-footer">
         <div className="Stream-footer-butts">
-        <div className="Stream-footer-p-butt-1">
-          {visibleCardsStart > 0 && (
-            <button onClick={handleShowPrevious} className="Stream-footer-button-1"></button>
-          )}
-        </div>
+          <div className="Stream-footer-p-butt-1">
+            {visibleCardsStart > 0 && (
+              <button onClick={handleShowPrevious} className="Stream-footer-button-1"></button>
+            )}
+          </div>
           <div className="Stream-footer-p-butts">
-          {visibleCardsStart > 0 && (
-            <button onClick={handleShowPrevious} className="Stream-footer-button-2"></button>
-          )}
+            {visibleCardsStart > 0 && (
+              <button onClick={handleShowPrevious} className="Stream-footer-button-2"></button>
+            )}
             <button className="Stream-footer-button-3"></button>
             {visibleCardsStart + 9 < cards.length && (
-            <button onClick={handleShowMore} className="Stream-footer-button-4"></button>
-          )}
+              <button onClick={handleShowMore} className="Stream-footer-button-4"></button>
+            )}
           </div>
           <div className="Stream-footer-p-butt-5">
             {visibleCardsStart + 9 < cards.length && (
