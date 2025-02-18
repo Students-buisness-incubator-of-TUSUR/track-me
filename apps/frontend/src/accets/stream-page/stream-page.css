@@ -1,0 +1,337 @@
+body{
+  margin: 0;
+}
+.Stream-header {
+  text-align: center;
+  max-height: 365px;
+}
+.Stream-header-cont{
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+  justify-content: space-between;
+  max-height: 95px;
+  background-color: #8202CD;
+  border-bottom-left-radius: 50px 50px;
+  border-bottom-right-radius: 50px 50px;
+}
+.Stream-header-bottom-cont{
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+  justify-content: space-between;
+  margin-right: 121px;
+  margin-left: 157px;
+  margin-top: 20px;
+}
+.Stream-header-afterclick-cont{
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+  justify-content: space-between;
+}
+.Stream-header-afterclick-left{
+  margin-left: 143px;
+}
+.Stream-header-afterclick-right{
+  display: flex;
+  flex-direction: column;
+}
+.Stream-header-afterclick-left-up{
+  display: flex;
+  flex-direction: row;
+
+}
+.Stream-header-chose-butt{
+  width: 223px;
+  height: 60px;
+  border-radius: 40px;
+  background-color: rgba(131, 56, 234, 1);
+  color: white;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 20px;
+  border: none;
+  margin-top: 20px;
+  margin-right: 39px;
+}
+.Stream-header-chosefrom-butt{
+  margin-top: 20px;
+  margin-right: 39px;
+  width: 268px;
+  height: 60px;
+  border-radius: 40px;
+  background-color: rgba(131, 56, 234, 0.4);
+  color: white;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 20px;
+  border: none;
+}
+.Stream-header-chose-butt2{
+  width: 223px;
+  height: 60px;
+  border-radius: 40px;
+  background-color: rgba(131, 56, 234, 0.4);
+  color: white;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 20px;
+  border-color: rgba(68, 6, 154, 1);
+  margin-top: 20px;
+  margin-right: 39px;
+}
+.Stream-title{
+  color: white;
+  width: 400;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+.Stream-buttons{
+  align-items: center;
+  display: flex;
+  text-align: center;
+}
+.Stream-butt{ 
+  width: 223px;
+  height: 49px;
+  margin: 10px;
+  border-radius: 50px;
+  background-color: white;
+  color: #44069A;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 20px;
+}
+.Stream-title{
+  margin-left: 127px;
+  font-size: 40px;
+  font-weight: 400;
+}
+.Stream-pic{
+  display: flex;
+  align-self: center;
+  background-image: url("personal_account_1.png");
+  width: 42px;
+  height: 42px;
+  margin-left: 59px;
+  margin-right: 121px;
+}
+.Stream-settings-pic{
+  display: flex;
+  align-self: center;
+  width: 101px;
+  height: 60px;
+  background-image: url("image.png");
+  background-size: cover;
+  border-radius: 60px;
+  border-color: white;
+}
+.Stream-settings-pic2{
+  background-color: transparent;
+  display: flex;
+  align-self: center;
+  width: 28px;
+  height: 27px;
+  margin: 59px;
+  background-image: url("Group.png");
+  background-size:auto;
+  border: transparent;
+}
+.Stream-bottom-buttons{
+  display: flex;
+  }
+.Stream-search-cont{
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  flex-direction: row;
+}
+
+.Stream-search-contcont{
+  display: flex;
+  align-self: center;
+  justify-self: end;
+  width: 649px;
+  height: 60px;
+  border-radius: 50px;
+  margin-left: 20px;
+  background-color: rgba(131, 56, 234, 0.4);
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 24px;
+  color: white;
+}
+.Stream-search {
+  display: flex;
+  justify-self: end;
+  width: 563px;
+  height: 60px;
+  border-top-right-radius: 60px;
+  border-bottom-right-radius: 60px;
+  background-color: transparent;
+  border-color: transparent;
+  color: white;
+}
+.Stream-search {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 24px;
+  background-color: transparent;
+  border-color: transparent;
+  color: white;
+}
+.Stream-search::placeholder{
+  color: white; 
+}
+
+.Stream-main{
+  margin-top: 26px;
+  display: flex;
+  align-content: space-between;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-right: 101px;
+  margin-left: 101px;
+}
+.Stream-card{
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  justify-content: center;
+  border-color: rgb(230, 230, 230);
+  border-width: 1px;
+  border-style: groove;
+  border-radius: 80px;
+  height: 498px;
+  width: 498px;
+  margin-bottom: 71px;
+  box-shadow: 8px 10px 8px rgba(122, 0, 229, 0.39);
+}
+.Stream-card-pic{
+  display: flex;
+  align-self: center;
+  background-image: url("rabbit.png");
+  width: 383px;
+  height: 264px;
+  background-position: 50%;
+  background-size: cover;
+  border-radius: 80px;
+}
+.Stream-card-headText{
+  text-align: center;
+  font-weight: 800;
+  font-size: 36px;
+  color: rgba(131, 56, 235, 1);
+}
+.Stream-card-bodyText{
+  text-align: center;
+  font-weight: 400;
+  font-size: 14px;
+  color: black;
+}
+.Stream-footer{
+  display: flex;
+  flex-direction: column;
+  bottom: 0;
+  min-height: 100px;
+  justify-content: center;
+  align-content: center;
+}
+
+.Stream-footer-butts{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-self: center;
+  justify-content: center;
+
+  width: 200px;
+  height: 24px;
+}
+.Stream-footer-button{
+  padding: 0;
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none; 
+}
+.Stream-footer-button-1{
+  z-index: 2;
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("Polygon-4.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+}
+.Stream-footer-button-2{
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("Ellipse\ 6.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+
+}
+.Stream-footer-button-3{
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("Group\ 58.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+  margin-left: 11px;
+  margin-right: 11px;
+  
+}
+.Stream-footer-button-4{
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("Ellipse\ 6.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+}
+.Stream-footer-button-5{
+  position: sticky;
+  height: 24px;
+  width: 24px;
+  border: none;
+  background: none;
+  background-image: url("Polygon-3.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  padding-block: 0px;
+  padding-inline: 0px;
+  justify-self: right;
+}
+.Stream-footer-p-butt-5{
+  display: flex;
+  position: absolute;
+  justify-self: center;
+  width: 200px;
+  justify-content: right;
+}
+.Stream-footer-p-butt-1{
+
+  display: flex;
+  position: absolute;
+  justify-self: center;
+  width: 200px;
+  justify-content: left;
+}
+.Stream-footer-p-butts{
+  justify-content: space-between;
+  display: flex;
+  align-self: center;
+  justify-content: space-between;
+  width: 94px;
+  height: 24px;
+  z-index: 2;
+}

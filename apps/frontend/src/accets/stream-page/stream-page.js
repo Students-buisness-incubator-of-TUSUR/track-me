@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from "react-router-dom";
-
+import './stream-page.css';
 export default function Stream() {
   const [isVisible, setIsVisible] = useState(false);
   const [visibleCardsStart, setVisibleCardsStart] = useState(0); // Индекс начала отображаемых карточек
