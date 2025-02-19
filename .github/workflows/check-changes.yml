@@ -32,26 +32,26 @@ jobs:
         id: backend-changed
         run: |
           changed=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep -q '^apps/backend/' && echo true || echo false)
-          echo "::set-output name=changed::$changed"
+          echo "changed=$changed" >> $GITHUB_ENV
 
       - name: Run backend tests
-        if: steps.backend-changed.outputs.changed == 'true'
+        if: env.changed == 'true'
         run: ./gradlew :apps:backend:build
 
       - name: Check if frontend files changed
         id: frontend-changed
         run: |
           changed=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep -q '^apps/frontend/' && echo true || echo false)
-          echo "::set-output name=changed::$changed"
+          echo "changed=$changed" >> $GITHUB_ENV
 
       - name: Set up Node.js
-        if: steps.frontend-changed.outputs.changed == 'true'
+        if: env.changed == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Укажите нужную версию Node.js
+          node-version: '20' # Specify the required Node.js version
 
       - name: Cache Node.js modules
-        if: steps.frontend-changed.outputs.changed == 'true'
+        if: env.changed == 'true'
         id: node-cache
         uses: actions/cache@v4
         with:
@@ -61,20 +61,20 @@ jobs:
             node-modules-${{ runner.os }}-
 
       - name: Install frontend dependencies
-        if: steps.frontend-changed.outputs.changed == 'true'
+        if: env.changed == 'true'
         run: |
           cd apps/frontend
           npm install
 
       - name: Build frontend
-        if: steps.frontend-changed.outputs.changed == 'true'
+        if: env.changed == 'true'
         run: |
           cd apps/frontend
           npm run build
           cd ../..
 
       - name: Run frontend tests
-        if: steps.frontend-changed.outputs.changed == 'true'
+        if: env.changed == 'true'
         run: |
           cd apps/frontend
           npm test
