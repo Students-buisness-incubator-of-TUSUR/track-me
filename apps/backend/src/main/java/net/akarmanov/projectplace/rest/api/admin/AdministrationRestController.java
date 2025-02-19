@@ -31,8 +31,13 @@ public interface AdministrationRestController {
   ResponseEntity<Void> unconfirm(@RequestParam UUID userId);
 
   @Operation(summary = "Получить список всех пользователей.")
-  @PostMapping(value = "/users/all",
+  @PostMapping(value = "/users/trackers",
                produces = APPLICATION_JSON_VALUE)
-  ResponseEntity<Page<UserDTO>> all(@ParameterObject @PageableDefault Pageable pageable);
+  Page<UserDTO> getTrackers(@ParameterObject @PageableDefault Pageable pageable);
+
+  @Operation(summary = "Получить список всех администраторов.")
+  @PostMapping(value = "/users/administrators",
+               produces = APPLICATION_JSON_VALUE)
+  Page<UserDTO> getAdministrators(@ParameterObject @PageableDefault Pageable pageable);
 
 }

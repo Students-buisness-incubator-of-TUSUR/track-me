@@ -57,7 +57,7 @@ class StreamRestControllerTest extends BaseApplicationTest {
                   "filters": [
                     {
                       "fieldName": "name",
-                      "operationType": "EQUAL",
+                      "type": "EQ",
                       "value": "stream 1"
                     }
                   ]
@@ -109,17 +109,17 @@ class StreamRestControllerTest extends BaseApplicationTest {
                   "filters": [
                     {
                       "fieldName": "ntiMarkets.name",
-                      "operationType": "EQUAL",
+                      "type": "EQ",
                       "value": "%s"
                     },
                     {
                       "fieldName": "name",
-                      "operationType": "EQUAL",
+                      "type": "EQ",
                       "value": "stream 2"
                     },
                     {
                       "fieldName": "readinessLevel",
-                      "operationType": "EQUAL",
+                      "type": "EQ",
                       "value": "0-2"
                     }
                   ]
@@ -127,6 +127,26 @@ class StreamRestControllerTest extends BaseApplicationTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].name").value("stream 2"))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+  }
+
+  @Test
+  void getStreams_withFilters_withLikeName() throws Exception {
+    mockMvc.perform(post("/api/v1/streams")
+            .contentType("application/json")
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "name",
+                      "type": "LIKE",
+                      "value": "stream"
+                    }
+                  ]
+                }"""))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].name").value("stream 1"))
         .andExpect(jsonPath("$.page.totalElements").value(1));
   }
 
@@ -139,7 +159,25 @@ class StreamRestControllerTest extends BaseApplicationTest {
                   "filters": [
                     {
                       "fieldName": "notExistingField",
-                      "operationType": "EQUAL",
+                      "type": "EQ",
+                      "value": "stream 1"
+                    }
+                  ]
+                }"""))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void getStreams_withFilters_withInvalidFilterField() throws Exception {
+    mockMvc.perform(post("/api/v1/streams")
+            .contentType("application/json")
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fielqwqwdName": "name",
+                      "operationTweweype": "EQ",
                       "value": "stream 1"
                     }
                   ]

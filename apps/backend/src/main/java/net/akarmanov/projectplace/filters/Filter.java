@@ -16,27 +16,25 @@ import java.util.List;
 /**
  * Фильтр для запросов поиска
  *
- * @param fieldName     имя поля
- * @param operationType тип операции
- * @param values        значения
+ * @param fieldName имя поля
+ * @param type      тип операции
+ * @param values    значения
  */
 @Builder
 @Schema(description = "Фильтр для запросов поиска")
-public record Filter(
-    @NotBlank(message = "Имя поля не может быть пустым")
-    @Schema(description = "Имя поля")
-    String fieldName,
-    @Schema(description = "Тип операции",
-            implementation = OperationType.class)
-    @NotNull(message = "Тип операции не может быть пустым")
-    OperationType operationType,
-    @Schema(description = "Значения")
-    List<String> values,
-    @Schema(description = "Значение",
-            name = "value")
-    @JsonProperty("value")
-    String singleValue
-) {
+public record Filter(@NotBlank(message = "Имя поля не может быть пустым")
+                     @Schema(description = "Имя поля")
+                     String fieldName,
+                     @Schema(description = "Тип операции",
+                             implementation = OperationType.class,
+                             allowableValues = {"EQ", "LIKE"})
+                     @NotNull(message = "Тип операции не может быть пустым")
+                     OperationType type,
+                     @Schema(description = "Значения", defaultValue = "null")
+                     List<String> values,
+                     @Schema(description = "Значение",
+                             name = "value") @JsonProperty("value")
+                     String singleValue) {
   private static Path<?> getPath(Root<?> root, String[] fields) {
     From<?, ?> path = root;
     for (int i = 0; i < fields.length - 1; i++) {
@@ -46,11 +44,10 @@ public record Filter(
     return path.get(fields[fields.length - 1]);
   }
 
-  public Predicate toPredicate(Root<?> root,
-                               CriteriaBuilder cb) {
+  public Predicate toPredicate(Root<?> root, CriteriaBuilder cb) {
     var partPath = fieldName.split("\\.");
     var path = partPath.length > 1 ? getPath(root, partPath) : root.get(fieldName);
-    switch (operationType) {
+    switch (type) {
       case EQUAL -> {
         if (values != null) {
           return path.as(String.class).in(values);
@@ -60,9 +57,6 @@ public record Filter(
       }
       case LIKE -> {
         return cb.like(cb.lower(path.as(String.class)), "%" + singleValue.toLowerCase() + "%");
-      }
-      case IN -> {
-        return path.as(String.class).in(values);
       }
       default -> throw new IllegalArgumentException("Неизвестный тип операции");
     }

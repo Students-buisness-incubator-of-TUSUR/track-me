@@ -48,7 +48,7 @@ public class StreamSpecification implements Specification<Stream> {
       if (READINESS_LEVEL_FIELD_NAME.equals(filter.fieldName())) {
         filter = Filter.builder()
             .fieldName(filter.fieldName())
-            .operationType(filter.operationType())
+            .type(filter.type())
             .singleValue(ReadinessLevel.fromValue(filter.singleValue()).name())
             .values(filter.values() != null
                 ? filter.values().stream()

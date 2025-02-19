@@ -13,3 +13,4 @@ databaseChangeLog:
       file: db/changelog/users-add-fullname-column.yaml
   - include:
       file: db/changelog/stream-add-image-column.yaml
+  - include:

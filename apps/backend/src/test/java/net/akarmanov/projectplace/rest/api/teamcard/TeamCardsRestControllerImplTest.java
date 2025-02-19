@@ -144,7 +144,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                   {
                     "fieldName": "name",
                     "value": "card1",
-                    "operationType": "LIKE"
+                    "type": "LIKE"
                   }
                 ]
                 """))
@@ -166,7 +166,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                   {
                     "fieldName": "name",
                     "value": "card1",
-                    "operationType": "LIKE"
+                    "type": "LIKE"
                   }
                 ]
                 """))
@@ -209,7 +209,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                   {
                     "fieldName": "name",
                     "values": ["%s", "%s"],
-                    "operationType": "IN"
+                    "type": "EQ"
                   }
                 ]
                 """.formatted(teamCard1.getName(), teamCard2.getName()))
@@ -246,8 +246,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                   {
                     "fieldName": "user.telegramId",
                     "value": "%s",
-                    "joinFieldName": "user",
-                    "operationType": "EQUAL"
+                    "type": "EQ"
                   }
                 ]
                 """.formatted("test_tracker"))
@@ -283,12 +282,12 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                   {
                     "fieldName": "name",
                     "value": "card1",
-                    "operationType": "LIKE"
+                    "type": "LIKE"
                   },
                   {
                     "fieldName": "status",
                     "value": "OK",
-                    "operationType": "EQUAL"
+                    "type": "EQ"
                   }
                 ]
                 """))

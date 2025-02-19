@@ -13,6 +13,6 @@ public record FilterRequest(
             implementation = Filter.class)
     @NotNull(message = "Фильтры не могут быть пустыми")
 
-    List<Filter> filters
+    List<@Valid Filter> filters
 ) {
 }
