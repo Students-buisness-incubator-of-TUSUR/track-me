@@ -22,13 +22,13 @@
   
   /* Обертка карточек */
   .cards-wrapper {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Две колонки */
-    
-    justify-content: center; /* Центрируем карточки */
-    gap: 20px; /* Отступ между карточками */
-    max-width: 1800px; /* Чтобы карточки не разлетались по ширине */
-    margin: 0 auto;
+    margin-top: 26px;
+    display: flex;
+    align-content: space-between;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-right: 101px;
+    margin-left: 101px;
 }
   
   /* Карточка */
@@ -41,7 +41,7 @@
     width: 849px;
     height: 201px;
     min-width: 400px;
-    margin-left: 10px;
+    
     margin-top: 27px;
     margin-bottom: 20px;
     box-shadow: 11px 12px 7px rgba(112, 14, 240, 0.4); /* лёгкая фиолетовая тень */

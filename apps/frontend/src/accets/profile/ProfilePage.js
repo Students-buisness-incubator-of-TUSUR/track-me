@@ -3,6 +3,7 @@ import "./ProfilePage.css"; // Подключаем стили
 
 function ProfilePage() {
   return (
+    <div className="login-container">
     <div className="profile-container">
       <div className="profile-header">
         <h1>Личный кабинет</h1>
@@ -40,6 +41,7 @@ function ProfilePage() {
       </div>
 
       <button className="team-cards-button">Карточки команд</button>
+    </div>
     </div>
   );
 }

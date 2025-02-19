@@ -1,8 +1,7 @@
 .profile-container {
   width: 1359px;
   height: 882px;
-  margin-top: 90px;
-  margin-left: 281px;
+  
   background-color: #8b50f9; /* Фон, похожий на фиолетовый из макета */
   border: 5px solid #44069A;
   border-radius: 70px;
@@ -35,14 +34,18 @@
 }
 
 .edit-button12 {
-  background-color: #ffffff;
-  color: #8b50f9;
-  border: none;
-  padding: 8px 16px;
-  font-weight: bold;
-  border-radius: 5px;
-  cursor: pointer;
+  background: none; /* Убираем фон */
+  color: #FFFFFF; /* Оставляем цвет текста */
+  font-size: 20px;
+  font-weight: 700;
+  margin-right: 91px;
+  
+  border: none; /* Убираем границы */
+  font-weight: bold; /* Оставляем жирный текст, если нужно */
+  cursor: pointer; /* Оставляем указатель при наведении */
+  padding: 0; /* Убираем внутренние отступы */
 }
+
 
 .profile-content {
   display: flex;
@@ -53,6 +56,7 @@
 
 .profile-fields {
   display: flex;
+  padding-left: 92px;
   flex-direction: column;
   gap: 15px;
   width: 60%;
@@ -60,14 +64,31 @@
 
 .field label {
   display: block;
+  padding-left: 36px;
+  font-weight: 300;
+  font-size: 16px;
   margin-bottom: 5px;
   font-weight: bold;
 }
 
 .field input {
   width: 100%;
-  padding: 8px;
-  border-radius: 5px;
+  width: 560px;
+  height: 72px;
+  font-weight: 300;
+  font-size: 20px;
+  
+  background-color: #E6D7FB;
+  color: #000; /* Черный цвет текста */
+  
+  padding-left: 24px;
+  border-radius: 70px;
+  border: none;
+  outline: none; /* Убирает контур при фокусе */
+}
+
+.field input:focus {
+  outline: none; /* Дополнительно убирает контур */
   border: none;
 }
 
@@ -93,12 +114,16 @@
 }
 
 .team-cards-button {
-  margin-top: 20px;
+  margin-top: 44px;
+  width: 454px;
+  height: 70px;
   background-color: #ffffff;
-  color: #8b50f9;
+  color: #8338EB;
   border: none;
-  padding: 10px 20px;
-  font-weight: bold;
-  border-radius: 5px;
+  align-self: flex-start;
+  margin-left: 145px;
+  font-weight: 700;
+  font-size: 24px;
+  border-radius: 70px;
   cursor: pointer;
 }
