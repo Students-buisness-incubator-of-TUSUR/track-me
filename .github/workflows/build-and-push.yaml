@@ -59,3 +59,8 @@ jobs:
         run: |
           docker tag track-me-frontend:${{ github.ref_name }} ${{ secrets.DOCKER_USERNAME }}/track-me-frontend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/track-me-frontend:latest
+
+      - name: Clean up
+        run: |
+          docker rmi track-me-backend:${{ github.ref_name }}
+          docker rmi track-me-frontend:${{ github.ref_name }}
