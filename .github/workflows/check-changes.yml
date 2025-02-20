@@ -34,6 +34,13 @@ jobs:
           changed=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr ' ' '\n' | grep -q '^apps/backend/' && echo true || echo false)
           echo "changed=$changed" >> $GITHUB_ENV
 
+      - name: Setup Java 21
+        if: env.changed == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+
       - name: Run backend tests
         if: env.changed == 'true'
         run: ./gradlew :apps:backend:build
