@@ -27,7 +27,6 @@ jobs:
       contents: read
       packages: write
       # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
       id-token: write
 
     steps:
@@ -42,7 +41,6 @@ jobs:
         with:
           cosign-release: 'v2.2.4'
 
-      # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
       # https://github.com/docker/setup-buildx-action
       - name: Set up Docker Buildx
@@ -65,7 +63,6 @@ jobs:
         uses: docker/metadata-action@v3.5.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}-backend
-
 
       - name: Extract Docker metadata frontend
         id: meta-frontend
