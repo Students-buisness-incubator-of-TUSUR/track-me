@@ -17,7 +17,7 @@ jobs:
 
       - name: Extract restricted developers from CODEOWNERS
         run: |
-          restricted_developers=$(grep 'apps/frontend/*' .github/CODEOWNERS | awk '{for (i=2; i<=NF; i++) print $i}' | base64)
+          restricted_developers=$(grep 'apps/frontend/*' .github/CODEOWNERS | awk '{for (i=2; i<=NF; i++) print $i}' | base64 | tr -d '\n')
           echo "RESTRICTED_DEVELOPERS=$restricted_developers" >> $GITHUB_ENV
 
       - name: Check for restricted changes outside of apps/frontend/
