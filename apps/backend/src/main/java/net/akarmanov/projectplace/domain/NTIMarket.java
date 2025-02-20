@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,6 +19,8 @@ import org.hibernate.annotations.UuidGenerator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import static jakarta.persistence.FetchType.LAZY;
 
 @Getter
 @Setter
@@ -46,4 +49,8 @@ public class NTIMarket {
   )
   @Builder.Default
   private Set<Stream> streams = new HashSet<>();
+
+  @OneToMany(fetch = LAZY, mappedBy = "ntiMarket")
+  @Builder.Default
+  private Set<TeamCard> teamCards = new HashSet<>();
 }

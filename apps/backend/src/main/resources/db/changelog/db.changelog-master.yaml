@@ -14,3 +14,4 @@ databaseChangeLog:
   - include:
       file: db/changelog/stream-add-image-column.yaml
   - include:
+      file: db/changelog/team-card-add-nti-market-id-column.yaml

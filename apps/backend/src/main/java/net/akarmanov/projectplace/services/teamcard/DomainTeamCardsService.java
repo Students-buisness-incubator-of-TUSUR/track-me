@@ -16,8 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-import static net.akarmanov.projectplace.domain.spec.TeamCardSpecification.userEquals;
-
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -55,10 +53,8 @@ public class DomainTeamCardsService implements TeamCardsService {
 
   @Override
   public Page<TeamCard> getTeamCards(Specification<TeamCard> specification,
-                                     Pageable pageable,
-                                     UUID userId) {
-    return teamCardsRepository.findAll(specification
-        .and(userEquals(userId)), pageable);
+                                     Pageable pageable) {
+    return teamCardsRepository.findAll(specification, pageable);
   }
 
   @Override

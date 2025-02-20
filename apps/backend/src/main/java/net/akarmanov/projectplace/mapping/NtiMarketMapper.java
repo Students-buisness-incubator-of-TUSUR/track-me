@@ -13,8 +13,8 @@ import static org.mapstruct.NullValuePropertyMappingStrategy.IGNORE;
     nullValueCheckStrategy = ALWAYS,
     nullValuePropertyMappingStrategy = IGNORE)
 public interface NtiMarketMapper {
-  @Mapping(target = "streams",
-           ignore = true)
+  @Mapping(target = "teamCards", ignore = true)
+  @Mapping(target = "streams", ignore = true)
   NTIMarket mapToEntity(NTIMarketDto dto);
 
   NTIMarketDto mapToDto(NTIMarket entity);

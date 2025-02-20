@@ -12,7 +12,7 @@ public interface TeamCardsService {
 
   TeamCard updateTeamCard(UUID teamCardId, TeamCard updateTeamCardDto);
 
-  Page<TeamCard> getTeamCards(Specification<TeamCard> specification, Pageable pageable, UUID userId);
+  Page<TeamCard> getTeamCards(Specification<TeamCard> specification, Pageable pageable);
 
   TeamCard getTeamCard(UUID id);
 

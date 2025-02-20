@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: team-card-add-nti-market-id-column-1
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              tableName: team_card
+              columnName: nti_market_id
+      changes:
+        - addColumn:
+            tableName: team_card
+            columns:
+              - column:
+                  name: nti_market_id
+                  type: int
+                  constraints:
+                    foreignKeyName: fk_team_card_nti_market_id
+                    references: nti_market(id)
+                    nullable: false

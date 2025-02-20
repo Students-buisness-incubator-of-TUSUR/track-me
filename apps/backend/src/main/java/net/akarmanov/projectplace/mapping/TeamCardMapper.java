@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, NtiMarketMapper.class})
 public interface TeamCardMapper {
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "streams", ignore = true)
@@ -25,7 +25,6 @@ public interface TeamCardMapper {
   @Mapping(target = "userId", source = "user.id")
   TeamCardDto mapToDto(TeamCard entity);
 
-  @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "streams", ignore = true)
   @Mapping(target = "enabled", ignore = true)
   @Mapping(target = "id", ignore = true)

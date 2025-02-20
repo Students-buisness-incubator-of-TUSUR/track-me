@@ -1,5 +1,8 @@
-name: deploy.yml
+name: Build and Deploy
 on:
+  pull_request:
+    branches:
+      - develop
   push:
     tags:
       - v*
@@ -22,8 +25,19 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Lint and Test backend
+        run: ./gradlew :apps:backend:check
+
+      - name: Lint and Test frontend
+        run: |
+          cd apps/frontend
+          npm install
+          npm run lint
+          npm test
+          cd ../..
+
       - name: Build backend
-        run: ./gradlew :apps:backend:build
+        run: ./gradlew :apps:backend:build -x test
 
       - name: Build frontend
         run: |
@@ -77,4 +91,8 @@ jobs:
             docker stop track-me-frontend || true
             docker rm track-me-frontend || true
             docker compose up -d frontend
-          
+
+      - name: Cleanup Docker images
+        run: |
+          docker rmi track-me-backend:${{ github.ref_name }}
+          docker rmi track-me-frontend:${{ github.ref_name }}

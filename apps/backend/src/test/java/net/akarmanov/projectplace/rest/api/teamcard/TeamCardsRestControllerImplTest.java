@@ -1,11 +1,14 @@
 package net.akarmanov.projectplace.rest.api.teamcard;
 
 import net.akarmanov.projectplace.BaseApplicationTest;
+import net.akarmanov.projectplace.domain.NTIMarket;
 import net.akarmanov.projectplace.domain.TeamCard;
 import net.akarmanov.projectplace.models.TeamCardStatus;
+import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.repos.TeamCardsRepository;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -27,6 +30,16 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   @Autowired
   private TeamCardsRepository teamCardsRepository;
 
+  @Autowired
+  private NtiMarketRepository ntiMarketRepository;
+
+  private NTIMarket ntiMarket;
+
+  @BeforeEach
+  void setUpNti() {
+    ntiMarket = ntiMarketRepository.findAll().getFirst();
+  }
+
   @AfterEach
   void tearDown() {
     teamCardsRepository.deleteAll();
@@ -40,9 +53,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             .content("""
                 {
                   "name": "Test",
-                  "description": "Test description"
+                  "description": "Test description",
+                  "ntiMarket": {
+                    "id": "%s",
+                    "name": "%s",
+                    "displayName": "%s"
+                  }
                 }
-                """))
+                """.formatted(ntiMarket.getId(), ntiMarket.getName(), ntiMarket.getDisplayName())))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").exists())
