@@ -70,13 +70,15 @@
   margin-bottom: 5px;
   font-weight: bold;
 }
-
+.edit-icon123{
+  font-weight: bold;
+}
 .field input {
   width: 100%;
   width: 560px;
   height: 72px;
   font-weight: 300;
-  font-size: 20px;
+  font-size: 16px;
   
   background-color: #E6D7FB;
   color: #000; /* Черный цвет текста */
