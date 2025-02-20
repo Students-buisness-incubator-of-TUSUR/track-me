@@ -61,7 +61,7 @@ public class TeamCard {
               nullable = false)
   private User user;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "nti_market_id", nullable = false)
   private NTIMarket ntiMarket;
 

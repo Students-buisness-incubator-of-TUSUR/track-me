@@ -82,6 +82,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   void updateTeamCard_success() throws Exception {
     var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
+        .ntiMarket(ntiMarket)
         .name("Team card1")
         .build());
 
@@ -91,9 +92,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             .content("""
                 {
                   "name": "Updated name",
-                  "description": "Updated description"
+                  "description": "Updated description",
+                  "ntiMarket": {
+                    "id": "%s",
+                    "name": "%s",
+                    "displayName": "%s"
+                  }
                 }
-                """))
+                """.formatted(ntiMarket.getId(), ntiMarket.getName(), ntiMarket.getDisplayName())))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
@@ -107,6 +113,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card1")
+        .ntiMarket(ntiMarket)
         .build());
 
     mockMvc.perform(get("/api/v1/team-card")
@@ -124,11 +131,13 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card1")
+        .ntiMarket(ntiMarket)
         .description("Team card1 description")
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
+        .ntiMarket(ntiMarket)
         .description("Team card2 description")
         .build());
 
@@ -148,10 +157,12 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .description("Team card1 description")
+        .ntiMarket(ntiMarket)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
+        .ntiMarket(ntiMarket)
         .description("Team card2 description")
         .build());
 
@@ -210,12 +221,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   void getTeamCards_withFilters_in_success() throws Exception {
     var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
+        .ntiMarket(ntiMarket)
         .name("Team card1")
         .description("Team card1 description")
         .build());
     var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
+        .ntiMarket(ntiMarket)
         .description("Team card2 description")
         .build());
 
@@ -248,11 +261,13 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card1")
+        .ntiMarket(ntiMarket)
         .description("Team card1 description")
         .build());
     var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
+        .ntiMarket(ntiMarket)
         .description("Team card2 description")
         .build());
 
@@ -286,10 +301,12 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .description("Team card1 description")
+        .ntiMarket(ntiMarket)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
+        .ntiMarket(ntiMarket)
         .description("Team card2 description")
         .build());
 

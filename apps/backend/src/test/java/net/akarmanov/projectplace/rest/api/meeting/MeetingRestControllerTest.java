@@ -3,6 +3,7 @@ package net.akarmanov.projectplace.rest.api.meeting;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.akarmanov.projectplace.BaseApplicationTest;
 import net.akarmanov.projectplace.domain.TeamCard;
+import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,9 @@ class MeetingRestControllerTest extends BaseApplicationTest {
   private TeamCardsService teamCardsService;
 
   @Autowired
+  private NtiMarketRepository ntiMarketRepository;
+
+  @Autowired
   private ObjectMapper objectMapper;
 
   private TeamCard teamCard;
@@ -33,6 +37,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
     teamCard = teamCardsService.createTeamCard(TeamCard.builder()
         .name("Test")
         .description("Test")
+        .ntiMarket(ntiMarketRepository.findAll().getFirst())
         .build());
   }
 
