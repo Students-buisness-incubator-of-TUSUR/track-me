@@ -14,7 +14,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: nti_market_id
-                  type: int
+                  type: uuid
                   constraints:
                     foreignKeyName: fk_team_card_nti_market_id
                     references: nti_market(id)
