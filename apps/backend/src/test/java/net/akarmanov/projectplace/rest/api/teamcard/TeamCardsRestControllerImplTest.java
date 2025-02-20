@@ -54,13 +54,9 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 {
                   "name": "Test",
                   "description": "Test description",
-                  "ntiMarket": {
-                    "id": "%s",
-                    "name": "%s",
-                    "displayName": "%s"
-                  }
+                  "nti_market_id": "%s"
                 }
-                """.formatted(ntiMarket.getId(), ntiMarket.getName(), ntiMarket.getDisplayName())))
+                """.formatted(ntiMarket.getId())))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").exists())
@@ -93,13 +89,9 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 {
                   "name": "Updated name",
                   "description": "Updated description",
-                  "ntiMarket": {
-                    "id": "%s",
-                    "name": "%s",
-                    "displayName": "%s"
-                  }
+                  "nti_market_id": "%s"
                 }
-                """.formatted(ntiMarket.getId(), ntiMarket.getName(), ntiMarket.getDisplayName())))
+                """.formatted(ntiMarket.getId())))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
@@ -143,7 +135,11 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
     mockMvc.perform(post("/api/v1/team-cards")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("[]"))
+            .content("""
+                {
+                  "filters": []
+                }
+                """))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.totalElements", is(2)));
@@ -169,14 +165,15 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     mockMvc.perform(post("/api/v1/team-cards")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
-                [
-                  {
-                    "fieldName": "name",
-                    "value": "card1",
-                    "type": "LIKE"
-                  }
-                ]
-                """))
+                {
+                  "filters": [
+                    {
+                      "fieldName": "name",
+                      "value": "card1",
+                      "type": "LIKE"
+                    }
+                  ]
+                }"""))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].id", is(teamCard1.getId().toString())))
@@ -191,13 +188,15 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     mockMvc.perform(post("/api/v1/team-cards")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
-                [
-                  {
-                    "fieldName": "name",
-                    "value": "card1",
-                    "type": "LIKE"
-                  }
-                ]
+                {
+                  "filters": [
+                    {
+                      "fieldName": "name",
+                      "value": "card1",
+                      "type": "LIKE"
+                    }
+                  ]
+                }
                 """))
         .andDo(print())
         .andExpect(status().isOk())
@@ -236,13 +235,15 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             .param("sort", "name,asc")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
-                [
-                  {
-                    "fieldName": "name",
-                    "values": ["%s", "%s"],
-                    "type": "EQ"
-                  }
-                ]
+                {
+                  "filters": [
+                    {
+                      "fieldName": "name",
+                      "values": ["%s", "%s"],
+                      "type": "EQ"
+                    }
+                  ]
+                }
                 """.formatted(teamCard1.getName(), teamCard2.getName()))
         )
         .andDo(print())
@@ -275,13 +276,15 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             .param("sort", "name,asc")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
-                [
-                  {
-                    "fieldName": "user.telegramId",
-                    "value": "%s",
-                    "type": "EQ"
-                  }
-                ]
+                {
+                  "filters": [
+                    {
+                      "fieldName": "user.telegramId",
+                      "value": "%s",
+                      "type": "EQ"
+                    }
+                  ]
+                }
                 """.formatted("test_tracker"))
         )
         .andDo(print())
@@ -313,7 +316,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     mockMvc.perform(post("/api/v1/team-cards")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
-                [
+                {
+                  "filters": [
                   {
                     "fieldName": "name",
                     "value": "card1",
@@ -325,11 +329,74 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                     "type": "EQ"
                   }
                 ]
+                }
                 """))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].id", is(teamCard1.getId().toString())))
         .andExpect(jsonPath("$.content[0].name", is("Team card1")))
+        .andExpect(jsonPath("$.page.totalElements", is(1)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_withInvalidField() throws Exception {
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "invalidField",
+                      "value": "card1",
+                      "type": "LIKE"
+                    }
+                  ]
+                }
+                """))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_withNtiMarketId_success() throws Exception {
+    teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .description("Team card1 description")
+        .ntiMarket(ntiMarket)
+        .build());
+    teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card2")
+        .description("Team card2 description")
+        .ntiMarket(ntiMarket)
+        .build());
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "ntiMarket.name",
+                      "value": "%s",
+                      "type": "EQ"
+                    },
+                    {
+                      "fieldName": "name",
+                      "value": "card2",
+                      "type": "LIKE"
+                    }
+                  ]
+                }
+                """.formatted(ntiMarket.getName()))
+        )
+        .andDo(print())
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.totalElements", is(1)));
   }
 }

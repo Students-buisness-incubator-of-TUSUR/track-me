@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import net.akarmanov.projectplace.domain.TeamCard;
 import net.akarmanov.projectplace.filters.Filter;
+import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -13,6 +14,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class TeamCardSpecification implements Specification<TeamCard> {
+
+  public static final List<String> ALLOWED_FIELDS = List.of(
+      "name",
+      "ntiMarket.name",
+      "description",
+      "status",
+      "user.telegramId"
+  );
 
   private final transient List<Filter> filters;
 
@@ -55,6 +64,9 @@ public class TeamCardSpecification implements Specification<TeamCard> {
                                CriteriaBuilder criteriaBuilder) {
     List<Predicate> predicates = new ArrayList<>();
     for (var filter : filters) {
+      if (!ALLOWED_FIELDS.contains(filter.fieldName())) {
+        throw new FilterFieldNotAllowedException(filter.fieldName(), ALLOWED_FIELDS);
+      }
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }
     return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
