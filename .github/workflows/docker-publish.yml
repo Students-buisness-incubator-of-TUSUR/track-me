@@ -64,14 +64,14 @@ jobs:
         id: meta-backend
         uses: docker/metadata-action@v3.5.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}/backend
+          images: ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}-backend
 
 
       - name: Extract Docker metadata frontend
         id: meta-frontend
         uses: docker/metadata-action@v3.5.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}/frontend
+          images: ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}-frontend
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
