@@ -9,8 +9,7 @@ import java.util.List;
 @Schema(description = "Фильтры для запросов поиска")
 public record FilterRequest(
     @Valid
-    @Schema(description = "Фильтры",
-            implementation = Filter.class)
+    @Schema(description = "Фильтры")
     @NotNull(message = "Фильтры не могут быть пустыми")
     List<@Valid Filter> filters
 ) {
