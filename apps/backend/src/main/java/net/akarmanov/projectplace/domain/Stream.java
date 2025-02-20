@@ -1,6 +1,7 @@
 package net.akarmanov.projectplace.domain;
 
 import jakarta.persistence.Basic;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -50,7 +51,7 @@ public class Stream {
   @Column
   private LocalDate endDate;
 
-  @ManyToMany(fetch = FetchType.EAGER)
+  @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
   @JoinTable(
       name = "stream_nti_market",
       joinColumns = @JoinColumn(name = "stream_id"),

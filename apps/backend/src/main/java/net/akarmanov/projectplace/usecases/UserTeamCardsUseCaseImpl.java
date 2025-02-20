@@ -6,6 +6,7 @@ import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.mapping.TeamCardMapper;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
+import net.akarmanov.projectplace.services.nti.NtiMarketService;
 import net.akarmanov.projectplace.services.stream.StreamService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import net.akarmanov.projectplace.services.user.UserService;
@@ -32,11 +33,15 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
 
   private final TeamCardMapper teamCardMapper;
 
+  private final NtiMarketService ntiMarketService;
+
   @Override
   @Transactional
   public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard) {
+    var ntiMarketId = teamCard.ntiMarketId();
     var stream = streamService.getCurrentStream();
     var teamCardEntity = teamCardMapper.mapToEntity(teamCard);
+    teamCardEntity.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
     teamCardEntity.setUser(userService.getCurrentUser());
     var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);
     stream.addTeamCard(createdTeamCard);
@@ -46,7 +51,9 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
 
   @Override
   public TeamCardDto updateTeamCard(UUID teamCardId, TeamCardCreateOrUpdateDto createOrUpdateDto) {
+    var ntMarketId = createOrUpdateDto.ntiMarketId();
     var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
+    teamCard.setNtiMarket(ntiMarketService.getNtiMarket(ntMarketId));
     var updatedTeamCard = teamCardsService.updateTeamCard(teamCardId, teamCard);
     return teamCardMapper.mapToDto(updatedTeamCard);
   }

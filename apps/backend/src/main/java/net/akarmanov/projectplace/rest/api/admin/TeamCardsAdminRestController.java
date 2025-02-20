@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import net.akarmanov.projectplace.filters.Filter;
+import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import org.springdoc.core.annotations.ParameterObject;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Team Cards API",
@@ -51,7 +50,7 @@ public interface TeamCardsAdminRestController {
       @ParameterObject
       @PageableDefault
       Pageable pageable,
-      @RequestBody List<Filter> filters);
+      @RequestBody FilterRequest filters);
 
   @GetMapping(produces = "application/json")
   @Operation(summary = "Получение карточки команды")
