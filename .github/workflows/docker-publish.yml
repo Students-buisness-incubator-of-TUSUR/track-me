@@ -1,4 +1,4 @@
-name: Docker
+name: Docker Publish
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -70,7 +70,7 @@ jobs:
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push backend Docker image
-        id: build-and-push
+        id: build-and-push-backend
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: .
@@ -80,7 +80,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Build and push frontend Docker image
-        id: build-and-push
+        id: build-and-push-frontend
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: .
