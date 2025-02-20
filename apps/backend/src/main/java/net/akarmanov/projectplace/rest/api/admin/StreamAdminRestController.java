@@ -56,7 +56,7 @@ public interface StreamAdminRestController {
   @Operation(summary = "Получить все потоки",
              description = "Возвращает список всех потоков с поддержкой пагинации")
   @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  PagedModel<StreamDto> findAll(@RequestBody FilterRequest filterRequest,
+  PagedModel<StreamDto> findAll(@RequestBody @Valid FilterRequest filterRequest,
                                 @PageableDefault @ParameterObject Pageable pageable);
 
   @Operation(

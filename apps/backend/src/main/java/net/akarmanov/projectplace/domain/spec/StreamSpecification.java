@@ -46,10 +46,11 @@ public class StreamSpecification implements Specification<Stream> {
       }
 
       if (READINESS_LEVEL_FIELD_NAME.equals(filter.fieldName())) {
+        var readinessLevel = ReadinessLevel.fromValue(filter.singleValue());
         filter = Filter.builder()
             .fieldName(filter.fieldName())
             .type(filter.type())
-            .singleValue(ReadinessLevel.fromValue(filter.singleValue()).name())
+            .singleValue(readinessLevel == null ? null : readinessLevel.name())
             .values(filter.values() != null
                 ? filter.values().stream()
                 .map(ReadinessLevel::fromValue)
