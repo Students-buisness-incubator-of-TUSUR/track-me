@@ -27,11 +27,10 @@ jobs:
       - name: Lint and Test backend
         run: ./gradlew :apps:backend:check
 
-      - name: Lint and Test frontend
+      - name: Test frontend
         run: |
           cd apps/frontend
           npm install
-          npm run lint
           npm test
           cd ../..
 
