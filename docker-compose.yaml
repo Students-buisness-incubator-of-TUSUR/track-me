@@ -14,9 +14,7 @@ services:
 
   backend:
     container_name: track-me-backend
-    build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
+    image: 'track-me-backend:latest'
     restart: always
     depends_on:
       - postgres
@@ -34,13 +32,11 @@ services:
 
   frontend:
     container_name: track-me-frontend
-    build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
+    image: 'track-me-frontend:latest'
     depends_on:
       - backend
     ports:
-      - '3001:3000'
+      - '3000:3000'
     networks:
       - demo
     volumes:

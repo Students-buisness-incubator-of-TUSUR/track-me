@@ -1,7 +1,5 @@
 name: Check changes
 on:
-  push:
-    branches: [ "develop" ]
   pull_request:
     branches: [ "develop" ]
 jobs:
