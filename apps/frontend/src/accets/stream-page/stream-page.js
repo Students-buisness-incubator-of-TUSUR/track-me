@@ -8,156 +8,149 @@ export default function Stream() {
   const [showCheckboxes, setShowCheckboxes] = useState(false);
   const [showCheckboxes2, setShowCheckboxes2] = useState(false);
   const [showCheckboxes3, setShowCheckboxes3] = useState(false);
-  const numberOfCheckboxes = 9;
-  if (false){
-  // const [loading, setLoading] = useState(false); // Состояние для отслеживания загрузки
-  // const [error, setError] = useState(null); // Состояние для отслеживания ошибок
-  // const [data, setData] = useState({ content: [], page: {} }); // Состояние для хранения данных
+  const [loading, setLoading] = useState(false); // Состояние для отслеживания загрузки
+  const [error, setError] = useState(null); // Состояние для отслеживания ошибок
+  const [data, setData] = useState({ content: [], page: {} }); // Состояние для хранения данных
 
-  // // Функция для выполнения POST-запроса
-  // const fetchData = async () => {
-  //   setLoading(true);
-  //   setError(null);
+  const numberOfCheckboxes = 9;
+
+  // Функция для выполнения POST-запроса
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
   
   const token = localStorage.getItem("accessToken"); // Получаем токен из localStorage
+    if (!token) {
+      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
+      setLoading(false);
+      return;
+    }
+    try {
+       const response = await fetch('http://127.0.0.1:8080/api/v1/admin/streams?page=0&size=10', {
+        method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Передаем токен в заголовке
+      },
+        body: JSON.stringify({
+          filters: [
+            {
+              fieldName: 'name',
+              type: 'EQ',
+              value: 'string',
+            },
+          ],
+        }),
+      });
 
+      if (!response.ok) {
+        throw new Error('Ошибка при загрузке данных');
+      }
 
-
-
-
-  
-    // if (!token) {
-    //   setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-    //   setLoading(false);
-    //   return;
-    // }
-    // try {
-    //    const response = await fetch('http://127.0.0.1:8080/api/v1/admin/streams?page=0&size=10', {
-    //     method: 'POST',
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: `Bearer ${token}`, // Передаем токен в заголовке
-    //   },
-      //   body: JSON.stringify({
-      //     filters: [
-      //       {
-      //         fieldName: 'name',
-      //         type: 'EQ',
-      //         value: 'string',
-      //       },
-      //     ],
-      //   }),
-      // });
-
-  //     if (!response.ok) {
-  //       throw new Error('Ошибка при загрузке данных');
-  //     }
-
-  //     const result = await response.json();
-  //     setData(result); // Сохраняем данные в состоянии
-  //   } catch (error) {
-  //     setError(error.message); // Сохраняем ошибку
-  //   } finally {
-  //     setLoading(false); // Завершаем загрузку
-  //   }
-  // };
-
-  // Загружаем данные при монтировании компонента
-  // useEffect(() => {
-  //   fetchData();
-  // }, []);
-}
-
-  const data = {
-    "content": [
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa3",
-        "name": "йуйцу",
-        "startDate": "2025-02-21",
-        "endDate": "2026-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "0-2"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa4",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa5",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa6",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa7",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa8",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa9",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa10",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa11",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-      {
-        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa12",
-        "name": "wwww",
-        "startDate": "2025-02-21",
-        "endDate": "2027-02-21",
-        "ntiMarkets": [],
-        "readinessLevel": "3-4"
-      },
-    ],
-    "page": {
-      "size": 10,
-      "number": 0,
-      "totalElements": 1,
-      "totalPages": 1
+      const result = await response.json();
+      setData(result); // Сохраняем данные в состоянии
+    } catch (error) {
+      setError(error.message); // Сохраняем ошибку
+    } finally {
+      setLoading(false); // Завершаем загрузку
     }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+
+  // const data = {
+  //   "content": [
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa3",
+  //       "name": "йуйцу",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2026-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "0-2"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa4",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa5",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa6",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa7",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa8",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa9",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa10",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa11",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //     {
+  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa12",
+  //       "name": "wwww",
+  //       "startDate": "2025-02-21",
+  //       "endDate": "2027-02-21",
+  //       "ntiMarkets": [],
+  //       "readinessLevel": "3-4"
+  //     },
+  //   ],
+  //   "page": {
+  //     "size": 10,
+  //     "number": 0,
+  //     "totalElements": 1,
+  //     "totalPages": 1
+  //   }
+  // };
   
   const cardd = data.content.map((item, index) => ({
     id: item.id, // Используем уникальный id из данных
@@ -211,14 +204,14 @@ export default function Stream() {
     label: `Чекбокс 3 ${index + 1}`,
   }));
 
-// if (false){
-//   if (loading) {
-//     return <div>Загрузка...</div>;
-//   }
+if (true){
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
 
-//   if (error) {
-//     return <div>Ошибка: {error}</div>;
-//   }}
+  if (error) {
+    return <div>Ошибка: {error}</div>;
+  }}
 
 
 
