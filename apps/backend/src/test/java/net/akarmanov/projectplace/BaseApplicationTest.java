@@ -1,6 +1,5 @@
 package net.akarmanov.projectplace;
 
-import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.domain.User;
 import net.akarmanov.projectplace.models.UserRole;
@@ -60,7 +59,6 @@ public abstract class BaseApplicationTest {
         .name("stream 1")
         .startDate(LocalDate.now())
         .endDate(LocalDate.now().plusDays(1))
-        .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
     user = userRepository.save(User.builder()
         .enabled(true)

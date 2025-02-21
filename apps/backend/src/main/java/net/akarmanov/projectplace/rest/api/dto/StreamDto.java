@@ -18,7 +18,7 @@ public record StreamDto(
     LocalDate endDate,
     @Schema(description = "Рынки НТИ")
     List<NTIMarketDto> ntiMarkets,
-    @Schema(description = "Уровень готовности")
-    String readinessLevel
+    @Schema(description = "Описание потока")
+    String description
 ) {
 }

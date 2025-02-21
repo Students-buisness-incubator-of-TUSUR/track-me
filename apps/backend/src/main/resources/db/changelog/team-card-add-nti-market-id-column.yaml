@@ -19,3 +19,29 @@ databaseChangeLog:
                     foreignKeyName: fk_team_card_nti_market_id
                     references: nti_market(id)
                     nullable: false
+      rollback:
+        - dropColumn:
+            tableName: team_card
+            columnName: nti_market_id
+  - changeSet:
+      id: team-card-add-readiness-column-2
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              tableName: team_card
+              columnName: readiness_level
+      changes:
+        - addColumn:
+            tableName: team_card
+            columns:
+              - column:
+                  name: readiness_level
+                  type: text
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: team_card
+            columnName: readiness_level

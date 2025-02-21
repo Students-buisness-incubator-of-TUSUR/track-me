@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: stream-add-description-column-1
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              tableName: stream
+              columnName: description
+      changes:
+        - addColumn:
+            tableName: stream
+            columns:
+              - column:
+                  name: description
+                  type: text
+                  constraints:
+                    nullable: true

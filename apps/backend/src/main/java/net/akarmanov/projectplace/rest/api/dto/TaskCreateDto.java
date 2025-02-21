@@ -2,6 +2,7 @@ package net.akarmanov.projectplace.rest.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import net.akarmanov.projectplace.domain.ReadinessLevel;
 
 @Schema(description = "DTO создания задачи на встречу")
 public record TaskCreateDto(

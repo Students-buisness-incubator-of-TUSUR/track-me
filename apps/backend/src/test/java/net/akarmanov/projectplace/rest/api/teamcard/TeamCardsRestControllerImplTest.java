@@ -2,6 +2,7 @@ package net.akarmanov.projectplace.rest.api.teamcard;
 
 import net.akarmanov.projectplace.BaseApplicationTest;
 import net.akarmanov.projectplace.domain.NTIMarket;
+import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.TeamCard;
 import net.akarmanov.projectplace.models.TeamCardStatus;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
@@ -54,13 +55,17 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 {
                   "name": "Test",
                   "description": "Test description",
-                  "nti_market_id": "%s"
+                  "ntiMarketId": "%s",
+                  "readinessLevel": "0-2"
                 }
                 """.formatted(ntiMarket.getId())))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").exists())
-        .andExpect(jsonPath("$.name", is("Test")));
+        .andExpect(jsonPath("$.name", is("Test")))
+        .andExpect(jsonPath("$.description", is("Test description")))
+        .andExpect(jsonPath("$.readinessLevel", is("0-2")))
+        .andExpect(jsonPath("$.status", is(TeamCardStatus.OK.name())));
   }
 
   @Test
@@ -80,6 +85,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .ntiMarket(ntiMarket)
         .name("Team card1")
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
 
     mockMvc.perform(patch("/api/v1/team-card")
@@ -89,13 +95,16 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 {
                   "name": "Updated name",
                   "description": "Updated description",
-                  "nti_market_id": "%s"
+                  "ntiMarketId": "%s",
+                  "readinessLevel": "3-5"
                 }
                 """.formatted(ntiMarket.getId())))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
-        .andExpect(jsonPath("$.name", is("Updated name")));
+        .andExpect(jsonPath("$.name", is("Updated name")))
+        .andExpect(jsonPath("$.description", is("Updated description")))
+        .andExpect(jsonPath("$.readinessLevel", is("3-5")));
   }
 
   @Test
@@ -106,6 +115,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
 
     mockMvc.perform(get("/api/v1/team-card")
@@ -113,7 +123,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
-        .andExpect(jsonPath("$.name", is("Team card1")));
+        .andExpect(jsonPath("$.name", is("Team card1")))
+        .andExpect(jsonPath("$.readinessLevel", is("0-2")));
   }
 
   @Test
@@ -124,12 +135,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card1 description")
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_2)
         .description("Team card2 description")
         .build());
 
@@ -153,11 +166,13 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .description("Team card1 description")
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .ntiMarket(ntiMarket)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
+        .readinessLevel(ReadinessLevel.LEVEL_2)
         .ntiMarket(ntiMarket)
         .description("Team card2 description")
         .build());
@@ -171,6 +186,11 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                       "fieldName": "name",
                       "value": "card1",
                       "type": "LIKE"
+                    },
+                    {
+                      "fieldName": "readinessLevel",
+                      "value": "0-2",
+                      "type": "EQ"
                     }
                   ]
                 }"""))
@@ -222,12 +242,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .ntiMarket(ntiMarket)
         .name("Team card1")
+            .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card1 description")
         .build());
     var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .ntiMarket(ntiMarket)
+            .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card2 description")
         .build());
 
@@ -263,12 +285,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card1 description")
         .build());
     var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card2 description")
         .build());
 
@@ -304,12 +328,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .description("Team card1 description")
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .ntiMarket(ntiMarket)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_2)
         .description("Team card2 description")
         .build());
 
@@ -326,6 +352,11 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                   {
                     "fieldName": "status",
                     "value": "OK",
+                    "type": "EQ"
+                  },
+                  {
+                    "fieldName": "readinessLevel",
+                    "value": "0-2",
                     "type": "EQ"
                   }
                 ]
@@ -368,12 +399,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .name("Team card1")
         .description("Team card1 description")
         .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .description("Team card2 description")
         .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
 
     mockMvc.perform(post("/api/v1/team-cards")
@@ -395,6 +428,48 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 }
                 """.formatted(ntiMarket.getName()))
         )
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(1)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_withTelegranId_success() throws Exception {
+    teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card1")
+        .description("Team card1 description")
+        .readinessLevel(ReadinessLevel.LEVEL_1)
+        .ntiMarket(ntiMarket)
+        .build());
+    teamCardsService.createTeamCard(TeamCard.builder()
+        .status(TeamCardStatus.OK)
+        .name("Team card2")
+        .description("Team card2 description")
+        .ntiMarket(ntiMarket)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
+        .build());
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "user.telegramId",
+                      "value": "test_tracker",
+                      "type": "EQ"
+                    },
+                    {
+                      "fieldName": "name",
+                      "value": "card2",
+                      "type": "LIKE"
+                    }
+                  ]
+                }
+                """))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.totalElements", is(1)));

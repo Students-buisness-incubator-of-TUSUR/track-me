@@ -65,6 +65,10 @@ public class TeamCard {
   @JoinColumn(name = "nti_market_id", nullable = false)
   private NTIMarket ntiMarket;
 
+  @Column(nullable = false, name = "readiness_level")
+  @Enumerated(EnumType.STRING)
+  private ReadinessLevel readinessLevel;
+
   @OneToMany(mappedBy = "teamCard",
              cascade = CascadeType.ALL)
   @Builder.Default
@@ -78,4 +82,22 @@ public class TeamCard {
   )
   @Builder.Default
   private Set<Stream> streams = new HashSet<>();
+
+  public void addStream(Stream stream) {
+    streams.add(stream);
+  }
+
+  public void addMeeting(Meeting meeting) {
+    teamMeetings.add(meeting);
+  }
+
+  public void removeMeeting(Meeting meeting) {
+    teamMeetings.remove(meeting);
+    meeting.setTeamCard(null);
+  }
+
+  public void removeStream(Stream stream) {
+    streams.remove(stream);
+    stream.getTeamCards().remove(this);
+  }
 }

@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: stream-remove-readiness-column-1
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            tableName: stream
+            columnName: readiness_level
+      changes:
+        - dropColumn:
+            tableName: stream
+            columnName: readiness_level

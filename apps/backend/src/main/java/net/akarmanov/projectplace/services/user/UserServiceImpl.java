@@ -55,12 +55,9 @@ public class UserServiceImpl implements UserService {
     var user = userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException(id));
     user.setTelegramId(userDTO.getTelegramId());
-    user.setFirstName(userDTO.getFirstName());
-    user.setLastName(userDTO.getLastName());
     user.setFullName(userDTO.getFullName());
     user.setRole(userDTO.getRole());
     user.setPhoneNumber(userDTO.getPhoneNumber());
-    user.setMiddleName(userDTO.getMiddleName());
     return userRepository.save(user);
   }
 

@@ -14,17 +14,23 @@ public interface TeamCardMapper {
   @Mapping(target = "user", ignore = true)
   TeamCard mapToEntity(TeamCardDto dto);
 
+  @Mapping(target = "ntiMarket", ignore = true)
   @Mapping(target = "user", ignore = true)
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "streams", ignore = true)
   @Mapping(target = "status", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "enabled", ignore = true)
+  @Mapping(target = "readinessLevel",
+           expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
   TeamCard mapToEntity(TeamCardCreateOrUpdateDto dto);
 
   @Mapping(target = "userId", source = "user.id")
+  @Mapping(target = "readinessLevel", expression = "java( entity.getReadinessLevel().getValue() )")
   TeamCardDto mapToDto(TeamCard entity);
 
+  @Mapping(target = "teamMeetings", ignore = true)
+  @Mapping(target = "ntiMarket", ignore = true)
   @Mapping(target = "streams", ignore = true)
   @Mapping(target = "enabled", ignore = true)
   @Mapping(target = "id", ignore = true)

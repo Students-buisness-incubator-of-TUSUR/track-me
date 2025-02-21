@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.TeamCard;
 import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
@@ -15,12 +16,15 @@ import java.util.UUID;
 
 public class TeamCardSpecification implements Specification<TeamCard> {
 
+  public static final String READINESS_LEVEL_FIELD_NAME = "readinessLevel";
+
   public static final List<String> ALLOWED_FIELDS = List.of(
       "name",
       "ntiMarket.name",
       "description",
       "status",
-      "user.telegramId"
+      "user.telegramId",
+      READINESS_LEVEL_FIELD_NAME
   );
 
   private final transient List<Filter> filters;
@@ -66,6 +70,10 @@ public class TeamCardSpecification implements Specification<TeamCard> {
     for (var filter : filters) {
       if (!ALLOWED_FIELDS.contains(filter.fieldName())) {
         throw new FilterFieldNotAllowedException(filter.fieldName(), ALLOWED_FIELDS);
+      }
+
+      if (READINESS_LEVEL_FIELD_NAME.equals(filter.fieldName())) {
+        filter = StreamSpecification.getReadinessLevelFilter(filter);
       }
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }

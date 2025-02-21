@@ -33,6 +33,8 @@ public record StreamCreateDto(
     @Schema(description = "Рынки НТИ")
     @Size(min = 1,
           message = "Должен быть выбран хотя бы один рынок НТИ")
-    List<NTIMarketDto> ntiMarkets
+    List<NTIMarketDto> ntiMarkets,
+    @Schema(description = "Описание потока")
+    String description
 ) {
 }
