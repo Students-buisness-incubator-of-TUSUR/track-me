@@ -131,6 +131,25 @@ class StreamRestControllerTest extends BaseApplicationTest {
   }
 
   @Test
+  void getStreams_withFilters_withIInvalidReadinessLevel() throws Exception {
+    mockMvc.perform(post("/api/v1/streams")
+            .contentType("application/json")
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "readinessLevel",
+                      "type": "EQ",
+                      "value": "0-2-3"
+                    }
+                  ]
+                }"""))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isEmpty());
+  }
+
+  @Test
   void getStreams_withFilters_withLikeName() throws Exception {
     mockMvc.perform(post("/api/v1/streams")
             .contentType("application/json")

@@ -24,12 +24,13 @@
   .cards-wrapper {
     margin-top: 26px;
     display: flex;
-    align-content: space-between;
-    justify-content: space-between;
+    align-content: flex-start;
+    justify-content: flex-start;
     flex-wrap: wrap;
-    margin-right: 101px;
     margin-left: 101px;
+    gap: 20px; /* Убираем отступы между карточками */
 }
+
   
   /* Карточка */
   .card {

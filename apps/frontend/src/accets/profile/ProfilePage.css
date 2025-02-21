@@ -62,7 +62,8 @@
   width: 60%;
 }
 
-.field label {
+/* Исправить! */
+.field label {  
   display: block;
   padding-left: 36px;
   font-weight: 300;
@@ -70,13 +71,16 @@
   margin-bottom: 5px;
   font-weight: bold;
 }
-
+.edit-icon123{
+  font-weight: bold;
+}
+/* Исправить! */
 .field input {
   width: 100%;
   width: 560px;
   height: 72px;
   font-weight: 300;
-  font-size: 20px;
+  font-size: 16px;
   
   background-color: #E6D7FB;
   color: #000; /* Черный цвет текста */
@@ -87,6 +91,7 @@
   outline: none; /* Убирает контур при фокусе */
 }
 
+/* Исправить! */
 .field input:focus {
   outline: none; /* Дополнительно убирает контур */
   border: none;
@@ -108,11 +113,13 @@
   margin-bottom: 10px;
 }
 
+/* Исправить! */
 .role-text {
   font-size: 18px;
   font-weight: bold;
 }
 
+/* Исправить! */
 .team-cards-button {
   margin-top: 44px;
   width: 454px;

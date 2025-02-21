@@ -3,6 +3,8 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./accets/login/Login.js";
 import Stream from "./accets/stream-page/stream-page.js";
+import CreateStream from "./accets/create-stream-page/create-stream-page.js";
+
 import TrackerPage from "./accets/teamcard/TrackerPage.js";
 import Register from "./accets/register/Registration.js";
 import ProfilePage from "./accets/profile/ProfilePage.js"; // <-- наш компонент
@@ -22,7 +24,8 @@ function App() {
         <Route path="/superadmin" element={<SuperAdminPage />} />
         <Route path="/tracker" element={<TrackerPage />} />
         <Route path="/meeting" element={<MeetingCard />} />
-        <Route path="/ " element={<ProfilePage />} />
+        <Route path="/create-stream" element={<CreateStream />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>
   );
