@@ -9,6 +9,7 @@ function TrackerPage() {
   const [streamNTI, setNTIName] = useState("");
   const [streamreadinessLevel, setLevel] = useState("");
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,7 +22,7 @@ function TrackerPage() {
     }
 
     // Запрос на список карточек
-    fetch("http://127.0.0.1:8080/api/v1/team-cards?page=0&size=10", {
+    fetch("http://127.0.0.1:8080/api/v1/team-cards?page=0&size=150", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -85,17 +86,27 @@ function TrackerPage() {
       });
   }, [navigate]);
 
-  // Функции для пагинации
+  // Фильтрация карточек по названию (поисковой запрос)
+  const filteredCards = cards.filter((card) =>
+    card.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Обновляем пагинацию для отфильтрованных карточек
+  const visibleCards = filteredCards.slice(visibleCardsStart, visibleCardsStart + 9);
+
   const handleShowMore = () => {
-    setVisibleCardsStart(prev => prev + 9);
+    setVisibleCardsStart((prev) => prev + 9);
   };
 
   const handleShowPrevious = () => {
-    setVisibleCardsStart(prev => Math.max(prev - 9, 0));
+    setVisibleCardsStart((prev) => Math.max(prev - 9, 0));
   };
 
-  // Вычисляем видимые карточки
-  const visibleCards = cards.slice(visibleCardsStart, visibleCardsStart + 9);
+  // При изменении поискового запроса сбрасываем пагинацию
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setVisibleCardsStart(0);
+  };
 
   return (
     <div className="tracker-container">
@@ -113,7 +124,13 @@ function TrackerPage() {
             <button className="Stream-settings-pic"> </button>
             <div className="Stream-search-contcont">
               <button className="Stream-settings-pic2"> </button>
-              <input type="search" placeholder="Найти" className="Stream-search" />
+              <input
+                type="search"
+                placeholder="Найти"
+                className="Stream-search"
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
             </div>
           </div>
           <button className="Stream-butt">+ Создать карточку</button>
@@ -123,7 +140,7 @@ function TrackerPage() {
       <div className="cards-wrapper">
         {error ? (
           <p className="error-message">{error}</p>
-        ) : cards.length > 0 ? (
+        ) : filteredCards.length > 0 ? (
           visibleCards.map((card) => (
             <div className="card" key={card.id}>
               <div className="card-image" />
@@ -138,8 +155,14 @@ function TrackerPage() {
                 <div className="under-cont">
                   <div className="text-container project-markets">
                     <p>
-                      Рынки НТИ: {Array.isArray(streamNTI) && streamNTI.length > 0 
-                        ? streamNTI.map(market => market.name || "Неизвестное название").join(", ") 
+                      Рынки НТИ:{" "}
+                      {Array.isArray(streamNTI) && streamNTI.length > 0
+                        ? streamNTI
+                            .map(
+                              (market) =>
+                                market.name || "Неизвестное название"
+                            )
+                            .join(", ")
                         : "Неизвестен"}
                     </p>
                   </div>
@@ -155,12 +178,11 @@ function TrackerPage() {
             </div>
           ))
         ) : (
-          <p>Загрузка карточек...</p>
+          <p>{searchQuery ? "Ничего не найдено по запросу" : "Загрузка карточек..."}</p>
         )}
       </div>
 
-      {/* Нижний футер с кнопками переключения между страницами */}
-      {cards.length > 0 && (
+      {filteredCards.length > 0 && (
         <footer className="Stream-footer">
           <div className="Stream-footer-butts">
             <div className="Stream-footer-p-butt-1">
@@ -173,12 +195,12 @@ function TrackerPage() {
                 <button onClick={handleShowPrevious} className="Stream-footer-button-2"></button>
               )}
               <button className="Stream-footer-button-3"></button>
-              {visibleCardsStart + 9 < cards.length && (
+              {visibleCardsStart + 9 < filteredCards.length && (
                 <button onClick={handleShowMore} className="Stream-footer-button-4"></button>
               )}
             </div>
             <div className="Stream-footer-p-butt-5">
-              {visibleCardsStart + 9 < cards.length && (
+              {visibleCardsStart + 9 < filteredCards.length && (
                 <button onClick={handleShowMore} className="Stream-footer-button-5"></button>
               )}
             </div>
