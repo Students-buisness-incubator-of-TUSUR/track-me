@@ -7,6 +7,43 @@ export default function Stream() {
   const [visibleCardsStart, setVisibleCardsStart] = useState(0);
   const [showCheckboxes, setShowCheckboxes] = useState(false); // Состояние для управления видимостью чекбоксов
 
+
+  const data = {
+    "content": [
+      {
+        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa3",
+        "name": "йуйцу",
+        "startDate": "2025-02-21",
+        "endDate": "2026-02-21",
+        "ntiMarkets": [],
+        "readinessLevel": "0-2"
+      },
+      {
+        "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa4",
+        "name": "wwww",
+        "startDate": "2025-02-21",
+        "endDate": "2027-02-21",
+        "ntiMarkets": [],
+        "readinessLevel": "3-4"
+      },
+    ],
+    "page": {
+      "size": 10,
+      "number": 0,
+      "totalElements": 1,
+      "totalPages": 1
+    }
+  };
+  
+  const cardd = data.content.map((item, index) => ({
+    id: item.id, // Используем уникальный id из данных
+    title: item.name, // Генерируем заголовок на основе индекса
+    content: `Содержимое карточки ${index + 1}`, // Генерируем содержимое на основе индекса
+    startDate: item.startDate, // Добавляем startDate из данных
+    endDate: item.endDate, // Добавляем endDate из данных
+    readinessLevel: item.readinessLevel // Добавляем readinessLevel из данных
+  }));
+
   const handleClick = () => {
     setIsVisible(!isVisible);
   };
@@ -29,7 +66,7 @@ export default function Stream() {
     content: `Содержимое карточки ${index + 1}`,
   }));
 
-  const visibleCards = cards.slice(visibleCardsStart, visibleCardsStart + 9);
+  const visibleCards = cardd.slice(visibleCardsStart, visibleCardsStart + 9);
 
   // Пример данных для чекбоксов
   const checkboxesData = Array.from({ length: 9 }, (_, index) => ({
