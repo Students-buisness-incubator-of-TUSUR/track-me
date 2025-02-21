@@ -62,7 +62,8 @@
   width: 60%;
 }
 
-.field label {
+/* Исправить! */
+.field label {  
   display: block;
   padding-left: 36px;
   font-weight: 300;
@@ -73,6 +74,7 @@
 .edit-icon123{
   font-weight: bold;
 }
+/* Исправить! */
 .field input {
   width: 100%;
   width: 560px;
@@ -89,6 +91,7 @@
   outline: none; /* Убирает контур при фокусе */
 }
 
+/* Исправить! */
 .field input:focus {
   outline: none; /* Дополнительно убирает контур */
   border: none;
@@ -110,11 +113,13 @@
   margin-bottom: 10px;
 }
 
+/* Исправить! */
 .role-text {
   font-size: 18px;
   font-weight: bold;
 }
 
+/* Исправить! */
 .team-cards-button {
   margin-top: 44px;
   width: 454px;
