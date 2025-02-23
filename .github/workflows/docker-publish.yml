@@ -95,13 +95,13 @@ jobs:
       - name: Sign and push backend image
         if: github.event_name != 'pull_request'
         run: |
-          cosign sign -key cosign.key -a ${{ steps.meta-backend.outputs.digest }}
-          cosign verify -key cosign.pub ${{ steps.meta-backend.outputs.digest }}
+          cosign sign --key cosign.key -a tag=${{ steps.meta-backend.outputs.tags }} ${{ steps.meta-backend.outputs.digest }}
+          cosign verify --key cosign.pub ${{ steps.meta-backend.outputs.digest }}
           cosign push ${{ steps.meta-backend.outputs.digest }}
 
       - name: Sign and push frontend image
         if: github.event_name != 'pull_request'
         run: |
-          cosign sign -key cosign.key -a ${{ steps.meta-frontend.outputs.digest }}
-          cosign verify -key cosign.pub ${{ steps.meta-frontend.outputs.digest }}
+          cosign sign --key cosign.key -a tag=${{ steps.meta-frontend.outputs.tags }} ${{ steps.meta-frontend.outputs.digest }}
+          cosign verify --key cosign.pub ${{ steps.meta-frontend.outputs.digest }}
           cosign push ${{ steps.meta-frontend.outputs.digest }}
