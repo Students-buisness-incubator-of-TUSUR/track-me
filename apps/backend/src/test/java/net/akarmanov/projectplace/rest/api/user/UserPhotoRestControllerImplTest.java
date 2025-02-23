@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.hamcrest.Matchers.containsString;
@@ -25,7 +26,7 @@ class UserPhotoRestControllerImplTest extends BaseApplicationTest {
   @Autowired
   private UserPhotoRepository userPhotoRepository;
 
-  @Value("classpath:test-image.jpg")
+  @Value("classpath:test-image.png")
   private Resource testImage;
 
 
@@ -36,8 +37,10 @@ class UserPhotoRestControllerImplTest extends BaseApplicationTest {
 
   @Test
   void addPhoto_success() throws Exception {
+    var mockImage = new MockMultipartFile("file", "test-image.png", MediaType.IMAGE_PNG_VALUE, "test-image".getBytes());
+
     mockMvc.perform(multipart("/api/v1/users/{telegramId}/photo", user.getTelegramId())
-            .file("file", testImage.getContentAsByteArray())
+            .file(mockImage)
             .contentType(MediaType.MULTIPART_FORM_DATA))
         .andDo(print())
         .andExpect(status().isOk());
@@ -49,13 +52,13 @@ class UserPhotoRestControllerImplTest extends BaseApplicationTest {
     userPhotoRepository.save(UserPhoto.builder()
         .photo(testImage.getInputStream().readAllBytes())
         .user(user)
-        .fileName("test-image.jpg")
+        .fileName("test-image.png")
         .build());
 
     mockMvc.perform(get("/api/v1/users/{telegramId}/photo", user.getTelegramId()))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+        .andExpect(content().contentType(MediaType.IMAGE_PNG))
         .andExpect(content().bytes(testImage.getInputStream().readAllBytes()));
   }
 
@@ -64,7 +67,7 @@ class UserPhotoRestControllerImplTest extends BaseApplicationTest {
     userPhotoRepository.save(UserPhoto.builder()
         .photo(testImage.getInputStream().readAllBytes())
         .user(user)
-        .fileName("test-image.jpg")
+        .fileName("test-image.png")
         .build());
 
     mockMvc.perform(delete("/api/v1/users/{telegramId}/photo", user.getTelegramId()))

@@ -228,7 +228,7 @@ class StreamRestControllerTest extends BaseApplicationTest {
   @Test
   void getStreamImage_success() throws Exception {
     var stream = streamRepository.findAll().get(0);
-    stream.setImageBytes(resourceLoader.getResource("classpath:img/stream-image.jpg")
+    stream.setImageBytes(resourceLoader.getResource("classpath:img/stream-image.png")
         .getInputStream()
         .readAllBytes());
     streamRepository.save(stream);

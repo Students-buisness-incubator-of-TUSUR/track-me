@@ -9,6 +9,7 @@ import net.akarmanov.projectplace.mapping.UserPhotoMapper;
 import net.akarmanov.projectplace.repos.UserPhotoRepository;
 import net.akarmanov.projectplace.repos.UserRepository;
 import net.akarmanov.projectplace.services.exceptions.PhotoNotFoundException;
+import net.akarmanov.projectplace.services.exceptions.UserNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,12 +28,10 @@ class UserPhotoServiceImpl implements UserPhotoService {
   @Transactional
   public void addPhotoToUser(String telegramId, MultipartFile file) {
 
-    var user = userRepository.findByTelegramId(telegramId);
-    if (user.isEmpty()) {
-      deletePhoto(telegramId);
-    } else {
-      addPhoto(user.get(), file);
-    }
+    var user = userRepository.findByTelegramId(telegramId)
+        .orElseThrow(() -> new UserNotFoundException(telegramId));
+
+    addPhoto(user, file);
   }
 
   @Override
@@ -53,13 +52,13 @@ class UserPhotoServiceImpl implements UserPhotoService {
 
   @SneakyThrows
   private void addPhoto(User user, MultipartFile file) {
-    try (var is = file.getInputStream()) {
-      var photo = UserPhoto.builder()
-          .user(user)
-          .photo(is.readAllBytes())
-          .fileName(file.getOriginalFilename())
-          .build();
-      userPhotoRepository.save(photo);
-    }
+    var userPhoto = userPhotoRepository.findByTelegramId(user.getTelegramId())
+        .orElseGet(() -> UserPhoto.builder()
+            .user(user)
+            .build());
+
+    userPhoto.setPhoto(file.getBytes());
+    userPhoto.setFileName(file.getOriginalFilename());
+    userPhotoRepository.save(userPhoto);
   }
 }

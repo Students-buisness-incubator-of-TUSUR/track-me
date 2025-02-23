@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @Tag(name = "User Photo API",
@@ -37,7 +37,7 @@ public interface UserPhotoRestController {
                      description = "Идентификатор пользователя",
                      required = true)
       })
-  @GetMapping(produces = APPLICATION_OCTET_STREAM_VALUE)
+  @GetMapping(produces = MediaType.IMAGE_PNG_VALUE)
   ResponseEntity<Resource> getPhoto(@PathVariable String telegramId);
 
   @Operation(
@@ -47,6 +47,6 @@ public interface UserPhotoRestController {
                      description = "Идентификатор пользователя",
                      required = true)
       })
-  @DeleteMapping(produces = APPLICATION_OCTET_STREAM_VALUE)
+  @DeleteMapping
   ResponseEntity<Void> deletePhoto(@PathVariable String telegramId);
 }
