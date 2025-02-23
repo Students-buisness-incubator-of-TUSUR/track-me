@@ -125,5 +125,11 @@ public class DomainTeamCardsService implements TeamCardsService {
     if (source.getStatus() != null) {
       target.setStatus(source.getStatus());
     }
+    if (source.getNtiMarket() != null) {
+      target.setNtiMarket(source.getNtiMarket());
+    }
+    if (source.getReadinessLevel() != null) {
+      target.setReadinessLevel(source.getReadinessLevel());
+    }
   }
 }

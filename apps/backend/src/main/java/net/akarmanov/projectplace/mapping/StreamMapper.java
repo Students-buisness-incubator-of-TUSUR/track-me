@@ -12,44 +12,33 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
-@Mapper(
-    componentModel = "spring",
-    uses = {NtiMarketMapper.class},
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-    nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+@Mapper(componentModel = "spring",
+        uses = {NtiMarketMapper.class},
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface StreamMapper {
 
-  @Mapping(target = "users",
-           ignore = true)
-  @Mapping(target = "teamCards",
-           ignore = true)
+  @Mapping(target = "imageBytes", ignore = true)
+  @Mapping(target = "users", ignore = true)
+  @Mapping(target = "teamCards", ignore = true)
   Stream mapFromDto(StreamDto dto);
 
-  @Mapping(target = "readinessLevel",
-           expression = "java( entity.getReadinessLevel().getValue() )")
   StreamDto mapToDto(Stream entity);
 
   List<Stream> mapFromDto(List<StreamDto> dtos);
 
   List<StreamDto> mapToDto(List<Stream> entities);
 
-  @Mapping(target = "users",
-           ignore = true)
-  @Mapping(target = "teamCards",
-           ignore = true)
-  @Mapping(target = "startDate",
-           ignore = true)
-  @Mapping(target = "id",
-           ignore = true)
+  @Mapping(target = "imageBytes", ignore = true)
+  @Mapping(target = "users", ignore = true)
+  @Mapping(target = "teamCards", ignore = true)
+  @Mapping(target = "startDate", ignore = true)
+  @Mapping(target = "id", ignore = true)
   void updateFromDto(StreamUpdateDto dto, @MappingTarget Stream entity);
 
-  @Mapping(target = "users",
-           ignore = true)
-  @Mapping(target = "teamCards",
-           ignore = true)
-  @Mapping(target = "id",
-           ignore = true)
-  @Mapping(target = "readinessLevel",
-           expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
+  @Mapping(target = "imageBytes", ignore = true)
+  @Mapping(target = "users", ignore = true)
+  @Mapping(target = "teamCards", ignore = true)
+  @Mapping(target = "id", ignore = true)
   Stream mapFromDto(StreamCreateDto dto);
 }

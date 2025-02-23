@@ -15,3 +15,7 @@ databaseChangeLog:
       file: db/changelog/stream-add-image-column.yaml
   - include:
       file: db/changelog/team-card-add-nti-market-id-column.yaml
+  - include:
+      file: db/changelog/stream-add-description-column.yaml
+  - include:
+      file: db/changelog/stream-remove-readiness-column.yaml

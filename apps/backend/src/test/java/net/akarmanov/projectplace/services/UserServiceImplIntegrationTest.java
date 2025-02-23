@@ -109,9 +109,7 @@ class UserServiceImplIntegrationTest {
   @Test
   void testUpdateUser() {
     User updateUser = User.builder()
-        .firstName("John")
-        .lastName("Smith")
-        .middleName("Middle")
+        .fullName("John Smith Middle")
         .email("john@example.com")
         .phoneNumber("+79876543210")
         .telegramId("newTelegramId")
@@ -121,17 +119,13 @@ class UserServiceImplIntegrationTest {
 
     var updatedUserDTO = userService.updateUser(user.getId(), updateUser);
     assertNotNull(updatedUserDTO);
-    assertEquals(updateUser.getFirstName(), updatedUserDTO.getFirstName());
-    assertEquals(updateUser.getLastName(), updatedUserDTO.getLastName());
-    assertEquals(updateUser.getMiddleName(), updatedUserDTO.getMiddleName());
+    assertEquals(updateUser.getFullName(), updatedUserDTO.getFullName());
     assertEquals(updateUser.getPhoneNumber(), updatedUserDTO.getPhoneNumber());
     assertEquals(updateUser.getTelegramId(), updatedUserDTO.getTelegramId());
 
     Optional<User> updatedUser = userRepository.findById(user.getId());
     assertTrue(updatedUser.isPresent());
-    assertEquals(updateUser.getFirstName(), updatedUser.get().getFirstName());
-    assertEquals(updateUser.getLastName(), updatedUser.get().getLastName());
-    assertEquals(updateUser.getMiddleName(), updatedUser.get().getMiddleName());
+    assertEquals(updateUser.getFullName(), updatedUser.get().getFullName());
     assertEquals(updateUser.getPhoneNumber(), updatedUser.get().getPhoneNumber());
     assertEquals(updateUser.getTelegramId(), updatedUser.get().getTelegramId());
     assertEquals(updateUser.getRole().toString(), updatedUser.get().getRole().toString());

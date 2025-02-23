@@ -2,6 +2,7 @@ package net.akarmanov.projectplace.rest.api.meeting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.akarmanov.projectplace.BaseApplicationTest;
+import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.TeamCard;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
@@ -38,6 +39,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         .name("Test")
         .description("Test")
         .ntiMarket(ntiMarketRepository.findAll().getFirst())
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
   }
 

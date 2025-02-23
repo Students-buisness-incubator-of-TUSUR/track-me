@@ -43,6 +43,7 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
     var teamCardEntity = teamCardMapper.mapToEntity(teamCard);
     teamCardEntity.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
     teamCardEntity.setUser(userService.getCurrentUser());
+    teamCardEntity.addStream(stream);
     var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);
     stream.addTeamCard(createdTeamCard);
     streamService.save(stream);

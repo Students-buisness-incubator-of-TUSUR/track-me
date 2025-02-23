@@ -15,14 +15,14 @@ import java.util.List;
 
 public class StreamSpecification implements Specification<Stream> {
 
-  public static final String READINESS_LEVEL_FIELD_NAME = "readinessLevel";
+  public static final String READINESS_LEVEL_FIELD = "teamCards.readinessLevel";
 
   public static final List<String> ALLOWED_FIELDS = List.of(
-      READINESS_LEVEL_FIELD_NAME,
       "name",
       "startDate",
       "endDate",
-      "ntiMarkets.name"
+      "ntiMarkets.name",
+      READINESS_LEVEL_FIELD
   );
 
   private final transient List<Filter> filters;
@@ -44,23 +44,27 @@ public class StreamSpecification implements Specification<Stream> {
       if (!ALLOWED_FIELDS.contains(filter.fieldName())) {
         throw new FilterFieldNotAllowedException(filter.fieldName(), ALLOWED_FIELDS);
       }
-
-      if (READINESS_LEVEL_FIELD_NAME.equals(filter.fieldName())) {
-        var readinessLevel = ReadinessLevel.fromValue(filter.singleValue());
-        filter = Filter.builder()
-            .fieldName(filter.fieldName())
-            .type(filter.type())
-            .singleValue(readinessLevel == null ? null : readinessLevel.name())
-            .values(filter.values() != null
-                ? filter.values().stream()
-                .map(ReadinessLevel::fromValue)
-                .map(ReadinessLevel::name)
-                .toList()
-                : null)
-            .build();
+      if (READINESS_LEVEL_FIELD.equals(filter.fieldName())) {
+        filter = getReadinessLevelFilter(filter);
       }
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }
     return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+  }
+
+  static Filter getReadinessLevelFilter(Filter filter) {
+    var readinessLevel = ReadinessLevel.fromValue(filter.singleValue());
+    filter = Filter.builder()
+        .fieldName(filter.fieldName())
+        .type(filter.type())
+        .singleValue(readinessLevel == null ? null : readinessLevel.name())
+        .values(filter.values() != null
+            ? filter.values().stream()
+            .map(ReadinessLevel::fromValue)
+            .map(ReadinessLevel::name)
+            .toList()
+            : null)
+        .build();
+    return filter;
   }
 }

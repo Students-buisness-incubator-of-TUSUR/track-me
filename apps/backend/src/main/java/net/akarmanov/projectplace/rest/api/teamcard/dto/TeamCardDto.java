@@ -25,8 +25,15 @@ public record TeamCardDto(
     @Schema(description = "Идентификатор пользователя",
             example = "123e4567-e89b-12d3-a456-426614174000")
     UUID userId,
+    @Schema(description = "Включена ли карточка команды",
+            example = "true", defaultValue = "true")
     Boolean enabled,
+
     @Schema(description = "Рынок НТИ", implementation = NTIMarketDto.class)
-    NTIMarketDto ntiMarket
+    NTIMarketDto ntiMarket,
+
+    @Schema(description = "Уровень готовности технологии",
+            allowableValues = {"0-2", "3-5", "6-8", "9-10"})
+    String readinessLevel
 ) {
 }

@@ -1,7 +1,6 @@
 package net.akarmanov.projectplace.rest.api.stream;
 
 import net.akarmanov.projectplace.BaseApplicationTest;
-import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import org.junit.jupiter.api.Test;
@@ -47,7 +46,6 @@ class StreamRestControllerTest extends BaseApplicationTest {
         .name("stream 2")
         .startDate(LocalDate.now())
         .endDate(LocalDate.now().plusDays(1))
-        .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
 
     mockMvc.perform(post("/api/v1/streams")
@@ -98,7 +96,6 @@ class StreamRestControllerTest extends BaseApplicationTest {
         .name("stream 2")
         .startDate(LocalDate.now())
         .endDate(LocalDate.now().plusDays(1))
-        .readinessLevel(ReadinessLevel.LEVEL_1)
         .ntiMarkets(Set.of(ntiMarket))
         .build());
 
@@ -116,11 +113,6 @@ class StreamRestControllerTest extends BaseApplicationTest {
                       "fieldName": "name",
                       "type": "EQ",
                       "value": "stream 2"
-                    },
-                    {
-                      "fieldName": "readinessLevel",
-                      "type": "EQ",
-                      "value": "0-2"
                     }
                   ]
                 }""".formatted(ntiMarket.getName())))
@@ -128,25 +120,6 @@ class StreamRestControllerTest extends BaseApplicationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].name").value("stream 2"))
         .andExpect(jsonPath("$.page.totalElements").value(1));
-  }
-
-  @Test
-  void getStreams_withFilters_withIInvalidReadinessLevel() throws Exception {
-    mockMvc.perform(post("/api/v1/streams")
-            .contentType("application/json")
-            .content("""
-                {
-                  "filters": [
-                    {
-                      "fieldName": "readinessLevel",
-                      "type": "EQ",
-                      "value": "0-2-3"
-                    }
-                  ]
-                }"""))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content").isEmpty());
   }
 
   @Test
@@ -244,5 +217,42 @@ class StreamRestControllerTest extends BaseApplicationTest {
     mockMvc.perform(get("/api/v1/streams/%s/image".formatted("00000000-0000-0000-0000-000000000000")))
         .andDo(print())
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void getStream_withFilters_byTeamCardReadinessLevel() throws Exception {
+
+    var uuid = ntiMarketRepository.findAll().get(0).getId();
+    mockMvc.perform(post("/api/v1/team-card")
+        .contentType("application/json")
+        .content("""
+            {
+              "name": "team card 1",
+              "readinessLevel": "0-2",
+                              "description": "description",
+              "status": "OK",
+                              "ntiMarketId": "%s"
+            }
+            """.formatted(uuid)))
+        .andDo(print())
+        .andExpect(status().isOk());
+
+
+    mockMvc.perform(post("/api/v1/streams")
+            .contentType("application/json")
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "teamCards.readinessLevel",
+                      "type": "EQ",
+                      "value": "0-2"
+                    }
+                  ]
+                }"""))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].name").value("stream 1"))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
   }
 }
