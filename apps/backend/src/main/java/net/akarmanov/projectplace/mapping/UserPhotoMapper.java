@@ -11,6 +11,7 @@ public interface UserPhotoMapper {
 
   UserPhotoDto toModel(UserPhoto userPhoto);
 
+  @Mapping(target = "photo", ignore = true)
   @Mapping(target = "user",
            ignore = true)
   UserPhoto toEntity(UserPhotoDto userPhotoDto);

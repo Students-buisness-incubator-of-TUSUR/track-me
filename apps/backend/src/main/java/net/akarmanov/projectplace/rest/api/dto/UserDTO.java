@@ -12,6 +12,5 @@ public record UserDTO(
     String telegramId,
     String email,
     UserRole role,
-    UserPhotoDto photo,
     boolean enabled) {
 }

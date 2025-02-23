@@ -8,5 +8,5 @@ public interface UserPhotoService {
 
   void deletePhoto(String telegramId);
 
-  UserPhotoDto getPhotoByTelegramId(String telegramId);
+  byte[] getPhotoByTelegramId(String telegramId);
 }

@@ -67,6 +67,7 @@ public class Stream {
 
   @ManyToMany(mappedBy = "streams",
               cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+  @Builder.Default
   private Set<TeamCard> teamCards = new HashSet<>();
 
   @ManyToMany(mappedBy = "streams")

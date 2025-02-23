@@ -41,8 +41,7 @@ public class UserPhotoRestControllerImpl implements UserPhotoRestController {
 
   @Override
   public ResponseEntity<Resource> getPhoto(String telegramId) {
-    var userPhoto = userPhotoService.getPhotoByTelegramId(telegramId);
-    var photo = userPhoto.photo();
+    var photo = userPhotoService.getPhotoByTelegramId(telegramId);
     return ResponseEntity.ok()
         .contentLength(photo.length)
         .contentType(MediaType.IMAGE_PNG)

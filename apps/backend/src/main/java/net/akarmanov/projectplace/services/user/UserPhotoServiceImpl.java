@@ -44,10 +44,10 @@ class UserPhotoServiceImpl implements UserPhotoService {
 
   @Override
   @Transactional
-  public UserPhotoDto getPhotoByTelegramId(String telegramId) {
+  public byte[] getPhotoByTelegramId(String telegramId) {
     var userPhoto = userPhotoRepository.findByTelegramId(telegramId)
         .orElseThrow(() -> new PhotoNotFoundException(telegramId));
-    return userPhotoMapper.toModel(userPhoto);
+    return userPhoto.getPhoto();
   }
 
   @SneakyThrows

@@ -104,6 +104,7 @@ public class User implements UserDetails {
 
   @OneToMany(mappedBy = "user",
              cascade = CascadeType.ALL)
+  @Builder.Default
   private Set<TeamCard> userTeamCards = new HashSet<>();
 
   @ManyToMany

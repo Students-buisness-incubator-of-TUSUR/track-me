@@ -13,6 +13,5 @@ public record UserPhotoDto(@Schema(description = "Идентификатор ф�
                            UUID id,
                            @Schema(description = "Имя файла фотографии пользователя",
                                    example = "photo.jpg")
-                           String fileName,
-                           @JsonIgnore byte[] photo) {
+                           String fileName) {
 }

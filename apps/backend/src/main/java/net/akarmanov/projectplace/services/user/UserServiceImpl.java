@@ -33,6 +33,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public User getUserByTelegramId(String telegramId) {
     return userRepository.findByTelegramId(telegramId)
         .orElseThrow(() -> new UserNotFoundException(telegramId));
@@ -111,6 +112,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     return getUserByTelegramId(username);
   }
