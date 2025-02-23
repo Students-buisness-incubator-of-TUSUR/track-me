@@ -1,7 +1,6 @@
 .profile-container {
   width: 1359px;
   height: 882px;
-  
   background-color: #8b50f9; /* Фон, похожий на фиолетовый из макета */
   border: 5px solid #44069A;
   border-radius: 70px;
@@ -13,10 +12,7 @@
 }
 
 .profile-header {
-  
-  
   width: 100%;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -34,18 +30,15 @@
 }
 
 .edit-button12 {
-  background: none; /* Убираем фон */
-  color: #FFFFFF; /* Оставляем цвет текста */
+  background: none;
+  color: #FFFFFF;
   font-size: 20px;
   font-weight: 700;
   margin-right: 91px;
-  
-  border: none; /* Убираем границы */
-  font-weight: bold; /* Оставляем жирный текст, если нужно */
-  cursor: pointer; /* Оставляем указатель при наведении */
-  padding: 0; /* Убираем внутренние отступы */
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }
-
 
 .profile-content {
   display: flex;
@@ -62,66 +55,80 @@
   width: 60%;
 }
 
-/* Исправить! */
-.field label {  
+
+.profile-label {
   display: block;
   padding-left: 36px;
-  font-weight: 300;
   font-size: 16px;
   margin-bottom: 5px;
   font-weight: bold;
 }
-.edit-icon123{
-  font-weight: bold;
-}
-/* Исправить! */
-.field input {
-  width: 100%;
-  width: 560px;
-  height: 72px;
-  font-weight: 300;
-  font-size: 16px;
-  
-  background-color: #E6D7FB;
-  color: #000; /* Черный цвет текста */
-  
-  padding-left: 24px;
-  border-radius: 70px;
-  border: none;
-  outline: none; /* Убирает контур при фокусе */
+
+.input-container {
+  position: relative; /* для абсолютного позиционирования иконки */
 }
 
-/* Исправить! */
-.field input:focus {
-  outline: none; /* Дополнительно убирает контур */
+.profile-input {
+  width: 560px;
+  height: 72px;
+  font-size: 16px;
+  background-color: #E6D7FB;
+  color: #000;
+  padding-left: 24px;
+  padding-right: 50px; /* чтобы был зазор для иконки справа */
+  border-radius: 70px;
   border: none;
+  outline: none;
+}
+
+.profile-input:focus {
+  outline: none;
+  border: none;
+}
+
+.edit-icon123 {
+  position: absolute;
+  right: -140px;       /* смещение от правого края */
+  top: 50%;          /* вертикальный центр */
+  transform: translateY(-50%);
+  pointer-events: none; /* чтобы клик шел по инпуту, а не по иконке */
+  width: 24px;       /* подберите нужный размер */
+  height: 24px;      /* подберите нужный размер */
 }
 
 .profile-avatar-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 40%;
-  gap: 15px;
+  margin-top: 25px;
+  margin-right: 92px;
+  width: 440px;
+  gap: 25px;
 }
 
 .avatar-placeholder {
-  width: 150px;
-  height: 150px;
-  background-color: #c5aaf9; /* Светлее, чтобы выделить */
-  border-radius: 50%;
-  margin-bottom: 10px;
+  width: 440px;
+  height: 440px;
+  background-color: #c5aaf9;
+  border-radius: 70px;
 }
 
-/* Исправить! */
-.role-text {
-  font-size: 18px;
-  font-weight: bold;
+.profile-role-text {
+  font-size: 24px;
+  font-weight: 600;
+  background-color: #ffffff;
+  color: #8338EB;
+  padding: 0 80px; /* Отступы по бокам для динамической ширины */
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 30px;
+  white-space: nowrap; /* Чтобы текст не переносился */
 }
 
-/* Исправить! */
-.team-cards-button {
-  margin-top: 44px;
+.profile-team-cards-button {
+  margin-top: -25px;
   width: 454px;
   height: 70px;
   background-color: #ffffff;

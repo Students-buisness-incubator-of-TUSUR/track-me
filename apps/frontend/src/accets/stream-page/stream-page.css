@@ -82,7 +82,9 @@ body{
 .third-row {
   order: 3;
 }
+.Stream-header-chosefrom-buttw,
 .Stream-header-chosefrom-butt2,
+.Stream-header-chosefrom-butt3,
 .Stream-header-chosefrom-butt{
   margin-top: 20px;
   display: flex;
@@ -92,11 +94,18 @@ body{
   height: min-content;
   border-radius: 40px;
   background-color: rgba(131, 56, 234, 0.4);
+  opacity: 100;
+  
   color: white;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   font-size: 20px;
   border: none;
   justify-content: space-between;
+  
+}
+.Stream-header-chosefrom-buttw{
+  background-color: white;
+  margin-top: 0px;
 }
 .Stream-header-chosefrom-butt-cont{
   display: flex;
@@ -394,6 +403,7 @@ body{
   z-index: 2;
 }
 .Stream-header-chosefrom-cont{
+  position: relative;
   display: flex;
   width: auto;
   height: min-content;

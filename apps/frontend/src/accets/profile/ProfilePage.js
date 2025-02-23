@@ -1,12 +1,21 @@
 import React, { useEffect, useState } from "react";
-import "./ProfilePage.css"; // Подключаем стили
+import { useNavigate } from "react-router-dom";
+import "./ProfilePage.css";
+
+// Вариант импорта (если pen.png лежит в той же папке, что и ProfilePage.jsx)
+import penIcon from "./pen.png"; 
 
 function ProfilePage() {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false); // Флаг редактирования
-  const [editedData, setEditedData] = useState({}); // Состояние для редактируемых данных
+
+  // Флаг редактирования
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Состояние для редактируемых данных
+  const [editedData, setEditedData] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken"); // Получаем токен из localStorage
@@ -21,7 +30,7 @@ function ProfilePage() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Передаем токен в заголовке
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
@@ -37,7 +46,7 @@ function ProfilePage() {
       })
       .then((data) => {
         setUserData(data);
-        setEditedData(data); // Заполняем редактируемые данные текущими
+        setEditedData(data); // Заполняем редактируемые данные
         setLoading(false);
       })
       .catch((err) => {
@@ -69,8 +78,13 @@ function ProfilePage() {
         return response.json();
       })
       .then((data) => {
-        setUserData(data); // Обновляем данные пользователя
-        setIsEditing(false);
+        // Если telegramId изменился, перенаправляем на страницу авторизации
+        if (userData && userData.telegramId !== data.telegramId) {
+          navigate("/");
+        } else {
+          setUserData(data);
+          setIsEditing(false);
+        }
       })
       .catch((err) => {
         console.error("Ошибка сохранения данных:", err);
@@ -82,6 +96,42 @@ function ProfilePage() {
       ...editedData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  // Функция для преобразования роли в русский вариант
+  const getRoleInRussian = (role) => {
+    if (!role) return "";
+    const lowerRole = role.toLowerCase();
+    if (lowerRole === "tracker" || lowerRole === "трекер") {
+      return "Трекер";
+    } else if (lowerRole === "admin" || lowerRole === "админ") {
+      return "Администратор";
+    } else if (
+      lowerRole === "superadmin" ||
+      lowerRole === "суперадмин" ||
+      lowerRole === "super_admin"
+    ) {
+      return "Супер администратор";
+    }
+    return role;
+  };
+
+  // Обработчик для кнопки "Карточки команд"
+  const handleTeamCardsClick = () => {
+    if (!userData || !userData.role) return;
+    const role = userData.role.toLowerCase();
+    console.log("Роль пользователя:", role);
+    if (role === "tracker" || role === "трекер") {
+      navigate("/tracker");
+    } else if (
+      role === "admin" ||
+      role === "админ" ||
+      role === "superadmin" ||
+      role === "суперадмин" ||
+      role === "super_admin"
+    ) {
+      navigate("/stream");
+    }
   };
 
   if (loading) {
@@ -97,13 +147,10 @@ function ProfilePage() {
       <div className="profile-container">
         <div className="profile-header">
           <h1>Личный кабинет</h1>
-          {!isEditing ? (
+          {/* Кнопка "Редактировать" (только если НЕ в режиме редактирования) */}
+          {!isEditing && (
             <button className="edit-button12" onClick={handleEditClick}>
               Редактировать
-            </button>
-          ) : (
-            <button className="save-button" onClick={handleSaveClick}>
-              Сохранить
             </button>
           )}
         </div>
@@ -112,55 +159,86 @@ function ProfilePage() {
           {/* Левая часть с полями */}
           <div className="profile-fields">
             <div className="field">
-              <label>ФИО</label>
+              <label className="profile-label">ФИО</label>
               <div className="input-container">
                 <input
                   type="text"
                   name="fullName"
-                  value={editedData.fullName}
+                  className="profile-input"
+                  value={editedData.fullName || ""}
                   onChange={handleChange}
                   readOnly={!isEditing}
                 />
-                {isEditing && <span className="edit-icon123">✏️</span>}
+                {isEditing && (
+                  <img
+                    src={penIcon}
+                    alt="Pen icon"
+                    className="edit-icon123"
+                  />
+                )}
               </div>
             </div>
+
             <div className="field">
-              <label>E-mail</label>
+              <label className="profile-label">E-mail</label>
               <div className="input-container">
                 <input
                   type="text"
                   name="email"
-                  value={editedData.email}
+                  className="profile-input"
+                  value={editedData.email || ""}
                   onChange={handleChange}
                   readOnly={!isEditing}
                 />
-                {isEditing && <span className="edit-icon123">✏️</span>}
+                {isEditing && (
+                  <img
+                    src={penIcon}
+                    alt="Pen icon"
+                    className="edit-icon123"
+                  />
+                )}
               </div>
             </div>
+
             <div className="field">
-              <label>Телефон</label>
+              <label className="profile-label">Телефон</label>
               <div className="input-container">
                 <input
                   type="text"
                   name="phoneNumber"
-                  value={editedData.phoneNumber}
+                  className="profile-input"
+                  value={editedData.phoneNumber || ""}
                   onChange={handleChange}
                   readOnly={!isEditing}
                 />
-                {isEditing && <span className="edit-icon123">✏️</span>}
+                {isEditing && (
+                  <img
+                    src={penIcon}
+                    alt="Pen icon"
+                    className="edit-icon123"
+                  />
+                )}
               </div>
             </div>
+
             <div className="field">
-              <label>Мой телеграм в Telegram</label>
+              <label className="profile-label">Мой телеграм в Telegram</label>
               <div className="input-container">
                 <input
                   type="text"
                   name="telegramId"
-                  value={editedData.telegramId}
+                  className="profile-input"
+                  value={editedData.telegramId || ""}
                   onChange={handleChange}
                   readOnly={!isEditing}
                 />
-                {isEditing && <span className="edit-icon123">✏️</span>}
+                {isEditing && (
+                  <img
+                    src={penIcon}
+                    alt="Pen icon"
+                    className="edit-icon123"
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -170,13 +248,28 @@ function ProfilePage() {
             <div className="avatar-placeholder">
               {/* Место для картинки аватара */}
             </div>
-            <div className="role-text">{userData.role}</div>
+            <div className="profile-role-text">
+              {getRoleInRussian(userData.role)}
+            </div>
           </div>
         </div>
 
+        {/* Если не в режиме редактирования – кнопка "Карточки команд", иначе – кнопка "Сохранить" */}
         {!isEditing ? (
-          <button className="team-cards-button">Карточки команд</button>
-        ) : null}
+          <button
+            className="profile-team-cards-button"
+            onClick={handleTeamCardsClick}
+          >
+            Карточки команд
+          </button>
+        ) : (
+          <button
+            className="profile-team-cards-button"
+            onClick={handleSaveClick}
+          >
+            Сохранить
+          </button>
+        )}
       </div>
     </div>
   );
