@@ -5,6 +5,16 @@ export default function CreateStream() {
   const [startDate, setStartDate] = useState(''); // Состояние для даты начала
   const [endDate, setEndDate] = useState(''); // Состояние для даты конца
   const [error, setError] = useState(''); // Состояние для отображения ошибки
+  const [showCheckboxes2, setShowCheckboxes2] = useState(false);
+  const numberOfCheckboxes = 9;
+  const checkboxesData2 = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
+    id: `checkbox2-${index + 1}`,
+    label: `Чекбокс 2 ${index + 1}`,
+  }));
+
+    const handleShowCheckboxes2 = () => {
+    setShowCheckboxes2(!showCheckboxes2);
+  };
 
   // Функция для обработки ввода даты начала
   const handleStartDateChange = (e) => {
@@ -112,7 +122,7 @@ export default function CreateStream() {
               />
             </div>
           </div>
-          {error && <p className="error-message">{error}</p>} {/* Отображение ошибки */}
+          {error && <p className="create-stream-error-message">{error}</p>} {/* Отображение ошибки */}
         </div>
         <div className="create-stream-cont-right">
           <div className="create-stream-input-pic"></div>
@@ -121,6 +131,24 @@ export default function CreateStream() {
           </button>
         </div>
       </div>
+      <div className="Stream-header-chosefrom-buttw">
+              <div className="Stream-header-chosefrom-butt2">
+                <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes2}>
+                  <b className="Stream-header-chosefrom-butt-label">Рынок</b>
+                  <div className="Stream-header-chosefrom-butt-pic"></div>
+                </div>
+                {showCheckboxes2 && (
+                  <div className="Stream-header-checkboxes">
+                    {checkboxesData2.map((checkbox, index) => (
+                      <div key={checkbox.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
+                        <input type="checkbox" id={checkbox.id} />
+                        <label htmlFor={checkbox.id}>{checkbox.label}</label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              </div>
     </div>
   );
 }

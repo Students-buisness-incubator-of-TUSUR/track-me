@@ -40,6 +40,7 @@ export default function Stream() {
               value: 'string',
             },
           ],
+          
         }),
       });
 
@@ -155,7 +156,7 @@ export default function Stream() {
   const cardd = data.content.map((item, index) => ({
     id: item.id, // Используем уникальный id из данных
     title: item.name, // Генерируем заголовок на основе индекса
-    content: `Содержимое карточки ${index + 1}`, // Генерируем содержимое на основе индекса
+    content: item.description, // Генерируем содержимое на основе индекса
     startDate: item.startDate, // Добавляем startDate из данных
     endDate: item.endDate, // Добавляем endDate из данных
     readinessLevel: item.readinessLevel // Добавляем readinessLevel из данных

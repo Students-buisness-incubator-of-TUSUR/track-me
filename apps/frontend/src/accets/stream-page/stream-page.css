@@ -84,7 +84,6 @@ body{
 .Stream-header-chosefrom-butt2,
 .Stream-header-chosefrom-butt3,
 .Stream-header-chosefrom-butt{
-  margin-top: 20px;
   display: flex;
   flex-direction: column;
   margin-right: 39px;
@@ -400,6 +399,7 @@ body{
   z-index: 2;
 }
 .Stream-header-chosefrom-cont{
+  margin-top: 20px;
   position: relative;
   display: flex;
   width: auto;
