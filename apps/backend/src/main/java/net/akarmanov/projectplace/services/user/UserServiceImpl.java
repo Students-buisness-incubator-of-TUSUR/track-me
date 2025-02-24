@@ -70,6 +70,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public User getCurrentUser() {
     var auth = SecurityContextHolder.getContext().getAuthentication();
     return getUserByTelegramId(auth.getName());
@@ -96,6 +97,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
   public void changePassword(String oldPassword, String newPassword) {
     var user = getCurrentUser();
     if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
