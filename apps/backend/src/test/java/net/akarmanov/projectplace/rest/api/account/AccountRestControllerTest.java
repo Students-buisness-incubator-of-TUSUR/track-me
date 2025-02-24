@@ -36,14 +36,16 @@ class AccountRestControllerTest extends BaseApplicationTest {
                 {
                   "fullName": "Jane Doe Middle",
                   "phoneNumber": "+71234567890",
-                  "telegramId": "telegramId"
+                  "telegramId": "telegramId",
+                  "email": "test@test.ru"
                 }
                 """))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.fullName", is("Jane Doe Middle")))
         .andExpect(jsonPath("$.phoneNumber", is("+71234567890")))
-        .andExpect(jsonPath("$.telegramId", is("telegramId")));
+        .andExpect(jsonPath("$.telegramId", is("telegramId")))
+        .andExpect(jsonPath("$.email", is("test@test.ru")));
   }
 
   @Test

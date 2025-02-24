@@ -53,13 +53,13 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public User updateUser(UUID id, User userDTO) {
-    var user = userRepository.findById(id)
-        .orElseThrow(() -> new UserNotFoundException(id));
-    user.setTelegramId(userDTO.getTelegramId());
-    user.setFullName(userDTO.getFullName());
-    user.setRole(userDTO.getRole());
-    user.setPhoneNumber(userDTO.getPhoneNumber());
+  public User updateUser(UUID id, User updateUser) {
+    var user = getUser(id);
+    user.setFullName(updateUser.getFullName());
+    user.setTelegramId(updateUser.getTelegramId());
+    user.setPhoneNumber(updateUser.getPhoneNumber());
+    user.setEmail(updateUser.getEmail());
+    user.setRole(updateUser.getRole());
     return userRepository.save(user);
   }
 
