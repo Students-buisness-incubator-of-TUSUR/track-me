@@ -52,11 +52,11 @@ const Login = () => {
         console.log("ID пользователя:", userID);
         // Перенаправление в зависимости от роли
         if (userRole === "SUPER_ADMIN") {
-          navigate("/stream");
+          navigate("/streams");
         } else if (userRole === "ADMIN") {
           navigate("/admin");
         } else if (userRole === "TRACKER") {
-          navigate("/tracker");
+          navigate("/team-cards");
         } else {
           setErrorMessage("Неизвестная роль пользователя.");
         }

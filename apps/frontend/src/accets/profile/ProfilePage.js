@@ -122,7 +122,7 @@ function ProfilePage() {
     const role = userData.role.toLowerCase();
     console.log("Роль пользователя:", role);
     if (role === "tracker" || role === "трекер") {
-      navigate("/tracker");
+      navigate("/team-cards");
     } else if (
       role === "admin" ||
       role === "админ" ||
@@ -130,7 +130,7 @@ function ProfilePage() {
       role === "суперадмин" ||
       role === "super_admin"
     ) {
-      navigate("/stream");
+      navigate("/streams");
     }
   };
 

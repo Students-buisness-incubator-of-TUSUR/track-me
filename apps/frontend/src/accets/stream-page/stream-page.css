@@ -1,10 +1,7 @@
 body{
   margin: 0;
 }
-.Stream-header {
-  text-align: center;
-  max-height: 365px;
-}
+
 .Stream-header-cont{
   display: flex;
   flex-direction: row;
@@ -58,7 +55,8 @@ body{
   display: flex;
   flex-wrap: wrap;
   width: 100%;
-  margin-top: 10px;
+  margin-top: 9px;
+  margin-left: 17px;
 }
 
 .Stream-header-checkbox {
@@ -96,9 +94,8 @@ body{
   background-color: rgba(131, 56, 234, 0.4);
   opacity: 100;
   
-  color: white;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  font-size: 20px;
+  font-size: 13px;
   border: none;
   justify-content: space-between;
   

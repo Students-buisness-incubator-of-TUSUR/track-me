@@ -1,34 +1,138 @@
 import React, { useState, useEffect } from "react";
 import "./TrackerPage.css";
+
 import { Link, useNavigate } from "react-router-dom";
 
 function TrackerPage() {
   const [cards, setCards] = useState([]);
   const [visibleCardsStart, setVisibleCardsStart] = useState(0);
   const [streamName, setStreamName] = useState("");
-  const [streamNTI, setNTIName] = useState("");
-  const [streamreadinessLevel, setLevel] = useState("");
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [ntiMarkets, setNtiMarkets] = useState([]);
+
+  // Состояния для отображения панели фильтров и групп чекбоксов
+  const [isVisible, setIsVisible] = useState(false);
+  const [showCheckboxesStream, setShowCheckboxesStream] = useState(false); // Для "Все потоки"
+  const [showCheckboxes2, setShowCheckboxes2] = useState(false); // Для "рынки Нти"
+  const [showCheckboxes3, setShowCheckboxes3] = useState(false); // Для "TRL"
+  const [showCheckboxes, setShowCheckboxes] = useState(false); // Для "год"
+
+  // Состояние для выбранного диапазона TRL
+  const [selectedTrl, setSelectedTrl] = useState([]);
+  const [selectedNtiMarkets, setSelectedNtiMarkets] = useState([]);
+  
+
   const navigate = useNavigate();
+  const numberOfCheckboxes = 9;
+
+  // Данные для чекбоксов "Все потоки"
+  const checkboxesDataStream = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
+    id: `checkboxStream-${index + 1}`,
+    label: `Поток ${index + 1}`,
+  }));
+
+  
+
+  // Данные для TRL – используем реальные диапазоны
+  const trlRanges = [
+    { id: "trl-0-2", label: "0-2" },
+    { id: "trl-3-5", label: "3-5" },
+    { id: "trl-6-8", label: "6-8" },
+    { id: "trl-9-10", label: "9-10" },
+  ];
+// Обновленный обработчик выбора TRL
+  const handleTrlChange = (trlValue) => {
+    setSelectedTrl((prev) => 
+      prev.includes(trlValue) 
+        ? prev.filter((value) => value !== trlValue) // Удаляем, если уже выбран
+        : [...prev, trlValue] // Добавляем, если не выбран
+    );
+  };
+  const handleNtiMarketChange = (market) => {
+    setSelectedNtiMarkets((prev) =>
+      prev.includes(market.name)
+        ? prev.filter((name) => name !== market.name) // Remove if already selected
+        : [...prev, market.name] // Add if not selected
+    );
+  };
+  // Данные для чекбоксов "год"
+  const checkboxesData = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
+    id: `checkbox-${index + 1}`,
+    label: `Чекбокс ${index + 1}`,
+  }));
 
   useEffect(() => {
+    // При загрузке получаем карточки без фильтров
+    fetchCards([]);
+    // Запрос текущего потока
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
-      // Если нужно — сразу делаем редирект:
-      // navigate("/login");
       return;
     }
+    fetch("http://127.0.0.1:8080/api/v1/streams/nti-markets", { 
+    method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Ошибка при загрузке рынков НТИ");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setNtiMarkets(data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+    fetch("http://127.0.0.1:8080/api/v1/streams/current", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          if (response.status === 401) {
+            setError("Ошибка авторизации при получении потока! Выполните вход заново.");
+          } else {
+            setError("Ошибка при загрузке потока. Статус: " + response.status);
+          }
+          throw new Error("Ошибка запроса потока");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data && data.name) {
+          setStreamName(data.name);
+        } else {
+          setError("Неверный формат данных, полученных с сервера (streams).");
+        }
+      })
+      .catch((err) => {
+        console.error("Ошибка при загрузке потока:", err);
+      });
+  }, [navigate]);
 
-    // Запрос на список карточек
+  // Функция для запроса карточек с заданными фильтрами
+  const fetchCards = (filters) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
+      return;
+    }
     fetch("http://127.0.0.1:8080/api/v1/team-cards?page=0&size=150", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ filters: [] }),
+      body: JSON.stringify({ filters: filters }),
     })
       .then((response) => {
         if (!response.ok) {
@@ -44,6 +148,7 @@ function TrackerPage() {
       .then((data) => {
         if (data && data.content) {
           setCards(data.content);
+          setVisibleCardsStart(0);
         } else {
           setError("Неверный формат данных, полученных с сервера (team-cards).");
         }
@@ -51,47 +156,12 @@ function TrackerPage() {
       .catch((err) => {
         console.error("Ошибка при загрузке карточек:", err);
       });
+  };
 
-    // Запрос на текущий поток
-    fetch("http://127.0.0.1:8080/api/v1/streams/current", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError(
-              "Ошибка авторизации при получении потока! Выполните вход заново."
-            );
-          } else {
-            setError("Ошибка при загрузке потока. Статус: " + response.status);
-          }
-          throw new Error("Ошибка запроса потока");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data && data.name) {
-          setStreamName(data.name);
-          setNTIName(data.ntiMarkets);
-          setLevel(data.readinessLevel);
-        } else {
-          setError("Неверный формат данных, полученных с сервера (streams).");
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка при загрузке потока:", err);
-      });
-  }, [navigate]);
-
-  // Фильтрация карточек по названию (поисковой запрос)
+  // Фильтрация карточек по поисковому запросу
   const filteredCards = cards.filter((card) =>
     card.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Обновляем пагинацию для отфильтрованных карточек
   const visibleCards = filteredCards.slice(visibleCardsStart, visibleCardsStart + 9);
 
   const handleShowMore = () => {
@@ -102,10 +172,52 @@ function TrackerPage() {
     setVisibleCardsStart((prev) => Math.max(prev - 9, 0));
   };
 
-  // При изменении поискового запроса сбрасываем пагинацию
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
     setVisibleCardsStart(0);
+  };
+
+  // Переключение отображения панели фильтров
+  const handleClick = () => {
+    setIsVisible(!isVisible);
+  };
+
+  // Обработчик применения фильтров (только фильтр по TRL)
+  const applyFilters = () => {
+    const filters = [];
+    
+    // Фильтр по TRL
+    if (selectedTrl.length > 0) {
+      filters.push({
+        fieldName: "readinessLevel",
+        type: "EQ",
+        values: selectedTrl,
+        value: "string",
+      });
+    }
+  
+    // Фильтр по рынкам НТИ
+    if (selectedNtiMarkets.length > 0) {
+      filters.push({
+        fieldName: "ntiMarket.name",
+        type: "EQ",
+        values: selectedNtiMarkets,
+        value: "string",
+      });
+    }
+    console.log("Применяемые фильтры:", filters);
+  
+    fetchCards(filters);
+    setIsVisible(false);
+  };
+
+  // Обработчик сброса фильтров
+  const resetFilters = () => {
+    setSelectedTrl("");
+    setSelectedNtiMarkets([]);
+    // Сбросить другие фильтры, если они будут добавлены
+    fetchCards([]);
+    setIsVisible(false);
   };
 
   return (
@@ -121,9 +233,10 @@ function TrackerPage() {
         </div>
         <div className="Stream-header-bottom-cont">
           <div className="Stream-search-cont">
-            <button className="Stream-settings-pic"> </button>
+            {/* При клике открывается панель фильтров */}
+            <button onClick={handleClick} className="Stream-settings-pic"></button>
             <div className="Stream-search-contcont">
-              <button className="Stream-settings-pic2"> </button>
+              <button className="Stream-settings-pic2"></button>
               <input
                 type="search"
                 placeholder="Найти"
@@ -135,6 +248,153 @@ function TrackerPage() {
           </div>
           <button className="Stream-butt">+ Создать карточку</button>
         </div>
+        {/* Панель фильтров */}
+        {isVisible && (
+          <div className="Stream-header-afterclick-cont">
+            <div className="Stream-header-afterclick-left">
+              {/* Верхний ряд – заголовки фильтров */}
+              <div className="Stream-header-afterclick-left-up">
+                <button className="Stream-header-chose-butt">Поток [0]</button>
+                <button className="Stream-header-chose-butt">Рынки [{selectedNtiMarkets.length}]</button>
+                <button className="Stream-header-chose-butt">
+                  TRL [{selectedTrl.length}]
+                </button>
+                <button className="Stream-header-chose-butt">Год [0]</button>
+              </div>
+              {/* Нижний ряд – группы чекбоксов */}
+              <div className="Stream-header-chosefrom-cont">
+                <div className="Stream-header-chosefrom-buttw">
+                  <div
+                    className="Stream-header-chosefrom-butt2"
+                    onClick={() =>
+                      setShowCheckboxesStream(!showCheckboxesStream)
+                    }
+                  >
+                  <div class="Stream-header-chosefrom-butt-cont">
+                    <b className="Stream-header-chosefrom-butt-label">
+                      Все потоки
+                    </b>
+                    <div className="Stream-header-chosefrom-butt-pic"></div>
+                  </div>
+                  </div>
+                  {showCheckboxesStream && (
+                    <div className="Stream-header-checkboxes">
+                      {checkboxesDataStream.map((checkbox, index) => (
+                        <div
+                          key={checkbox.id}
+                          className={`Stream-header-checkbox ${
+                            index < 5 ? "first-row" : "second-row"
+                          }`}
+                        >
+                          <input type="checkbox" id={checkbox.id} />
+                          <label htmlFor={checkbox.id}>
+                            {checkbox.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="Stream-header-chosefrom-buttw">
+                  <div
+                    className="Stream-header-chosefrom-butt2"
+                    onClick={() => setShowCheckboxes2(!showCheckboxes2)}
+                  >
+                    <div className="Stream-header-chosefrom-butt-cont">
+                      <b className="Stream-header-chosefrom-butt-label">
+                        Рынки Нти
+                      </b>
+                      <div className="Stream-header-chosefrom-butt-pic"></div>
+                    </div>
+                  </div>
+                  {showCheckboxes2 && (
+                  <div className="Stream-header-checkboxes">
+                    {ntiMarkets.map((market) => (
+                      <div key={market.id} className="Stream-header-checkbox">
+                        <input
+                          type="checkbox"
+                          id={market.id}
+                          checked={selectedNtiMarkets.includes(market.name)}
+                          onChange={() => handleNtiMarketChange(market)} // Pass the entire market object
+                        />
+                        <label htmlFor={market.id}>{market.displayName}</label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                </div>
+                <div className="Stream-header-chosefrom-buttw">
+                  <div
+                    className="Stream-header-chosefrom-butt2"
+                    onClick={() => setShowCheckboxes3(!showCheckboxes3)}
+                  >
+                    <div className="Stream-header-chosefrom-butt-cont">
+                      <b className="Stream-header-chosefrom-butt-label">
+                        TRL
+                      </b>
+                      <div className="Stream-header-chosefrom-butt-pic"></div>
+                    </div>
+                  </div>
+                  {showCheckboxes3 && (
+                    <div className="Stream-header-checkboxes">
+                      {trlRanges.map((option) => (
+                        <div key={option.id} className="Stream-header-checkbox">
+                          <input
+                            type="checkbox"
+                            id={option.id}
+                            value={option.label}
+                            checked={selectedTrl.includes(option.label)}
+                            onChange={() => handleTrlChange(option.label)}
+                          />
+                          <label htmlFor={option.id}>{option.label}</label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="Stream-header-chosefrom-buttw">
+                  <div
+                    className="Stream-header-chosefrom-butt2"
+                    onClick={() => setShowCheckboxes(!showCheckboxes)}
+                  >
+                  <div class="Stream-header-chosefrom-butt-cont">
+                    <b className="Stream-header-chosefrom-butt-label">
+                      Год
+                    </b>
+                    <div className="Stream-header-chosefrom-butt-pic"></div>
+                  </div>
+                  </div>
+                  {showCheckboxes && (
+                    <div className="Stream-header-checkboxes">
+                      {checkboxesData.map((checkbox, index) => (
+                        <div
+                          key={checkbox.id}
+                          className={`Stream-header-checkbox ${
+                            index < 5 ? "first-row" : "second-row"
+                          }`}
+                        >
+                          <input type="checkbox" id={checkbox.id} />
+                          <label htmlFor={checkbox.id}>
+                            {checkbox.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="Stream-header-afterclick-right">
+              <button onClick={resetFilters} className="Stream-header-chose-butt2">
+                Сбросить
+              </button>
+              <button onClick={applyFilters} className="Stream-header-chose-butt">
+                Применить
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       <div className="cards-wrapper">
@@ -156,18 +416,13 @@ function TrackerPage() {
                   <div className="text-container project-markets">
                     <p>
                       Рынки НТИ:{" "}
-                      {Array.isArray(streamNTI) && streamNTI.length > 0
-                        ? streamNTI
-                            .map(
-                              (market) =>
-                                market.name || "Неизвестное название"
-                            )
-                            .join(", ")
+                      {card.ntiMarket
+                        ? card.ntiMarket.displayName
                         : "Неизвестен"}
                     </p>
                   </div>
                   <div className="text-container project-trl">
-                    <p>TRL: {streamreadinessLevel || "Неизвестен"}</p>
+                    <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
                   </div>
                   <div className="text-container project-flow">
                     <p>Поток: {streamName || "Неизвестен"}</p>
@@ -178,7 +433,11 @@ function TrackerPage() {
             </div>
           ))
         ) : (
-          <p>{searchQuery ? "Ничего не найдено по запросу" : "Загрузка карточек..."}</p>
+          <p>
+            {searchQuery
+              ? "Ничего не найдено по запросу"
+              : "Загрузка карточек..."}
+          </p>
         )}
       </div>
 
@@ -187,21 +446,33 @@ function TrackerPage() {
           <div className="Stream-footer-butts">
             <div className="Stream-footer-p-butt-1">
               {visibleCardsStart > 0 && (
-                <button onClick={handleShowPrevious} className="Stream-footer-button-1"></button>
+                <button
+                  onClick={handleShowPrevious}
+                  className="Stream-footer-button-1"
+                ></button>
               )}
             </div>
             <div className="Stream-footer-p-butts">
               {visibleCardsStart > 0 && (
-                <button onClick={handleShowPrevious} className="Stream-footer-button-2"></button>
+                <button
+                  onClick={handleShowPrevious}
+                  className="Stream-footer-button-2"
+                ></button>
               )}
               <button className="Stream-footer-button-3"></button>
               {visibleCardsStart + 9 < filteredCards.length && (
-                <button onClick={handleShowMore} className="Stream-footer-button-4"></button>
+                <button
+                  onClick={handleShowMore}
+                  className="Stream-footer-button-4"
+                ></button>
               )}
             </div>
             <div className="Stream-footer-p-butt-5">
               {visibleCardsStart + 9 < filteredCards.length && (
-                <button onClick={handleShowMore} className="Stream-footer-button-5"></button>
+                <button
+                  onClick={handleShowMore}
+                  className="Stream-footer-button-5"
+                ></button>
               )}
             </div>
           </div>

@@ -16,11 +16,11 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/stream" element={<Stream />} />
+        <Route path="/streams" element={<Stream />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/superadmin" element={<SuperAdminPage />} />
-        <Route path="/tracker" element={<TrackerPage />} />
+        <Route path="/team-cards" element={<TrackerPage />} />
         <Route path="/recovery" element={<LoginRecovery />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
