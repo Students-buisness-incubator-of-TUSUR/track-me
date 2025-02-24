@@ -74,6 +74,10 @@ const Login = () => {
     navigate("/register"); // Переход на страницу регистрации
   };
 
+  const handleRecoveryClick = () => {
+    navigate("/recovery"); // Переход на страницу регистрации
+  };
+
   return (
     <div className="login-container">
       <div className="login-box">
@@ -117,7 +121,7 @@ const Login = () => {
             </div>
           </div>
 
-          <a href="/register" className="forgot-password" onClick={handleRegisterClick}>
+          <a href="/recovery" className="forgot-password" onClick={handleRecoveryClick}>
             Забыли пароль? Восстановить?
           </a>
 
