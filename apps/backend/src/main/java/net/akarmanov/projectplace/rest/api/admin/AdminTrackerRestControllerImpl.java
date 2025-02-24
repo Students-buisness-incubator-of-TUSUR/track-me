@@ -2,6 +2,7 @@ package net.akarmanov.projectplace.rest.api.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;
 import net.akarmanov.projectplace.services.admin.AdministrationService;
 import org.springframework.data.domain.Page;
@@ -32,13 +33,13 @@ public class AdminTrackerRestControllerImpl implements AdministrationRestControl
   }
 
   @Override
-  public Page<UserDTO> getTrackers(Pageable pageable) {
-    return administrationService.getAllUsers(pageable);
+  public Page<UserDTO> getTrackers(FilterRequest filterRequest, Pageable pageable) {
+    return administrationService.getAllTrackers(filterRequest.filters(), pageable);
   }
 
   @Override
   @PreAuthorize("hasRole('SUPER_ADMIN')")
-  public Page<UserDTO> getAdministrators(Pageable pageable) {
-    return null;
+  public Page<UserDTO> getAdministrators(FilterRequest filterRequest, Pageable pageable) {
+    return administrationService.getAllAdmins(filterRequest.filters(), pageable);
   }
 }

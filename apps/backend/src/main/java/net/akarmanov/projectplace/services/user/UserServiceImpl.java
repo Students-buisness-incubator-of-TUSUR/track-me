@@ -10,6 +10,7 @@ import net.akarmanov.projectplace.services.exceptions.TelegramIdExistsException;
 import net.akarmanov.projectplace.services.exceptions.UserNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -102,6 +103,11 @@ public class UserServiceImpl implements UserService {
     }
     user.setPassword(passwordEncoder.encode(newPassword));
     userRepository.save(user);
+  }
+
+  @Override
+  public Page<User> findAll(Specification<User> specification, Pageable pageable) {
+    return userRepository.findAll(specification, pageable);
   }
 
   private void changeUserState(UUID userId, boolean enabled) {

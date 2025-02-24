@@ -3,6 +3,7 @@ package net.akarmanov.projectplace.services.user;
 import net.akarmanov.projectplace.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.UUID;
@@ -29,4 +30,6 @@ public interface UserService extends UserDetailsService {
   void disableUser(UUID userId);
 
   void changePassword(String oldPassword, String newPassword);
+
+  Page<User> findAll(Specification<User> specification, Pageable pageable);
 }

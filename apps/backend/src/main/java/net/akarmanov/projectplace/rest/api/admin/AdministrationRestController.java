@@ -2,6 +2,8 @@ package net.akarmanov.projectplace.rest.api.admin;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -9,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -33,11 +36,13 @@ public interface AdministrationRestController {
   @Operation(summary = "Получить список всех пользователей.")
   @PostMapping(value = "/users/trackers",
                produces = APPLICATION_JSON_VALUE)
-  Page<UserDTO> getTrackers(@ParameterObject @PageableDefault Pageable pageable);
+  Page<UserDTO> getTrackers(@Valid @RequestBody FilterRequest filterRequest,
+                            @ParameterObject @PageableDefault Pageable pageable);
 
   @Operation(summary = "Получить список всех администраторов.")
   @PostMapping(value = "/users/administrators",
                produces = APPLICATION_JSON_VALUE)
-  Page<UserDTO> getAdministrators(@ParameterObject @PageableDefault Pageable pageable);
+  Page<UserDTO> getAdministrators(@Valid @RequestBody FilterRequest filterRequest,
+                                  @ParameterObject @PageableDefault Pageable pageable);
 
 }
