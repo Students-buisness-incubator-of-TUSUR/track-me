@@ -24,15 +24,6 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
     steps:
       - uses: actions/checkout@v4
       - name: Set up Java
@@ -51,8 +42,6 @@ jobs:
         run: |
           ./gradlew :apps/backend:bootJar -x test
           ./gradlew :apps/backend:test
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test
 
   frontend-checks:
     needs: check-changes
