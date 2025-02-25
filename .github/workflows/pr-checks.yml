@@ -49,9 +49,8 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build and Test Backend
         run: |
-          ./gradlew bootJar -x test
-          ./gradlew test
-        working-directory: apps/backend
+          ./gradlew :apps/backend:bootJar -x test
+          ./gradlew :apps/backend:test
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test
 
