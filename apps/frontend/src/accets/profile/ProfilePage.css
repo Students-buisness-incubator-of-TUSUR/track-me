@@ -112,6 +112,31 @@
   background-color: #c5aaf9;
   border-radius: 70px;
 }
+.user-avatar {
+  width: 440px;
+  height: 440px;
+  border-radius: 70px;
+  object-fit: cover;
+}
+
+
+
+.default-avatar {
+  width: 440px;
+  height: 440px;
+  border-radius: 70px;
+  background-image: url("no-photo.png");
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+ 
+}
+.upload-icon-profile{ 
+  margin-top: 41px;
+  margin-right: 41px;
+  cursor: pointer;
+}
 
 .profile-role-text {
   font-size: 24px;

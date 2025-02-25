@@ -2,14 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProfilePage.css";
 
-// Вариант импорта (если pen.png лежит в той же папке, что и ProfilePage.jsx)
+// Импорт иконок
 import penIcon from "./pen.png"; 
+import uploadIcon from "./upload.png"; // Иконка для загрузки фото
 
 function ProfilePage() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userPhoto, setUserPhoto] = useState(null);
 
   // Флаг редактирования
   const [isEditing, setIsEditing] = useState(false);
@@ -17,8 +19,10 @@ function ProfilePage() {
   // Состояние для редактируемых данных
   const [editedData, setEditedData] = useState({});
 
+
+
   useEffect(() => {
-    const token = localStorage.getItem("accessToken"); // Получаем токен из localStorage
+    const token = localStorage.getItem("accessToken");
 
     if (!token) {
       setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
@@ -44,9 +48,9 @@ function ProfilePage() {
         }
         return response.json();
       })
-      .then((data) => {
-        setUserData(data);
-        setEditedData(data); // Заполняем редактируемые данные
+      .then((result) => {
+        setUserData(result);
+        setEditedData(result); // Заполняем редактируемые данные
         setLoading(false);
       })
       .catch((err) => {
@@ -54,6 +58,32 @@ function ProfilePage() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (!userData) return; // Ждём загрузки данных
+
+    const token = localStorage.getItem("accessToken");
+
+    fetch(`http://127.0.0.1:8080/api/v1/users/${userData.telegramId}/photo`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Фото не найдено");
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        const imageUrl = URL.createObjectURL(blob);
+        setUserPhoto(imageUrl);
+      })
+      .catch(() => {
+        setUserPhoto(null);
+      });
+  }, [userData]);
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -77,12 +107,12 @@ function ProfilePage() {
         }
         return response.json();
       })
-      .then((data) => {
+      .then((result) => {
         // Если telegramId изменился, перенаправляем на страницу авторизации
-        if (userData && userData.telegramId !== data.telegramId) {
+        if (userData && userData.telegramId !== result.telegramId) {
           navigate("/");
         } else {
-          setUserData(data);
+          setUserData(result);
           setIsEditing(false);
         }
       })
@@ -96,6 +126,38 @@ function ProfilePage() {
       ...editedData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  // Обработчик загрузки фото
+  const handlePhotoChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Создаем локальный URL для предварительного просмотра
+    const imageUrl = URL.createObjectURL(file);
+    setUserPhoto(imageUrl);
+
+    // Загружаем фото на сервер
+    const token = localStorage.getItem("accessToken");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch(`http://127.0.0.1:8080/api/v1/users/${userData.telegramId}/photo`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Ошибка загрузки фото");
+        }
+        console.log("Фото успешно загружено");
+      })
+      .catch((err) => {
+        console.error("Ошибка загрузки фото:", err);
+      });
   };
 
   // Функция для преобразования роли в русский вариант
@@ -147,7 +209,7 @@ function ProfilePage() {
       <div className="profile-container">
         <div className="profile-header">
           <h1>Личный кабинет</h1>
-          {/* Кнопка "Редактировать" (только если НЕ в режиме редактирования) */}
+          {/* Кнопка "Редактировать" (только если не в режиме редактирования) */}
           {!isEditing && (
             <button className="edit-button12" onClick={handleEditClick}>
               Редактировать
@@ -172,7 +234,7 @@ function ProfilePage() {
                 {isEditing && (
                   <img
                     src={penIcon}
-                    alt="Pen icon"
+                    alt="Редактировать"
                     className="edit-icon123"
                   />
                 )}
@@ -193,7 +255,7 @@ function ProfilePage() {
                 {isEditing && (
                   <img
                     src={penIcon}
-                    alt="Pen icon"
+                    alt="Редактировать"
                     className="edit-icon123"
                   />
                 )}
@@ -214,7 +276,7 @@ function ProfilePage() {
                 {isEditing && (
                   <img
                     src={penIcon}
-                    alt="Pen icon"
+                    alt="Редактировать"
                     className="edit-icon123"
                   />
                 )}
@@ -235,7 +297,7 @@ function ProfilePage() {
                 {isEditing && (
                   <img
                     src={penIcon}
-                    alt="Pen icon"
+                    alt="Редактировать"
                     className="edit-icon123"
                   />
                 )}
@@ -243,11 +305,39 @@ function ProfilePage() {
             </div>
           </div>
 
-          {/* Правая часть: аватар + роль */}
-          <div className="profile-avatar-section">
-            <div className="avatar-placeholder">
-              {/* Место для картинки аватара */}
-            </div>
+          {/* Правая часть: аватар и роль */}
+          <div className="profile-avatar-section" style={{ position: "relative" }}>
+            {isEditing ? (
+              // Если в режиме редактирования, весь аватар кликабелен
+              <label htmlFor="photo-upload" className="avatar-placeholder clickable" style={{ cursor: "pointer" }}>
+                {userPhoto ? (
+                  <img src={userPhoto} alt="Аватар" className="user-avatar" />
+                ) : (
+                  <div className="default-avatar"></div>
+                )}
+                {/* Оверлей с иконкой загрузки */}
+                <div className="upload-photo-profile" style={{ position: "absolute", top: 0, right: 0 }}>
+                  <img src={uploadIcon} alt="Загрузить" className="upload-icon-profile" />
+                </div>
+              </label>
+            ) : (
+              <div className="avatar-placeholder">
+                {userPhoto ? (
+                  <img src={userPhoto} alt="Аватар" className="user-avatar" />
+                ) : (
+                  <div className="default-avatar"></div>
+                )}
+              </div>
+            )}
+            {isEditing && (
+              <input
+                type="file"
+                id="photo-upload"
+                style={{ display: "none" }}
+                onChange={handlePhotoChange}
+                accept="image/*"
+              />
+            )}
             <div className="profile-role-text">
               {getRoleInRussian(userData.role)}
             </div>

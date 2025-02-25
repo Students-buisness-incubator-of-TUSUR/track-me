@@ -50,12 +50,13 @@ body{
   border: none;
   margin-top: 20px;
   margin-right: 39px;
+  cursor: pointer;
 }
 .Stream-header-checkboxes {
   display: flex;
   flex-wrap: wrap;
   width: 100%;
-  margin-top: 9px;
+  margin-top: -10px;
   margin-left: 17px;
 }
 
@@ -67,7 +68,26 @@ body{
 }
 
 .Stream-header-checkbox input {
-  margin-right: 10px;
+  width: 17px;
+  height: 17px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid white; /* Белая окантовка */
+  border-radius: 4px;
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+}
+.Stream-header-checkbox input:checked::before {
+  content: "✔";
+  color: black; /* Черная галочка */
+  font-size: 14px;
+  font-weight: bold;
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .first-row {
@@ -90,19 +110,15 @@ body{
   width: 268px;
   height: min-content;
   border-radius: 40px;
-  background-color: rgba(131, 56, 234, 0.4);
+  background-color: #CDAFF7;
   opacity: 100;
-  
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   font-size: 13px;
   border: none;
   justify-content: space-between;
   
 }
-.Stream-header-chosefrom-buttw{
-  background-color: white;
-  margin-top: 0px;
-}
+
 .Stream-header-chosefrom-butt-cont{
   display: flex;
   margin-right: 39px;
@@ -139,6 +155,8 @@ body{
   border-color: rgba(68, 6, 154, 1);
   margin-top: 20px;
   margin-right: 39px;
+  cursor: pointer;
+
   
 }
 .Stream-title{
