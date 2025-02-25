@@ -40,7 +40,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build and Test Backend
         run: |
-          ./gradlew :apps:backend:bootJar -x test
+          ./gradlew :apps:backend:bootWar -x test
           ./gradlew :apps:backend:test
 
   frontend-checks:
