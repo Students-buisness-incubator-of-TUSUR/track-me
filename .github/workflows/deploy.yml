@@ -27,7 +27,7 @@ jobs:
           script: |
             cd /home/${{ secrets.SSH_USERNAME }}/track-me
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" > .env
-            docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/track-me-backend:latest
             docker stop track-me-backend || true
             docker rm track-me-backend || true
             docker compose up -d postgres backend
@@ -40,7 +40,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd /home/${{ secrets.SSH_USERNAME }}/track-me
-            docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/track-me-frontend:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/track-me-frontend:latest
             docker stop track-me-frontend || true
             docker rm track-me-frontend || true
             docker compose up -d frontend
