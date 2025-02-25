@@ -1,14 +1,11 @@
-# Dockerfile
-FROM gradle:8.12-jdk21 AS build
-
-# Устанавливаем рабочую директорию
+# Build stage
+FROM gradle:8-jdk21-alpine AS builder
 WORKDIR /app
+COPY . .
+RUN gradle bootJar -x test
 
-# Копируем только файлы, необходимые для сборки (для оптимизации кэширования)
-COPY build.gradle .
-COPY src ./src
-
-# Собираем проект (без тестов)
-RUN gradle build -x test
-
-CMD ["gradle", "bootRun"]
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+COPY --from=builder /app/apps/backend/build/libs/*.jar /app/app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

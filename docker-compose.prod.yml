@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    image: ghcr.io/akarmanov2022/track-me/backend:latest
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/app
+      SPRING_DATASOURCE_USERNAME: $DB_USER
+      SPRING_DATASOURCE_PASSWORD: $DB_PASSWORD
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: ghcr.io/akarmanov2022/track-me/frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_started
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $DB_USER" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
