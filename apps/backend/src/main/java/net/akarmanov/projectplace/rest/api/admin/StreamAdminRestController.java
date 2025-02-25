@@ -26,43 +26,43 @@ import java.util.UUID;
 
 @Tag(name = "Stream API",
      description = "API для работы с потоками")
-@RequestMapping(value = "/api/v1/admin/streams")
+@RequestMapping(value = "/api/v1/admin/")
 public interface StreamAdminRestController {
 
   @Operation(summary = "Создать новый поток",
              description = "Создает новый поток с заданными параметрами")
-  @PostMapping(value = "/create",
+  @PostMapping(value = "/stream",
                consumes = "application/json",
                produces = "application/json")
-  ResponseEntity<StreamDto> create(@RequestBody @Valid StreamCreateDto stream);
+  ResponseEntity<StreamDto> create(@Valid @RequestBody StreamCreateDto stream);
 
   @Operation(summary = "Обновить существующий поток",
              description = "Обновляет поток по заданному идентификатору")
-  @PutMapping(value = "/{streamId}",
+  @PutMapping(value = "/stream/{streamId}",
               consumes = "application/json",
               produces = "application/json")
   ResponseEntity<StreamDto> update(
       @Parameter(description = "Идентификатор потока",
                  required = true) @PathVariable UUID streamId,
-      @RequestBody @Valid StreamUpdateDto stream);
+      @Valid @RequestBody StreamUpdateDto stream);
 
   @Operation(summary = "Удалить поток",
              description = "Удаляет поток по заданному идентификатору")
-  @DeleteMapping(value = "/{streamId}")
+  @DeleteMapping(value = "/stream/{streamId}")
   ResponseEntity<Void> delete(
       @Parameter(description = "Идентификатор потока",
                  required = true) @PathVariable UUID streamId);
 
   @Operation(summary = "Получить все потоки",
              description = "Возвращает список всех потоков с поддержкой пагинации")
-  @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "/streams", produces = MediaType.APPLICATION_JSON_VALUE)
   PagedModel<StreamDto> findAll(@RequestBody @Valid FilterRequest filterRequest,
-                                @PageableDefault @ParameterObject Pageable pageable);
+                                @PageableDefault(sort = "name") @ParameterObject Pageable pageable);
 
   @Operation(
       summary = "Получить поток по идентификатору",
       description = "Возвращает поток по заданному идентификатору")
-  @GetMapping("/{streamId}")
+  @GetMapping("/stream/{streamId}")
   ResponseEntity<StreamDto> getById(
       @Parameter(description = "Идентификатор потока",
                  required = true) @PathVariable("streamId") UUID streamId);

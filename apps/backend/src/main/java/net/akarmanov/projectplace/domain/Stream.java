@@ -21,6 +21,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -80,5 +81,14 @@ public class Stream {
 
   public void addUser(User user) {
     users.add(user);
+  }
+
+  public void addNtiMarkets(List<NTIMarket> ntiMarkets) {
+    this.ntiMarkets.addAll(ntiMarkets);
+  }
+
+  public void updateNtiMarkets(List<NTIMarket> ntiMarkets) {
+    this.ntiMarkets.clear();
+    this.ntiMarkets.addAll(ntiMarkets);
   }
 }

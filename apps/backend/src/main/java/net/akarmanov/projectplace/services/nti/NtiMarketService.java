@@ -11,4 +11,6 @@ public interface NtiMarketService {
   NTIMarket getNtiMarket(UUID ntiMarketId);
 
   List<NTIMarket> getNtiMarkets();
+
+  List<NTIMarket> getNtiMarkets(List<UUID> ids);
 }

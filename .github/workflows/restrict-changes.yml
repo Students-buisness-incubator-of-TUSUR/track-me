@@ -2,10 +2,8 @@ name: Restrict Changes
 
 on:
   pull_request:
-    paths:
-      - '**'
-    branches:
-      - develop
+    paths-ignore:
+      - 'apps/frontend/**'
 
 jobs:
   restrict-changes:
@@ -15,18 +13,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Extract restricted developers from CODEOWNERS
+      - name: Check for changes
+        id: changes
         run: |
-          restricted_developers=$(grep 'apps/frontend/*' .github/CODEOWNERS | awk '{for (i=2; i<=NF; i++) print $i}' | base64 | tr -d '\n')
-          echo "RESTRICTED_DEVELOPERS=$restricted_developers" >> $GITHUB_ENV
-
-      - name: Check for restricted changes outside of apps/frontend/
-        run: |
-          restricted_developers=$(echo "${RESTRICTED_DEVELOPERS}" | base64 --decode)
-          IFS=' ' read -r -a developers_array <<< "$restricted_developers"
-          if [[ " ${developers_array[@]} " =~ " ${GITHUB_ACTOR} " ]]; then
-            if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -v '^apps/frontend/'; then
-              echo "Changes outside of apps/frontend/ are not allowed for frontend developers."
-              exit 1
-            fi
+          echo "Автор pull request: $GITHUB_ACTOR"
+          # Если автор не admin, прерываем сборку с ошибкой
+          if [ "$GITHUB_ACTOR" != "akarmanov2022" ]; then
+            echo "Ошибка: Пользователь $GITHUB_ACTOR не имеет прав вносить изменения в этот репозиторий, кроме папки apps/frontend"
+            exit 1
           fi
