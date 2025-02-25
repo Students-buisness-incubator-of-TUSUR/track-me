@@ -15,18 +15,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Extract restricted developers from CODEOWNERS
+      - name: Extract frontend developers from CODEOWNERS
         run: |
-          restricted_developers=$(grep 'apps/frontend/*' .github/CODEOWNERS | awk '{for (i=2; i<=NF; i++) print $i}' | base64 | tr -d '\n')
-          echo "RESTRICTED_DEVELOPERS=$restricted_developers" >> $GITHUB_ENV
-
-      - name: Check for restricted changes outside of apps/frontend/
+          frontend_developers=$(grep 'apps/frontend/*' .github/CODEOWNERS | awk '{for (i=2; i<=NF; i++) print $i}' | base64 | tr -d '\n')
+          echo "RESTRICTED_DEVELOPERS=$frontend_developers" >> $GITHUB_ENV
+      #     Проверить, что разработчики frontend не внесли изменения в папки, кроме apps/frontend
+      - name: Check if frontend developers restricted
         run: |
-          restricted_developers=$(echo "${RESTRICTED_DEVELOPERS}" | base64 --decode)
-          IFS=' ' read -r -a developers_array <<< "$restricted_developers"
-          if [[ " ${developers_array[@]} " =~ " ${GITHUB_ACTOR} " ]]; then
-            if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -v '^apps/frontend/'; then
-              echo "Changes outside of apps/frontend/ are not allowed for frontend developers."
+          restricted_developers=$(echo $RESTRICTED_DEVELOPERS | base64 -d)
+          changed_files=$(git diff --name-only ${{ github.base_ref }} ${{ github.head_ref }})
+          for file in $changed_files; do
+            if [[ $file != apps/frontend/* && $restricted_developers =~ ${{ github.actor }} ]]; then
+              echo "Error: Frontend developers are not allowed to change files outside of apps/frontend"
               exit 1
             fi
-          fi
+          done
