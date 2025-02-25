@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.time.LocalDate;
+import java.time.Year;
+
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -242,14 +245,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .ntiMarket(ntiMarket)
         .name("Team card1")
-            .readinessLevel(ReadinessLevel.LEVEL_1)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card1 description")
         .build());
     var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .ntiMarket(ntiMarket)
-            .readinessLevel(ReadinessLevel.LEVEL_1)
+        .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card2 description")
         .build());
 
@@ -470,6 +473,102 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                   ]
                 }
                 """))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(1)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_withStreamsName_success() throws Exception {
+    mockMvc.perform(post("/api/v1/team-card")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "name": "Test",
+                  "description": "Test description",
+                  "ntiMarketId": "%s",
+                  "readinessLevel": "0-2"
+                }
+                """.formatted(ntiMarket.getId())))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.name", is("Test")))
+        .andExpect(jsonPath("$.description", is("Test description")))
+        .andExpect(jsonPath("$.readinessLevel", is("0-2")))
+        .andExpect(jsonPath("$.status", is(TeamCardStatus.OK.name())));
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "streams.name",
+                      "value": "stream 1",
+                      "type": "EQ"
+                    },
+                    {
+                      "fieldName": "name",
+                      "value": "Test",
+                      "type": "LIKE"
+                    }
+                  ]
+                }
+                """))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(1)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_withStartDate_success() throws Exception {
+    mockMvc.perform(post("/api/v1/team-card")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "name": "Test",
+                  "description": "Test description",
+                  "ntiMarketId": "%s",
+                  "readinessLevel": "0-2"
+                }
+                """.formatted(ntiMarket.getId())))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.name", is("Test")))
+        .andExpect(jsonPath("$.description", is("Test description")))
+        .andExpect(jsonPath("$.readinessLevel", is("0-2")))
+        .andExpect(jsonPath("$.status", is(TeamCardStatus.OK.name())));
+
+    mockMvc.perform(post("/api/v1/team-cards")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+            {
+              "filters": [
+                {
+                  "fieldName": "streams.startDate",
+                  "value": "%s",
+                  "type": "EQ"
+                },
+                {
+                  "fieldName": "name",
+                  "value": "Test",
+                  "type": "LIKE"
+                },
+                {
+                  "fieldName": "streams.endDate",
+                  "value": "%s",
+                  "type": "EQ"
+                }
+              ]
+            }
+            """.formatted(LocalDate.ofYearDay(Year.now().getValue(), 1),
+            LocalDate.ofYearDay(Year.now().getValue() + 1, 1))))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.totalElements", is(1)));

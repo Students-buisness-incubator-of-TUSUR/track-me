@@ -4,9 +4,12 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 public class SwaggerConfiguration {
@@ -25,6 +28,11 @@ public class SwaggerConfiguration {
                 .name("Authorization")
                 .bearerFormat("JWT")
                 .in(SecurityScheme.In.HEADER))
+            .servers(List.of(
+                new Server().url(
+                    "https://сервер.трекер.демо-стенд.рф"),
+                new Server().url(
+                    "http://localhost:8080")))
             .addSecurityItem(new SecurityRequirement().addList("bearerAuth")))
         .build();
   }
@@ -44,6 +52,11 @@ public class SwaggerConfiguration {
                 .name("Authorization")
                 .bearerFormat("JWT")
                 .in(SecurityScheme.In.HEADER))
+            .servers(List.of(
+                new Server().url(
+                    "https://сервер.трекер.демо-стенд.рф"),
+                new Server().url(
+                    "http://localhost:8080")))
             .addSecurityItem(new SecurityRequirement().addList("bearerAuth")))
         .build();
   }
