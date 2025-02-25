@@ -2,12 +2,12 @@ name: Deploy to Dev
 
 on:
   push:
-    branches: [ develop ]
+    tags:
+      - 'v*.*.*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    needs: [ build-backend, build-frontend ]
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -17,9 +17,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }}
+          host: ${{ secrets.SSH_HOST }}\
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
