@@ -34,4 +34,9 @@ public class NtiMarketServiceImpl implements NtiMarketService {
         .by(NTIMarket::getName)
         .ascending());
   }
+
+  @Override
+  public List<NTIMarket> getNtiMarkets(List<UUID> ids) {
+    return ntiMarketRepository.findAllById(ids);
+  }
 }

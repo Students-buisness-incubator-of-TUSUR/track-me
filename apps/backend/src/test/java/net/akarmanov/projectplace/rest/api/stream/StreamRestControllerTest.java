@@ -76,6 +76,17 @@ class StreamRestControllerTest extends BaseApplicationTest {
 
   @Test
   void getStreams() throws Exception {
+    streamRepository.save(Stream.builder()
+        .name("stream 2")
+        .startDate(LocalDate.now())
+        .endDate(LocalDate.now().plusDays(1))
+        .build());
+    streamRepository.save(Stream.builder()
+        .name("stream 3")
+        .startDate(LocalDate.now())
+        .endDate(LocalDate.now().plusDays(1))
+        .build());
+
     mockMvc.perform(post("/api/v1/streams")
             .contentType("application/json")
             .content("""
@@ -85,7 +96,9 @@ class StreamRestControllerTest extends BaseApplicationTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].name").value("stream 1"))
-        .andExpect(jsonPath("$.page.totalElements").value(1));
+        .andExpect(jsonPath("$.content[1].name").value("stream 2"))
+        .andExpect(jsonPath("$.content[2].name").value("stream 3"))
+        .andExpect(jsonPath("$.page.totalElements").value(3));
   }
 
   @Test
@@ -224,16 +237,16 @@ class StreamRestControllerTest extends BaseApplicationTest {
 
     var uuid = ntiMarketRepository.findAll().get(0).getId();
     mockMvc.perform(post("/api/v1/team-card")
-        .contentType("application/json")
-        .content("""
-            {
-              "name": "team card 1",
-              "readinessLevel": "0-2",
-                              "description": "description",
-              "status": "OK",
-                              "ntiMarketId": "%s"
-            }
-            """.formatted(uuid)))
+            .contentType("application/json")
+            .content("""
+                {
+                  "name": "team card 1",
+                  "readinessLevel": "0-2",
+                                  "description": "description",
+                  "status": "OK",
+                                  "ntiMarketId": "%s"
+                }
+                """.formatted(uuid)))
         .andDo(print())
         .andExpect(status().isOk());
 
