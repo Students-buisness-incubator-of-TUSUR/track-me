@@ -10,6 +10,8 @@ function TrackerPage() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [ntiMarkets, setNtiMarkets] = useState([]);
+  const [selectedStreams, setSelectedStreams] = useState([]);
+  const [streams, setStreams] = useState([]);
 
   // Состояния для отображения панели фильтров и групп чекбоксов
   const [isVisible, setIsVisible] = useState(false);
@@ -26,11 +28,7 @@ function TrackerPage() {
   const navigate = useNavigate();
   const numberOfCheckboxes = 9;
 
-  // Данные для чекбоксов "Все потоки"
-  const checkboxesDataStream = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
-    id: `checkboxStream-${index + 1}`,
-    label: `Поток ${index + 1}`,
-  }));
+
 
   
 
@@ -54,6 +52,13 @@ function TrackerPage() {
       prev.includes(market.name)
         ? prev.filter((name) => name !== market.name) // Remove if already selected
         : [...prev, market.name] // Add if not selected
+    );
+  };
+  const handleStreamChange = (streamName) => {
+    setSelectedStreams((prev) =>
+      prev.includes(streamName)
+        ? prev.filter((name) => name !== streamName)
+        : [...prev, streamName]
     );
   };
   // Данные для чекбоксов "год"
@@ -118,6 +123,41 @@ function TrackerPage() {
         console.error("Ошибка при загрузке потока:", err);
       });
   }, [navigate]);
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
+      return;
+    }
+  
+    fetch("http://127.0.0.1:8080/api/v1/streams?page=0&size=150", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      // Передаём именно массив фильтров, как ожидает сервер
+      body: JSON.stringify({ filters: [] }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Ошибка при загрузке потоков");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Если нужно, извлекаем только id и name
+        const streamsWithNames = data.content.map((stream) => ({
+          id: stream.id,
+          name: stream.name,
+        }));
+        setStreams(streamsWithNames);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
+  
 
   // Функция для запроса карточек с заданными фильтрами
   const fetchCards = (filters) => {
@@ -185,7 +225,7 @@ function TrackerPage() {
   // Обработчик применения фильтров (только фильтр по TRL)
   const applyFilters = () => {
     const filters = [];
-    
+  
     // Фильтр по TRL
     if (selectedTrl.length > 0) {
       filters.push({
@@ -205,6 +245,17 @@ function TrackerPage() {
         value: "string",
       });
     }
+  
+    // Фильтр по потокам
+    if (selectedStreams.length > 0) {
+      filters.push({
+        fieldName: "streams.name",
+        type: "EQ",
+        values: selectedStreams,
+        value: "string",
+      });
+    }
+  
     console.log("Применяемые фильтры:", filters);
   
     fetchCards(filters);
@@ -215,6 +266,7 @@ function TrackerPage() {
   const resetFilters = () => {
     setSelectedTrl("");
     setSelectedNtiMarkets([]);
+    setSelectedStreams([]);
     // Сбросить другие фильтры, если они будут добавлены
     fetchCards([]);
     setIsVisible(false);
@@ -254,7 +306,7 @@ function TrackerPage() {
             <div className="Stream-header-afterclick-left">
               {/* Верхний ряд – заголовки фильтров */}
               <div className="Stream-header-afterclick-left-up">
-                <button className="Stream-header-chose-butt">Поток [0]</button>
+                <button className="Stream-header-chose-butt">Поток [{selectedStreams.length}]</button>
                 <button className="Stream-header-chose-butt">Рынки [{selectedNtiMarkets.length}]</button>
                 <button className="Stream-header-chose-butt">
                   TRL [{selectedTrl.length}]
@@ -263,38 +315,33 @@ function TrackerPage() {
               </div>
               {/* Нижний ряд – группы чекбоксов */}
               <div className="Stream-header-chosefrom-cont">
-                <div className="Stream-header-chosefrom-buttw">
-                  <div
-                    className="Stream-header-chosefrom-butt2"
-                    onClick={() =>
-                      setShowCheckboxesStream(!showCheckboxesStream)
-                    }
-                  >
-                  <div class="Stream-header-chosefrom-butt-cont">
-                    <b className="Stream-header-chosefrom-butt-label">
-                      Все потоки
-                    </b>
-                    <div className="Stream-header-chosefrom-butt-pic"></div>
-                  </div>
-                  </div>
-                  {showCheckboxesStream && (
-                    <div className="Stream-header-checkboxes">
-                      {checkboxesDataStream.map((checkbox, index) => (
-                        <div
-                          key={checkbox.id}
-                          className={`Stream-header-checkbox ${
-                            index < 5 ? "first-row" : "second-row"
-                          }`}
-                        >
-                          <input type="checkbox" id={checkbox.id} />
-                          <label htmlFor={checkbox.id}>
-                            {checkbox.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div className="Stream-header-chosefrom-buttw">
+  <div className="Stream-header-chosefrom-butt2" onClick={() => setShowCheckboxesStream(!showCheckboxesStream)}>
+    <div className="Stream-header-chosefrom-butt-cont">
+      <b className="Stream-header-chosefrom-butt-label">Все потоки</b>
+      <div className="Stream-header-chosefrom-butt-pic"></div>
+    </div>
+  </div>
+  {showCheckboxesStream && (
+  <div className="Stream-header-checkboxes">
+    {streams.map((stream) => (
+  <div key={stream.id} className="Stream-header-checkbox">
+    <input
+      type="checkbox"
+      id={stream.id}
+      checked={selectedStreams.includes(stream.name)}
+      onChange={() => handleStreamChange(stream.name)}
+    />
+    <label className="Stream-header-checkbox-label" htmlFor={stream.id}>
+      {stream.name}
+    </label>
+  </div>
+))}
+
+  </div>
+)}
+</div>
+
                 <div className="Stream-header-chosefrom-buttw">
                   <div
                     className="Stream-header-chosefrom-butt2"
@@ -317,7 +364,7 @@ function TrackerPage() {
                           checked={selectedNtiMarkets.includes(market.name)}
                           onChange={() => handleNtiMarketChange(market)} // Pass the entire market object
                         />
-                        <label htmlFor={market.id}>{market.displayName}</label>
+                        <label class="Stream-header-checkbox-label" htmlFor={market.id}>{market.displayName}</label>
                       </div>
                     ))}
                   </div>
@@ -347,7 +394,7 @@ function TrackerPage() {
                             checked={selectedTrl.includes(option.label)}
                             onChange={() => handleTrlChange(option.label)}
                           />
-                          <label htmlFor={option.id}>{option.label}</label>
+                          <label class="Stream-header-checkbox-label" htmlFor={option.id}>{option.label}</label>
                         </div>
                       ))}
                     </div>
@@ -375,7 +422,7 @@ function TrackerPage() {
                           }`}
                         >
                           <input type="checkbox" id={checkbox.id} />
-                          <label htmlFor={checkbox.id}>
+                          <label class="Stream-header-checkbox-label" htmlFor={checkbox.id}>
                             {checkbox.label}
                           </label>
                         </div>
