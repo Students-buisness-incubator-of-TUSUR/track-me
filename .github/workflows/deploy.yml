@@ -3,7 +3,9 @@ on:
   schedule:
     - cron: '0 0 * * *'
   registry_package:
-    types: [published, updated]
+    types:
+      - published
+      - updated
 
 env:
   REGISTRY: ghcr.io
