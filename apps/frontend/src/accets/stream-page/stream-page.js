@@ -256,8 +256,8 @@ return (
                     <div className="Stream-header-checkboxes">
                       {checkboxesData.map((checkbox, index) => (
                         <div key={checkbox.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
-                          <input type="checkbox" id={checkbox.id} />
-                          <label htmlFor={checkbox.id}>{checkbox.label}</label>
+                          <input type="checkbox" id={checkbox.id} class="custom-checkbox"/>
+                          <label className='Stream-header-checkbox-label' htmlFor={checkbox.id}>{checkbox.label}</label>
                         </div>
                       ))}
                     </div>
@@ -274,8 +274,8 @@ return (
                   <div className="Stream-header-checkboxes">
                     {checkboxesData2.map((checkbox, index) => (
                       <div key={checkbox.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
-                        <input type="checkbox" id={checkbox.id} />
-                        <label htmlFor={checkbox.id}>{checkbox.label}</label>
+                        <input type="checkbox" id={checkbox.id} class="custom-checkbox" />
+                        <label className='Stream-header-checkbox-label' htmlFor={checkbox.id}>{checkbox.label}</label>
                       </div>
                     ))}
                   </div>
@@ -292,8 +292,8 @@ return (
                   <div className="Stream-header-checkboxes">
                     {checkboxesData3.map((checkbox, index) => (
                       <div key={checkbox.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
-                        <input type="checkbox" id={checkbox.id} />
-                        <label htmlFor={checkbox.id}>{checkbox.label}</label>
+                        <input type="checkbox" id={checkbox.id} class="custom-checkbox" />
+                        <label className='Stream-header-checkbox-label' htmlFor={checkbox.id}>{checkbox.label}</label>
                       </div>
                     ))}
                   </div>

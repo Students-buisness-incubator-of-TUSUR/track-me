@@ -19,6 +19,7 @@
   height: 612px;
   border-radius: 70px;
   background-color: white;
+  padding-bottom: 30px;
 }
 .create-stream-cont-left,
 .create-stream-cont-right{
@@ -89,4 +90,28 @@
 .create-stream-input::placeholder{
   text-align-last: center;
   color: white;
+}
+.Stream-b{
+  position: relative;
+  left: 22%;
+  bottom: 100px;
+}
+.Stream-header-checkbox{
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Расстояние между чекбоксом и текстом */
+}
+.Stream-header-checkbox-label{
+  font-weight: 600;
+  font-size: 13px;
+}
+.custom-checkbox{
+  width: 17px;
+  height: 17px;
+}
+.create-stream-input-pic{
+  background-image: url("./download.png");
+  background-size: auto;
+  background-repeat: no-repeat;
+  background-position: 50%;
 }

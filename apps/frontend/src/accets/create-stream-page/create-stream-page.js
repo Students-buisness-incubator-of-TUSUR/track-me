@@ -1,19 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './create-stream-page.css';
 
 export default function CreateStream() {
   const [startDate, setStartDate] = useState(''); // Состояние для даты начала
   const [endDate, setEndDate] = useState(''); // Состояние для даты конца
-  const [error, setError] = useState(''); // Состояние для отображения ошибки
   const [showCheckboxes2, setShowCheckboxes2] = useState(false);
-  const numberOfCheckboxes = 9;
-  const checkboxesData2 = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
-    id: `checkbox2-${index + 1}`,
-    label: `Чекбокс 2 ${index + 1}`,
-  }));
+  const [error, setError] = useState(null); // Состояние для отслеживания ошибок
+  const [checkboxesData2, setCheckboxesData2] = useState([]); // Состояние для данных чекбоксов
+  const [selectedCheckboxes, setSelectedCheckboxes] = useState([]); // Состояние для выбранных чекбоксов
 
-    const handleShowCheckboxes2 = () => {
+  const fetchCheckboxesData = async () => {
+    const token = localStorage.getItem("accessToken"); // Получаем токен из localStorage
+    if (!token) {
+      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
+      return;
+    }
+    try {
+      const response = await fetch('http://127.0.0.1:8080/api/v1/streams/nti-markets', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`, // Передаем токен в заголовке
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при загрузке данных для чекбоксов');
+      }
+
+      const result = await response.json();
+      // Преобразуем данные в формат, аналогичный `data`
+      const formattedData = result.map((item) => ({
+        id: item.id,
+        name: item.displayName, // Используем displayName как название
+        description: item.name, // Используем name как описание
+      }));
+      setCheckboxesData2(formattedData); // Сохраняем данные в состоянии
+    } catch (error) {
+      console.error('Ошибка при загрузке данных для чекбоксов:', error);
+      setError('Не удалось загрузить данные для чекбоксов.');
+    }
+  };
+
+  useEffect(() => {
+    fetchCheckboxesData(); // Загружаем данные для чекбоксов
+  }, []);
+
+  const handleShowCheckboxes2 = () => {
     setShowCheckboxes2(!showCheckboxes2);
+  };
+
+  // Функция для обработки выбора чекбокса
+  const handleCheckboxChange = (id) => {
+    if (selectedCheckboxes.includes(id)) {
+      // Если чекбокс уже выбран, удаляем его из списка
+      setSelectedCheckboxes(selectedCheckboxes.filter((checkboxId) => checkboxId !== id));
+    } else {
+      // Если чекбокс не выбран, добавляем его в список, если выбрано меньше трёх
+      if (selectedCheckboxes.length < 3) {
+        setSelectedCheckboxes([...selectedCheckboxes, id]);
+      } else {
+        alert('Можно выбрать не более трёх чекбоксов.');
+      }
+    }
   };
 
   // Функция для обработки ввода даты начала
@@ -131,24 +179,31 @@ export default function CreateStream() {
           </button>
         </div>
       </div>
-      <div className="Stream-header-chosefrom-buttw">
-              <div className="Stream-header-chosefrom-butt2">
-                <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes2}>
-                  <b className="Stream-header-chosefrom-butt-label">Рынок</b>
-                  <div className="Stream-header-chosefrom-butt-pic"></div>
+      <div className="Stream-b Stream-header-chosefrom-buttw">
+        <div className="Stream-header-chosefrom-butt2">
+          <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes2}>
+            <b className="Stream-header-chosefrom-butt-label">Рынок</b>
+            <div className="Stream-header-chosefrom-butt-pic"></div>
+          </div>
+          {showCheckboxes2 && (
+            <div className="Stream-header-checkboxes">
+              {checkboxesData2.map((formattedData, index) => (
+                <div key={formattedData.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
+                  <input
+                    type="checkbox"
+                    class="custom-checkbox"
+                    id={formattedData.id}
+                    checked={selectedCheckboxes.includes(formattedData.id)}
+                    onChange={() => handleCheckboxChange(formattedData.id)}
+                    disabled={selectedCheckboxes.length >= 3 && !selectedCheckboxes.includes(formattedData.id)}
+                  />
+                  <label className='Stream-header-checkbox-label'>{formattedData.name}</label>
                 </div>
-                {showCheckboxes2 && (
-                  <div className="Stream-header-checkboxes">
-                    {checkboxesData2.map((checkbox, index) => (
-                      <div key={checkbox.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
-                        <input type="checkbox" id={checkbox.id} />
-                        <label htmlFor={checkbox.id}>{checkbox.label}</label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
