@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './create-stream-page.css';
-
 export default function CreateStream() {
   const [startDate, setStartDate] = useState(''); // Состояние для даты начала
   const [endDate, setEndDate] = useState(''); // Состояние для даты конца
@@ -16,7 +15,7 @@ export default function CreateStream() {
       return;
     }
     try {
-      const response = await fetch('http://127.0.0.1:8080/api/v1/streams/nti-markets', {
+      const response = await fetch(window.env.PORT + "/api/v1/streams/nti-markets", {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`, // Передаем токен в заголовке

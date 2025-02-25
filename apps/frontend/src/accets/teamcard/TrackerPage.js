@@ -71,7 +71,7 @@ function TrackerPage() {
       setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
       return;
     }
-    fetch("http://127.0.0.1:8080/api/v1/streams/nti-markets", { 
+    fetch(window.env.PORT + "/api/v1/streams/nti-markets", { 
     method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
