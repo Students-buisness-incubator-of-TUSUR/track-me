@@ -25,9 +25,7 @@ public class TeamCardSpecification implements Specification<TeamCard> {
       "status",
       "user.telegramId",
       READINESS_LEVEL_FIELD_NAME,
-      "streams.name",
-      "streams.startDate",
-      "streams.endDate"
+      "streams.name"
   );
 
   private final transient List<Filter> filters;
