@@ -1,6 +1,6 @@
 # Track Me
 
-[![Java CI with Gradle](https://github.com/akarmanov2022/project-place/actions/workflows/gradle.yml/badge.svg?branch=develop)](https://github.com/akarmanov2022/project-place/actions/workflows/gradle.yml)
+[![Build and Push Docker Images](https://github.com/akarmanov2022/track-me/actions/workflows/build-artifacts.yml/badge.svg)](https://github.com/akarmanov2022/track-me/actions/workflows/build-artifacts.yml)
 
 Онлайн-сервис для автоматизации и мониторинга работы проектных команд (стартапов и стартап-проектов) и их кураторов (трекеров) в рамках университетских акселерационных программ.
 
