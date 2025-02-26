@@ -3,6 +3,7 @@ package net.akarmanov.projectplace.services.admin;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.domain.User;
 import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.mapping.UserMapper;
 import net.akarmanov.projectplace.models.UserRole;
@@ -46,5 +47,11 @@ class AdministrationServiceImpl implements AdministrationService {
   public Page<UserDTO> getAllTrackers(@Valid @NotNull List<Filter> filters, Pageable pageable) {
     return userService.findAll(withFilters(filters).and(byRole(UserRole.TRACKER)), pageable)
         .map(userMapper::mapUserToDto);
+  }
+
+  @Override
+  public UserDTO getUserInfo(UUID userId) {
+    var user = userService.getUser(userId);
+    return userMapper.mapUserToDto(user);
   }
 }

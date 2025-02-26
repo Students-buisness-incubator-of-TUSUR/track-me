@@ -42,4 +42,9 @@ public class AdminTrackerRestControllerImpl implements AdministrationRestControl
   public Page<UserDTO> getAdministrators(FilterRequest filterRequest, Pageable pageable) {
     return administrationService.getAllAdmins(filterRequest.filters(), pageable);
   }
+
+  @Override
+  public ResponseEntity<UserDTO> getUser(UUID userId) {
+    return ResponseEntity.ok(administrationService.getUserInfo(userId));
+  }
 }

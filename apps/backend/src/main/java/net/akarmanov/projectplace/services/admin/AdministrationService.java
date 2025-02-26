@@ -18,4 +18,6 @@ public interface AdministrationService {
   Page<UserDTO> getAllAdmins(List<Filter> filters, Pageable pageable);
 
   Page<UserDTO> getAllTrackers(@Valid @NotNull List<Filter> filters, Pageable pageable);
+
+  UserDTO getUserInfo(UUID userId);
 }
