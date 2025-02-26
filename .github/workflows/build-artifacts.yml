@@ -4,6 +4,11 @@ on:
   push:
     branches: [develop]
     tags: ['v*.*.*']
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - 'docs/**'
+      - '.github/**'
 
 jobs:
   build:

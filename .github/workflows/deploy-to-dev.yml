@@ -1,6 +1,8 @@
 name: Deploy to Dev
 
 on:
+  schedule:
+    - cron: '0 0 * * *'
   push:
     tags:
       - 'v*.*.*'
@@ -29,10 +31,3 @@ jobs:
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
-
-      - name: Send Slack notification
-        uses: slackapi/slack-github-action@v1
-        if: success()
-        with:
-          channel-id: 'deployments'
-          slack-message: 'Successfully deployed to dev environment'
