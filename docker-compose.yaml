@@ -14,12 +14,13 @@ services:
 
   backend:
     container_name: track-me-backend
-    image: 'akarmanoff/track-me-backend:latest'
+    image: ghcr.io/akarmanov2022/track-me/backend:latest
+    platform: linux/amd64
     restart: always
     depends_on:
       - postgres
     environment:
-#      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      #      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project-place
       SPRING_DATASOURCE_USERNAME: project-place
       SPRING_DATASOURCE_PASSWORD: project-place
@@ -32,7 +33,8 @@ services:
 
   frontend:
     container_name: track-me-frontend
-    image: 'akarmanoff/track-me-frontend:latest'
+    image: ghcr.io/akarmanov2022/track-me/frontend:latest
+    platform: linux/amd64
     depends_on:
       - backend
     ports:

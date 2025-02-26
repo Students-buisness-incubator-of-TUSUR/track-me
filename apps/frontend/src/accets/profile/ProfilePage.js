@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProfilePage.css";
+import config from "../../config";
 
 // Импорт иконок
 import penIcon from "./pen.png"; 
@@ -30,7 +31,7 @@ function ProfilePage() {
       return;
     }
 
-    fetch("http://127.0.0.1:8080/api/v1/users/current/info", {
+    fetch(`${config.apiV1BaseURL}/users/current/info`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -64,7 +65,7 @@ function ProfilePage() {
 
     const token = localStorage.getItem("accessToken");
 
-    fetch(`http://127.0.0.1:8080/api/v1/users/${userData.telegramId}/photo`, {
+    fetch(`${config.apiV1BaseURL}/users/${userData.telegramId}/photo`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -92,7 +93,7 @@ function ProfilePage() {
   const handleSaveClick = () => {
     const token = localStorage.getItem("accessToken");
 
-    fetch("http://127.0.0.1:8080/api/v1/users/current/update", {
+    fetch(`${config.apiV1BaseURL}/users/current/update`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -142,7 +143,7 @@ function ProfilePage() {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch(`http://127.0.0.1:8080/api/v1/users/${userData.telegramId}/photo`, {
+    fetch(`${config.apiV1BaseURL}/users/${userData.telegramId}/photo`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

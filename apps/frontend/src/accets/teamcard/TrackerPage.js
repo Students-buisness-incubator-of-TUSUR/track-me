@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./TrackerPage.css";
+import config from "../../config";
 
 import { Link, useNavigate } from "react-router-dom";
 
@@ -76,7 +77,7 @@ function TrackerPage() {
       setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
       return;
     }
-    fetch("http://127.0.0.1:8080/api/v1/streams/nti-markets", { 
+    fetch(`${config.apiV1BaseURL}/streams/nti-markets`, {
     method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -95,7 +96,7 @@ function TrackerPage() {
     .catch((error) => {
       console.error(error);
     });
-    fetch("http://127.0.0.1:8080/api/v1/streams/current", {
+    fetch(`${config.apiV1BaseURL}/streams/current`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -130,7 +131,7 @@ function TrackerPage() {
       return;
     }
   
-    fetch("http://127.0.0.1:8080/api/v1/streams?page=0&size=150", {
+    fetch(`${config.apiV1BaseURL}/streams?page=0&size=150`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -166,7 +167,7 @@ function TrackerPage() {
       setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
       return;
     }
-    fetch("http://127.0.0.1:8080/api/v1/team-cards?page=0&size=150", {
+    fetch(`${config.apiV1BaseURL}/team-cards?page=0&size=150`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

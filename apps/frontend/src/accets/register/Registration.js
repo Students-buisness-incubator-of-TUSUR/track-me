@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Registration.css';
 import axios from 'axios';
+import config from '../../config';
 
 const Registration = () => {
   const [form, setForm] = useState({
@@ -40,7 +41,7 @@ const Registration = () => {
     };
 
     try {
-      const response = await axios.post('http://127.0.0.1:8080/api/v1/auth/sing-up', userData, {
+      const response = await axios.post(`${config.apiV1BaseURL}/auth/sing-up`, userData, {
         headers: {
           'Content-Type': 'application/json',
         },

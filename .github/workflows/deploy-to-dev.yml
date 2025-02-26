@@ -24,6 +24,8 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd /home/${{ secrets.SSH_USERNAME }}/track-me
+            echo "APP_API_V1_BASE_URL=${{ secrets.API_V1_BASE_URL }}" > .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d

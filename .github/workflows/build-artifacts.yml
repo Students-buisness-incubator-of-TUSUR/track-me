@@ -34,6 +34,7 @@ jobs:
             ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
 
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
@@ -46,3 +47,4 @@ jobs:
             ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
