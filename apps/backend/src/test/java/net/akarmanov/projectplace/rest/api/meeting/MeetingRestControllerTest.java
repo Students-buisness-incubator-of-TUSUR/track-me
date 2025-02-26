@@ -8,6 +8,7 @@ import net.akarmanov.projectplace.domain.TeamCard;
 import net.akarmanov.projectplace.models.MeetingStatus;
 import net.akarmanov.projectplace.repos.MeetingRepository;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
+import net.akarmanov.projectplace.repos.TeamCardsRepository;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +31,9 @@ class MeetingRestControllerTest extends BaseApplicationTest {
 
   @Autowired
   private TeamCardsService teamCardsService;
+
+  @Autowired
+  private TeamCardsRepository teamCardsRepository;
 
   @Autowired
   private MeetingRepository meetingRepository;
@@ -72,7 +76,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
   @AfterEach
   void tearDown() {
     meetingRepository.deleteAll();
-    teamCardsService.deleteTeamCard(teamCard.getId());
+    teamCardsRepository.deleteAll();
   }
 
   @Test
