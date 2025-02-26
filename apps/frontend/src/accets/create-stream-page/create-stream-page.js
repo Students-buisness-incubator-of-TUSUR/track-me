@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './create-stream-page.css';
+import config from '../../config';
 
 export default function CreateStream() {
   const [startDate, setStartDate] = useState(''); // Состояние для даты начала

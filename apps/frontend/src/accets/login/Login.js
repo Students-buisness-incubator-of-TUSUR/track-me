@@ -4,6 +4,8 @@ import { jwtDecode } from "jwt-decode";
 import "./Login.css"; // Подключаем стили
 import eyeOpen from "./Eye-open.png";
 import eyeClosed from "./Eye-closed.png";
+import config from "../../config";
+
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
