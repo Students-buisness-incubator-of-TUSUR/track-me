@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import './stream-page.css';
-import config from '../../config';
 
 export default function Stream() {
   const [isVisible, setIsVisible] = useState(false);
@@ -27,7 +26,7 @@ export default function Stream() {
       return;
     }
     try {
-       const response = await fetch(`${config.apiV1BaseURL}/admin/streams?page=0&size=10`, {
+       const response = await fetch('http://127.0.0.1:8080/api/v1/admin/streams?page=0&size=10', {
         method: 'POST',
       headers: {
         "Content-Type": "application/json",

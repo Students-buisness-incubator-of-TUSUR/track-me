@@ -4,8 +4,6 @@ import { jwtDecode } from "jwt-decode";
 import "./Login.css"; // Подключаем стили
 import eyeOpen from "./Eye-open.png";
 import eyeClosed from "./Eye-closed.png";
-import config from "../../config";
-
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
@@ -30,7 +28,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${config.apiV1BaseURL}/auth/sing-in`, {
+      const response = await fetch("http://127.0.0.1:8080/api/v1/auth/sing-in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
