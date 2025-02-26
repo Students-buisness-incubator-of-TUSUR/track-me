@@ -52,7 +52,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         .startDate(OffsetDateTime.now().plusDays(1))
         .build();
 
-    mockMvc.perform(post("/api/v1/meetings/create")
+    mockMvc.perform(post("/api/v1/meetings")
             .param("teamCardId", teamCard.getId().toString())
             .contentType("application/json")
             .content(objectMapper.writeValueAsString(meetingCreateDto)))
@@ -72,7 +72,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         .startDate(OffsetDateTime.now().plusDays(1))
         .build();
 
-    mockMvc.perform(post("/api/v1/meetings/create")
+    mockMvc.perform(post("/api/v1/meetings")
             .param("teamCardId", "00000000-0000-0000-0000-000000000000")
             .contentType("application/json")
             .content(objectMapper.writeValueAsString(meetingCreateDto)))
@@ -83,7 +83,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
 
   @Test
   void getMeetings_success() throws Exception {
-    mockMvc.perform(post("/api/v1/meetings/list")
+    mockMvc.perform(post("/api/v1/meetings")
             .param("teamCardId", teamCard.getId().toString()))
         .andDo(print())
         .andExpect(status().isOk())
