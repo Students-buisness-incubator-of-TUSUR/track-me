@@ -45,9 +45,12 @@ public class MeetingServiceImpl implements MeetingService {
   }
 
   @Override
-  public Page<Meeting> getMeetingsForCurrentUser(Pageable pageable) {
+  @PreAuthorize("hasPermission(#teamCardId, 'net.akarmanov.projectplace.domain.TeamCard', 'READ') " +
+                "or hasRole('ROLE_ADMIN')")
+  public Page<Meeting> getMeetingsForCurrentUser(UUID teamCardId, Pageable pageable) {
     var username = SecurityContextHolder.getContext().getAuthentication().getName();
-    return meetingRepository.findAll(where(userEquals(username)), pageable);
+    return meetingRepository.findAll(where(userEquals(username))
+        .and(teamCardIdEquals(teamCardId)), pageable);
   }
 
   @Override

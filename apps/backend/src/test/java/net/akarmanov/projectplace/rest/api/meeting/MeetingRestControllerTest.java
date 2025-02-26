@@ -2,17 +2,24 @@ package net.akarmanov.projectplace.rest.api.meeting;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.akarmanov.projectplace.BaseApplicationTest;
+import net.akarmanov.projectplace.domain.Meeting;
 import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.TeamCard;
+import net.akarmanov.projectplace.models.MeetingStatus;
+import net.akarmanov.projectplace.repos.MeetingRepository;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
+import net.akarmanov.projectplace.repos.TeamCardsRepository;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -24,6 +31,12 @@ class MeetingRestControllerTest extends BaseApplicationTest {
 
   @Autowired
   private TeamCardsService teamCardsService;
+
+  @Autowired
+  private TeamCardsRepository teamCardsRepository;
+
+  @Autowired
+  private MeetingRepository meetingRepository;
 
   @Autowired
   private NtiMarketRepository ntiMarketRepository;
@@ -41,6 +54,29 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         .ntiMarket(ntiMarketRepository.findAll().getFirst())
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
+
+    meetingRepository.saveAll(List.of(
+        Meeting.builder()
+            .link("https://example.com/meeting")
+            .number("12343")
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .teamCard(teamCard)
+            .status(MeetingStatus.OK)
+            .build(),
+        Meeting.builder()
+            .link("https://example.com/meeting")
+            .number("12345")
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .teamCard(teamCard)
+            .status(MeetingStatus.OK)
+            .build()
+    ));
+  }
+
+  @AfterEach
+  void tearDown() {
+    meetingRepository.deleteAll();
+    teamCardsRepository.deleteAll();
   }
 
   @Test
@@ -52,7 +88,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         .startDate(OffsetDateTime.now().plusDays(1))
         .build();
 
-    mockMvc.perform(post("/api/v1/meetings/create")
+    mockMvc.perform(post("/api/v1/meetings")
             .param("teamCardId", teamCard.getId().toString())
             .contentType("application/json")
             .content(objectMapper.writeValueAsString(meetingCreateDto)))
@@ -72,7 +108,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         .startDate(OffsetDateTime.now().plusDays(1))
         .build();
 
-    mockMvc.perform(post("/api/v1/meetings/create")
+    mockMvc.perform(post("/api/v1/meetings")
             .param("teamCardId", "00000000-0000-0000-0000-000000000000")
             .contentType("application/json")
             .content(objectMapper.writeValueAsString(meetingCreateDto)))
@@ -83,7 +119,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
 
   @Test
   void getMeetings_success() throws Exception {
-    mockMvc.perform(post("/api/v1/meetings/list")
+    mockMvc.perform(get("/api/v1/meetings")
             .param("teamCardId", teamCard.getId().toString()))
         .andDo(print())
         .andExpect(status().isOk())

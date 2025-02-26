@@ -23,9 +23,9 @@ public class MeetingRestControllerImpl implements MeetingRestController {
   }
 
   @Override
-  public ResponseEntity<PagedModel<MeetingDto>> getMeetings(Pageable pageable) {
-    var meetings = teamCardMeetingUseCase.getMeetings(pageable);
-    return ResponseEntity.ok(new PagedModel<>(meetings));
+  public PagedModel<MeetingDto> getMeetings(UUID teamCardId, Pageable pageable) {
+    var meetings = teamCardMeetingUseCase.getMeetings(teamCardId, pageable);
+    return new PagedModel<>(meetings);
   }
 
   @Override
