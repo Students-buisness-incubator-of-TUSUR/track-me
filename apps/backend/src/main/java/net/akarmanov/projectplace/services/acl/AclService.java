@@ -31,8 +31,8 @@ public class AclService {
         BasePermission.DELETE));
   }
 
-  public MutableAcl createAcl(Object identity, String principle) {
-    return createAcl(identity, principle, List.of(
+  public void createAcl(Object identity, String principle) {
+    createAcl(identity, principle, List.of(
         BasePermission.READ,
         BasePermission.WRITE,
         BasePermission.DELETE));
@@ -41,8 +41,8 @@ public class AclService {
   public MutableAcl createAcl(Object identity, String principle, List<? extends Permission> permissions) {
     var objectIdentity = new ObjectIdentityImpl(identity);
     var sid = new PrincipalSid(principle);
-    mutableAclService.createAcl(objectIdentity);
-    return addPermissions(objectIdentity, sid, permissions);
+    var acl = mutableAclService.createAcl(objectIdentity);
+    return addPermissions(acl, sid, permissions);
   }
 
   public void updateAcl(Object identity, String principle) {
@@ -53,9 +53,7 @@ public class AclService {
     mutableAclService.updateAcl(acl);
   }
 
-  public MutableAcl addPermissions(ObjectIdentity objectIdentity, Sid sid, List<? extends Permission> permissions) {
-    // Add permission to the ACL for the given object identity and SID
-    MutableAcl acl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
+  public MutableAcl addPermissions(MutableAcl acl, Sid sid, List<? extends Permission> permissions) {
     acl.setOwner(sid);
     for (var permission : permissions) {
       acl.insertAce(acl.getEntries().size(), permission, sid, true);

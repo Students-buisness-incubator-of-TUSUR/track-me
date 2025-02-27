@@ -20,11 +20,13 @@ public interface TeamCardsService {
 
   TeamCard createTeamCard(TeamCard teamCard, UUID userId);
 
-  TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCard, UUID userId);
+  TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCard, UUID streamId, UUID userId);
 
   Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable);
 
   TeamCard getTeamCard(UUID id, UUID userId);
 
   void deleteTeamCard(UUID id, UUID userId);
+
+  TeamCard createTeamCard(TeamCard teamCard, UUID streamId, UUID userId);
 }

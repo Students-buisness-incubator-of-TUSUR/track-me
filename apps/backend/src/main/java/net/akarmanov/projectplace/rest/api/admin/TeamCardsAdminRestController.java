@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,6 +26,7 @@ import java.util.UUID;
 @Tag(name = "Team Cards API",
      description = "API для работы с карточками команд для администратора")
 @RequestMapping("/api/v1/admin")
+@Validated
 public interface TeamCardsAdminRestController {
   @PostMapping(value = "team-card",
                consumes = "application/json",
@@ -32,6 +34,7 @@ public interface TeamCardsAdminRestController {
   @Operation(summary = "Создание карточки команды")
   ResponseEntity<TeamCardDto> createTeamCard(
       @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto,
+      @RequestParam(required = false) UUID streamId,
       @RequestParam UUID userId);
 
   @PatchMapping(value = "team-card",
@@ -39,7 +42,8 @@ public interface TeamCardsAdminRestController {
                 produces = "application/json")
   @Operation(summary = "Обновление карточки команды")
   ResponseEntity<TeamCardDto> updateTeamCard(@RequestParam UUID teamCardId,
-                                             @Parameter @RequestParam UUID userId,
+                                             @RequestParam UUID userId,
+                                             @RequestParam(required = false) UUID streamId,
                                              @Valid @RequestBody
                                              TeamCardCreateOrUpdateDto teamCardDto);
 
@@ -50,9 +54,10 @@ public interface TeamCardsAdminRestController {
       @ParameterObject
       @PageableDefault
       Pageable pageable,
-      @RequestBody FilterRequest filters);
+      @Valid @RequestBody FilterRequest filters);
 
-  @GetMapping(produces = "application/json")
+  @GetMapping(value = "team-card",
+              produces = "application/json")
   @Operation(summary = "Получение карточки команды")
   ResponseEntity<TeamCardDto> getTeamCard(
       @Parameter(description = "Идентификатор карточки команды",
@@ -61,7 +66,7 @@ public interface TeamCardsAdminRestController {
       UUID id,
       @RequestParam UUID userId);
 
-  @DeleteMapping
+  @DeleteMapping(value = "team-card")
   @Operation(summary = "Удаление карточки команды")
   ResponseEntity<Void> deleteTeamCard(
       @Parameter(description = "Идентификатор карточки команды",

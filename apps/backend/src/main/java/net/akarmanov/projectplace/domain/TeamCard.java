@@ -84,6 +84,7 @@ public class TeamCard {
   private Set<Stream> streams = new HashSet<>();
 
   public void addStream(Stream stream) {
+    streams.clear();
     streams.add(stream);
   }
 

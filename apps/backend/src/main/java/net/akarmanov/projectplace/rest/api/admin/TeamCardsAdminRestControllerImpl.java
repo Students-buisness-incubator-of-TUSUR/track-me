@@ -8,6 +8,7 @@ import net.akarmanov.projectplace.mapping.TeamCardMapper;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.services.nti.NtiMarketService;
+import net.akarmanov.projectplace.services.stream.StreamService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -26,27 +27,33 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
 
   private final NtiMarketService ntiMarketService;
 
+  private final StreamService streamService;
+
   @Override
   @Transactional
-  public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateOrUpdateDto dto, UUID userId) {
+  public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateOrUpdateDto dto,
+                                                    UUID streamId,
+                                                    UUID userId) {
     var teamCard = teamCardMapper.mapToEntity(dto);
     var ntiMarketId = dto.ntiMarketId();
 
     teamCard.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
-    teamCard = teamCardsService.createTeamCard(teamCard, userId);
+    teamCard = teamCardsService.createTeamCard(teamCard, streamId, userId);
     var teamCardDto = teamCardMapper.mapToDto(teamCard);
     return ResponseEntity.ok(teamCardDto);
   }
 
   @Override
   @Transactional
-  public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId, UUID userId,
+  public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId,
+                                                    UUID userId,
+                                                    UUID streamId,
                                                     TeamCardCreateOrUpdateDto updateDto) {
     var teamCard = teamCardMapper.mapToEntity(updateDto);
     var ntiMarketId = updateDto.ntiMarketId();
 
     teamCard.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
-    teamCard = teamCardsService.updateTeamCard(teamCardId, teamCard, userId);
+    teamCard = teamCardsService.updateTeamCard(teamCardId, teamCard, streamId, userId);
     var teamCardDto = teamCardMapper.mapToDto(teamCard);
     return ResponseEntity.ok(teamCardDto);
   }
