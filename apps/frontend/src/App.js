@@ -8,6 +8,9 @@ import Register from "./accets/register/Registration.js";
 import ProfilePage from "./accets/profile/ProfilePage.js"; // <-- наш компонент
 import LoginRecovery from "./accets/login-recovery/login-recovery.js";
 import CreateStream from "./accets/create-stream-page/create-stream-page.js";
+import TrackerList from "./accets/list-trackers/TrackerList.js";
+
+
 
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
@@ -25,6 +28,7 @@ function App() {
         <Route path="/team-cards" element={<TrackerPage />} />
         <Route path="/recovery" element={<LoginRecovery />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/list-trackers" element={<TrackerList />} />
       </Routes>
     </Router>
   );
