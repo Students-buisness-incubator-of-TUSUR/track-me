@@ -5,10 +5,10 @@ import Login from "./accets/login/Login.js";
 import Stream from "./accets/stream-page/stream-page.js";
 import TrackerPage from "./accets/teamcard/TrackerPage.js";
 import Register from "./accets/register/Registration.js";
-import ProfilePage from "./accets/profile/ProfilePage.js"; // <-- наш компонент
+import ProfilePage from "./accets/profile/ProfilePage.js";
 import LoginRecovery from "./accets/login-recovery/login-recovery.js";
 import CreateStream from "./accets/create-stream-page/create-stream-page.js";
-
+console.log(`Server started on PORT: ${window.env.PORT} node.`);
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
 
