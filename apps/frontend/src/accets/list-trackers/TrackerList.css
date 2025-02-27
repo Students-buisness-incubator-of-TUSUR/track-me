@@ -1,0 +1,116 @@
+.tracker-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: -32px;
+    margin-left: 201px;
+    margin-right: 201px;
+    
+  }
+  
+  /* Общий контейнер «пузырька» */
+  .tracker-item-true {
+    /* Размер/отступы подбирайте по вкусу */
+    width: 360px;
+    height: 91px;
+    margin-top: 58px;
+    margin-right: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    
+    
+   
+    background-color: #ffffff;
+    border-radius: 70px; /* Сильное скругление */
+    box-shadow: 14px 15px 7px rgba(112, 14, 240, 0.4); /* лёгкая фиолетовая тень */
+    border: 2px solid #44069A; /* тонкая оконтовка */
+    
+    
+  }
+  .tracker-item-edit {
+    /* Размер/отступы подбирайте по вкусу */
+    width: 360px;
+    height: 91px;
+    margin-top: 58px;
+    margin-right: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    
+    
+   
+    background-color: #ffffff;
+    border-radius: 70px; /* Сильное скругление */
+    box-shadow: 14px 15px 7px rgba(112, 14, 240, 0.4); /* лёгкая фиолетовая тень */
+    border: 2px solid #878685; /* тонкая оконтовка */
+    
+    
+  }
+  
+  /* Заглушка для аватара — круг слева */
+  .tracker-avatar {
+    width: 66px;
+    height: 66px;
+    border-radius: 57px;
+    background-color: #ccc;
+    margin-left: 39px;
+   
+
+  }
+  .img-listli{
+    margin-top: 10px;
+  }
+  .green-checkmark{
+    display: flex;
+    margin-left: 270px;
+    margin-top: 20px;
+    position: absolute;
+  }
+  .edit-icon{
+    display: flex;
+    margin-left: 270px;
+    margin-top: 20px;
+    position: absolute;
+  }
+  
+  /* Блок с текстом (ФИО, ник) */
+  .tracker-text {
+    display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Это обеспечит, что ФИО будет сверху, а ник внизу */
+  height: 100%; 
+    margin-left: 70px;
+    margin-top: -8px;
+    /* Чтобы занять всё оставшееся место между аватаром и галочкой */
+    flex: 1;
+    
+  }
+  
+  .tracker-fio {
+    font-weight: 400;
+  font-size: 18px;
+  margin-left: 13px;
+  color: black;
+  
+ 
+  
+  }
+  
+  .tracker-nick {
+    font-weight: 400;
+    font-size: 14px;
+    margin-left: 13px;
+    color: black;
+    margin-top: 0px;
+  }
+  
+  /* Галочка, если трекер активен */
+  .tracker-check {
+    width: 24px;
+    height: 24px;
+    /* Можно вставить иконку через background-image */
+    background: url('data:image/svg+xml;base64,...') no-repeat center center;
+    background-size: contain;
+    margin-left: 12px;
+  }
+  
