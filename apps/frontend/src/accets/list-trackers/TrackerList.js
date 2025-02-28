@@ -18,7 +18,7 @@ function TrackerList() {
   const filters = useMemo(() => [], []);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8080/api/v1/admin/users/trackers?page=0&size=10", {
+    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/admin/users/trackers?page=0&size=10`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

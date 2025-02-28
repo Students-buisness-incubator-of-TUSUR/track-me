@@ -16,7 +16,7 @@ export default function CreateStream() {
       return;
     }
     try {
-      const response = await fetch('http://127.0.0.1:8080/api/v1/streams/nti-markets', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/streams/nti-markets`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`, // Передаем токен в заголовке

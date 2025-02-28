@@ -40,7 +40,7 @@ const Registration = () => {
     };
 
     try {
-      const response = await axios.post('http://127.0.0.1:8080/api/v1/auth/sing-up', userData, {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/auth/sing-up`, userData, {
         headers: {
           'Content-Type': 'application/json',
         },

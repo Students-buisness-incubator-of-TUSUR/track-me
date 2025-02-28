@@ -26,7 +26,7 @@ export default function Stream() {
       return;
     }
     try {
-       const response = await fetch('http://127.0.0.1:8080/api/v1/admin/streams?page=0&size=10', {
+       const response = await fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/admin/streams?page=0&size=10`, {
         method: 'POST',
       headers: {
         "Content-Type": "application/json",
