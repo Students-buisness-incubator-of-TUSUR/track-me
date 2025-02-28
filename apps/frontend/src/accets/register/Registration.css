@@ -12,7 +12,7 @@
   position: relative; /* Установили, чтобы абсолютные элементы позиционировались относительно этого блока */
 }
 
-/* Заголовок формы  456*/
+/* Заголовок формы */
 .registration-title {
   font-size: 96px;
   width: 100%;
@@ -38,11 +38,11 @@
 }
 
 .role-select select {
-  width: 276px;  /* Сделать на всю ширину родителя */
-  height: 46px; /* Высота */
-  font-size: 20px; /* Размер шрифта */
-  padding: 10px; /* Внутренние отступы */
-  border-radius: 30px; /* Закругление углов */
+  width: 276px;
+  height: 46px;
+  font-size: 20px;
+  padding: 10px;
+  border-radius: 30px;
   background: #F5EFFF;
   border: none;
   outline: none;
@@ -78,16 +78,15 @@
 .telegram-input { top: 500px; left: 104px; }
 .password-input { top: 625px; left: 104px; }
 .confirm-password-input { top: 750px; left: 104px; }
-.role-select { top: 540px; left: 804px; width: 490px; height:80px; }
-
+.role-select { top: 540px; left: 804px; width: 490px; height: 80px; }
 
 /* Контейнер для аватара */
 .avatar-container {
-  position: absolute; /* Делаем блок независимым */
-  top: 200px;  /* Можешь менять */
-  right: 100px;  /* Можешь менять */
-  width: 350px; 
-  height: 400px; 
+  position: absolute;
+  top: 200px;
+  right: 100px;
+  width: 350px;
+  height: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -102,23 +101,32 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute; /* Теперь можно двигать отдельно */
-  top: -30px;  /* Меняй как нужно */
-  left: 675px; /* Меняй как нужно */
+  position: absolute;
+  top: 170px;
+  left: 875 px;
+  overflow: hidden;
 }
 
 /* Изображение аватара */
 .avatar-box img {
-  width: 202.5px;
-  height: 270px;
-  border-radius: 0px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 70px;
 }
 
 /* Иконка загрузки аватара */
 .upload-icon {
+  font-size: 3rem;
+  color: #8338EB;
+}
+
+/* Кастомный input file */
+.avatar-input-file {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   cursor: pointer;
 }
 
@@ -134,8 +142,8 @@
   font-weight: bold;
   cursor: pointer;
   position: absolute;
-  bottom: 75px; /* Можешь менять как хочешь */
-  right: -625px; /* Можешь менять как хочешь */
+  bottom: 75px;
+  right: -625px;
 }
 
 /* Эффект наведения на кнопку */

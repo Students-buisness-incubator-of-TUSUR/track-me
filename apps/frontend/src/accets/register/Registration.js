@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Registration.css';
 import axios from 'axios';
+import { FaUpload } from 'react-icons/fa';
 
 const Registration = () => {
   const [form, setForm] = useState({
@@ -11,10 +12,18 @@ const Registration = () => {
     password: '',
     confirmPassword: '',
     role: '',
+    avatar: null,
   });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setForm({ ...form, avatar: URL.createObjectURL(file) });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -25,7 +34,6 @@ const Registration = () => {
       return;
     }
 
-    // Разделяем ФИО
     const [lastName = '', firstName = '', middleName = ''] = form.fullName.split(' ');
 
     const userData = {
@@ -50,11 +58,7 @@ const Registration = () => {
       alert('Регистрация прошла успешно!');
     } catch (error) {
       console.error('Registration failed:', error.response?.data || error.message);
-      if (error.response) {
-        alert(`Ошибка при регистрации: ${error.response.data.message || error.response.statusText}`);
-      } else {
-        alert('Ошибка при отправке запроса');
-      }
+      alert(`Ошибка при регистрации: ${error.response?.data?.message || 'Неизвестная ошибка'}`);
     }
   };
 
@@ -93,11 +97,30 @@ const Registration = () => {
         </div>
 
         <div className="input-group role-select">
+          
           <select name="role" value={form.role} onChange={handleChange} className="input-field" required>
             <option value="">Выберите роль</option>
             <option value="TRACKER">Трекер</option>
             <option value="ADMIN">Администратор</option>
           </select>
+        </div>
+
+        {/* Загрузка аватара */}
+        <div className="input-group avatar-input">
+          
+          <div className="avatar-box">
+            {form.avatar ? (
+              <img src={form.avatar} alt="Аватар" className="avatar-image" />
+            ) : (
+              <FaUpload className="upload-icon" />
+            )}
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleAvatarChange} 
+              className="avatar-input-file" 
+            />
+          </div>
         </div>
 
         <button type="submit" className="register-button">Зарегистрироваться</button>
