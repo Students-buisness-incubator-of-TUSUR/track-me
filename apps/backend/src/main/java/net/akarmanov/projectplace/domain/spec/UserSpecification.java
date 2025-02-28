@@ -28,22 +28,27 @@ public class UserSpecification implements Specification<User> {
     return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("role"), role.name());
   }
 
+  public static Specification<User> undeleted() {
+    return (root, query, criteriaBuilder) -> criteriaBuilder.isFalse(root.get("deleted"));
+  }
+
   public static Specification<User> withFilters(List<Filter> filters) {
-    return new UserSpecification(filters);
+    return new UserSpecification(filters)
+        .and(undeleted());
   }
 
   @Override
   public Predicate toPredicate(Root<User> root,
                                CriteriaQuery<?> query,
                                CriteriaBuilder criteriaBuilder) {
-    Predicate predicate = criteriaBuilder.conjunction();
-    for (Filter filter : filters) {
-      var fieldName = filter.fieldName();
-      if (!ALLOWED_FIELDS.contains(fieldName)) {
-        throw new FilterFieldNotAllowedException(fieldName, ALLOWED_FIELDS);
-      }
-      predicate = criteriaBuilder.and(predicate, filter.toPredicate(root, criteriaBuilder));
-    }
-    return predicate;
+    List<Predicate> predicates = filters.stream()
+        .map(filter -> {
+          if (!ALLOWED_FIELDS.contains(filter.fieldName())) {
+            throw new FilterFieldNotAllowedException(filter.fieldName());
+          }
+          return filter.toPredicate(root, criteriaBuilder);
+        })
+        .toList();
+    return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
   }
 }
