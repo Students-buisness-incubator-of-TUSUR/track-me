@@ -45,6 +45,7 @@ class UserServiceImplIntegrationTest {
     user.setPhoneNumber("+71234567890");
     user.setTelegramId("telegramId");
     user.setRole(UserRole.ADMIN);
+    user.setPassword("password");
     user = userRepository.save(user);
   }
 
