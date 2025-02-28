@@ -64,9 +64,10 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public void deleteUser(String id) {
-    var user = getUser(UUID.fromString(id));
-    userRepository.delete(user);
+  public void deleteUser(UUID id) {
+    var user = getUser(id);
+    user.setDeleted(true);
+    userRepository.save(user);
   }
 
   @Override
@@ -110,6 +111,13 @@ public class UserServiceImpl implements UserService {
   @Override
   public Page<User> findAll(Specification<User> specification, Pageable pageable) {
     return userRepository.findAll(specification, pageable);
+  }
+
+  @Override
+  public void undeleteUser(UUID userId) {
+    var user = getUser(userId);
+    user.setDeleted(false);
+    userRepository.save(user);
   }
 
   private void changeUserState(UUID userId, boolean enabled) {

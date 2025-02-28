@@ -17,7 +17,7 @@ public interface UserService extends UserDetailsService {
 
   User updateUser(UUID id, User user);
 
-  void deleteUser(String id);
+  void deleteUser(UUID id);
 
   User getCurrentUser();
 
@@ -32,4 +32,6 @@ public interface UserService extends UserDetailsService {
   void changePassword(String oldPassword, String newPassword);
 
   Page<User> findAll(Specification<User> specification, Pageable pageable);
+
+  void undeleteUser(UUID userId);
 }

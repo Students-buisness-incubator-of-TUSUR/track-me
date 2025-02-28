@@ -223,7 +223,7 @@ return (
         <h1 className="Stream-title">Название</h1>
         <div className="Stream-buttons">
           <button className="Stream-butt">Администраторы</button>
-          <button className="Stream-butt">Трекеры</button>
+          <Link to="/list-trackers"><button className="Stream-butt">Трекеры</button></Link>
           <button className="Stream-butt">Все команды</button>
           <Link to="/profile" className="Stream-pic"></Link>
         </div>

@@ -35,6 +35,14 @@ public interface AdministrationRestController {
   @Operation(summary = "Отмена подтверждения пользователя.")
   ResponseEntity<Void> unconfirm(@RequestParam UUID userId);
 
+  @PostMapping("/users/undelete")
+  @Operation(summary = "Восстановление пользователя.")
+  ResponseEntity<Void> undelete(@RequestParam UUID userId);
+
+  @PostMapping("/users/delete")
+  @Operation(summary = "Удаление пользователя.")
+  ResponseEntity<Void> delete(@RequestParam UUID userId);
+
   @Operation(summary = "Получить список всех пользователей.")
   @PostMapping(value = "/users/trackers",
                produces = APPLICATION_JSON_VALUE)

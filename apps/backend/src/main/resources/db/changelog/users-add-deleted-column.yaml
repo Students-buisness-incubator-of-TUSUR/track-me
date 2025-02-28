@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: users-add-deleted-column-1
+      author: akarmanov
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: pp_user
+                columnName: deleted
+      changes:
+        - addColumn:
+            tableName: pp_user
+            columns:
+              - column:
+                  name: deleted
+                  type: boolean
+                  defaultValue: "false"
+                  defaultOnNull: true
+                  constraints:
+                    nullable: false

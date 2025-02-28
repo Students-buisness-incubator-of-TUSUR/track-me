@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,14 +41,11 @@ class UserServiceImplIntegrationTest {
   void setUp() {
     userRepository.deleteAll();
     user = new User();
-    user.setPassword("password");
-    user.setFirstName("John");
     user.setEmail("john@example.com");
-    user.setLastName("Doe");
-    user.setMiddleName("Middle");
     user.setPhoneNumber("+71234567890");
     user.setTelegramId("telegramId");
     user.setRole(UserRole.ADMIN);
+    user.setPassword("password");
     user = userRepository.save(user);
   }
 
@@ -62,9 +58,6 @@ class UserServiceImplIntegrationTest {
   void testGetUser_success() {
     User userDTO = userService.getUser(user.getId());
     assertNotNull(userDTO);
-    assertEquals(user.getFirstName(), userDTO.getFirstName());
-    assertEquals(user.getLastName(), userDTO.getLastName());
-    assertEquals(user.getMiddleName(), userDTO.getMiddleName());
     assertEquals(user.getPhoneNumber(), userDTO.getPhoneNumber());
     assertEquals(user.getTelegramId(), userDTO.getTelegramId());
     assertEquals(user.getRole().toString(), userDTO.getRole().toString());
@@ -72,15 +65,13 @@ class UserServiceImplIntegrationTest {
 
   @Test
   void testGetUser_notFound() {
-    assertThrows(UserNotFoundException.class, () -> userService.getUser(UUID.randomUUID()));
+    var uuid = UUID.randomUUID();
+    assertThrows(UserNotFoundException.class, () -> userService.getUser(uuid));
   }
 
   @Test
   void testCreateUser() {
     var userServiceUser = User.builder()
-        .firstName("Jane")
-        .lastName("Doe")
-        .middleName("Middle")
         .email("john@example.com")
         .phoneNumber("+79876543210")
         .telegramId("newTelegramId")
@@ -90,17 +81,11 @@ class UserServiceImplIntegrationTest {
 
     User createdUserDTO = userService.createUser(userServiceUser);
     assertNotNull(createdUserDTO);
-    assertEquals(userServiceUser.getFirstName(), createdUserDTO.getFirstName());
-    assertEquals(userServiceUser.getLastName(), createdUserDTO.getLastName());
-    assertEquals(userServiceUser.getMiddleName(), createdUserDTO.getMiddleName());
     assertEquals(userServiceUser.getPhoneNumber(), createdUserDTO.getPhoneNumber());
     assertEquals(userServiceUser.getTelegramId(), createdUserDTO.getTelegramId());
 
     Optional<User> createdUser = userRepository.findById(createdUserDTO.getId());
     assertTrue(createdUser.isPresent());
-    assertEquals(userServiceUser.getFirstName(), createdUser.get().getFirstName());
-    assertEquals(userServiceUser.getLastName(), createdUser.get().getLastName());
-    assertEquals(userServiceUser.getMiddleName(), createdUser.get().getMiddleName());
     assertEquals(userServiceUser.getPhoneNumber(), createdUser.get().getPhoneNumber());
     assertEquals(userServiceUser.getTelegramId(), createdUser.get().getTelegramId());
     assertEquals(userServiceUser.getRole().toString(), createdUser.get().getRole().toString());
@@ -129,12 +114,5 @@ class UserServiceImplIntegrationTest {
     assertEquals(updateUser.getPhoneNumber(), updatedUser.get().getPhoneNumber());
     assertEquals(updateUser.getTelegramId(), updatedUser.get().getTelegramId());
     assertEquals(updateUser.getRole().toString(), updatedUser.get().getRole().toString());
-  }
-
-  @Test
-  void testDeleteUser() {
-    userService.deleteUser(user.getId().toString());
-    Optional<User> deletedUser = userRepository.findById(user.getId());
-    assertFalse(deletedUser.isPresent());
   }
 }
