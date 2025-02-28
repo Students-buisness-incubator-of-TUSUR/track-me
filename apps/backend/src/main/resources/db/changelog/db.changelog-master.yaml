@@ -19,3 +19,5 @@ databaseChangeLog:
       file: db/changelog/stream-add-description-column.yaml
   - include:
       file: db/changelog/stream-remove-readiness-column.yaml
+  - include:
+      file: db/changelog/users-add-deleted-column.yaml
