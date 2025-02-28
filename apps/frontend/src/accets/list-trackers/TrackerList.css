@@ -36,7 +36,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    
+    cursor: pointer;
     
    
     background-color: #ffffff;
@@ -46,7 +46,17 @@
     
     
   }
-  
+  .error-message.oval2 {
+    border-radius: 70px;
+    padding: 7px;
+    margin-top: 50px;
+    margin-left: 50px;
+    color: red;
+    text-align: center;
+    
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+  }
   /* Заглушка для аватара — круг слева */
   .tracker-avatar {
     width: 66px;
@@ -112,5 +122,88 @@
     background: url('data:image/svg+xml;base64,...') no-repeat center center;
     background-size: contain;
     margin-left: 12px;
+  }
+  
+  .tracker-item-edit {
+    position: relative; /* Устанавливаем родительский контейнер */
+    display: flex;
+    align-items: center;
+    
+  }
+  
+  .edit-panel {
+    position: absolute;
+    right: -100px; /* Сдвигаем влево от иконки */
+    height: 37px;
+    width: 106px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: 2px solid #44069A;
+    border-radius: 70px;
+    
+    display: flex;
+    gap: 5px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    
+  }
+  
+  .confirm-button,
+  .cancel-button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  .confirm-button {
+    margin-left: 15px;
+    margin-top: 4px;
+  }
+  
+  .cancel-button {
+    margin-left: 0px;
+    margin-top: 4px;
+    
+  }
+  
+  .tooltip {
+    position: absolute;
+    bottom: -25px;
+    width: 94px;
+    height: 22px;
+    
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+  justify-content: center;  /* Центрирует текст по горизонтали */
+  align-items: center;      /* Центрирует текст по вертикали */
+  text-align: center;
+  }
+  .tooltip-green {
+    color: #0DB862;
+    background-color: white;
+    border: 1px solid #0DB862;
+    
+  }
+  
+  .tooltip-red {
+    color: #D34F4F;
+    background-color: white;
+    border: 1px solid #D34F4F;
+  }
+  
+  .confirm-button {
+    position: relative;
+    margin-left: 15px;
+    margin-top: 4px;
+  }
+  
+  .cancel-button {
+    position: relative;
+    margin-left: 0px;
+    margin-top: 4px;
   }
   
