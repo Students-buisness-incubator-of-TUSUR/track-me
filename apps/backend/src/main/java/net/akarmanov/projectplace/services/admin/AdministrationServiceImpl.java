@@ -3,7 +3,6 @@ package net.akarmanov.projectplace.services.admin;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.domain.User;
 import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.mapping.UserMapper;
 import net.akarmanov.projectplace.models.UserRole;
@@ -53,5 +52,15 @@ class AdministrationServiceImpl implements AdministrationService {
   public UserDTO getUserInfo(UUID userId) {
     var user = userService.getUser(userId);
     return userMapper.mapUserToDto(user);
+  }
+
+  @Override
+  public void undeleteUser(UUID userId) {
+    userService.undeleteUser(userId);
+  }
+
+  @Override
+  public void deleteUser(UUID userId) {
+    userService.deleteUser(userId);
   }
 }

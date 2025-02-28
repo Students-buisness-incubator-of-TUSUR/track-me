@@ -20,4 +20,8 @@ public interface AdministrationService {
   Page<UserDTO> getAllTrackers(@Valid @NotNull List<Filter> filters, Pageable pageable);
 
   UserDTO getUserInfo(UUID userId);
+
+  void undeleteUser(UUID userId);
+
+  void deleteUser(UUID userId);
 }

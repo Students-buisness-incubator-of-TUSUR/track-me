@@ -102,4 +102,40 @@ class AdministrationRestControllerTest extends BaseApplicationTest {
             "00000000-0000-0000-0000-000000000000"))
         .andExpect(status().isNotFound());
   }
+
+  @Test
+  @WithMockUser(username = BaseApplicationTest.USERNAME, roles = {"SUPER_ADMIN"})
+  void delete_success() throws Exception {
+    var user = userRepository.findByTelegramId("test_user").orElseThrow();
+
+    mockMvc.perform(post("/api/v1/admin/users/delete")
+            .param("userId", user.getId().toString()))
+        .andExpect(status().isOk());
+
+    user = userRepository.findByTelegramId("test_user").orElseThrow();
+    Assertions.assertTrue(user.isDeleted());
+
+    mockMvc.perform(post("/api/v1/auth/sing-in")
+            .contentType("application/json")
+            .content("""
+                {
+                  "telegramId": "test_user",
+                  "password": "superadmin"
+                }
+                """))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser(username = BaseApplicationTest.USERNAME, roles = {"SUPER_ADMIN"})
+  void undelete_success() throws Exception {
+    var user = userRepository.findByTelegramId("test_admin").orElseThrow();
+
+    mockMvc.perform(post("/api/v1/admin/users/undelete")
+            .param("userId", user.getId().toString()))
+        .andExpect(status().isOk());
+
+    user = userRepository.findByTelegramId("test_admin").orElseThrow();
+    Assertions.assertFalse(user.isDeleted());
+  }
 }

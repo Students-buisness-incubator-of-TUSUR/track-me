@@ -13,14 +13,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import javax.security.auth.login.AccountLockedException;
 import java.nio.file.AccessDeniedException;
 
 @ControllerAdvice
 public class DefaultExceptionHandler {
   @ResponseBody
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
-  @ExceptionHandler(AuthenticationException.class)
-  public ResponseEntity<RestError> handleAuthenticationException(AuthenticationException ex) {
+  @ExceptionHandler({AuthenticationException.class, AccountLockedException.class})
+  public ResponseEntity<RestError> handleAuthenticationException(Exception ex) {
     var restError = RestError.builder()
         .code(HttpStatus.UNAUTHORIZED.toString())
         .message(ex.getMessage())

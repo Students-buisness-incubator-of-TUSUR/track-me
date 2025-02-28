@@ -33,6 +33,18 @@ public class AdminTrackerRestControllerImpl implements AdministrationRestControl
   }
 
   @Override
+  public ResponseEntity<Void> undelete(UUID userId) {
+    administrationService.undeleteUser(userId);
+    return ResponseEntity.ok().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> delete(UUID userId) {
+    administrationService.deleteUser(userId);
+    return ResponseEntity.ok().build();
+  }
+
+  @Override
   public Page<UserDTO> getTrackers(FilterRequest filterRequest, Pageable pageable) {
     return administrationService.getAllTrackers(filterRequest.filters(), pageable);
   }
