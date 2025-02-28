@@ -12,7 +12,7 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
-
+  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   // Флаг редактирования
   const [isEditing, setIsEditing] = useState(false);
 
@@ -30,7 +30,7 @@ function ProfilePage() {
       return;
     }
 
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/users/current/info`, {
+    fetch(`${backendHost}/api/v1/users/current/info`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -57,14 +57,14 @@ function ProfilePage() {
         console.error("Ошибка загрузки данных:", err);
         setLoading(false);
       });
-  }, []);
+  }, [backendHost]);
 
   useEffect(() => {
     if (!userData) return; // Ждём загрузки данных
 
     const token = localStorage.getItem("accessToken");
 
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/users/${userData.telegramId}/photo`, {
+    fetch(`${backendHost}/api/v1/users/${userData.telegramId}/photo`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ function ProfilePage() {
       .catch(() => {
         setUserPhoto(null);
       });
-  }, [userData]);
+  }, [userData, backendHost]);
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -92,7 +92,7 @@ function ProfilePage() {
   const handleSaveClick = () => {
     const token = localStorage.getItem("accessToken");
 
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/users/current/update`, {
+    fetch(`${backendHost}/api/v1/users/current/update`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -142,7 +142,7 @@ function ProfilePage() {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/users/${userData.telegramId}/photo`, {
+    fetch(`${backendHost}/api/v1/users/${userData.telegramId}/photo`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

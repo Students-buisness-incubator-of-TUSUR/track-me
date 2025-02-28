@@ -11,6 +11,7 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate(); // Используем хук для навигации
+  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +31,7 @@ const Login = () => {
     try {
       
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_HOST}/api/v1/auth/sing-in`,
+        `${backendHost}/api/v1/auth/sing-in`,
         {
           method: "POST",
           headers: {

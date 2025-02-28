@@ -12,7 +12,7 @@ const Registration = () => {
     confirmPassword: '',
     role: '',
   });
-
+  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -40,7 +40,7 @@ const Registration = () => {
     };
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/auth/sing-up`, userData, {
+      const response = await axios.post(`${backendHost}/api/v1/auth/sing-up`, userData, {
         headers: {
           'Content-Type': 'application/json',
         },

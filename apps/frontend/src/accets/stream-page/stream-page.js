@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from "react-router-dom";
 import './stream-page.css';
 
@@ -11,27 +11,28 @@ export default function Stream() {
   const [loading, setLoading] = useState(false); // Состояние для отслеживания загрузки
   const [error, setError] = useState(null); // Состояние для отслеживания ошибок
   const [data, setData] = useState({ content: [], page: {} }); // Состояние для хранения данных
-
+  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   const numberOfCheckboxes = 9;
 
   // Функция для выполнения POST-запроса
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-  
-  const token = localStorage.getItem("accessToken"); // Получаем токен из localStorage
+    
+    const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
       setLoading(false);
       return;
     }
+  
     try {
-       const response = await fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/admin/streams?page=0&size=10`, {
+      const response = await fetch(`${backendHost}/api/v1/admin/streams?page=0&size=10`, {
         method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Передаем токен в заголовке
-      },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           filters: [
             {
@@ -40,26 +41,26 @@ export default function Stream() {
               value: 'string',
             },
           ],
-          
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Ошибка при загрузке данных');
       }
-
+  
       const result = await response.json();
-      setData(result); // Сохраняем данные в состоянии
+      setData(result);
     } catch (error) {
-      setError(error.message); // Сохраняем ошибку
+      setError(error.message);
     } finally {
-      setLoading(false); // Завершаем загрузку
+      setLoading(false);
     }
-  };
-
+  }, [backendHost]); // Добавляем зависимость backendHost
+  
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]); // Теперь зависимость корректно указана
+  
 
 
   // const data = {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./TrackerPage.css";
 
 import { Link, useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ function TrackerPage() {
   const [selectedStreams, setSelectedStreams] = useState([]);
   const [streams, setStreams] = useState([]);
 
+  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   // Состояния для отображения панели фильтров и групп чекбоксов
   const [isVisible, setIsVisible] = useState(false);
   const [showCheckboxesStream, setShowCheckboxesStream] = useState(false); // Для "Все потоки"
@@ -66,107 +67,15 @@ function TrackerPage() {
     id: `checkbox-${index + 1}`,
     label: `Чекбокс ${index + 1}`,
   }));
-
-  useEffect(() => {
-    // При загрузке получаем карточки без фильтров
-    fetchCards([]);
-    // Запрос текущего потока
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
-      return;
-    }
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/streams/nti-markets`, { 
-    method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Ошибка при загрузке рынков НТИ");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      setNtiMarkets(data);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/streams/current`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError("Ошибка авторизации при получении потока! Выполните вход заново.");
-          } else {
-            setError("Ошибка при загрузке потока. Статус: " + response.status);
-          }
-          throw new Error("Ошибка запроса потока");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data && data.name) {
-          setStreamName(data.name);
-        } else {
-          setError("Неверный формат данных, полученных с сервера (streams).");
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка при загрузке потока:", err);
-      });
-  }, [navigate]);
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
-      return;
-    }
   
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/streams?page=0&size=150`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      // Передаём именно массив фильтров, как ожидает сервер
-      body: JSON.stringify({ filters: [] }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Ошибка при загрузке потоков");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        // Если нужно, извлекаем только id и name
-        const streamsWithNames = data.content.map((stream) => ({
-          id: stream.id,
-          name: stream.name,
-        }));
-        setStreams(streamsWithNames);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, []);
-  
-
   // Функция для запроса карточек с заданными фильтрами
-  const fetchCards = (filters) => {
+  const fetchCards = useCallback((filters) => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
       return;
     }
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/team-cards?page=0&size=150`, {
+    fetch(`${backendHost}/api/v1/team-cards?page=0&size=150`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -196,7 +105,102 @@ function TrackerPage() {
       .catch((err) => {
         console.error("Ошибка при загрузке карточек:", err);
       });
-  };
+  }, [backendHost]);
+
+  useEffect(() => {
+    // При загрузке получаем карточки без фильтров
+    fetchCards([]);
+    // Запрос текущего потока
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
+      return;
+    }
+    fetch(`${backendHost}/api/v1/streams/nti-markets`, { 
+    method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Ошибка при загрузке рынков НТИ");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setNtiMarkets(data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+    fetch(`${backendHost}/api/v1/streams/current`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          if (response.status === 401) {
+            setError("Ошибка авторизации при получении потока! Выполните вход заново.");
+          } else {
+            setError("Ошибка при загрузке потока. Статус: " + response.status);
+          }
+          throw new Error("Ошибка запроса потока");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data && data.name) {
+          setStreamName(data.name);
+        } else {
+          setError("Неверный формат данных, полученных с сервера (streams).");
+        }
+      })
+      .catch((err) => {
+        console.error("Ошибка при загрузке потока:", err);
+      });
+  }, [navigate, backendHost, fetchCards]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
+      return;
+    }
+  
+    fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      // Передаём именно массив фильтров, как ожидает сервер
+      body: JSON.stringify({ filters: [] }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Ошибка при загрузке потоков");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        // Если нужно, извлекаем только id и name
+        const streamsWithNames = data.content.map((stream) => ({
+          id: stream.id,
+          name: stream.name,
+        }));
+        setStreams(streamsWithNames);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [backendHost]);
+  
+
+  
 
   // Фильтрация карточек по поисковому запросу
   const filteredCards = cards.filter((card) =>

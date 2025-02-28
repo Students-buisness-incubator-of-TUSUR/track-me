@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './create-stream-page.css';
 
 export default function CreateStream() {
@@ -8,42 +8,43 @@ export default function CreateStream() {
   const [error, setError] = useState(null); // Состояние для отслеживания ошибок
   const [checkboxesData2, setCheckboxesData2] = useState([]); // Состояние для данных чекбоксов
   const [selectedCheckboxes, setSelectedCheckboxes] = useState([]); // Состояние для выбранных чекбоксов
+  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
 
-  const fetchCheckboxesData = async () => {
-    const token = localStorage.getItem("accessToken"); // Получаем токен из localStorage
+  const fetchCheckboxesData = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
       return;
     }
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/streams/nti-markets`, {
+      const response = await fetch(`${backendHost}/api/v1/streams/nti-markets`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${token}`, // Передаем токен в заголовке
+          Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (!response.ok) {
         throw new Error('Ошибка при загрузке данных для чекбоксов');
       }
-
+  
       const result = await response.json();
-      // Преобразуем данные в формат, аналогичный `data`
       const formattedData = result.map((item) => ({
         id: item.id,
-        name: item.displayName, // Используем displayName как название
-        description: item.name, // Используем name как описание
+        name: item.displayName,
+        description: item.name,
       }));
-      setCheckboxesData2(formattedData); // Сохраняем данные в состоянии
+      setCheckboxesData2(formattedData);
     } catch (error) {
       console.error('Ошибка при загрузке данных для чекбоксов:', error);
       setError('Не удалось загрузить данные для чекбоксов.');
     }
-  };
-
+  }, [backendHost]); // Теперь эта функция будет пересоздаваться только при изменении `backendHost`
+  
   useEffect(() => {
-    fetchCheckboxesData(); // Загружаем данные для чекбоксов
-  }, []);
+    fetchCheckboxesData();
+  }, [fetchCheckboxesData]); // Теперь `fetchCheckboxesData` безопасно используется в зависимостях
+  
 
   const handleShowCheckboxes2 = () => {
     setShowCheckboxes2(!showCheckboxes2);
