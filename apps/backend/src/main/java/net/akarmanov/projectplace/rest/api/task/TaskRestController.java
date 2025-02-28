@@ -19,24 +19,24 @@ import java.util.UUID;
 @Tag(name = "Task API",
      description = "Задачи на встречи")
 public interface TaskRestController {
-  @Operation(summary = "Добавить задачу на встречу")
+  @Operation(summary = "Добавить задачу на встречу", deprecated = true)
   @PostMapping(value = "/add",
                consumes = "application/json",
                produces = "application/json")
   ResponseEntity<TaskDto> addTask(@Valid @RequestBody TaskCreateDto taskDto, @RequestParam UUID meetingId);
 
-  @Operation(summary = "Обновить информацию о задаче на встрече")
+  @Operation(summary = "Обновить информацию о задаче на встрече", deprecated = true)
   @PostMapping(value = "/update",
                consumes = "application/json",
                produces = "application/json")
   ResponseEntity<TaskDto> updateTask(@Valid @RequestBody TaskUpdateDto taskDto);
 
-  @Operation(summary = "Удалить задачу")
+  @Operation(summary = "Удалить задачу", deprecated = true)
   @DeleteMapping(value = "/delete",
                  produces = "application/json")
   ResponseEntity<Void> deleteTask(@RequestParam UUID taskId);
 
-  @Operation(summary = "Копировать задачу на встречу")
+  @Operation(summary = "Копировать задачу на встречу", deprecated = true)
   @PostMapping(value = "/copy",
                produces = "application/json")
   ResponseEntity<TaskDto> copyTask(@RequestParam UUID taskId, @RequestParam UUID meetingId);

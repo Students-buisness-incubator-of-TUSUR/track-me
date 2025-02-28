@@ -20,6 +20,10 @@ public record MeetingUpdateDto(
     String number,
     @NotNull(message = "Статус встречи не может быть пустым")
     @Schema(description = "Статус встречи")
-    MeetingStatus status
+    MeetingStatus status,
+    @Schema(description = "Задачи на текущую встречу")
+    String tasksCurrentMeeting,
+    @Schema(description = "Задачи на следующую встречу")
+    String tasksNextMeeting
 ) {
 }

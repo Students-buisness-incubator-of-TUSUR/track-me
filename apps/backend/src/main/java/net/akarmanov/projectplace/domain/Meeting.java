@@ -70,4 +70,10 @@ public class Meeting {
              fetch = FetchType.EAGER)
   private Set<Task> meetingTasks;
 
+  @Column(name = "tasks_current", length = 2048)
+  private String tasksCurrentMeeting;
+
+  @Column(name = "tasks_next", length = 2048)
+  private String tasksNextMeeting;
+
 }

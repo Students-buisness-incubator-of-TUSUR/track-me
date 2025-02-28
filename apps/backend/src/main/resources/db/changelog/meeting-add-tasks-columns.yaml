@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: meeting-add-tasks-columns-1
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          and:
+            - not:
+                columnExists:
+                  tableName: meeting
+                  columnName: tasks_current
+            - not:
+                columnExists:
+                  tableName: meeting
+                  columnName: tasks_next
+      changes:
+        - addColumn:
+            tableName: meeting
+            columns:
+              - column:
+                  name: tasks_current
+                  type: text
+              - column:
+                  name: tasks_next
+                  type: text

@@ -12,8 +12,8 @@ import java.util.Set;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -90,7 +90,7 @@ class StreamAdminRestControllerTest extends BaseApplicationTest {
         .ntiMarkets(Set.of(ntiMarket))
         .build());
 
-    mockMvc.perform(put("/api/v1/admin/stream/{streamId}", stream.getId())
+    mockMvc.perform(patch("/api/v1/admin/stream/{streamId}", stream.getId())
             .contentType(APPLICATION_JSON)
             .content("""
                 {

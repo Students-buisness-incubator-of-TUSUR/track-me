@@ -7,7 +7,6 @@ import net.akarmanov.projectplace.models.MeetingStatus;
 import net.akarmanov.projectplace.repos.MeetingRepository;
 import net.akarmanov.projectplace.services.acl.AclService;
 import net.akarmanov.projectplace.services.exceptions.MeetingNotFoundException;
-import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,8 +27,6 @@ import static org.springframework.data.jpa.domain.Specification.where;
 public class MeetingServiceImpl implements MeetingService {
 
   private final MeetingRepository meetingRepository;
-
-  private final TeamCardsService teamCardsService;
 
   private final AclService aclService;
 
@@ -73,6 +70,12 @@ public class MeetingServiceImpl implements MeetingService {
     }
     if (!Objects.equals(createMeeting.getNumber(), meeting.getNumber())) {
       meeting.setNumber(createMeeting.getNumber());
+    }
+    if (createMeeting.getTasksCurrentMeeting() != null) {
+      meeting.setTasksCurrentMeeting(createMeeting.getTasksCurrentMeeting());
+    }
+    if (createMeeting.getTasksNextMeeting() != null) {
+      meeting.setTasksNextMeeting(createMeeting.getTasksNextMeeting());
     }
   }
 

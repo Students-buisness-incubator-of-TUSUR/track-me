@@ -16,9 +16,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -38,9 +38,9 @@ public interface StreamAdminRestController {
 
   @Operation(summary = "Обновить существующий поток",
              description = "Обновляет поток по заданному идентификатору")
-  @PutMapping(value = "/stream/{streamId}",
-              consumes = "application/json",
-              produces = "application/json")
+  @PatchMapping(value = "/stream/{streamId}",
+                consumes = "application/json",
+                produces = "application/json")
   ResponseEntity<StreamDto> update(
       @Parameter(description = "Идентификатор потока",
                  required = true) @PathVariable UUID streamId,

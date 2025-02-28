@@ -21,3 +21,5 @@ databaseChangeLog:
       file: db/changelog/stream-remove-readiness-column.yaml
   - include:
       file: db/changelog/users-add-deleted-column.yaml
+  - include:
+      file: db/changelog/meeting-add-tasks-columns.yaml

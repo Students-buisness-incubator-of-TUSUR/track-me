@@ -21,6 +21,10 @@ public record MeetingCreateDto(
     String number,
     @Schema(description = "Дата начала встречи")
     @Future(message = "Дата начала встречи должна быть в будущем")
-    OffsetDateTime startDate
+    OffsetDateTime startDate,
+    @Schema(description = "Задачи на текущую встречу")
+    String tasksCurrentMeeting,
+    @Schema(description = "Задачи на следующую встречу")
+    String tasksNextMeeting
 ) {
 }
