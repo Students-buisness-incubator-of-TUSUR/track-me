@@ -16,9 +16,9 @@ function TrackerList() {
 
   // Если фильтры не изменяются, мемоизируем их
   const filters = useMemo(() => [], []);
-
+  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_BACKEND_HOST}/api/v1/admin/users/trackers?page=0&size=10`, {
+    fetch(`${backendHost}/api/v1/admin/users/trackers?page=0&size=10`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,7 +49,7 @@ function TrackerList() {
       .catch((err) => {
         console.error("Ошибка при загрузке трекеров:", err);
       });
-  }, [token, filters]);
+  }, [token, filters, backendHost]);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
