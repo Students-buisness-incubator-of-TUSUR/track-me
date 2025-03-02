@@ -13,6 +13,8 @@ public interface UserService extends UserDetailsService {
 
   User getUserByTelegramId(String telegramId);
 
+  User getUserByEmail(String email);
+
   User createUser(User userCreateDTO);
 
   User updateUser(UUID id, User user);

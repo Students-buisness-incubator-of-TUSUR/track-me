@@ -1,4 +1,17 @@
 spring:
+  mail:
+    host: smtp.tusur.ru
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:startup-poligon@tusur.ru}
+    password: ${MAIL_PASSWORD:paKLRD9CvSrv2pXPSAOH}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: true
   application:
     name: project-place-backend
   datasource:
@@ -30,6 +43,10 @@ springdoc:
   show-actuator: true
 
 app:
+  mail:
+    from: ${MAIL_FROM:startup-poligon@tusur.ru}
+  password-reset:
+    token-expiration-check-cron: "0 0 0 * * *"
   acl:
     sid-identity-query: "select currval(pg_get_serial_sequence('acl_sid', 'id'))"
     class-identity-query: "select currval(pg_get_serial_sequence('acl_class', 'id'))"
@@ -37,3 +54,4 @@ app:
     email: ${ADMIN_EMAIL:superadmin@superadmin.superadmin}
     username: ${ADMIN_USERNAME:superadmin}
     password: ${ADMIN_PASSWORD:superadmin}
+  app-url: ${FRONTEND_HOST:http://localhost:8080}

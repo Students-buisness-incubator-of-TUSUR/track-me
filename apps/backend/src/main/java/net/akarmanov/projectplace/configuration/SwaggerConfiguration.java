@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
 import io.swagger.v3.oas.models.servers.Server;
+import lombok.RequiredArgsConstructor;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
+@RequiredArgsConstructor
 public class SwaggerConfiguration {
+
+  private final AppProperties appProperties;
 
   @Bean
   public GroupedOpenApi baseOpenAPI() {
@@ -29,10 +33,7 @@ public class SwaggerConfiguration {
                 .bearerFormat("JWT")
                 .in(SecurityScheme.In.HEADER))
             .servers(List.of(
-                new Server().url(
-                    "https://сервер.трекер.демо-стенд.рф"),
-                new Server().url(
-                    "http://localhost:8080")))
+                new Server().url(appProperties.getAppUrl())))
             .addSecurityItem(new SecurityRequirement().addList("bearerAuth")))
         .build();
   }

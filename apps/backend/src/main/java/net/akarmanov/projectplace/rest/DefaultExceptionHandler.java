@@ -3,6 +3,8 @@ package net.akarmanov.projectplace.rest;
 import jakarta.validation.ConstraintViolationException;
 import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
 import net.akarmanov.projectplace.services.exceptions.PPNotFoundException;
+import net.akarmanov.projectplace.services.reset.ExpiredTokenException;
+import net.akarmanov.projectplace.services.reset.InvalidTokenException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -101,6 +103,17 @@ public class DefaultExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<RestError> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+    var restError = RestError.builder()
+        .code(HttpStatus.BAD_REQUEST.toString())
+        .message(ex.getMessage())
+        .build();
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(restError);
+  }
+
+  @ResponseBody
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler({InvalidTokenException.class, ExpiredTokenException.class})
+  public ResponseEntity<RestError> handleResetTokenException(Exception ex) {
     var restError = RestError.builder()
         .code(HttpStatus.BAD_REQUEST.toString())
         .message(ex.getMessage())

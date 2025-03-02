@@ -28,6 +28,7 @@ jobs:
             cd /home/${{ secrets.SSH_USERNAME }}/track-me
             echo "REACT_APP_BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" > .env.local
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "c=${{ secrets.FRONTEND_HOST }}" >> .env
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d

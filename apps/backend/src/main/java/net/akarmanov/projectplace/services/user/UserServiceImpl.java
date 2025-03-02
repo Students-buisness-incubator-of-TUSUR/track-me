@@ -41,6 +41,12 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public User getUserByEmail(String email) {
+    return userRepository.findByEmail(email)
+        .orElseThrow(() -> new UserNotFoundException(email));
+  }
+
+  @Override
   public User createUser(User userCreate) {
     if (userRepository.existsUserByTelegramId(userCreate.getTelegramId())) {
       throw new TelegramIdExistsException(userCreate.getTelegramId());
