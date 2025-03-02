@@ -43,6 +43,7 @@ springdoc:
   show-actuator: true
 
 app:
+  name: ${APP_NAME:track-me}
   mail:
     from: ${MAIL_FROM:startup-poligon@tusur.ru}
   password-reset:

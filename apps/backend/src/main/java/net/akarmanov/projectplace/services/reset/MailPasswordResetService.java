@@ -8,13 +8,15 @@ import net.akarmanov.projectplace.domain.PasswordResetToken;
 import net.akarmanov.projectplace.domain.User;
 import net.akarmanov.projectplace.repos.PasswordResetRepository;
 import net.akarmanov.projectplace.repos.UserRepository;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -36,6 +38,8 @@ public class MailPasswordResetService implements PasswordResetService {
   private final PasswordEncoder passwordEncoder;
 
   private final AppProperties appProperties;
+
+  private final TemplateEngine templateEngine;
 
   @Override
   public void createToken(User user) {
@@ -77,11 +81,14 @@ public class MailPasswordResetService implements PasswordResetService {
   public void sendEmail(@Email String email, String token) {
     try {
       log.info("Отправка email на адрес: {}", email);
-      var message = new SimpleMailMessage();
-      message.setTo(email);
-      message.setSubject("Сброс пароля");
-      message.setText(buildEmailBody(token));
-      message.setFrom(appProperties.getMail().getFrom());
+      var message = mailSender.createMimeMessage();
+      var helper = new MimeMessageHelper(message, true, "UTF-8");
+
+      var content = buildContent(token, email);
+      helper.setTo(email);
+      helper.setFrom(appProperties.getMail().getFrom());
+      helper.setSubject("[" + appProperties.getName() + "] Сброс пароля");
+      helper.setText(content, true);
       mailSender.send(message);
       log.info("Email успешно отправлен на адрес: {}", email);
     } catch (Exception e) {
@@ -89,19 +96,22 @@ public class MailPasswordResetService implements PasswordResetService {
     }
   }
 
-  private String buildEmailBody(String token) {
-    var uriBuilder = UriComponentsBuilder
+  private String buildContent(String token, @Email String email) {
+    var context = new Context();
+    context.setVariable("email", email);
+    context.setVariable("resetLink", buildResetLink(token));
+    context.setVariable("baseUrl", appProperties.getAppUrl());
+    context.setVariable("appName", appProperties.getName());
+    context.setVariable("supportEmail", appProperties.getMail().getFrom());
+    return templateEngine.process("password-reset-email.html", context);
+  }
+
+  private String buildResetLink(String token) {
+    return UriComponentsBuilder
         .fromUriString(appProperties.getAppUrl())
         .path("/reset-password")
-        .queryParam("token", token);
-    return """
-        <html>
-            <body>
-                <p>Для сброса пароля перейдите по ссылке:</p>
-                <a href="%s">Сбросить пароль</a>
-                <p>Ссылка действительна 1 час.</p>
-            </body>
-        </html>
-        """.formatted(uriBuilder.toUriString());
+        .queryParam("token", token)
+        .toUriString();
   }
+
 }
