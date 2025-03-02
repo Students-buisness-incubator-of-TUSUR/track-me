@@ -8,7 +8,6 @@ import net.akarmanov.projectplace.mapping.TeamCardMapper;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.services.nti.NtiMarketService;
-import net.akarmanov.projectplace.services.stream.StreamService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
@@ -26,8 +25,6 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   private final TeamCardMapper teamCardMapper;
 
   private final NtiMarketService ntiMarketService;
-
-  private final StreamService streamService;
 
   @Override
   @Transactional

@@ -78,8 +78,8 @@ public class DomainTeamCardsService implements TeamCardsService {
   public TeamCard createTeamCard(TeamCard create, UUID userId) {
     var user = userService.getUser(userId);
     create.setUser(user);
+    create.setStatus(TeamCardStatus.OK);
     create = teamCardsRepository.save(create);
-    aclService.createAcl(create);
     aclService.updateAcl(create, user.getUsername());
     return create;
   }

@@ -58,6 +58,7 @@ class AuthRestControllerTest extends BaseApplicationTest {
         .telegramId(USERNAME)
         .fullName("John Doe")
         .enabled(true)
+        .email("john@doe.com")
         .role(UserRole.ADMIN)
         .build());
   }
@@ -102,6 +103,7 @@ class AuthRestControllerTest extends BaseApplicationTest {
         .telegramId("newTelegramId")
         .fullName("John Doe")
         .role(UserRoleDto.ADMIN)
+        .email("john2@doe.com")
         .build();
     mockMvc.perform(post("/api/v1/auth/sing-up")
             .contentType(APPLICATION_JSON)

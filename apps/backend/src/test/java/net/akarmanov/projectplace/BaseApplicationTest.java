@@ -19,22 +19,18 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 
-@SpringBootTest
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc(print = MockMvcPrint.DEFAULT, printOnlyOnFailure = false)
 @ActiveProfiles("test")
 @TestPropertySource(
     properties = {
         "JWT_SECRET=12345678905675675674564564566756756756745645656"
     })
-@Sql(value = {"classpath:init-test-schema.sql"},
-     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
-@Sql(value = {"classpath:insert-nti-markets.sql"},
-     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(value = {"classpath:initial-data.sql"},
      executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(value = "classpath:cleanup.sql",
-     executionPhase = Sql.ExecutionPhase.AFTER_TEST_CLASS)
-public abstract class BaseApplicationTest {
+public abstract class BaseApplicationTest extends AbstractIntegrationTest {
 
   public static final String USERNAME = "test_superadmin";
 
@@ -66,7 +62,7 @@ public abstract class BaseApplicationTest {
         .firstName("Иван")
         .lastName("Иванов")
         .telegramId(USERNAME)
-        .email("")
+        .email("test@test.test")
         .password(passwordEncoder.encode(PASSWORD))
         .role(UserRole.SUPER_ADMIN)
         .build()

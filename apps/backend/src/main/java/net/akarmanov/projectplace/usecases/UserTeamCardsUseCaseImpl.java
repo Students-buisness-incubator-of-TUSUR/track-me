@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.mapping.TeamCardMapper;
+import net.akarmanov.projectplace.models.TeamCardStatus;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.services.nti.NtiMarketService;
@@ -44,6 +45,7 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
     teamCardEntity.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
     teamCardEntity.setUser(userService.getCurrentUser());
     teamCardEntity.addStream(stream);
+    teamCardEntity.setStatus(TeamCardStatus.OK);
     var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);
     stream.addTeamCard(createdTeamCard);
     streamService.save(stream);

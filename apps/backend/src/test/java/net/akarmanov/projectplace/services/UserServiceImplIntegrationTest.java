@@ -1,5 +1,6 @@
 package net.akarmanov.projectplace.services;
 
+import net.akarmanov.projectplace.AbstractIntegrationTest;
 import net.akarmanov.projectplace.domain.User;
 import net.akarmanov.projectplace.models.UserRole;
 import net.akarmanov.projectplace.repos.UserRepository;
@@ -27,8 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     properties = {
         "JWT_SECRET=12345678905675675674564564566756756756745645656"
     })
-class UserServiceImplIntegrationTest {
-
+class UserServiceImplIntegrationTest extends AbstractIntegrationTest {
   @Autowired
   private UserService userService;
 
@@ -72,7 +72,7 @@ class UserServiceImplIntegrationTest {
   @Test
   void testCreateUser() {
     var userServiceUser = User.builder()
-        .email("john@example.com")
+        .email("john4@example.com")
         .phoneNumber("+79876543210")
         .telegramId("newTelegramId")
         .password("newPassword")

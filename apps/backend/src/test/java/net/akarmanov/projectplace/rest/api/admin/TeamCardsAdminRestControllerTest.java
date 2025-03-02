@@ -92,7 +92,6 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 {
                   "name": "test1",
                   "description": "test1",
-                  "status": "OK",
                   "readinessLevel": "0-2",
                   "ntiMarketId": "%s"
                 }

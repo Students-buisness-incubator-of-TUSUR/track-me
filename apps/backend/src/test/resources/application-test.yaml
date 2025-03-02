@@ -1,24 +1,31 @@
+logging:
+  level:
+    net:
+      akarmanov:
+        projectplace:
+          services:
+            acl: DEBUG
 spring:
   application:
     name: project-place-backend
   datasource:
-    driver-class-name: org.h2.Driver
-    password: sa
-    username: sa
-    url: jdbc:h2:mem:testdb;MODE=LEGACY
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/project-place-test
+    username: postgres
+    password: postgres
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
-    database: h2
+      ddl-auto: validate
+    database: postgresql
 
   liquibase:
-    enabled: false
+    enabled: true
 
 app:
   acl:
-    class-identity-query: 'call identity()'
-    sid-identity-query: 'call identity()'
+    class-identity-query: "select currval(pg_get_serial_sequence('acl_class', 'id'))"
+    sid-identity-query: "select currval(pg_get_serial_sequence('acl_sid', 'id'))"
 
   superadmin:
     username: ${ADMIN_USERNAME:superadmin}
