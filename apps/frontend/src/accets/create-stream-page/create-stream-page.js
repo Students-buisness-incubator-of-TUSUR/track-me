@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './create-stream-page.css';
 
 export default function CreateStream() {
+  const [name, setName] = useState(''); // Состояние для названия потока
   const [startDate, setStartDate] = useState(''); // Состояние для даты начала
   const [endDate, setEndDate] = useState(''); // Состояние для даты конца
+  const [description, setDescription] = useState(''); // Состояние для описания
   const [showCheckboxes2, setShowCheckboxes2] = useState(false);
   const [error, setError] = useState(null); // Состояние для отслеживания ошибок
   const [checkboxesData2, setCheckboxesData2] = useState([]); // Состояние для данных чекбоксов
@@ -23,11 +25,11 @@ export default function CreateStream() {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (!response.ok) {
         throw new Error('Ошибка при загрузке данных для чекбоксов');
       }
-  
+
       const result = await response.json();
       const formattedData = result.map((item) => ({
         id: item.id,
@@ -39,12 +41,11 @@ export default function CreateStream() {
       console.error('Ошибка при загрузке данных для чекбоксов:', error);
       setError('Не удалось загрузить данные для чекбоксов.');
     }
-  }, [backendHost]); // Теперь эта функция будет пересоздаваться только при изменении `backendHost`
-  
+  }, [backendHost]);
+
   useEffect(() => {
     fetchCheckboxesData();
-  }, [fetchCheckboxesData]); // Теперь `fetchCheckboxesData` безопасно используется в зависимостях
-  
+  }, [fetchCheckboxesData]);
 
   const handleShowCheckboxes2 = () => {
     setShowCheckboxes2(!showCheckboxes2);
@@ -63,6 +64,16 @@ export default function CreateStream() {
         alert('Можно выбрать не более трёх чекбоксов.');
       }
     }
+  };
+
+  // Функция для обработки ввода названия потока
+  const handleNameChange = (e) => {
+    setName(e.target.value);
+  };
+
+  // Функция для обработки ввода описания
+  const handleDescriptionChange = (e) => {
+    setDescription(e.target.value);
   };
 
   // Функция для обработки ввода даты начала
@@ -111,13 +122,19 @@ export default function CreateStream() {
     return true;
   };
 
+  // Функция для преобразования даты в формат YYYY-MM-DD
+  const formatDate = (date) => {
+    const [day, month, year] = date.split('.').map(Number);
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
   // Функция для обработки нажатия на кнопку
-  const handleCreateButtonClick = () => {
+  const handleCreateButtonClick = async () => {
     setError(''); // Сбрасываем ошибку
 
     // Проверка на заполненность полей
-    if (!startDate || !endDate) {
-      setError('Пожалуйста, заполните обе даты.');
+    if (!name || !startDate || !endDate || !description || selectedCheckboxes.length === 0) {
+      setError('Пожалуйста, заполните все поля и выберите хотя бы один рынок.');
       return;
     }
 
@@ -140,8 +157,42 @@ export default function CreateStream() {
       return;
     }
 
-    // Если всё в порядке, можно выполнить действие (например, отправить данные)
-    alert('Поток успешно создан!');
+    // Формируем данные для отправки
+    const requestData = {
+      name,
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate),
+      ntiMarketIds: selectedCheckboxes,
+      description,
+    };
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
+        return;
+      }
+
+      const response = await fetch(`${backendHost}/api/v1/admin/stream`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при создании потока');
+      }
+
+      const result = await response.json();
+      console.log('Поток успешно создан:', result);
+      alert('Поток успешно создан!');
+    } catch (error) {
+      console.error('Ошибка при создании потока:', error);
+      setError('Не удалось создать поток. Пожалуйста, попробуйте снова.');
+    }
   };
 
   return (
@@ -154,9 +205,15 @@ export default function CreateStream() {
               <h1 className='create-stream-h1'>Название потока:</h1>
               <h1 className='create-stream-h1'>Дата начала:</h1>
               <h1 className='create-stream-h1'>Дата конца:</h1>
+              <h1 className='create-stream-h1'>Описание:</h1>
             </div>
             <div className="create-stream-col">
-              <input className='create-stream-input' placeholder='Текст названия'></input>
+              <input
+                className='create-stream-input'
+                placeholder='Текст названия'
+                value={name}
+                onChange={handleNameChange}
+              />
               <input
                 className='create-stream-input-date'
                 placeholder='__.__.____'
@@ -168,6 +225,12 @@ export default function CreateStream() {
                 placeholder='__.__.____'
                 value={endDate}
                 onChange={handleEndDateChange}
+              />
+              <input
+                className='create-stream-input'
+                placeholder='Текст описания'
+                value={description}
+                onChange={handleDescriptionChange}
               />
             </div>
           </div>
@@ -192,7 +255,7 @@ export default function CreateStream() {
                 <div key={formattedData.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
                   <input
                     type="checkbox"
-                    class="custom-checkbox"
+                    className="custom-checkbox"
                     id={formattedData.id}
                     checked={selectedCheckboxes.includes(formattedData.id)}
                     onChange={() => handleCheckboxChange(formattedData.id)}
