@@ -9,8 +9,7 @@ import ProfilePage from "./accets/profile/ProfilePage.js"; // <-- наш ком�
 import LoginRecovery from "./accets/login-recovery/login-recovery.js";
 import CreateStream from "./accets/create-stream-page/create-stream-page.js";
 import TrackerList from "./accets/list-trackers/TrackerList.js";
-
-console.log(process.env.REACT_APP_BACKEND_HOST)
+import AdminList from "./accets/list-admins/AdminList.js"
 
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
@@ -28,6 +27,7 @@ function App() {
         <Route path="/team-cards" element={<TrackerPage />} />
         <Route path="/recovery" element={<LoginRecovery />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/list-admins" element={<AdminList />} />
         <Route path="/list-trackers" element={<TrackerList />} />
       </Routes>
     </Router>
