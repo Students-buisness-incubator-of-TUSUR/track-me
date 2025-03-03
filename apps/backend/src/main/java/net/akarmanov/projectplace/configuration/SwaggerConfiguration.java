@@ -40,7 +40,7 @@ public class SwaggerConfiguration {
                 .bearerFormat("JWT")
                 .in(SecurityScheme.In.HEADER))
             .servers(List.of(
-                new Server().url(appProperties.getAppUrl())))
+                new Server().url(appProperties.getApiUrl())))
             .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH)))
         .build();
   }
@@ -61,10 +61,7 @@ public class SwaggerConfiguration {
                 .bearerFormat("JWT")
                 .in(SecurityScheme.In.HEADER))
             .servers(List.of(
-                new Server().url(
-                    "https://сервер.трекер.демо-стенд.рф"),
-                new Server().url(
-                    "http://localhost:8080")))
+                new Server().url(appProperties.getApiUrl())))
             .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH)))
         .build();
   }

@@ -20,6 +20,11 @@ public class AppProperties {
   private String appUrl;
 
   /**
+   * URL-адрес API приложения.
+   */
+  private String apiUrl;
+
+  /**
    * Настройки почты.
    */
   private MailProperties mail = new MailProperties();
