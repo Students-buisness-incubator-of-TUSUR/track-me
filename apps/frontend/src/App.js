@@ -10,7 +10,7 @@ import LoginRecovery from "./accets/login-recovery/login-recovery.js";
 import CreateStream from "./accets/create-stream-page/create-stream-page.js";
 import TrackerList from "./accets/list-trackers/TrackerList.js";
 
-
+console.log(process.env.REACT_APP_BACKEND_HOST)
 
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;

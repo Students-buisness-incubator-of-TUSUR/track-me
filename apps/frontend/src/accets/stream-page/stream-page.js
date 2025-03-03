@@ -10,9 +10,10 @@ export default function Stream() {
   const [showCheckboxes3, setShowCheckboxes3] = useState(false);
   const [loading, setLoading] = useState(false); // Состояние для отслеживания загрузки
   const [error, setError] = useState(null); // Состояние для отслеживания ошибок
+  const [checkboxesData2, setCheckboxesData2] = useState([]); // Состояние для данных чекбоксов
   const [data, setData] = useState({ content: [], page: {} }); // Состояние для хранения данных
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
-  const numberOfCheckboxes = 9;
+  const numberOfCheckboxes = 12;
 
   // Функция для выполнения POST-запроса
   const fetchData = useCallback(async () => {
@@ -35,11 +36,6 @@ export default function Stream() {
         },
         body: JSON.stringify({
           filters: [
-            {
-              fieldName: 'name',
-              type: 'EQ',
-              value: 'string',
-            },
           ],
         }),
       });
@@ -60,99 +56,6 @@ export default function Stream() {
   useEffect(() => {
     fetchData();
   }, [fetchData]); // Теперь зависимость корректно указана
-  
-
-
-  // const data = {
-  //   "content": [
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa3",
-  //       "name": "йуйцу",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2026-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "0-2"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa4",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa5",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa6",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa7",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa8",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa9",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa10",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa11",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //     {
-  //       "id": "025bb73c-94e3-4df5-a18b-1f2a34371fa12",
-  //       "name": "wwww",
-  //       "startDate": "2025-02-21",
-  //       "endDate": "2027-02-21",
-  //       "ntiMarkets": [],
-  //       "readinessLevel": "3-4"
-  //     },
-  //   ],
-  //   "page": {
-  //     "size": 10,
-  //     "number": 0,
-  //     "totalElements": 1,
-  //     "totalPages": 1
-  //   }
-  // };
   
   const cardd = data.content.map((item, index) => ({
     id: item.id, // Используем уникальный id из данных
@@ -194,16 +97,46 @@ export default function Stream() {
 
   const checkboxesData = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
     id: `checkbox-${index + 1}`,
-    label: `Чекбокс ${index + 1}`,
+    label: `${index + 2014}`,
   }));
 
-  const checkboxesData2 = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
-    id: `checkbox2-${index + 1}`,
-    label: `Чекбокс 2 ${index + 1}`,
-  }));
+    const fetchCheckboxesData = useCallback(async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
+        return;
+      }
+      try {
+        const response = await fetch(`${backendHost}/api/v1/streams/nti-markets`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+    
+        if (!response.ok) {
+          throw new Error('Ошибка при загрузке данных для чекбоксов');
+        }
+    
+        const result = await response.json();
+        const formattedData = result.map((item) => ({
+          id: item.id,
+          name: item.displayName,
+          description: item.name,
+        }));
+        setCheckboxesData2(formattedData);
+      } catch (error) {
+        console.error('Ошибка при загрузке данных для чекбоксов:', error);
+        setError('Не удалось загрузить данные для чекбоксов.');
+      }
+    }, [backendHost]);
+  useEffect(() => {
+    fetchCheckboxesData();
+  }, [fetchCheckboxesData]);
+
   const checkboxesData3 = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
     id: `checkbox3-${index + 1}`,
-    label: `Чекбокс 3 ${index + 1}`,
+    label: `${index + 1}`,
   }));
 
 if (true){
@@ -237,7 +170,7 @@ return (
             <input type="search" placeholder="Найти" className="Stream-search" />
           </div>
         </div>
-        <button className="Stream-butt">+ Создать карточку</button>
+        <Link to="/create-stream"><button className="Stream-butt">+ Создать карточку</button></Link>
       </div>
       {isVisible && (
         <div className="Stream-header-afterclick-cont">
@@ -276,7 +209,7 @@ return (
                     {checkboxesData2.map((checkbox, index) => (
                       <div key={checkbox.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
                         <input type="checkbox" id={checkbox.id} class="custom-checkbox" />
-                        <label className='Stream-header-checkbox-label' htmlFor={checkbox.id}>{checkbox.label}</label>
+                        <label className='Stream-header-checkbox-label' htmlFor={checkbox.id}>{checkbox.name}</label>
                       </div>
                     ))}
                   </div>
