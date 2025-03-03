@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import "./TrackerList.css";
+import "../list-trackers/TrackerList.css";
 import trueIcon from "./true.png";
 import falseIcon from "./false.png";
 import editIcon from "./edit.png";
 import trueIcon2 from "./true2.png";
 import falseIcon2 from "./false2.png";
 
-function TrackerList() {
+function AdminList() {
   const [trackers, setTrackers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleTrackersStart, setVisibleTrackersStart] = useState(0);
@@ -24,7 +24,7 @@ function TrackerList() {
   const backendHost = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080";
 
   useEffect(() => {
-    fetch(`${backendHost}/api/v1/admin/users/trackers?page=0&size=10`, {
+    fetch(`${backendHost}/api/v1/admin/users/administrators?page=0&size=10`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -152,8 +152,8 @@ function TrackerList() {
         <div className="Stream-header-cont">
           <h1 className="Stream-title">Название</h1>
           <div className="Stream-buttons">
-            <Link to="/list-admins">
-            <button className="Stream-butt">Администраторы</button>
+            <Link to="/list-trackers">
+            <button className="Stream-butt">Трекеры</button>
             </Link>
             <Link to="/streams">
               <button className="Stream-butt">Потоки</button>
@@ -343,4 +343,4 @@ function TrackerList() {
   );
 }
 
-export default TrackerList;
+export default AdminList;
