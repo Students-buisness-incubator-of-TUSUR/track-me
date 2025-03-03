@@ -12,9 +12,16 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * Конфигурация Swagger.
+ *
+ * @see <a href="https://springdoc.org">SpringDoc</a>
+ */
 @Configuration
 @RequiredArgsConstructor
 public class SwaggerConfiguration {
+
+  public static final String BEARER_AUTH = "bearerAuth";
 
   private final AppProperties appProperties;
 
@@ -26,7 +33,7 @@ public class SwaggerConfiguration {
         .pathsToExclude("/api/v1/admin/**")
         .addOpenApiCustomizer(openAPI -> openAPI
             .info(new Info().title("Project Place API").version("1.0"))
-            .schemaRequirement("bearerAuth", new SecurityScheme()
+            .schemaRequirement(BEARER_AUTH, new SecurityScheme()
                 .type(Type.HTTP)
                 .scheme("bearer")
                 .name("Authorization")
@@ -34,7 +41,7 @@ public class SwaggerConfiguration {
                 .in(SecurityScheme.In.HEADER))
             .servers(List.of(
                 new Server().url(appProperties.getAppUrl())))
-            .addSecurityItem(new SecurityRequirement().addList("bearerAuth")))
+            .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH)))
         .build();
   }
 
@@ -47,7 +54,7 @@ public class SwaggerConfiguration {
         .packagesToScan("net.akarmanov.projectplace.rest.api.admin")
         .addOpenApiCustomizer(openAPI -> openAPI
             .info(new Info().title("Project Place Admin API").version("1.0"))
-            .schemaRequirement("bearerAuth", new SecurityScheme()
+            .schemaRequirement(BEARER_AUTH, new SecurityScheme()
                 .type(Type.HTTP)
                 .scheme("bearer")
                 .name("Authorization")
@@ -58,7 +65,7 @@ public class SwaggerConfiguration {
                     "https://сервер.трекер.демо-стенд.рф"),
                 new Server().url(
                     "http://localhost:8080")))
-            .addSecurityItem(new SecurityRequirement().addList("bearerAuth")))
+            .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH)))
         .build();
   }
 }

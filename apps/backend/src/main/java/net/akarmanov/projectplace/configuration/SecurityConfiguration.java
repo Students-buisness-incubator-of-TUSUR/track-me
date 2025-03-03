@@ -27,6 +27,9 @@ import java.util.List;
 import static net.akarmanov.projectplace.models.UserRole.ADMIN;
 import static net.akarmanov.projectplace.models.UserRole.SUPER_ADMIN;
 
+/**
+ * Настройки безопасности.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -40,6 +43,13 @@ public class SecurityConfiguration {
 
   private final AuthenticationEntryPoint authenticationEntryPoint;
 
+  /**
+   * Устонавливает фильтры безопасности.
+   *
+   * @param http объект {@link HttpSecurity}
+   * @return объект {@link SecurityFilterChain}
+   * @throws Exception возможное исключение.
+   */
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
@@ -77,6 +87,12 @@ public class SecurityConfiguration {
     return daoAuthenticationProvider;
   }
 
+  /**
+   * Конструирует {@link AuthenticationManager}.
+   *
+   * @param passwordEncoder Кодировщик паролей.
+   * @return {@link AuthenticationManager}.
+   */
   @Bean
   public AuthenticationManager authenticationManager(
       PasswordEncoder passwordEncoder) {
@@ -90,6 +106,11 @@ public class SecurityConfiguration {
     return providerManager;
   }
 
+  /**
+   * Конструирует {@link RoleHierarchy}.
+   *
+   * @return Иерархия ролей.
+   */
   @Bean
   public RoleHierarchy roleHierarchy() {
     String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
@@ -97,6 +118,11 @@ public class SecurityConfiguration {
     return RoleHierarchyImpl.fromHierarchy(hierarchy);
   }
 
+  /**
+   * Конструирует {@link SuperAdminSetupConfigurer}.
+   *
+   * @return {@link SuperAdminSetupConfigurer}.
+   */
   @Bean
   public SuperAdminSetupConfigurer superAdminSetupConfigurer() {
     return new SuperAdminSetupConfigurer(userService, passwordEncoder);
