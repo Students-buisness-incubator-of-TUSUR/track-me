@@ -45,7 +45,7 @@ springdoc:
 app:
   name: ${APP_NAME:track-me}
   mail:
-    from: ${MAIL_FROM:startup-poligon@tusur.ru}
+    from: ${MAIL_FROM}
   password-reset:
     token-expiration-check-cron: "0 0 0 * * *"
   acl:
