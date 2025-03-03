@@ -1,9 +1,9 @@
 spring:
   mail:
-    host: smtp.tusur.ru
+    host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:465}
-    username: ${MAIL_USERNAME:startup-poligon@tusur.ru}
-    password: ${MAIL_PASSWORD:paKLRD9CvSrv2pXPSAOH}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
