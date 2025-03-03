@@ -55,4 +55,5 @@ app:
     email: ${ADMIN_EMAIL:superadmin@superadmin.superadmin}
     username: ${ADMIN_USERNAME:superadmin}
     password: ${ADMIN_PASSWORD:superadmin}
-  app-url: ${FRONTEND_HOST:http://localhost:8080}
+  api-url: ${BACKEND_HOST:http://localhost:8080}
+  app-url: ${FRONTEND_HOST:http://localhost:3000}

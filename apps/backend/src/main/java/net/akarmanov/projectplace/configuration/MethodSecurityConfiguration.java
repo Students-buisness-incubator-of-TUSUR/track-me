@@ -24,6 +24,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.sql.DataSource;
 
+/**
+ * Настройки безопасности на уровне вызова методов.
+ *
+ * @see <a href="https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html">Spring Method Security</a>
+ */
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
@@ -62,7 +67,9 @@ public class MethodSecurityConfiguration {
   @Bean
   public SpringCacheBasedAclCache aclCache() {
     var cache = new ConcurrentMapCache("aclCache");
-    return new SpringCacheBasedAclCache(cache, aclPermissionGrantingStrategy(), aclAuthorizationStrategy());
+    return new SpringCacheBasedAclCache(cache,
+        aclPermissionGrantingStrategy(),
+        aclAuthorizationStrategy());
   }
 
   @Bean

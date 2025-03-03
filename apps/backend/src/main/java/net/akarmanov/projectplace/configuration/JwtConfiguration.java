@@ -8,12 +8,23 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.crypto.SecretKey;
 
+/**
+ * Настройки JWT.
+ */
 @Configuration
 public class JwtConfiguration {
 
+  /**
+   * Секретный ключ.
+   */
   @Value("${JWT_SECRET}")
   private String jwtSecret;
 
+  /**
+   * Секретный ключ.
+   *
+   * @return объект {@link SecretKey}.
+   */
   @Bean
   public SecretKey secretKey() {
     var bytes = Decoders.BASE64.decode(jwtSecret);

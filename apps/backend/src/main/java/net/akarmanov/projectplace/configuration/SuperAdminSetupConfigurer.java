@@ -8,10 +8,20 @@ import net.akarmanov.projectplace.services.user.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * Настройщики супер-администратора.
+ * Выполняется при старте приложения.
+ */
 @RequiredArgsConstructor
 public class SuperAdminSetupConfigurer {
+  /**
+   * Сервисы пользователей.
+   */
   private final UserService userService;
 
+  /**
+   * Кодировщик паролей.
+   */
   private final PasswordEncoder passwordEncoder;
 
   @Value("${app.superadmin.username}")
@@ -23,6 +33,9 @@ public class SuperAdminSetupConfigurer {
   @Value("${app.superadmin.email}")
   private String getSuperAdminEmail;
 
+  /**
+   * Устанавливает супер-администратора при старте приложения.
+   */
   @PostConstruct
   public void setupSuperAdmin() {
     if (!userService.existsByUsername(superAdminUsername)) {
