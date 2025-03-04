@@ -9,7 +9,6 @@ on:
       - 'README.md'
       - 'LICENSE'
       - 'docs/**'
-      - '.github/**'
 
 jobs:
   build-and-push:
