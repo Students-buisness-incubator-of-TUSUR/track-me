@@ -1,0 +1,44 @@
+name: Deploy to Dev
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+#      - name: Deploy via SSH
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.SSH_HOST }}
+#          username: ${{ secrets.SSH_USERNAME }}
+#          password: ${{ secrets.SSH_PASSWORD }}
+#          script: |
+#            cd /home/${{ secrets.SSH_USERNAME }}/track-me
+#            rm -rf .env
+#            rm -rf .env.local
+#            echo "REACT_APP_BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" > .env.local
+#            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+#            echo "FRONTEND_HOST=${{ secrets.FRONTEND_HOST }}" >> .env
+#            echo "BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" >> .env
+#            echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
+#            echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
+#            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+#            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+#            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
+#            docker compose -f docker-compose.prod.yml down
+#            docker compose -f docker-compose.prod.yml pull
+#            docker compose -f docker-compose.prod.yml up -d
+#            cd /home/vmv94/gateway/
+#            make restart

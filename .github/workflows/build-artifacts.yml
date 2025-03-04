@@ -2,7 +2,9 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [develop]
+    tags:
+      - 'v*.*.*'
+    branches: [ develop ]
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
@@ -10,7 +12,7 @@ on:
       - '.github/**'
 
 jobs:
-  build:
+  setup-docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +29,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+  build-backend:
+    needs: setup-docker
+    runs-on: ubuntu-latest
+    steps:
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v5
         with:
@@ -39,6 +45,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  build-frontend:
+    needs: setup-docker
+    runs-on: ubuntu-latest
+    steps:
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
         with:
@@ -50,3 +60,28 @@ jobs:
             ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  deploy-on-stage:
+    needs: [ build-backend, build-frontend ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd /home/${{ secrets.SSH_USERNAME }}/track-me
+            rm -rf .env
+            rm -rf .env.local
+            echo "REACT_APP_BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" > .env.local
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "FRONTEND_HOST=${{ secrets.FRONTEND_HOST }}" >> .env
+            echo "BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" >> .env
+            echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
+            echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
+            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml pull
