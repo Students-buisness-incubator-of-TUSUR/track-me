@@ -10,6 +10,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -263,6 +264,52 @@ class StreamRestControllerTest extends BaseApplicationTest {
                     }
                   ]
                 }"""))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].name").value("stream 1"))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+  }
+
+  @Test
+  void getStreams_withFilters_byYear() throws Exception {
+    var startDate = Year.now();
+
+    mockMvc.perform(post("/api/v1/streams")
+            .contentType("application/json")
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "year",
+                      "type": "EQ",
+                      "value": "%s"
+                    }
+                  ]
+                }""".formatted(startDate.getValue())))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].name").value("stream 1"))
+        .andExpect(jsonPath("$.page.totalElements").value(1));
+  }
+
+  @Test
+  void getStreams_withFilters_byYears() throws Exception {
+    var startDate = Year.now();
+
+    mockMvc.perform(post("/api/v1/streams")
+            .contentType("application/json")
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "year",
+                      "type": "EQ",
+                      "values": [
+                        "%s", "%s"
+                      ]
+                    }
+                  ]
+                }""".formatted(startDate.getValue(), startDate.plusYears(1).getValue())))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].name").value("stream 1"))
