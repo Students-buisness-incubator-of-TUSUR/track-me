@@ -10,6 +10,7 @@ import LoginRecovery from "./accets/login-recovery/login-recovery.js";
 import CreateStream from "./accets/create-stream-page/create-stream-page.js";
 import TrackerList from "./accets/list-trackers/TrackerList.js";
 import AdminList from "./accets/list-admins/AdminList.js"
+import LoginRecovery2 from "./accets/login-recovery-2/login-recovery.js";
 
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
@@ -26,9 +27,11 @@ function App() {
         <Route path="/superadmin" element={<SuperAdminPage />} />
         <Route path="/team-cards" element={<TrackerPage />} />
         <Route path="/recovery" element={<LoginRecovery />} />
+        <Route path="/reset-password" element={<LoginRecovery2 />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/list-admins" element={<AdminList />} />
         <Route path="/list-trackers" element={<TrackerList />} />
+
       </Routes>
     </Router>
   );
