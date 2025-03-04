@@ -31,7 +31,7 @@ jobs:
             echo "REACT_APP_BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" > .env.local
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             echo "FRONTEND_HOST=${{ secrets.FRONTEND_HOST }}" >> .env
-            echo "BACKEND_HOST=${{ secrets.FRONTEND_PORT }}" >> .env
+            echo "BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" >> .env
             echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
             echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
