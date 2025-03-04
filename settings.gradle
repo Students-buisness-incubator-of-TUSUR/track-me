@@ -1,2 +1,5 @@
 include 'apps:backend'
-include 'services:report-service'
+include 'services:auth-service'
+findProject(':apps:backend')?.name = 'backend'
+findProject(':services:auth-service')?.name = 'auth-service'
+

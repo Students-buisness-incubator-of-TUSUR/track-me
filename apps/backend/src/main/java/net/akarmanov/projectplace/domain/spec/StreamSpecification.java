@@ -17,10 +17,11 @@ public class StreamSpecification implements Specification<Stream> {
 
   public static final String READINESS_LEVEL_FIELD = "teamCards.readinessLevel";
 
+  public static final String YEAR_FIELD = "year";
+
   public static final List<String> ALLOWED_FIELDS = List.of(
       "name",
-      "startDate",
-      "endDate",
+      YEAR_FIELD,
       "ntiMarkets.name",
       READINESS_LEVEL_FIELD
   );
@@ -35,6 +36,21 @@ public class StreamSpecification implements Specification<Stream> {
     return new StreamSpecification(filters);
   }
 
+  static Filter getReadinessLevelFilter(Filter filter) {
+    var readinessLevel = ReadinessLevel.fromValue(filter.singleValue());
+    return Filter.builder()
+        .fieldName(filter.fieldName())
+        .type(filter.type())
+        .singleValue(readinessLevel == null ? null : readinessLevel.name())
+        .values(filter.values() != null
+            ? filter.values().stream()
+            .map(ReadinessLevel::fromValue)
+            .map(ReadinessLevel::name)
+            .toList()
+            : null)
+        .build();
+  }
+
   @Override
   public Predicate toPredicate(Root<Stream> root,
                                CriteriaQuery<?> query,
@@ -47,24 +63,20 @@ public class StreamSpecification implements Specification<Stream> {
       if (READINESS_LEVEL_FIELD.equals(filter.fieldName())) {
         filter = getReadinessLevelFilter(filter);
       }
+      if (YEAR_FIELD.equals(filter.fieldName())) {
+        filter = getStartDateFilter(filter);
+      }
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }
     return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
   }
 
-  static Filter getReadinessLevelFilter(Filter filter) {
-    var readinessLevel = ReadinessLevel.fromValue(filter.singleValue());
-    filter = Filter.builder()
-        .fieldName(filter.fieldName())
+  private Filter getStartDateFilter(Filter filter) {
+    return Filter.builder()
+        .fieldName("startDate")
         .type(filter.type())
-        .singleValue(readinessLevel == null ? null : readinessLevel.name())
-        .values(filter.values() != null
-            ? filter.values().stream()
-            .map(ReadinessLevel::fromValue)
-            .map(ReadinessLevel::name)
-            .toList()
-            : null)
+        .singleValue(filter.singleValue())
+        .values(filter.values())
         .build();
-    return filter;
   }
 }

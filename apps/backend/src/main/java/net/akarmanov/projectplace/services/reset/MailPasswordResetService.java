@@ -108,7 +108,7 @@ public class MailPasswordResetService implements PasswordResetService {
 
   private String buildResetLink(String token) {
     return UriComponentsBuilder
-        .fromUriString(appProperties.getAppUrl())
+        .fromUriString(appProperties.getAppUrl(), UriComponentsBuilder.ParserType.WHAT_WG)
         .path("/reset-password")
         .queryParam("token", token)
         .toUriString();

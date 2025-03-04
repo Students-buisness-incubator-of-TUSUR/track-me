@@ -11,7 +11,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.Year;
 import java.util.List;
+
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Фильтр для запросов поиска
@@ -35,6 +40,8 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
                      @Schema(description = "Значение",
                              name = "value") @JsonProperty("value")
                      String singleValue) {
+  public static final String START_DATE_FIELD = "startDate";
+
   private static Path<?> getPath(Root<?> root, String[] fields) {
     From<?, ?> path = root;
     for (int i = 0; i < fields.length - 1; i++) {
@@ -49,16 +56,37 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
     var path = partPath.length > 1 ? getPath(root, partPath) : root.get(fieldName);
     switch (type) {
       case EQUAL -> {
-        if (values != null) {
-          return path.as(String.class).in(values);
-        } else {
-          return cb.equal(path.as(String.class), singleValue);
-        }
+        return resolvePredicate(cb, path);
       }
       case LIKE -> {
         return cb.like(cb.lower(path.as(String.class)), "%" + singleValue.toLowerCase() + "%");
       }
       default -> throw new IllegalArgumentException("Неизвестный тип операции");
     }
+  }
+
+  private Predicate resolvePredicate(CriteriaBuilder cb, Path<?> path) {
+    var partPath = fieldName.split("\\.");
+    if (isEmpty(values)) {
+      if (START_DATE_FIELD.equals(partPath[partPath.length - 1])) {
+        return getPredicate(cb, path, singleValue);
+      }
+      return cb.equal(path.as(String.class), singleValue);
+    } else {
+      if (START_DATE_FIELD.equals(partPath[partPath.length - 1])) {
+        var predicates = values.stream()
+            .map(s -> getPredicate(cb, path, s))
+            .toList();
+        return cb.or(predicates.toArray(new Predicate[0]));
+      }
+      return path.as(String.class).in(values);
+    }
+  }
+
+  private Predicate getPredicate(CriteriaBuilder cb, Path<?> path, String singleValue) {
+    var year = Year.parse(singleValue);
+    var start = LocalDate.of(year.getValue(), Month.JANUARY, 1);
+    var end = LocalDate.of(year.getValue() + 1, Month.JANUARY, 1);
+    return cb.between(path.as(LocalDate.class), start, end);
   }
 }
