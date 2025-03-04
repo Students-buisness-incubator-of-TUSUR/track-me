@@ -9,12 +9,18 @@ on:
       - 'README.md'
       - 'LICENSE'
       - 'docs/**'
+      - '.github/**'
 
 jobs:
-  login-to-ghcr:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container  # Используем драйвер, поддерживающий кэширование
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -23,14 +29,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-  build-backend:
-    needs: login-to-ghcr
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container  # Используем драйвер, поддерживающий кэширование
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v5
         with:
@@ -43,14 +41,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build-frontend:
-    needs: login-to-ghcr
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker-container  # Используем драйвер, поддерживающий кэширование
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v5
         with:
@@ -63,9 +53,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
   deploy-on-stage:
-    needs: [ build-backend, build-frontend ]
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
