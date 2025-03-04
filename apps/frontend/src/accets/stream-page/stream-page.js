@@ -20,7 +20,9 @@ export default function Stream() {
   const [searchQuery, setSearchQuery] = useState('');
   // eslint-disable-next-line
   const [filters, setFilters] = useState([]); // Состояние для фильтров
+  const [page, setpage] = useState(0); 
   const [selectedYears, setSelectedYears] = useState(new Set()); // Выбранные годы (Set)
+
   const [selectedMarkets, setSelectedMarkets] = useState(new Set()); // Выбранные рынки (Set)
   const [selectedTRLs, setSelectedTRLs] = useState(new Set()); // Выбранные TRL (Set)
 
@@ -29,10 +31,12 @@ export default function Stream() {
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   const numberOfCheckboxes = year - 2015;
 
-  const fetchData = useCallback(async (filters = { filters: [] }) => {
+
+
+  const fetchData = useCallback(async (filters = {filters: [] }) => {
     setLoading(true);
     setError(null);
-
+    console.log(page);
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
@@ -40,7 +44,7 @@ export default function Stream() {
       return;
     }
     try {
-      const response = await fetch(`${backendHost}/api/v1/admin/streams?page=0&size=10`, {
+      const response = await fetch(`${backendHost}/api/v1/admin/streams?page=${page}&size=9`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +64,7 @@ export default function Stream() {
     } finally {
       setLoading(false);
     }
-  }, [backendHost]);
+  }, [backendHost,page]);
 
   useEffect(() => {
     fetchData(); // Первоначальный запрос без фильтров
@@ -80,11 +84,12 @@ export default function Stream() {
   };
 
   const handleShowMore = () => {
-    setVisibleCardsStart(prev => prev + 9);
+    setpage(page+1);
+
   };
 
   const handleShowPrevious = () => {
-    setVisibleCardsStart(prev => Math.max(prev - 9, 0));
+    setpage(page-1);
   };
 
   const handleShowCheckboxes = () => {
@@ -106,6 +111,8 @@ export default function Stream() {
     setSelectedYears(new Set()); // Сбрасываем выбранные годы
     setSelectedMarkets(new Set()); // Сбрасываем выбранные рынки
     setSelectedTRLs(new Set()); // Сбрасываем выбранные TRL
+    setpage(0);
+    fetchData();
   };
 
   const handleSearch = (e) => {
@@ -171,7 +178,7 @@ export default function Stream() {
           value: searchQuery,
         },
         ...Array.from(selectedYears).map(year => ({
-          fieldName: 'startDate',
+          fieldName: 'year',
           type: 'EQ',
           value: year,
         })),
@@ -181,7 +188,7 @@ export default function Stream() {
           value: market,
         })),
         ...Array.from(selectedTRLs).map(trl => ({
-          fieldName: 'trl',
+          fieldName: 'teamCards.readinessLevel',
           type: 'EQ',
           value: trl,
         })),
@@ -391,21 +398,21 @@ export default function Stream() {
       <footer className="Stream-footer">
         <div className="Stream-footer-butts">
           <div className="Stream-footer-p-butt-1">
-            {visibleCardsStart > 0 && (
+            {data.page.totalPages -1 <= page && (
               <button onClick={handleShowPrevious} className="Stream-footer-button-1"></button>
             )}
           </div>
           <div className="Stream-footer-p-butts">
-            {visibleCardsStart > 0 && (
+            {data.page.totalPages -1 <= page && (
               <button onClick={handleShowPrevious} className="Stream-footer-button-2"></button>
             )}
             <button className="Stream-footer-button-3"></button>
-            {visibleCardsStart + 9 < cardd.length && (
+            {data.page.totalPages -1 > page && (
               <button onClick={handleShowMore} className="Stream-footer-button-4"></button>
             )}
           </div>
           <div className="Stream-footer-p-butt-5">
-            {visibleCardsStart + 9 < cardd.length && (
+            {data.page.totalPages -1 > page && (
               <button onClick={handleShowMore} className="Stream-footer-button-5"></button>
             )}
           </div>
