@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from "react-router-dom";
+import React, {useCallback, useEffect, useState} from 'react';
+import {Link} from "react-router-dom";
 import './stream-page.css';
 
 export default function Stream() {
   const [isVisible, setIsVisible] = useState(false);
-  const [visibleCardsStart, setVisibleCardsStart] = useState(0);
+  const [visibleCardsStart] = useState(0);
   const [showCheckboxes, setShowCheckboxes] = useState(false);
   const [showCheckboxes2, setShowCheckboxes2] = useState(false);
   const [showCheckboxes3, setShowCheckboxes3] = useState(false);
