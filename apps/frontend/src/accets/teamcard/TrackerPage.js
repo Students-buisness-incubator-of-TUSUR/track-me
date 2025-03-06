@@ -25,9 +25,11 @@ function TrackerPage() {
   const [selectedTrl, setSelectedTrl] = useState([]);
   const [selectedNtiMarkets, setSelectedNtiMarkets] = useState([]);
   
-
+  let today = new Date();
+  let year = today.getFullYear();
   const navigate = useNavigate();
-  const numberOfCheckboxes = 9;
+  // const numberOfCheckboxes = 9;
+  const numberOfCheckboxes1 = year - 2015;
 
 
 
@@ -63,9 +65,9 @@ function TrackerPage() {
     );
   };
   // Данные для чекбоксов "год"
-  const checkboxesData = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
+  const checkboxesData = Array.from({ length: numberOfCheckboxes1 }, (_, index) => ({
     id: `checkbox-${index + 1}`,
-    label: `Чекбокс ${index + 1}`,
+    label: `${index + 2016}`,
   }));
   
   // Функция для запроса карточек с заданными фильтрами
