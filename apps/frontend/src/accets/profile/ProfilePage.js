@@ -4,7 +4,7 @@ import "./ProfilePage.css";
 
 // Импорт иконок
 import penIcon from "./pen.png"; 
-import uploadIcon from "./upload.png"; // Иконка для загрузки фото
+import uploadIcon from "./upload.png";
 
 function ProfilePage() {
   const navigate = useNavigate();
@@ -13,13 +13,12 @@ function ProfilePage() {
   const [error, setError] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
+
   // Флаг редактирования
   const [isEditing, setIsEditing] = useState(false);
 
   // Состояние для редактируемых данных
   const [editedData, setEditedData] = useState({});
-
-
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -60,7 +59,7 @@ function ProfilePage() {
   }, [backendHost]);
 
   useEffect(() => {
-    if (!userData) return; // Ждём загрузки данных
+    if (!userData) return;
 
     const token = localStorage.getItem("accessToken");
 
@@ -89,7 +88,52 @@ function ProfilePage() {
     setIsEditing(true);
   };
 
+  const handleHomeButtonClick = () => {
+    if (userData && userData.role) {
+      const role = userData.role.toLowerCase();
+      if (
+        role === "superadmin" ||
+        role === "суперадмин" ||
+        role === "super_admin"
+      ) {
+        navigate("/streams"); 
+      } else if (
+        role === "admin" ||
+        role === "админ" 
+      ) {
+        navigate("/streams"); 
+      } else if (role === "tracker" || role === "трекер"){
+        navigate("/team-cards");
+      }
+    } else {
+      navigate("/"); 
+    }
+  };
+
+  // Функция валидации email и телефона
+  const validateForm = () => {
+    const emailPattern = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!emailPattern.test(editedData.email)) {
+      setError("Некорректный формат email");
+      return false;
+    }
+
+    // Убираем все нецифровые символы для проверки телефона
+    const phoneDigits = editedData.phoneNumber.replace(/\D/g, "");
+    if (phoneDigits.length < 11) {
+      setError("Некорректный формат телефона");
+      return false;
+    }
+
+    setError(null);
+    return true;
+  };
+
   const handleSaveClick = () => {
+    if (!validateForm()) {
+      return; // Если данные невалидны, не отправляем запрос
+    }
+
     const token = localStorage.getItem("accessToken");
 
     fetch(`${backendHost}/api/v1/users/current/update`, {
@@ -121,6 +165,7 @@ function ProfilePage() {
       });
   };
 
+  // Обработчик для остальных полей
   const handleChange = (e) => {
     setEditedData({
       ...editedData,
@@ -128,16 +173,34 @@ function ProfilePage() {
     });
   };
 
+  // Обработчик для форматирования номера телефона вручную
+  const handlePhoneChange = (e) => {
+    let digits = e.target.value.replace(/\D/g, "");
+    if (!digits) {
+      setEditedData({ ...editedData, phoneNumber: "" });
+      return;
+    }
+    if (digits[0] !== "7") {
+      digits = "7" + digits;
+    }
+    let formatted = "+7";
+    if (digits.length > 1) {
+      formatted +=  digits.slice(1, 4);
+    }
+    if (digits.length >= 4) {
+      formatted +=  digits.slice(4, 11);
+    }
+    setEditedData({ ...editedData, phoneNumber: formatted });
+  };
+
   // Обработчик загрузки фото
   const handlePhotoChange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Создаем локальный URL для предварительного просмотра
     const imageUrl = URL.createObjectURL(file);
     setUserPhoto(imageUrl);
 
-    // Загружаем фото на сервер
     const token = localStorage.getItem("accessToken");
     const formData = new FormData();
     formData.append("file", file);
@@ -160,7 +223,7 @@ function ProfilePage() {
       });
   };
 
-  // Функция для преобразования роли в русский вариант
+  // Преобразование роли в русский вариант
   const getRoleInRussian = (role) => {
     if (!role) return "";
     const lowerRole = role.toLowerCase();
@@ -182,7 +245,6 @@ function ProfilePage() {
   const handleTeamCardsClick = () => {
     if (!userData || !userData.role) return;
     const role = userData.role.toLowerCase();
-    console.log("Роль пользователя:", role);
     if (role === "tracker" || role === "трекер") {
       navigate("/team-cards");
     } else if (
@@ -196,34 +258,8 @@ function ProfilePage() {
     }
   };
 
-  const handleHomeButtonClick = () => {
-    if (userData && userData.role) {
-      const role = userData.role.toLowerCase();
-      if (
-        role === "superadmin" ||
-        role === "суперадмин" ||
-        role === "super_admin"
-      ) {
-        navigate("/streams"); 
-      } else if (
-        role === "admin" ||
-        role === "админ" 
-      ) {
-        navigate("/streams"); 
-      } else if (role === "tracker" || role === "трекер"){
-        navigate("/team-cards");
-      }
-    } else {
-      navigate("/"); 
-    }
-  };
-
   if (loading) {
     return <div>Загрузка...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
   }
 
   return (
@@ -231,7 +267,6 @@ function ProfilePage() {
       <div className="profile-container">
         <div className="profile-header">
           <h1>Личный кабинет</h1>
-          {/* Кнопка "Редактировать" (только если не в режиме редактирования) */}
           {!isEditing && (
             <button className="edit-button12" onClick={handleEditClick}>
               Редактировать
@@ -240,7 +275,6 @@ function ProfilePage() {
         </div>
 
         <div className="profile-content">
-          {/* Левая часть с полями */}
           <div className="profile-fields">
             <div className="field">
               <label className="profile-label">ФИО</label>
@@ -254,11 +288,7 @@ function ProfilePage() {
                   readOnly={!isEditing}
                 />
                 {isEditing && (
-                  <img
-                    src={penIcon}
-                    alt="Редактировать"
-                    className="edit-icon123"
-                  />
+                  <img src={penIcon} alt="Редактировать" className="edit-icon123" />
                 )}
               </div>
             </div>
@@ -273,13 +303,10 @@ function ProfilePage() {
                   value={editedData.email || ""}
                   onChange={handleChange}
                   readOnly={!isEditing}
+                  pattern="^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$"
                 />
                 {isEditing && (
-                  <img
-                    src={penIcon}
-                    alt="Редактировать"
-                    className="edit-icon123"
-                  />
+                  <img src={penIcon} alt="Редактировать" className="edit-icon123" />
                 )}
               </div>
             </div>
@@ -287,20 +314,25 @@ function ProfilePage() {
             <div className="field">
               <label className="profile-label">Телефон</label>
               <div className="input-container">
-                <input
-                  type="text"
-                  name="phoneNumber"
-                  className="profile-input"
-                  value={editedData.phoneNumber || ""}
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                />
-                {isEditing && (
-                  <img
-                    src={penIcon}
-                    alt="Редактировать"
-                    className="edit-icon123"
+                {isEditing ? (
+                  <input
+                    type="text"
+                    name="phoneNumber"
+                    className="profile-input"
+                    value={editedData.phoneNumber || ""}
+                    onChange={handlePhoneChange}
                   />
+                ) : (
+                  <input
+                    type="text"
+                    name="phoneNumber"
+                    className="profile-input"
+                    value={editedData.phoneNumber || ""}
+                    readOnly
+                  />
+                )}
+                {isEditing && (
+                  <img src={penIcon} alt="Редактировать" className="edit-icon123" />
                 )}
               </div>
             </div>
@@ -317,27 +349,20 @@ function ProfilePage() {
                   readOnly={!isEditing}
                 />
                 {isEditing && (
-                  <img
-                    src={penIcon}
-                    alt="Редактировать"
-                    className="edit-icon123"
-                  />
+                  <img src={penIcon} alt="Редактировать" className="edit-icon123" />
                 )}
               </div>
             </div>
           </div>
 
-          {/* Правая часть: аватар и роль */}
           <div className="profile-avatar-section" style={{ position: "relative" }}>
             {isEditing ? (
-              // Если в режиме редактирования, весь аватар кликабелен
               <label htmlFor="photo-upload" className="avatar-placeholder clickable" style={{ cursor: "pointer" }}>
                 {userPhoto ? (
                   <img src={userPhoto} alt="Аватар" className="user-avatar" />
                 ) : (
                   <div className="default-avatar"></div>
                 )}
-                {/* Оверлей с иконкой загрузки */}
                 <div className="upload-photo-profile" style={{ position: "absolute", top: 0, right: 0 }}>
                   <img src={uploadIcon} alt="Загрузить" className="upload-icon-profile" />
                 </div>
@@ -366,29 +391,26 @@ function ProfilePage() {
           </div>
         </div>
 
-        {/* Если не в режиме редактирования – кнопка "Карточки команд", иначе – кнопка "Сохранить" */}
+        {/* Блок с сообщением об ошибке, выводится только в режиме редактирования */}
+        {isEditing && error && (
+          <div className="error-message42">{error}</div>
+        )}
+
         {!isEditing ? (
-          <button
-            className="profile-team-cards-button"
-            onClick={handleTeamCardsClick}
-          >
+          <button className="profile-team-cards-button" onClick={handleTeamCardsClick}>
             Карточки команд
           </button>
         ) : (
-          <button
-            className="profile-team-cards-button"
-            onClick={handleSaveClick}
-          >
+          <button className="profile-team-cards-button" onClick={handleSaveClick}>
             Сохранить
           </button>
         )}
+      </div>
 
-        <button className="home-button" onClick={handleHomeButtonClick}>
+      <button className="home-button" onClick={handleHomeButtonClick}>
           Главная страница
         </button>
-      </div>
     </div>
-
   );
 }
 
