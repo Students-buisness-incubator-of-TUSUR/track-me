@@ -154,7 +154,7 @@
 }
 
 .profile-team-cards-button {
-  margin-top: -25px;
+  margin-top: 10px;
   width: 454px;
   height: 70px;
   background-color: #ffffff;
@@ -172,8 +172,8 @@
   width: 223px;
   height: 49px;
   position: absolute;
-  top: -50px;
-  left: 1359px;
+  top: 15px;
+  left: 1658px;
   border-radius: 40px;
   border: 2px solid #44069A; 
   background-color: #8338EA; 
@@ -187,4 +187,16 @@
   text-decoration: none; 
 }
 
+.error-message42 {
+  display: block;
+  border-radius: 70px;
+  padding: 12px;
+  margin-top: -45px;
+  margin-left: -600px;
+  background-color: #FF000080;
+  text-align: center;
+  color: white;
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif; /* Чтобы padding не влиял на общую ширину */
+}
 
