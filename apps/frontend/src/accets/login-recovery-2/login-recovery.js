@@ -48,6 +48,9 @@ const LoginRecovery2 = () => {
       if (response.ok) {
         setSuccessMessage("Пароль успешно изменён!");
         console.log("Пароль успешно изменён!");
+        setTimeout(() => {
+          navigate("/");
+        }, 3000);
       } else {
         const data = await response.json();
         if (data && data.error) {
