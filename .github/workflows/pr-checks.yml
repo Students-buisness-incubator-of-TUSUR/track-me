@@ -5,24 +5,7 @@ on:
     branches: [ develop ]
 
 jobs:
-  check-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      frontend: ${{ steps.filter.outputs.frontend }}
-      backend: ${{ steps.filter.outputs.backend }}
-    steps:
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            frontend:
-              - 'apps/frontend/**'
-            backend:
-              - 'apps/backend/**'
-
   backend-tests:
-    needs: check-changes
-    if: needs.check-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,12 +23,10 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build and Test Backend
         run: |
-          ./gradlew :apps:backend:build -x test
-          ./gradlew :apps:backend:test
+          ./gradlew build -x test
+          ./gradlew test
 
-  frontend-checks:
-    needs: check-changes
-    if: needs.check-changes.outputs.frontend == 'true'
+  frontend-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
