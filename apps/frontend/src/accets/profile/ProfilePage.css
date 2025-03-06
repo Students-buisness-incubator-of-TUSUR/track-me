@@ -40,6 +40,7 @@
   padding: 0;
 }
 
+
 .profile-content {
   display: flex;
   width: 100%;
@@ -153,7 +154,7 @@
 }
 
 .profile-team-cards-button {
-  margin-top: -25px;
+  margin-top: 25px;
   width: 454px;
   height: 70px;
   background-color: #ffffff;
@@ -165,4 +166,16 @@
   font-size: 24px;
   border-radius: 70px;
   cursor: pointer;
+}
+
+.error-message42 {
+  border-radius: 70px;
+  padding: 12px;
+  margin-top: -30px;
+  margin-left: -600px;
+  background-color: #FF000080;
+  text-align: center;
+  color: white;
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif;      /* Выделение текста */
 }
