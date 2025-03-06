@@ -196,6 +196,28 @@ function ProfilePage() {
     }
   };
 
+  const handleHomeButtonClick = () => {
+    if (userData && userData.role) {
+      const role = userData.role.toLowerCase();
+      if (
+        role === "superadmin" ||
+        role === "суперадмин" ||
+        role === "super_admin"
+      ) {
+        navigate("/streams"); 
+      } else if (
+        role === "admin" ||
+        role === "админ" 
+      ) {
+        navigate("/streams"); 
+      } else if (role === "tracker" || role === "трекер"){
+        navigate("/team-cards");
+      }
+    } else {
+      navigate("/"); 
+    }
+  };
+
   if (loading) {
     return <div>Загрузка...</div>;
   }
@@ -360,8 +382,13 @@ function ProfilePage() {
             Сохранить
           </button>
         )}
+
+        <button className="home-button" onClick={handleHomeButtonClick}>
+          Главная страница
+        </button>
       </div>
     </div>
+
   );
 }
 

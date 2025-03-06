@@ -1,4 +1,5 @@
 .profile-container {
+  position: relative;
   width: 1359px;
   height: 882px;
   background-color: #8b50f9; /* Фон, похожий на фиолетовый из макета */
@@ -166,3 +167,24 @@
   border-radius: 70px;
   cursor: pointer;
 }
+
+.home-button {
+  width: 223px;
+  height: 49px;
+  position: absolute;
+  top: -50px;
+  left: 1359px;
+  border-radius: 40px;
+  border: 2px solid #44069A; 
+  background-color: #8338EA; 
+  color: #FFFFFF; 
+  font-size: 20px; 
+  font-weight: 700; 
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none; 
+}
+
+
