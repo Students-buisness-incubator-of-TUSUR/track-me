@@ -387,13 +387,16 @@ export default function Stream() {
         )}
       </header>
       <main className="Stream-main">
+      {/* localStorage.setItem("streamName",card.title)   onClick={console.log(card.title)} */}
         {visibleCards.map(card => (
-          <div key={card.id} className="Stream-card">
+
+          <Link to="/team-cards" key={card.id} onClick={() => localStorage.setItem("streamName",card.title)} className="Stream-card">
             <div className="Stream-card-pic"></div>
-            <h1 className="Stream-card-headText">{card.title}</h1>
-            <div className="Stream-card-bodyText">{card.content}</div>
-          </div>
-        ))}
+            <h1 className="Stream-card-headText">{card.title} </h1>
+          </Link>
+        ))},
+
+
       </main>
       <footer className="Stream-footer">
         <div className="Stream-footer-butts">

@@ -77,6 +77,7 @@ function TrackerPage() {
       setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
       return;
     }
+    console.log(localStorage.getItem("streamName"))
     fetch(`${backendHost}/api/v1/team-cards?page=0&size=150`, {
       method: "POST",
       headers: {
@@ -156,7 +157,7 @@ function TrackerPage() {
       })
       .then((data) => {
         if (data && data.name) {
-          setStreamName(data.name);
+          setStreamName(localStorage.getItem("streamName"));
         } else {
           setError("Неверный формат данных, полученных с сервера (streams).");
         }
