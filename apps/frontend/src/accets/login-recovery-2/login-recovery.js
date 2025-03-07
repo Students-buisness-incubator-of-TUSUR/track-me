@@ -56,7 +56,7 @@ const LoginRecovery2 = () => {
         if (data && data.error) {
           setErrorMessage(data.error);
         } else {
-          setErrorMessage("Ошибка восстановления пароля. Попробуйте ещё раз.");
+          setErrorMessage("Пароль должен содержать минимум 8 символов, включая буквы и цифры");
         }
         console.error("Ошибка восстановления пароля:", response.status);
       }

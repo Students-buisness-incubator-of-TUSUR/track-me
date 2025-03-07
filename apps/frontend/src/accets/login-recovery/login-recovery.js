@@ -12,20 +12,20 @@ const LoginRecovery = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     // Сброс предыдущих сообщений
     setSuccessMessage("");
     setErrorMessage("");
-
+  
     // Проверка формата почты с помощью регулярного выражения
     const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(username)) {
       setErrorMessage("Неверный формат почты");
       return;
     }
-
+  
     const payload = { email: username };
-
+  
     try {
       const response = await fetch(`${backendHost}/api/v1/auth/forgot-password`, {
         method: "POST",
@@ -34,17 +34,26 @@ const LoginRecovery = () => {
         },
         body: JSON.stringify(payload),
       });
-
+  
       if (response.ok) {
         setSuccessMessage("Письмо для восстановления отправлено на почту");
         console.log("Письмо для восстановления отправлено");
       } else {
         // Попытка извлечь сообщение об ошибке из ответа
         const data = await response.json();
+         
         if (data && data.error) {
-          setErrorMessage(data.error);
+         
+          // Обработка ошибок, связанных с почтой
+          if (data.error.toLowerCase().includes("ошибка восстановления")) {
+            setErrorMessage("Пользователь с такой почтой не зарегистрирован");
+          } else if (data.error.toLowerCase().includes("уже существует")) {
+            setErrorMessage("Пользователь с такой почтой уже существует");
+          } else {
+            setErrorMessage(data.error);
+          }
         } else {
-          setErrorMessage("Ошибка восстановления пароля. Попробуйте еще раз.");
+          setErrorMessage("Пользователь с такой почтой не зарегистрирован");
         }
         console.error("Ошибка восстановления пароля:", response.status);
       }
@@ -53,6 +62,7 @@ const LoginRecovery = () => {
       console.error("Ошибка запроса:", error);
     }
   };
+  
 
   const handleRegisterClick = () => {
     navigate("/register");
