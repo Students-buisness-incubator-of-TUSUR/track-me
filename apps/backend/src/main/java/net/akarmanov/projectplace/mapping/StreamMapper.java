@@ -19,7 +19,6 @@ import java.util.List;
 public interface StreamMapper {
 
   @Mapping(target = "imageBytes", ignore = true)
-  @Mapping(target = "users", ignore = true)
   @Mapping(target = "teamCards", ignore = true)
   Stream mapFromDto(StreamDto dto);
 
@@ -29,15 +28,16 @@ public interface StreamMapper {
 
   List<StreamDto> mapToDto(List<Stream> entities);
 
+  @Mapping(target = "ntiMarkets", ignore = true)
   @Mapping(target = "imageBytes", ignore = true)
-  @Mapping(target = "users", ignore = true)
   @Mapping(target = "teamCards", ignore = true)
   @Mapping(target = "startDate", ignore = true)
   @Mapping(target = "id", ignore = true)
   void updateFromDto(StreamUpdateDto dto, @MappingTarget Stream entity);
 
+  @Mapping(target = "active", ignore = true)
+  @Mapping(target = "ntiMarkets", ignore = true)
   @Mapping(target = "imageBytes", ignore = true)
-  @Mapping(target = "users", ignore = true)
   @Mapping(target = "teamCards", ignore = true)
   @Mapping(target = "id", ignore = true)
   Stream mapFromDto(StreamCreateDto dto);

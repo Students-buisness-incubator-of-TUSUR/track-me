@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface UserTeamCardsUseCase {
-  TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard);
+  TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard, UUID streamId);
 
   TeamCardDto updateTeamCard(UUID teamCardId, TeamCardCreateOrUpdateDto createOrUpdateDto);
 

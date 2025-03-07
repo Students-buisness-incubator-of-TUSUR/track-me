@@ -31,10 +31,11 @@ public interface StreamRestController {
 
   Integer MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
-  @Operation(summary = "Получить текущий поток",
-             description = "Возвращает информацию о текущем потоке")
-  @GetMapping("/current")
-  ResponseEntity<StreamDto> getCurrentStream();
+  @Operation(summary = "Получить активные потоки",
+             description = "Возвращает активные потоки")
+  @GetMapping(value = "/active",
+              produces = "application/json")
+  PagedModel<StreamDto> findActiveStreams(@PageableDefault @ParameterObject Pageable pageable);
 
   @Validated
   @Operation(summary = "Получить список потоков",
