@@ -49,10 +49,10 @@ class AuthenticationServiceImpl implements AuthenticationService {
 
   @Override
   public JwtAuthenticationResponse singIn(SingInRequest request) {
-    authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+    authenticationManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(
         request.getTelegramId(),
-        request.getPassword())
-    );
+        request.getPassword()
+    ));
     var user = userService.loadUserByUsername(request.getTelegramId());
 
     var token = jwtService.generateToken(user);

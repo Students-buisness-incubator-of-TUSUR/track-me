@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -74,28 +73,17 @@ public class SecurityConfiguration {
             .requestMatchers("/api/v1/super-admin/**").hasRole(SUPER_ADMIN.toString())
             .anyRequest().authenticated())
         .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authenticationProvider(authenticationProvider())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(handler -> handler.authenticationEntryPoint(authenticationEntryPoint));
     return http.build();
   }
-
-  private AuthenticationProvider authenticationProvider() {
-    var daoAuthenticationProvider = new DaoAuthenticationProvider();
-    daoAuthenticationProvider.setUserDetailsService(userService);
-    daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
-    return daoAuthenticationProvider;
-  }
-
   /**
    * Конструирует {@link AuthenticationManager}.
    *
-   * @param passwordEncoder Кодировщик паролей.
    * @return {@link AuthenticationManager}.
    */
   @Bean
-  public AuthenticationManager authenticationManager(
-      PasswordEncoder passwordEncoder) {
+  public AuthenticationManager authenticationManager() {
     DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
     authenticationProvider.setUserDetailsService(userService);
     authenticationProvider.setPasswordEncoder(passwordEncoder);
