@@ -146,7 +146,11 @@ function ProfilePage() {
     })
       .then((response) => {
         if (!response.ok) {
-          setError(`Ошибка при сохранении данных. Статус: ${response.status}`);
+          if (response.status === 400) {
+            setError("Номер телефона уже существует");
+          } else {
+            setError(`Ошибка при сохранении данных. Статус: ${response.status}`);
+          }
           throw new Error("Ошибка сохранения");
         }
         return response.json();
