@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import java.time.LocalDate;
 import java.time.Year;
 
 import static org.hamcrest.Matchers.is;
@@ -518,6 +517,47 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                   ]
                 }
                 """))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(1)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCards_withFilters_withStreamsYear_success() throws Exception {
+
+    mockMvc.perform(post("/api/v1/team-card")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "name": "Test",
+                  "description": "Test description",
+                  "ntiMarketId": "%s",
+                  "readinessLevel": "0-2"
+                }
+                """.formatted(ntiMarket.getId())))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").exists())
+        .andExpect(jsonPath("$.name", is("Test")))
+        .andExpect(jsonPath("$.description", is("Test description")))
+        .andExpect(jsonPath("$.readinessLevel", is("0-2")))
+        .andExpect(jsonPath("$.status", is(TeamCardStatus.OK.name())));
+
+    mockMvc.perform(post("/api/v1/team-cards")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "filters": [
+                    {
+                      "fieldName": "streams.year",
+                      "value": "%s",
+                      "type": "EQ"
+                    }
+                  ]
+                }
+                """.formatted(Year.now().getValue())))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.totalElements", is(1)));

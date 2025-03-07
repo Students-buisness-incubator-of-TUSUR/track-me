@@ -4,7 +4,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.TeamCard;
 import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
@@ -14,9 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static net.akarmanov.projectplace.domain.spec.SpecificationUtils.getReadinessLevelFilter;
+
 public class TeamCardSpecification implements Specification<TeamCard> {
 
   public static final String READINESS_LEVEL_FIELD_NAME = "readinessLevel";
+
+  public static final String STREAMS_YEAR_FIELD = "streams.year";
 
   public static final List<String> ALLOWED_FIELDS = List.of(
       "name",
@@ -25,6 +28,7 @@ public class TeamCardSpecification implements Specification<TeamCard> {
       "status",
       "user.telegramId",
       READINESS_LEVEL_FIELD_NAME,
+      STREAMS_YEAR_FIELD,
       "streams.name"
   );
 
@@ -73,8 +77,17 @@ public class TeamCardSpecification implements Specification<TeamCard> {
         throw new FilterFieldNotAllowedException(filter.fieldName(), ALLOWED_FIELDS);
       }
 
+      if (STREAMS_YEAR_FIELD.equals(filter.fieldName())) {
+        filter = Filter.builder()
+            .fieldName("streams.startDate")
+            .type(filter.type())
+            .values(filter.values())
+            .singleValue(filter.singleValue())
+            .build();
+      }
+
       if (READINESS_LEVEL_FIELD_NAME.equals(filter.fieldName())) {
-        filter = StreamSpecification.getReadinessLevelFilter(filter);
+        filter = getReadinessLevelFilter(filter);
       }
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }

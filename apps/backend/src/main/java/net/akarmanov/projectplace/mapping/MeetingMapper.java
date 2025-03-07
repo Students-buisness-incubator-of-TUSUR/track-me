@@ -13,7 +13,8 @@ import org.mapstruct.MappingTarget;
     uses = {
         TaskMapper.class,
     })
-public interface MeetingMapper {
+public interface
+MeetingMapper {
   @Mapping(target = "teamCard",
            ignore = true)
   @Mapping(target = "status",

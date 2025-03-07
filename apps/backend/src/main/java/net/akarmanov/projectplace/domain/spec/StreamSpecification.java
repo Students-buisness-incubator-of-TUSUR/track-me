@@ -4,7 +4,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
@@ -12,6 +11,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static net.akarmanov.projectplace.domain.spec.SpecificationUtils.getReadinessLevelFilter;
+import static net.akarmanov.projectplace.domain.spec.SpecificationUtils.getStartDateFilter;
 
 public class StreamSpecification implements Specification<Stream> {
 
@@ -36,21 +38,6 @@ public class StreamSpecification implements Specification<Stream> {
     return new StreamSpecification(filters);
   }
 
-  static Filter getReadinessLevelFilter(Filter filter) {
-    var readinessLevel = ReadinessLevel.fromValue(filter.singleValue());
-    return Filter.builder()
-        .fieldName(filter.fieldName())
-        .type(filter.type())
-        .singleValue(readinessLevel == null ? null : readinessLevel.name())
-        .values(filter.values() != null
-            ? filter.values().stream()
-            .map(ReadinessLevel::fromValue)
-            .map(ReadinessLevel::name)
-            .toList()
-            : null)
-        .build();
-  }
-
   @Override
   public Predicate toPredicate(Root<Stream> root,
                                CriteriaQuery<?> query,
@@ -69,14 +56,5 @@ public class StreamSpecification implements Specification<Stream> {
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }
     return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-  }
-
-  private Filter getStartDateFilter(Filter filter) {
-    return Filter.builder()
-        .fieldName("startDate")
-        .type(filter.type())
-        .singleValue(filter.singleValue())
-        .values(filter.values())
-        .build();
   }
 }

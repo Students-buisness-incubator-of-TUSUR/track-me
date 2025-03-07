@@ -233,7 +233,7 @@ class StreamRestControllerTest extends BaseApplicationTest {
         .andExpect(status().isNotFound());
   }
 
-  @Test
+  @Test 
   void getStream_withFilters_byTeamCardReadinessLevel() throws Exception {
 
     var uuid = ntiMarketRepository.findAll().get(0).getId();
