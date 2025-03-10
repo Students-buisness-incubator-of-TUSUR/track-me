@@ -22,10 +22,8 @@ export default function Stream() {
   const [filters, setFilters] = useState([]); // Состояние для фильтров
   const [page, setpage] = useState(1); 
   const [selectedYears, setSelectedYears] = useState(new Set()); // Выбранные годы (Set)
-
   const [selectedMarkets, setSelectedMarkets] = useState(new Set()); // Выбранные рынки (Set)
   const [selectedTRLs, setSelectedTRLs] = useState(new Set()); // Выбранные TRL (Set)
-
   let today = new Date();
   let year = today.getFullYear();
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
@@ -72,15 +70,19 @@ export default function Stream() {
     fetchData(); // Первоначальный запрос без фильтров
   }, [fetchData]);
 
+
+
   const cardd = data.content.map((item, index) => ({
     id: item.id,
     title: item.name,
     content: item.description,
     startDate: item.startDate,
     endDate: item.endDate,
-    readinessLevel: item.readinessLevel
+    readinessLevel: item.readinessLevel,
   }));
 
+
+  
   const handleClick = () => {
     setIsVisible(!isVisible);
   };
@@ -395,8 +397,9 @@ export default function Stream() {
         {visibleCards.map(card => (
 
           <Link to="/team-cards" key={card.id} onClick={() => localStorage.setItem("streamName",card.title)} className="Stream-card">
-            <div className="Stream-card-pic"></div>
-            <h1 className="Stream-card-headText">{card.title} </h1>
+    <div className="Stream-card-pic">
+      {card.pic && <img src={card.pic} alt={card.title} />} {/* Отображаем картинку, если она есть */}
+    </div>            <h1 className="Stream-card-headText">{card.title} </h1>
           </Link>
         ))},
 
