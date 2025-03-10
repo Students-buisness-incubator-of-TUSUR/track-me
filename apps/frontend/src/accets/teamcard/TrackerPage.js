@@ -78,6 +78,12 @@ function TrackerPage() {
       return;
     }
     console.log(localStorage.getItem("streamName"))
+    filters.push({
+      fieldName: "streams.name",
+      type: "EQ",
+      value: localStorage.getItem("streamName"),
+    });
+
     fetch(`${backendHost}/api/v1/team-cards?page=0&size=150`, {
       method: "POST",
       headers: {
@@ -138,33 +144,33 @@ function TrackerPage() {
     .catch((error) => {
       console.error(error);
     });
-    fetch(`${backendHost}/api/v1/streams/current`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError("Ошибка авторизации при получении потока! Выполните вход заново.");
-          } else {
-            setError("Ошибка при загрузке потока. Статус: " + response.status);
-          }
-          throw new Error("Ошибка запроса потока");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data && data.name) {
-          setStreamName(localStorage.getItem("streamName"));
-        } else {
-          setError("Неверный формат данных, полученных с сервера (streams).");
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка при загрузке потока:", err);
-      });
+    // fetch(`${backendHost}/api/v1/streams/current`, {
+    //   method: "GET",
+    //   headers: {
+    //     Authorization: `Bearer ${token}`,
+    //   },
+    // })
+    //   .then((response) => {
+    //     if (!response.ok) {
+    //       if (response.status === 401) {
+    //         setError("Ошибка авторизации при получении потока! Выполните вход заново.");
+    //       } else {
+    //         setError("Ошибка при загрузке потока. Статус: " + response.status);
+    //       }
+    //       throw new Error("Ошибка запроса потока");
+    //     }
+    //     return response.json();
+    //   })
+    //   .then((data) => {
+    //     if (data && data.name) {
+    //       setStreamName(localStorage.getItem("streamName"));
+    //     } else {
+    //       setError("Неверный формат данных, полученных с сервера (streams).");
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     console.error("Ошибка при загрузке потока:", err);
+    //   });
   }, [navigate, backendHost, fetchCards]);
 
   useEffect(() => {
@@ -184,6 +190,7 @@ function TrackerPage() {
       body: JSON.stringify({ filters: [] }),
     })
       .then((response) => {
+        setStreamName(localStorage.getItem("streamName"));
         if (!response.ok) {
           throw new Error("Ошибка при загрузке потоков");
         }
@@ -490,7 +497,7 @@ function TrackerPage() {
           <p>
             {searchQuery
               ? "Ничего не найдено по запросу"
-              : "Загрузка карточек..."}
+              : "Ничего не найдено по запросу"}
           </p>
         )}
       </div>
