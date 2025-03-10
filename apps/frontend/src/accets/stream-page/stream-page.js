@@ -135,6 +135,7 @@ export default function Stream() {
     };
   
     fetchImages();
+    // eslint-disable-next-line
   }, [data.content, fetchStreamImage]);
 
   const handleClick = () => {
