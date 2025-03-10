@@ -34,11 +34,11 @@ class StreamRestControllerTest extends BaseApplicationTest {
 
 
   @Test
-  void getCurrentStream() throws Exception {
-    mockMvc.perform(get("/api/v1/streams/current"))
+  void findActiveStreams() throws Exception {
+    mockMvc.perform(get("/api/v1/streams/active"))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("stream 1"));
+        .andExpect(jsonPath("$.page.totalElements").value(1));
   }
 
   @Test
@@ -235,9 +235,11 @@ class StreamRestControllerTest extends BaseApplicationTest {
 
   @Test 
   void getStream_withFilters_byTeamCardReadinessLevel() throws Exception {
+    var stream = streamRepository.findAll().get(0);
 
     var uuid = ntiMarketRepository.findAll().get(0).getId();
     mockMvc.perform(post("/api/v1/team-card")
+            .param("streamId", stream.getId().toString())
             .contentType("application/json")
             .content("""
                 {

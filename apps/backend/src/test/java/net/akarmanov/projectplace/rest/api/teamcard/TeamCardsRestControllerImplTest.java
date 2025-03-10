@@ -51,7 +51,10 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   @Test
   @WithMockUser(value = "test_tracker")
   void createTeamCard_success() throws Exception {
+    var stream = streamRepository.findAll().getFirst();
+
     mockMvc.perform(post("/api/v1/team-card")
+            .param("streamId", stream.getId().toString())
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
                 {
@@ -481,7 +484,10 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   @WithMockUser(value = "test_tracker",
                 roles = "TRACKER")
   void getTeamCards_withFilters_withStreamsName_success() throws Exception {
+    var stream = streamRepository.findAll().getFirst();
+
     mockMvc.perform(post("/api/v1/team-card")
+            .param("streamId", stream.getId().toString())
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
                 {
@@ -526,8 +532,10 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   @WithMockUser(value = "test_tracker",
                 roles = "TRACKER")
   void getTeamCards_withFilters_withStreamsYear_success() throws Exception {
+    var stream = streamRepository.findAll().getFirst();
 
     mockMvc.perform(post("/api/v1/team-card")
+            .param("streamId", stream.getId().toString())
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
                 {
@@ -561,5 +569,28 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.totalElements", is(1)));
+  }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void createTeamCard_withInactiveStream() throws Exception {
+    var stream = streamRepository.findAll().getFirst();
+    stream.setActive(false);
+    streamRepository.save(stream);
+
+    mockMvc.perform(post("/api/v1/team-card")
+            .param("streamId", stream.getId().toString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "name": "Test",
+                  "description": "Test description",
+                  "ntiMarketId": "%s",
+                  "readinessLevel": "0-2"
+                }
+                """.formatted(ntiMarket.getId())))
+        .andDo(print())
+        .andExpect(status().isNotFound());
   }
 }

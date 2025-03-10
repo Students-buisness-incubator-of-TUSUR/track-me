@@ -19,6 +19,8 @@ public record StreamDto(
     @Schema(description = "Рынки НТИ")
     List<NTIMarketDto> ntiMarkets,
     @Schema(description = "Описание потока")
-    String description
+    String description,
+    @Schema(description = "Признак активности потока")
+    Boolean active
 ) {
 }

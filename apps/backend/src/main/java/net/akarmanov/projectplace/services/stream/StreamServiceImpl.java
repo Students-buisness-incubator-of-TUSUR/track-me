@@ -6,7 +6,6 @@ import net.akarmanov.projectplace.domain.NTIMarket;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.repos.StreamRepository;
-import net.akarmanov.projectplace.services.exceptions.CurrentStreamNotExistsException;
 import net.akarmanov.projectplace.services.exceptions.StreamImageUploadException;
 import net.akarmanov.projectplace.services.exceptions.StreamNotFoundException;
 import org.springframework.data.domain.Page;
@@ -16,9 +15,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+
+import static net.akarmanov.projectplace.domain.spec.StreamSpecification.byActive;
+import static net.akarmanov.projectplace.domain.spec.StreamSpecification.byId;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 @Service
 @Transactional
@@ -42,9 +44,8 @@ public class StreamServiceImpl implements StreamService {
   }
 
   @Override
-  public Stream getCurrentStream() {
-    return streamRepository.getFirstByEndDateAfter(LocalDate.now())
-        .orElseThrow(CurrentStreamNotExistsException::new);
+  public Page<Stream> findAllActive(Pageable pageable) {
+    return streamRepository.findAllByActiveTrue(pageable);
   }
 
   @Override
@@ -77,5 +78,12 @@ public class StreamServiceImpl implements StreamService {
     } catch (Exception e) {
       throw new StreamImageUploadException(e);
     }
+  }
+
+  @Override
+  public Stream findActive(UUID id) {
+    return streamRepository.findOne(where(byActive())
+            .and(byId(id)))
+        .orElseThrow(() -> new ActiveStreamNotFoundException(id));
   }
 }

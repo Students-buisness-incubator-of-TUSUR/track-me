@@ -27,9 +27,9 @@ public class StreamUseCase {
   private final NtiMarketMapper ntiMarketMapper;
 
 
-  public StreamDto getCurrentStream() {
-    var stream = streamService.getCurrentStream();
-    return streamMapper.mapToDto(stream);
+  public Page<StreamDto> findAllActive(Pageable pageable) {
+    return streamService.findAllActive(pageable)
+        .map(streamMapper::mapToDto);
   }
 
   public Page<StreamDto> getStreams(List<Filter> filters, Pageable pageable) {

@@ -29,9 +29,15 @@ public interface TeamCardsRestController {
   @PostMapping(value = "team-card",
                consumes = "application/json",
                produces = "application/json")
-  @Operation(summary = "Создание карточки команды")
-  ResponseEntity<TeamCardDto> createTeamCard(
-      @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto);
+  @Operation(summary = "Создание карточки команды",
+             description = "Создает новую карточку команды",
+             parameters = {
+                 @Parameter(name = "streamId",
+                            description = "Идентификатор потока, к которому относится карточка команды")
+             })
+  ResponseEntity<TeamCardDto> createTeamCard(@RequestParam UUID streamId,
+                                             @Valid @RequestBody
+                                             TeamCardCreateOrUpdateDto teamCardDto);
 
   @PatchMapping(value = "team-card",
                 consumes = "application/json",
@@ -42,7 +48,7 @@ public interface TeamCardsRestController {
                                              TeamCardCreateOrUpdateDto teamCardDto);
 
   @PostMapping(value = "team-cards",
-              produces = "application/json")
+               produces = "application/json")
   @Operation(summary = "Получение списка карточек команд")
   ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(
       @Parameter(description = "Фильтры для поиска карточек команд")

@@ -24,6 +24,8 @@ public record StreamUpdateDto(
     @Size(min = 1, message = "Список идентификаторов рынков НТИ не может быть пустым")
     List<UUID> ntiMarketIds,
     @Schema(description = "Описание потока")
-    String description
+    String description,
+    @Schema(description = "Признак активности потока")
+    Boolean active
 ) {
 }

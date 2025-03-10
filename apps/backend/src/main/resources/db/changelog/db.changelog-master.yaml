@@ -23,3 +23,5 @@ databaseChangeLog:
       file: db/changelog/users-add-deleted-column.yaml
   - include:
       file: db/changelog/meeting-add-tasks-columns.yaml
+  - include:
+      file: db/changelog/stream-add-active-column.yaml
