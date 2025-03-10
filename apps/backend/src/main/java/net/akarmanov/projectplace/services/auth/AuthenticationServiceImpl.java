@@ -31,7 +31,6 @@ class AuthenticationServiceImpl implements AuthenticationService {
   @Override
   @Transactional
   public JwtAuthenticationResponse singUp(SingUpRequest singUpRequest) {
-    var stream = streamService.getCurrentStream();
     var user = User.builder()
         .fullName(singUpRequest.getFullName())
         .telegramId(singUpRequest.getTelegramId())
@@ -41,8 +40,7 @@ class AuthenticationServiceImpl implements AuthenticationService {
         .email(singUpRequest.getEmail())
         .build();
 
-    stream.addUser(userService.createUser(user));
-    streamService.save(stream);
+    user = userService.createUser(user);
     var token = jwtService.generateToken(user);
     return new JwtAuthenticationResponse(token);
   }

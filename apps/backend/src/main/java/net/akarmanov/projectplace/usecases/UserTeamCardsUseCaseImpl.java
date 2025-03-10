@@ -38,9 +38,9 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
 
   @Override
   @Transactional
-  public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard) {
+  public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard, UUID streamId) {
     var ntiMarketId = teamCard.ntiMarketId();
-    var stream = streamService.getCurrentStream();
+    var stream = streamService.findActive(streamId);
     var teamCardEntity = teamCardMapper.mapToEntity(teamCard);
     teamCardEntity.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
     teamCardEntity.setUser(userService.getCurrentUser());

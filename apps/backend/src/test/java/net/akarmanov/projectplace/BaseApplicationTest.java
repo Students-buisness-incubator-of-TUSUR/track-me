@@ -55,12 +55,11 @@ public abstract class BaseApplicationTest extends AbstractIntegrationTest {
     streamRepository.save(Stream.builder()
         .name("stream 1")
         .startDate(LocalDate.now())
+        .active(true)
         .endDate(LocalDate.now().plusDays(1))
         .build());
     user = userRepository.save(User.builder()
         .enabled(true)
-        .firstName("Иван")
-        .lastName("Иванов")
         .telegramId(USERNAME)
         .email("test@test.test")
         .password(passwordEncoder.encode(PASSWORD))

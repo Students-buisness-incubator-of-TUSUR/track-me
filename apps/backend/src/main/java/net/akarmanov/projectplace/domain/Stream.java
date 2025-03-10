@@ -50,6 +50,10 @@ public class Stream {
   @Column
   private LocalDate endDate;
 
+  @Column(nullable = false)
+  @Builder.Default
+  private Boolean active = false;
+
   @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
   @JoinTable(
       name = "stream_nti_market",
@@ -71,18 +75,6 @@ public class Stream {
   @Builder.Default
   private Set<TeamCard> teamCards = new HashSet<>();
 
-  @ManyToMany(mappedBy = "streams")
-  @Builder.Default
-  private Set<User> users = new HashSet<>();
-
-  public void addTeamCard(TeamCard teamCard) {
-    teamCards.add(teamCard);
-  }
-
-  public void addUser(User user) {
-    users.add(user);
-  }
-
   public void addNtiMarkets(List<NTIMarket> ntiMarkets) {
     this.ntiMarkets.addAll(ntiMarkets);
   }
@@ -90,5 +82,10 @@ public class Stream {
   public void updateNtiMarkets(List<NTIMarket> ntiMarkets) {
     this.ntiMarkets.clear();
     this.ntiMarkets.addAll(ntiMarkets);
+  }
+
+  public void addTeamCard(TeamCard createdTeamCard) {
+    this.teamCards.add(createdTeamCard);
+    createdTeamCard.getStreams().add(this);
   }
 }

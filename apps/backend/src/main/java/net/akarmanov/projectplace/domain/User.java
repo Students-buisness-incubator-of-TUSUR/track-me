@@ -7,9 +7,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -57,21 +54,6 @@ public class User implements UserDetails {
   private String password;
 
   @Size(max = 255)
-  @Column(name = "first_name")
-  @Deprecated(forRemoval = true)
-  private String firstName;
-
-  @Size(max = 255)
-  @Column(name = "last_name")
-  @Deprecated(forRemoval = true)
-  private String lastName;
-
-  @Size(max = 255)
-  @Column(name = "middle_name")
-  @Deprecated(forRemoval = true)
-  private String middleName;
-
-  @Size(max = 255)
   @Column(name = "full_name")
   private String fullName;
 
@@ -110,15 +92,6 @@ public class User implements UserDetails {
              cascade = CascadeType.ALL)
   @Builder.Default
   private Set<TeamCard> userTeamCards = new HashSet<>();
-
-  @ManyToMany
-  @JoinTable(
-      name = "stream_user",
-      joinColumns = @JoinColumn(name = "user_id"),
-      inverseJoinColumns = @JoinColumn(name = "stream_id")
-  )
-  @Builder.Default
-  private Set<Stream> streams = new HashSet<>();
 
   @OneToOne(mappedBy = "user",
             cascade = CascadeType.ALL)

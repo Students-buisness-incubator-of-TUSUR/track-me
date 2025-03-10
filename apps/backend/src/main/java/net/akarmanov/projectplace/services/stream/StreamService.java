@@ -15,7 +15,7 @@ public interface StreamService {
 
   Stream getById(UUID id);
 
-  Stream getCurrentStream();
+  Page<Stream> findAllActive(Pageable pageable);
 
   Stream save(Stream stream);
 
@@ -26,4 +26,6 @@ public interface StreamService {
   List<NTIMarket> getNTIMarkets();
 
   void addImage(UUID streamId, MultipartFile file);
+
+  Stream findActive(UUID id);
 }

@@ -19,8 +19,8 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
   private final UserTeamCardsUseCase userTeamCardsUseCase;
 
   @Override
-  public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateOrUpdateDto dto) {
-    var createTeamCardDto = userTeamCardsUseCase.createTeamCard(dto);
+  public ResponseEntity<TeamCardDto> createTeamCard(UUID streamId, TeamCardCreateOrUpdateDto dto) {
+    var createTeamCardDto = userTeamCardsUseCase.createTeamCard(dto, streamId);
     return ResponseEntity.ok(createTeamCardDto);
   }
 

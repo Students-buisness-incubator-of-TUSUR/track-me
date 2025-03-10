@@ -25,9 +25,9 @@ public class StreamRestControllerImpl implements StreamRestController {
   private final StreamUseCase streamUseCase;
 
   @Override
-  public ResponseEntity<StreamDto> getCurrentStream() {
-    var stream = streamUseCase.getCurrentStream();
-    return ResponseEntity.ok(stream);
+  public PagedModel<StreamDto> findActiveStreams(Pageable pageable) {
+    var stream = streamUseCase.findAllActive(pageable);
+    return new PagedModel<>(stream);
   }
 
   @Override

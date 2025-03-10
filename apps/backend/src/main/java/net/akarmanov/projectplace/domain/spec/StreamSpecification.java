@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static net.akarmanov.projectplace.domain.spec.SpecificationUtils.getReadinessLevelFilter;
 import static net.akarmanov.projectplace.domain.spec.SpecificationUtils.getStartDateFilter;
@@ -23,6 +24,7 @@ public class StreamSpecification implements Specification<Stream> {
 
   public static final List<String> ALLOWED_FIELDS = List.of(
       "name",
+      "active",
       YEAR_FIELD,
       "ntiMarkets.name",
       READINESS_LEVEL_FIELD
@@ -36,6 +38,14 @@ public class StreamSpecification implements Specification<Stream> {
 
   public static Specification<Stream> withFilters(List<Filter> filters) {
     return new StreamSpecification(filters);
+  }
+
+  public static Specification<Stream> byActive() {
+    return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("active"), true);
+  }
+
+  public static Specification<Stream> byId(UUID id) {
+    return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
   }
 
   @Override

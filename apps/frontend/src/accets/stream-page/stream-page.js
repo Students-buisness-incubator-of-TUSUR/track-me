@@ -20,7 +20,7 @@ export default function Stream() {
   const [searchQuery, setSearchQuery] = useState('');
   // eslint-disable-next-line
   const [filters, setFilters] = useState([]); // Состояние для фильтров
-  const [page, setpage] = useState(0); 
+  const [page, setpage] = useState(1); 
   const [selectedYears, setSelectedYears] = useState(new Set()); // Выбранные годы (Set)
   const [selectedMarkets, setSelectedMarkets] = useState(new Set()); // Выбранные рынки (Set)
   const [selectedTRLs, setSelectedTRLs] = useState(new Set()); // Выбранные TRL (Set)
@@ -36,8 +36,8 @@ export default function Stream() {
     setLoading(true);
     setError(null);
     console.log(page);
-
     console.log(filters);
+
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
@@ -137,7 +137,6 @@ export default function Stream() {
     fetchImages();
     // eslint-disable-next-line
   }, [data.content, fetchStreamImage]);
-
   const handleClick = () => {
     setIsVisible(!isVisible);
   };
