@@ -289,7 +289,6 @@ body{
 .Stream-card-pic{
   display: flex;
   align-self: center;
-  background-image: url("rabbit.png");
   width: 383px;
   height: 264px;
   background-position: 50%;
@@ -427,4 +426,25 @@ body{
   width: auto;
   height: min-content;
   justify-content: space-between;
+}
+.Stream-card-pic {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0; 
+} 
+
+.Stream-card-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Чтобы изображение заполняло блок */
+}
+.Stream-card-pic-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url(rabbit.png);
+  color: #666; /* Цвет текста */
+  font-size: 14px;
 }

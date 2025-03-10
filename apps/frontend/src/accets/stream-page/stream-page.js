@@ -20,11 +20,12 @@ export default function Stream() {
   const [searchQuery, setSearchQuery] = useState('');
   // eslint-disable-next-line
   const [filters, setFilters] = useState([]); // Состояние для фильтров
-  const [page, setpage] = useState(1); 
+  const [page, setpage] = useState(0); 
   const [selectedYears, setSelectedYears] = useState(new Set()); // Выбранные годы (Set)
   const [selectedMarkets, setSelectedMarkets] = useState(new Set()); // Выбранные рынки (Set)
   const [selectedTRLs, setSelectedTRLs] = useState(new Set()); // Выбранные TRL (Set)
   let today = new Date();
+  const [imageUrls, setImageUrls] = useState({});
   let year = today.getFullYear();
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   const numberOfCheckboxes = year - 2015;
@@ -36,7 +37,7 @@ export default function Stream() {
     setError(null);
     console.log(page);
 
-    
+    console.log(filters);
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
@@ -58,11 +59,13 @@ export default function Stream() {
       }
 
       const result = await response.json();
+      console.log(response);
       setData(result);
     } catch (error) {
       setError(error.message);
     } finally {
       setLoading(false);
+
     }
   }, [backendHost,page]);
 
@@ -81,8 +84,59 @@ export default function Stream() {
     readinessLevel: item.readinessLevel,
   }));
 
-
+  const fetchStreamImage = useCallback(async (streamId) => {
+    if (!streamId) {
+      console.error("Ошибка: streamId отсутствует или некорректен.");
+      return null;
+    }
   
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.error("Ошибка: отсутствует токен авторизации. Выполните вход.");
+      return null;
+    }
+  
+    try {
+      const response = await fetch(`${backendHost}/api/v1/streams/${streamId}/image`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json', // Если требуется
+        },
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Ошибка при загрузке изображения:", errorData);
+        return null; // Возвращаем null, если изображение отсутствует
+      }
+  
+      const imageBlob = await response.blob();
+      const imageUrl = URL.createObjectURL(imageBlob);
+      return imageUrl;
+    } catch (error) {
+      console.error('Ошибка при загрузке изображения:', error);
+      return null; // Возвращаем null в случае ошибки
+    }
+  }, [backendHost]);
+  
+  useEffect(() => {
+    const fetchImages = async () => {
+      const newImageUrls = {};
+      for (const card of data.content) { // Используем data.content вместо cardd
+        if (!imageUrls[card.id]) { // Проверяем, было ли изображение уже загружено
+          const imageUrl = await fetchStreamImage(card.id);
+          if (imageUrl) {
+            newImageUrls[card.id] = imageUrl;
+          }
+        }
+      }
+      setImageUrls((prevImageUrls) => ({ ...prevImageUrls, ...newImageUrls })); // Обновляем состояние
+    };
+  
+    fetchImages();
+  }, [data.content, fetchStreamImage]);
+
   const handleClick = () => {
     setIsVisible(!isVisible);
   };
@@ -122,8 +176,9 @@ export default function Stream() {
   };
 
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-    setfData({ fieldName: "name", type: "EA", value: e.target.value.toLowerCase() });
+    const query = e.target.value;
+    setSearchQuery(query);
+    setfData({ fieldName: "name", type: "LIKE", value: query });
   };
 
   const handleYearCheckboxChange = (id, label) => {
@@ -397,9 +452,14 @@ export default function Stream() {
         {visibleCards.map(card => (
 
           <Link to="/team-cards" key={card.id} onClick={() => localStorage.setItem("streamName",card.title)} className="Stream-card">
-    <div className="Stream-card-pic">
-      {card.pic && <img src={card.pic} alt={card.title} />} {/* Отображаем картинку, если она есть */}
-    </div>            <h1 className="Stream-card-headText">{card.title} </h1>
+<div className="Stream-card-pic">
+  {imageUrls[card.id] ? (
+    <img src={imageUrls[card.id]} alt={card.title} />
+  ) : (
+    <img src="путь_к_fallback_изображению" alt="Заглушка" />
+  )}
+</div>     
+    <h1 className="Stream-card-headText">{card.title} </h1>
           </Link>
         ))},
 
@@ -408,12 +468,12 @@ export default function Stream() {
       <footer className="Stream-footer">
         <div className="Stream-footer-butts">
           <div className="Stream-footer-p-butt-1">
-            {1 < page && (
+            {0 < page && (
               <button onClick={handleShowPrevious} className="Stream-footer-button-1"></button>
             )}
           </div>
           <div className="Stream-footer-p-butts">
-            {1 < page && (
+            {0 < page && (
               <button onClick={handleShowPrevious} className="Stream-footer-button-2"></button>
             )}
             <button className="Stream-footer-button-3"></button>
