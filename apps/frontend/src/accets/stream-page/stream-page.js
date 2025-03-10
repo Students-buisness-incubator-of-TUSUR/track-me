@@ -20,7 +20,7 @@ export default function Stream() {
   const [searchQuery, setSearchQuery] = useState('');
   // eslint-disable-next-line
   const [filters, setFilters] = useState([]); // Состояние для фильтров
-  const [page, setpage] = useState(1); 
+  const [page, setpage] = useState(0); 
   const [selectedYears, setSelectedYears] = useState(new Set()); // Выбранные годы (Set)
   const [selectedMarkets, setSelectedMarkets] = useState(new Set()); // Выбранные рынки (Set)
   const [selectedTRLs, setSelectedTRLs] = useState(new Set()); // Выбранные TRL (Set)
@@ -230,32 +230,31 @@ export default function Stream() {
   };
 
   const handleApplyFilters = () => {
-    // Формируем фильтры на основе выбранных значений
     const newFilters = {
       filters: [
         {
-          fieldName: 'name',
-          type: 'LIKE',
+          fieldName: "name",
+          type: "LIKE",
           value: searchQuery,
         },
         ...Array.from(selectedYears).map(year => ({
-          fieldName: 'year',
+          fieldName: "year",
           type: 'EQ',
           value: year,
         })),
         ...Array.from(selectedMarkets).map(market => ({
-          fieldName: 'ntiMarkets.name',
-          type: 'EQ',
+          fieldName: "ntiMarkets.name",
+          type: "EQ",
           value: market,
         })),
         ...Array.from(selectedTRLs).map(trl => ({
-          fieldName: 'teamCards.readinessLevel',
-          type: 'EQ',
+          fieldName: "teamCards.readinessLevel",
+          type: "EQ",
           value: trl,
         })),
       ],
     };
-
+  
     setFilters(newFilters); // Обновляем состояние фильтров
     fetchData(newFilters); // Выполняем запрос с новыми фильтрами
   };
@@ -345,7 +344,7 @@ export default function Stream() {
           <div className="Stream-search-cont">
             <button onClick={handleClick} className="Stream-settings-pic"></button>
             <div className="Stream-search-contcont">
-              <button className="Stream-settings-pic2" onClick={handleApplyFilters}> </button>
+            <button className="Stream-settings-pic2" onClick={handleApplyFilters}> </button>
               <input
                 type="search"
                 placeholder="Найти"
@@ -456,12 +455,12 @@ export default function Stream() {
   {imageUrls[card.id] ? (
     <img src={imageUrls[card.id]} alt={card.title} />
   ) : (
-    <img src="путь_к_fallback_изображению" alt="Заглушка" />
+    <img src="путь_к_fallback_изображению" alt=" " />
   )}
 </div>     
     <h1 className="Stream-card-headText">{card.title} </h1>
           </Link>
-        ))},
+        ))}
 
 
       </main>
