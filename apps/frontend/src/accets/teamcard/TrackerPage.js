@@ -7,6 +7,7 @@ function TrackerPage() {
   const [cards, setCards] = useState([]);
   const [visibleCardsStart, setVisibleCardsStart] = useState(0);
   const [streamName, setStreamName] = useState("");
+  // eslint-disable-next-line
   const [streamId, setStreamId] = useState("");
   const [streamSDate, setStreamSDate] = useState("");
   const [streamEDate, setStreamEDate] = useState("");
