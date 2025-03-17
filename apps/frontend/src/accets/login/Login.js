@@ -60,7 +60,7 @@ const Login = () => {
         if (userRole === "SUPER_ADMIN") {
           navigate("/streams");
         } else if (userRole === "ADMIN") {
-          navigate("/admin");
+          navigate("/streams");
         } else if (userRole === "TRACKER") {
           navigate("/team-cards");
         } else {

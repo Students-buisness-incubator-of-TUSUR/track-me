@@ -33,6 +33,7 @@ export default function Stream() {
 
 
   const fetchData = useCallback(async (filters = {filters: [] }) => {
+
     setLoading(true);
     setError(null);
     console.log(page);
@@ -70,7 +71,32 @@ export default function Stream() {
   }, [backendHost,page]);
 
   useEffect(() => {
-    fetchData(); // Первоначальный запрос без фильтров
+    const newFilters = {
+      filters: [
+        {
+          fieldName: "name",
+          type: "LIKE",
+          value: searchQuery,
+        },
+        ...Array.from(selectedYears).map(year => ({
+          fieldName: "year",
+          type: 'EQ',
+          value: year,
+        })),
+        ...Array.from(selectedMarkets).map(market => ({
+          fieldName: "ntiMarkets.name",
+          type: "EQ",
+          value: market,
+        })),
+        ...Array.from(selectedTRLs).map(trl => ({
+          fieldName: "teamCards.readinessLevel",
+          type: "EQ",
+          value: trl,
+        })),
+      ],
+    };
+    fetchData(newFilters); // Первоначальный запрос без фильтров
+    // eslint-disable-next-line
   }, [fetchData]);
 
 
@@ -141,10 +167,29 @@ export default function Stream() {
     setIsVisible(!isVisible);
   };
 
+  const handleShowFirst = () => {
+    console.log(data.page.totalPages);
+    setpage(0);
+
+  };
+
+  const handleShowLast = () => {
+    console.log(data.page.totalPages);
+    setpage(data.page.totalPages - 1);
+
+  };
   const handleShowMore = () => {
     console.log(data.page.totalPages);
     setpage(page+1);
+  };
+  const handleShowEvenMore = () => {
+    console.log(data.page.totalPages);
+    setpage(page+2);
+  };
 
+  const handleShowEvenPrevious = () => {
+    console.log(data.page.totalPages);
+    setpage(page-2);
   };
 
   const handleShowPrevious = () => {
@@ -162,6 +207,13 @@ export default function Stream() {
 
   const handleShowCheckboxes3 = () => {
     setShowCheckboxes3(!showCheckboxes3);
+  };
+
+  const perehod = (cardd) => {
+    localStorage.setItem("streamName",cardd.title)
+    localStorage.setItem("streamId",cardd.id)
+    localStorage.setItem("streamSDate",cardd.startDate)
+    localStorage.setItem("streamEDate",cardd.endDate)
   };
 
   const handleResetCheckboxes = () => {
@@ -230,6 +282,7 @@ export default function Stream() {
   };
 
   const handleApplyFilters = () => {
+    setpage(0);
     const newFilters = {
       filters: [
         {
@@ -332,7 +385,9 @@ export default function Stream() {
     <div className="Stream">
       <header className="Stream-header">
         <div className="Stream-header-cont">
-          <h1 className="Stream-title">Название</h1>
+        <div className='Stream-header-logo'/> 
+          <h1 className="Stream-title">Track Me</h1>
+
           <div className="Stream-buttons">
             <Link to="/list-admins"><button className="Stream-butt">Администраторы</button></Link>
             <Link to="/list-trackers"><button className="Stream-butt">Трекеры</button></Link>
@@ -447,31 +502,30 @@ export default function Stream() {
         )}
       </header>
       <main className="Stream-main">
-      {/* localStorage.setItem("streamName",card.title)   onClick={console.log(card.title)} */}
         {visibleCards.map(card => (
-
-          <Link to="/team-cards" key={card.id} onClick={() => localStorage.setItem("streamName",card.title)} className="Stream-card">
+          <Link to="/team-cards" key={card.id} onClick={() => perehod(card)} className="Stream-card">
 <div className="Stream-card-pic">
   {imageUrls[card.id] ? (
     <img src={imageUrls[card.id]} alt={card.title} />
   ) : (
-    <img src="путь_к_fallback_изображению" alt=" " />
+    <img src="rabbit.png" alt=" "/>
   )}
 </div>     
     <h1 className="Stream-card-headText">{card.title} </h1>
           </Link>
         ))}
-
-
       </main>
       <footer className="Stream-footer">
         <div className="Stream-footer-butts">
           <div className="Stream-footer-p-butt-1">
             {0 < page && (
-              <button onClick={handleShowPrevious} className="Stream-footer-button-1"></button>
+              <button onClick={handleShowFirst} className="Stream-footer-button-1"></button>
             )}
           </div>
           <div className="Stream-footer-p-butts">
+            {1 < page && (
+              <button onClick={handleShowEvenPrevious} className="Stream-footer-button-2"></button>
+            )}
             {0 < page && (
               <button onClick={handleShowPrevious} className="Stream-footer-button-2"></button>
             )}
@@ -479,10 +533,13 @@ export default function Stream() {
             {data.page.totalPages > (page + 1) && (
               <button onClick={handleShowMore} className="Stream-footer-button-4"></button>
             )}
+            {data.page.totalPages > (page + 2) && (
+              <button onClick={handleShowEvenMore} className="Stream-footer-button-4"></button>
+            )}
           </div>
           <div className="Stream-footer-p-butt-5">
             {data.page.totalPages > (page + 1) && (
-              <button onClick={handleShowMore} className="Stream-footer-button-5"></button>
+              <button onClick={handleShowLast} className="Stream-footer-button-5"></button>
             )}
           </div>
         </div>

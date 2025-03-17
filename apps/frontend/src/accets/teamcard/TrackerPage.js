@@ -7,6 +7,9 @@ function TrackerPage() {
   const [cards, setCards] = useState([]);
   const [visibleCardsStart, setVisibleCardsStart] = useState(0);
   const [streamName, setStreamName] = useState("");
+  const [streamId, setStreamId] = useState("");
+  const [streamSDate, setStreamSDate] = useState("");
+  const [streamEDate, setStreamEDate] = useState("");
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [ntiMarkets, setNtiMarkets] = useState([]);
@@ -191,6 +194,10 @@ function TrackerPage() {
     })
       .then((response) => {
         setStreamName(localStorage.getItem("streamName"));
+        setStreamId(localStorage.getItem("streamId"));
+        setStreamSDate(localStorage.getItem("streamSDate"));
+        setStreamEDate(localStorage.getItem("streamEDate"));
+        
         if (!response.ok) {
           throw new Error("Ошибка при загрузке потоков");
         }
@@ -292,6 +299,9 @@ function TrackerPage() {
         <div className="Stream-header-cont">
           <h1 className="Stream-title">
             {streamName ? streamName : "Название потока не получено"}
+          </h1>
+          <h1 className="Stream-title2">
+            {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate: "Название потока не получено"}
           </h1>
           <div className="Stream-buttons">
             <Link to="/profile" className="Stream-pic"></Link>

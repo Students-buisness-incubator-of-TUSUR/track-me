@@ -179,12 +179,32 @@ export default function CreateStream() {
 
       const streamResult = await createStreamResponse.json();
       console.log('Поток успешно создан:', streamResult);
-
-      // Если поток создан и есть изображение, отправляем изображение
+      if (!token) {
+        setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
+        return;
+      }
       if (imageFile) {
         const formData = new FormData();
         formData.append('file', imageFile);
+        const uploadImageResponse = await fetch(`${backendHost}/api/v1/streams/${streamResult.id}/image`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
 
+        if (!uploadImageResponse.ok) {
+          throw new Error('Ошибка при загрузке изображения');
+        }
+
+        console.log('Изображение успешно загружено');
+      }
+      else{
+        const defaultImageResponse = await fetch('rabbit.png'); // Замените на путь к вашему изображению
+        const defaultImageBlob = await defaultImageResponse.blob();
+        const formData = new FormData();
+        formData.append('file', defaultImageBlob, 'rabbit.png');
         const uploadImageResponse = await fetch(`${backendHost}/api/v1/streams/${streamResult.id}/image`, {
           method: 'POST',
           headers: {
@@ -220,18 +240,21 @@ export default function CreateStream() {
             </div>
             <div className="create-stream-col">
               <input
+                id="myInput"
                 className='create-stream-input'
                 placeholder='Текст названия'
                 value={name}
                 onChange={handleNameChange}
               />
               <input
+              id="myInput"
                 className='create-stream-input-date'
                 placeholder='__.__.____'
                 value={startDate}
                 onChange={handleStartDateChange}
               />
               <input
+              id="myInput"
                 className='create-stream-input-date'
                 placeholder='__.__.____'
                 value={endDate}

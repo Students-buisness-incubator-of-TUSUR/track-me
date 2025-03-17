@@ -11,6 +11,7 @@ body{
   background-color: #8202CD;
   border-bottom-left-radius: 50px 50px;
   border-bottom-right-radius: 50px 50px;
+  min-height: 69px;
 }
 .Stream-header-bottom-cont{
   display: flex;
@@ -160,9 +161,13 @@ body{
 
   
 }
+.Stream-title2,
 .Stream-title{
+  margin: 0;
+  margin-block: 0;
+  
+  position: absolute;
   color: white;
-  width: 400;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 .Stream-buttons{
@@ -183,10 +188,20 @@ body{
   cursor: pointer;
 
 }
+.Stream-title2,
 .Stream-title{
-  margin-left: 127px;
+  margin-top: 8px;
+  height: 69px;
+  margin-left: 140px;
   font-size: 40px;
   font-weight: 400;
+}
+.Stream-title2{
+  height: auto;
+  position: relative;
+  margin-top: 15px;
+  margin-left: 300px;
+  font-size: 30px;
 }
 .Stream-pic{
   display: flex;
@@ -281,16 +296,17 @@ body{
   border-width: 1px;
   border-style: groove;
   border-radius: 80px;
-  height: 400px;
+  height: 20em;
   width: 498px;
   margin-bottom: 71px;
   box-shadow: 8px 10px 8px rgba(122, 0, 229, 0.39);
 }
 .Stream-card-pic{
+  margin-top: 10px;
   display: flex;
   align-self: center;
   width: 383px;
-  height: 264px;
+  height: 100%;
   background-position: 50%;
   background-size: cover;
   border-radius: 80px;
@@ -322,8 +338,7 @@ body{
   justify-content: space-between;
   align-self: center;
   justify-content: center;
-
-  width: 200px;
+  width: auto;
   height: 24px;
 }
 .Stream-footer-button{
@@ -348,6 +363,8 @@ body{
 .Stream-footer-button-2{
   height: 24px;
   width: 24px;
+  margin-left: 11px;
+  margin-right: 11px;
   border: none;
   background: none;
   background-image: url("Ellipse\ 6.png");
@@ -375,6 +392,8 @@ body{
   height: 24px;
   width: 24px;
   border: none;
+  margin-left: 11px;
+  margin-right: 11px;
   background: none;
   background-image: url("Ellipse\ 6.png");
   background-size: contain;
@@ -399,7 +418,7 @@ body{
   display: flex;
   position: absolute;
   justify-self: center;
-  width: 200px;
+  width: 300px;  
   justify-content: right;
 }
 .Stream-footer-p-butt-1{
@@ -407,7 +426,7 @@ body{
   display: flex;
   position: absolute;
   justify-self: center;
-  width: 200px;
+  width: 300px;
   justify-content: left;
 }
 .Stream-footer-p-butts{
@@ -415,7 +434,7 @@ body{
   display: flex;
   align-self: center;
   justify-content: space-between;
-  width: 94px;
+  width: auto;
   height: 24px;
   z-index: 2;
 }
@@ -444,7 +463,17 @@ body{
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url(rabbit.png);
+  background-image: url("rabbit.png");
   color: #666; /* Цвет текста */
   font-size: 14px;
+}
+.Stream-header-logo {
+position: relative;
+  border-radius: 50px;
+  width: 300px;
+  height: 65px;
+  background-image: url("logo.svg");
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: left;
 }
