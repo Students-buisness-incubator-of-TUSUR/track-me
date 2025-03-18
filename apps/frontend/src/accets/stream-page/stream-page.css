@@ -477,3 +477,6 @@ position: relative;
   background-repeat: no-repeat;
   background-position: left;
 }
+.Stream-edit-link{
+  align-self: center; 
+}

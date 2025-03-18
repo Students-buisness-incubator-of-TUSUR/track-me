@@ -512,7 +512,9 @@ export default function Stream() {
   )}
 </div>     
     <h1 className="Stream-card-headText">{card.title} </h1>
+    <Link to={`/edit-stream/${card.id}`}  key={card.id} onClick={() => perehod(card)}className="Stream-edit-link">редактировать</Link>
           </Link>
+          
         ))}
       </main>
       <footer className="Stream-footer">

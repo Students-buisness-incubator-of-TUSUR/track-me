@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect,useRef, useCallback } from 'react';
 import './create-stream-page.css';
+import { useParams } from 'react-router-dom';
 
-export default function CreateStream() {
+export default function EditStream() {
+  const { id } = useParams();
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -9,13 +11,46 @@ export default function CreateStream() {
   const [error, setError] = useState(null);
   const [checkboxesData2, setCheckboxesData2] = useState([]);
   const [selectedCheckboxes, setSelectedCheckboxes] = useState([]);
-  const [image, setImage] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
+    const [image, setImage] = useState(null);
+    // eslint-disable-next-line
+    const [imageFile, setImageFile] = useState(null);
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
-
   const checkboxesRef = useRef(null);
 
-  const fetchCheckboxesData = useCallback(async () => {
+  const fetchStreamData = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
+      return;
+    }
+    try {
+      const response = await fetch(`${backendHost}/api/v1/admin/stream/${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при загрузке данных потока');
+      }
+
+      const result = await response.json();
+      setName(result.name);
+      setStartDate(new Date(result.startDate).toISOString().split('T')[0]);
+      setEndDate(new Date(result.endDate).toISOString().split('T')[0]);
+
+      if (result.ntiMarkets && result.ntiMarkets.length > 0) {
+        const selectedMarketIds = result.ntiMarkets.map((market) => market.id);
+        setSelectedCheckboxes(selectedMarketIds);
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке данных потока:', error);
+      setError('Не удалось загрузить данные потока.');
+    }
+  }, [backendHost, id]);
+
+  const fetchNtiMarkets = useCallback(async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
@@ -30,26 +65,20 @@ export default function CreateStream() {
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка при загрузке данных для чекбоксов');
+        throw new Error('Ошибка при загрузке рынков НТИ');
       }
 
       const result = await response.json();
-      const formattedData = result.map((item) => ({
-        id: item.id,
-        name: item.displayName,
-        description: "useless описание",
+      const formattedMarkets = result.map((market) => ({
+        id: market.id,
+        name: market.displayName,
       }));
-      setCheckboxesData2(formattedData);
+      setCheckboxesData2(formattedMarkets);
     } catch (error) {
-      console.error('Ошибка при загрузке данных для чекбоксов:', error);
-      setError('Не удалось загрузить данные для чекбоксов.');
+      console.error('Ошибка при загрузке рынков НТИ:', error);
+      setError('Не удалось загрузить рынки НТИ.');
     }
   }, [backendHost]);
-
-  useEffect(() => {
-    fetchCheckboxesData();
-  }, [fetchCheckboxesData]);
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (checkboxesRef.current && !checkboxesRef.current.contains(event.target)) {
@@ -63,9 +92,28 @@ export default function CreateStream() {
     };
   }, []);
 
-  const handleShowCheckboxes2 = () => {
-    setShowCheckboxes2(!showCheckboxes2);
+  useEffect(() => {
+    fetchStreamData();
+    fetchNtiMarkets();
+  }, [fetchStreamData, fetchNtiMarkets]);
+
+  const handleNameChange = (e) => setName(e.target.value);
+  const handleStartDateChange = (e) => setStartDate(e.target.value);
+  const handleEndDateChange = (e) => setEndDate(e.target.value);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImage(reader.result);
+      reader.readAsDataURL(file);
+      setImageFile(file);
+    } else {
+      setError('Пожалуйста, выберите файл изображения.');
+    }
   };
+
+  const handleShowCheckboxes2 = () => setShowCheckboxes2(!showCheckboxes2);
 
   const handleCheckboxChange = (id) => {
     if (selectedCheckboxes.includes(id)) {
@@ -79,67 +127,7 @@ export default function CreateStream() {
     }
   };
 
-  const handleNameChange = (e) => {
-    setName(e.target.value);
-  };
-
-  const handleStartDateChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 8) value = value.slice(0, 8);
-
-    if (value.length > 4) {
-      value = `${value.slice(0, 2)}.${value.slice(2, 4)}.${value.slice(4)}`;
-    } else if (value.length > 2) {
-      value = `${value.slice(0, 2)}.${value.slice(2)}`;
-    }
-
-    setStartDate(value);
-  };
-
-  const handleEndDateChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 8) value = value.slice(0, 8);
-
-    if (value.length > 4) {
-      value = `${value.slice(0, 2)}.${value.slice(2, 4)}.${value.slice(4)}`;
-    } else if (value.length > 2) {
-      value = `${value.slice(0, 2)}.${value.slice(2)}`;
-    }
-
-    setEndDate(value);
-  };
-
-  const isValidDate = (date) => {
-    const [day, month, year] = date.split('.').map(Number);
-
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
-    if (month < 1 || month > 12) return false;
-    if (day < 1 || day > 31) return false;
-
-    const daysInMonth = new Date(year, month, 0).getDate();
-    if (day > daysInMonth) return false;
-
-    return true;
-  };
-
-  const formatDate = (date) => {
-    const [day, month, year] = date.split('.').map(Number);
-    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-      setImageFile(file);
-    }
-  };
-
-  const handleCreateButtonClick = async () => {
+  const handleUpdateButtonClick = async () => {
     setError('');
 
     if (!name || !startDate || !endDate) {
@@ -147,28 +135,12 @@ export default function CreateStream() {
       return;
     }
 
-    if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      setError('Некорректный формат даты. Используйте формат ДД.ММ.ГГГГ.');
-      return;
-    }
-
-    const [startDay, startMonth, startYear] = startDate.split('.').map(Number);
-    const [endDay, endMonth, endYear] = endDate.split('.').map(Number);
-
-    const startDateObj = new Date(startYear, startMonth - 1, startDay);
-    const endDateObj = new Date(endYear, endMonth - 1, endDay);
-
-    if (startDateObj > endDateObj) {
-      setError('Дата начала должна быть раньше даты конца.');
-      return;
-    }
-
     const requestData = {
       name,
-      startDate: formatDate(startDate),
-      endDate: formatDate(endDate),
+      endDate,
       ntiMarketIds: selectedCheckboxes,
       description: "useless описание",
+      active: true
     };
 
     try {
@@ -178,66 +150,24 @@ export default function CreateStream() {
         return;
       }
 
-      const createStreamResponse = await fetch(`${backendHost}/api/v1/admin/stream`, {
-        method: 'POST',
+      const updateStreamResponse = await fetch(`${backendHost}/api/v1/admin/stream/${id}`, {
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(requestData),
       });
 
-      if (!createStreamResponse.ok) {
-        throw new Error('Ошибка при создании потока');
+      if (!updateStreamResponse.ok) {
+        throw new Error('Ошибка при обновлении потока');
       }
+      
 
-      const streamResult = await createStreamResponse.json();
-      console.log('Поток успешно создан:', streamResult);
-      if (!token) {
-        setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-        return;
-      }
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append('file', imageFile);
-        const uploadImageResponse = await fetch(`${backendHost}/api/v1/streams/${streamResult.id}/image`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (!uploadImageResponse.ok) {
-          throw new Error('Ошибка при загрузке изображения');
-        }
-
-        console.log('Изображение успешно загружено');
-      }
-      else {
-        const defaultImageResponse = await fetch('rabbit.png');
-        const defaultImageBlob = await defaultImageResponse.blob();
-        const formData = new FormData();
-        formData.append('file', defaultImageBlob, 'rabbit.png');
-        const uploadImageResponse = await fetch(`${backendHost}/api/v1/streams/${streamResult.id}/image`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (!uploadImageResponse.ok) {
-          throw new Error('Ошибка при загрузке изображения');
-        }
-
-        console.log('Изображение успешно загружено');
-      }
-
-      alert('Поток успешно создан!');
+      alert('Поток успешно обновлен!');
     } catch (error) {
       console.error('Ошибка:', error);
-      setError('Не удалось создать поток или загрузить изображение. Пожалуйста, попробуйте снова.');
+      setError('Не удалось обновить поток или загрузить изображение. Пожалуйста, попробуйте снова.');
     }
   };
 
@@ -245,7 +175,7 @@ export default function CreateStream() {
     <div className="create-stream">
       <div className="create-stream-cont">
         <div className="create-stream-cont-left">
-          <label className="create-stream-title">Создание потока</label>
+          <label className="create-stream-title">Редактирование потока</label>
           <div className="create-stream-row">
             <div className="create-stream-col">
               <h1 className='create-stream-h1'>Название потока:</h1>
@@ -254,21 +184,18 @@ export default function CreateStream() {
             </div>
             <div className="create-stream-col">
               <input
-                id="myInput"
                 className='create-stream-input'
                 placeholder='Текст названия'
                 value={name}
                 onChange={handleNameChange}
               />
               <input
-                id="myInput"
                 className='create-stream-input-date'
                 placeholder='__.__.____'
                 value={startDate}
                 onChange={handleStartDateChange}
               />
               <input
-                id="myInput"
                 className='create-stream-input-date'
                 placeholder='__.__.____'
                 value={endDate}
@@ -293,8 +220,8 @@ export default function CreateStream() {
               onChange={handleImageUpload}
             />
           </div>
-          <button className='create-stream-input-button' onClick={handleCreateButtonClick}>
-            Создать
+          <button className='create-stream-input-button' onClick={handleUpdateButtonClick}>
+            Обновить
           </button>
         </div>
       </div>

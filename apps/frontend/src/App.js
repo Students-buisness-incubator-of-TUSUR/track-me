@@ -11,6 +11,7 @@ import CreateStream from "./accets/create-stream-page/create-stream-page.js";
 import TrackerList from "./accets/list-trackers/TrackerList.js";
 import AdminList from "./accets/list-admins/AdminList.js"
 import LoginRecovery2 from "./accets/login-recovery-2/login-recovery.js";
+import EditStream from "./accets/redo-stream-page/redo-stream-page.js"
 
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/streams" element={<Stream />} />
         <Route path="/create-stream" element={<CreateStream />} />
+        <Route path="/edit-stream/:id" element={<EditStream />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/superadmin" element={<SuperAdminPage />} />
