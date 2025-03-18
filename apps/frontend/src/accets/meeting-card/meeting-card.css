@@ -1,116 +1,130 @@
-/* Контейнер для центрирования карточки
-.meeting-container {
+.unique-meeting-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    
     background: #ffffff; 
 }
 
-
-.meeting-card {
-    width: 900px;
-    border-radius: 40px;
+.unique-meeting-card {
+    width: 1900px;
+    height: 1100px;
+    border-radius: 70px;
     background: #c19bf5;
-    padding: 30px;
+    
     font-family: Arial, sans-serif;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     position: relative;
 }
 
-.meeting-number {
-    background: #7b52ab;
+.unique-meeting-number {
+    background: #8338EB;
+    margin-left: 100px;
+    margin-top: 95px;
     color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 18px;
-    font-weight: bold;
+    padding: 10px 100px;
+    border-radius: 70px;
+    font-size: 24px;
+    
 }
 
-.meeting-date {
+.unique-meeting-date {
+    color: white;
     background-color: #8338EB;
-    padding: 5px 10px;
-    border-radius: 8px;
-    font-size: 18px; 
+    padding: 5px 25px;
+    border-radius: 70px;
+    margin-top: 25px;
+    margin-left: -300px;
+    display: inline-block;
+    vertical-align: top;
+    white-space: nowrap;
+    font-size: 24px; 
 }
 
-
-.meeting-info {
+.unique-meeting-info {
     margin-bottom: 15px;
     font-size: 18px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
 }
 
-
-.label {
-    font-weight: bold;
-    font-size: 16px;
+.unique-label {
+    margin-left: 100px;
+    margin-top: 30px;
+    display: inline-block;
+    width: 374px;       /* фиксированная ширина для label */
+    vertical-align: top;
+    margin-right: 10px;
+    white-space: normal; 
+    font-size: 24px;
     color: #ffffff;
     margin-right: 10px;
 }
 
-
-.task {
+.unique-task {
     background: #fff;
     color: #000000;
-    padding: 12px 16px;
-    border-radius: 15px;
-    margin-top: 8px;
+    padding: 50px 550px;
+    border-radius: 70px;
+    margin-top: 35px;
+    margin-left: -20px;
     font-size: 16px;
     font-weight: bold;
     box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
     max-width: 600px;
 }
 
-.status {
+
+.unique-status {
     background: #0db862;
     color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
+    margin-top: 20px;
+    margin-left: -15px;
+    padding: 25px 150px;
+    border-radius: 70px;
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 300;
     text-align: center;
 }
 
-.screenshot {
+.unique-screenshot {
     width: 500px;
     height: 250px;
     background: #ccc;
-    border-radius: 20px;
+    border-radius: 70px;
     margin-top: 15px;
 }
 
-
-.link {
+.unique-link {
     background: #ffffff;
     color: #333;
     padding: 12px;
-    border-radius: 12px;
-    width: 400px;
+    border-radius: 70px;
+    width: 1040px;
     text-align: center;
     margin-top: 10px;
     font-size: 16px;
 }
 
-
-.edit-button {
-    background: #7b52ab;
+.unique-edit-button {
+    background: #8338EB;
     color: white;
     border: none;
+    margin-top: 35px;
+    margin-right: 140px;
     padding: 10px 20px;
-    border-radius: 15px;
+    border-radius: 70px;
     cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 20px;
+    font-weight: 700;
     transition: 0.3s ease;
     position: absolute;
     top: 20px;
     right: 20px;
 }
 
-.edit-button:hover {
+.unique-edit-button:hover {
     background: #6a4298;
     transform: scale(1.05);
-}  */
+}

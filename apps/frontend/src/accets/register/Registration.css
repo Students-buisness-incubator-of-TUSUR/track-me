@@ -80,7 +80,9 @@
 .confirm-password-input { top: 750px; left: 104px; }
 .role-select { top: 540px; left: 804px; width: 490px; height:80px; }
 
-
+.email-input, .telephone-input {
+  z-index: 10;
+}
 /* Контейнер для аватара */
 .avatar-container {
   position: absolute; /* Делаем блок независимым */
