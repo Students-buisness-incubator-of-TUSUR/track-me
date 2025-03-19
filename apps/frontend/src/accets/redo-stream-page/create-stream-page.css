@@ -96,6 +96,11 @@
   left: 22%;
   bottom: 100px;
 }
+.Stream-bb{
+  position: sticky;
+  left: 22%;
+  bottom: 100px;
+}
 .Stream-header-checkbox{
   display: flex;
   align-items: center;
@@ -150,3 +155,18 @@
 #image-upload {
   display: none; /* Скрываем input */
 }
+.Stream-header-chosefrom-buttw
+{    
+  display: flex;
+      flex-direction: column;
+      margin-right: 39px;
+      width: 268px;
+      height: min-content;
+      border-radius: 31px;
+      background-color: #CDAFF7;
+      opacity: 100;
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      font-size: 13px;
+      border: none;
+      justify-content: space-between;
+      box-sizing: border-box;}

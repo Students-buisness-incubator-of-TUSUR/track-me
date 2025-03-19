@@ -46,7 +46,7 @@ export default function Stream() {
       return;
     }
     try {
-      const response = await fetch(`${backendHost}/api/v1/admin/streams?page=${page}&size=9`, {
+      const response = await fetch(`${backendHost}/api/v1/admin/streams?page=${page}&size=6`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
@@ -312,7 +312,7 @@ export default function Stream() {
     fetchData(newFilters); // Выполняем запрос с новыми фильтрами
   };
 
-  const visibleCards = cardd.slice(visibleCardsStart, visibleCardsStart + 9);
+  const visibleCards = cardd.slice(visibleCardsStart, visibleCardsStart + 6);
 
   const checkboxesData = Array.from({ length: numberOfCheckboxes }, (_, index) => ({
     id: `checkbox-${index + 1}`,
@@ -386,7 +386,7 @@ export default function Stream() {
       <header className="Stream-header">
         <div className="Stream-header-cont">
         <div className='Stream-header-logo'/> 
-          <h1 className="Stream-title">Track Me</h1>
+          <h1 className="Stream-title">TrackMe</h1>
 
           <div className="Stream-buttons">
             <Link to="/list-admins"><button className="Stream-butt">Администраторы</button></Link>

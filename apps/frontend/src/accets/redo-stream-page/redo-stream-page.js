@@ -1,22 +1,51 @@
-import React, { useState, useEffect,useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './create-stream-page.css';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom'; // Для получения ID потока из URL
 
 export default function EditStream() {
-  const { id } = useParams();
+  const { id } = useParams(); // Получаем ID потока из URL
+  console.log(id);
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showCheckboxes2, setShowCheckboxes2] = useState(false);
   const [error, setError] = useState(null);
-  const [checkboxesData2, setCheckboxesData2] = useState([]);
-  const [selectedCheckboxes, setSelectedCheckboxes] = useState([]);
-    const [image, setImage] = useState(null);
-    // eslint-disable-next-line
-    const [imageFile, setImageFile] = useState(null);
+  const [checkboxesData2, setCheckboxesData2] = useState([]); // Все рынки НТИ
+  const [selectedCheckboxes, setSelectedCheckboxes] = useState([]); // Выбранные рынки НТИ
+  const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   const checkboxesRef = useRef(null);
+  // Функция для загрузки изображения потока
+  const fetchStreamImage = useCallback(async (streamId) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
+      return null;
+    }
+    try {
+      const response = await fetch(`${backendHost}/api/v1/streams/${streamId}/image`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
+      if (!response.ok) {
+        // Если изображение отсутствует, возвращаем null
+        return null;
+      }
+
+      const imageBlob = await response.blob();
+      const imageUrl = URL.createObjectURL(imageBlob);
+      return imageUrl;
+    } catch (error) {
+      console.error('Ошибка при загрузке изображения:', error);
+      return null;
+    }
+  }, [backendHost]);
+
+  // Загрузка данных потока
   const fetchStreamData = useCallback(async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -36,20 +65,42 @@ export default function EditStream() {
       }
 
       const result = await response.json();
-      setName(result.name);
-      setStartDate(new Date(result.startDate).toISOString().split('T')[0]);
-      setEndDate(new Date(result.endDate).toISOString().split('T')[0]);
+      console.log('Данные потока:', result); // Отладка
 
+      // Обновляем состояние
+      setName(result.name);
+      setStartDate(result.startDate.split('T')[0]);
+      setEndDate(result.endDate.split('T')[0]);
+
+      // Обновляем выбранные рынки НТИ
       if (result.ntiMarkets && result.ntiMarkets.length > 0) {
         const selectedMarketIds = result.ntiMarkets.map((market) => market.id);
         setSelectedCheckboxes(selectedMarketIds);
+      }
+
+      // Загружаем изображение потока, если оно есть
+      const imageUrl = await fetchStreamImage(id);
+      if (imageUrl) {
+        setImage(imageUrl);
       }
     } catch (error) {
       console.error('Ошибка при загрузке данных потока:', error);
       setError('Не удалось загрузить данные потока.');
     }
-  }, [backendHost, id]);
+  }, [backendHost, id, fetchStreamImage]);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (checkboxesRef.current && !checkboxesRef.current.contains(event.target)) {
+        setShowCheckboxes2(false);
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  // Загрузка всех рынков НТИ
   const fetchNtiMarkets = useCallback(async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -69,9 +120,12 @@ export default function EditStream() {
       }
 
       const result = await response.json();
+      console.log('Рынки НТИ:', result); // Отладка
+
+      // Форматируем данные для чекбоксов
       const formattedMarkets = result.map((market) => ({
         id: market.id,
-        name: market.displayName,
+        name: market.displayName, // Используем displayName для отображения
       }));
       setCheckboxesData2(formattedMarkets);
     } catch (error) {
@@ -79,41 +133,40 @@ export default function EditStream() {
       setError('Не удалось загрузить рынки НТИ.');
     }
   }, [backendHost]);
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (checkboxesRef.current && !checkboxesRef.current.contains(event.target)) {
-        setShowCheckboxes2(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   useEffect(() => {
     fetchStreamData();
     fetchNtiMarkets();
   }, [fetchStreamData, fetchNtiMarkets]);
 
-  const handleNameChange = (e) => setName(e.target.value);
-  const handleStartDateChange = (e) => setStartDate(e.target.value);
-  const handleEndDateChange = (e) => setEndDate(e.target.value);
+  // Обработчики изменений
+  const handleNameChange = (e) => {
+    setName(e.target.value);
+  };
+
+  const handleStartDateChange = (e) => {
+    setStartDate(e.target.value);
+  };
+
+  const handleEndDateChange = (e) => {
+    setEndDate(e.target.value);
+  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
+    if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setImage(reader.result);
+      reader.onloadend = () => {
+        setImage(reader.result);
+      };
       reader.readAsDataURL(file);
       setImageFile(file);
-    } else {
-      setError('Пожалуйста, выберите файл изображения.');
     }
   };
 
-  const handleShowCheckboxes2 = () => setShowCheckboxes2(!showCheckboxes2);
+  const handleShowCheckboxes2 = () => {
+    setShowCheckboxes2(!showCheckboxes2);
+  };
 
   const handleCheckboxChange = (id) => {
     if (selectedCheckboxes.includes(id)) {
@@ -127,6 +180,7 @@ export default function EditStream() {
     }
   };
 
+  // Обновление потока
   const handleUpdateButtonClick = async () => {
     setError('');
 
@@ -137,10 +191,10 @@ export default function EditStream() {
 
     const requestData = {
       name,
+      startDate,
       endDate,
       ntiMarketIds: selectedCheckboxes,
       description: "useless описание",
-      active: true
     };
 
     try {
@@ -153,7 +207,7 @@ export default function EditStream() {
       const updateStreamResponse = await fetch(`${backendHost}/api/v1/admin/stream/${id}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(requestData),
@@ -162,7 +216,24 @@ export default function EditStream() {
       if (!updateStreamResponse.ok) {
         throw new Error('Ошибка при обновлении потока');
       }
-      
+
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        const uploadImageResponse = await fetch(`${backendHost}/api/v1/streams/${id}/image`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (!uploadImageResponse.ok) {
+          throw new Error('Ошибка при загрузке изображения');
+        }
+
+        console.log('Изображение успешно загружено');
+      }
 
       alert('Поток успешно обновлен!');
     } catch (error) {
@@ -202,30 +273,8 @@ export default function EditStream() {
                 onChange={handleEndDateChange}
               />
             </div>
-          </div>
-          {error && <p className="create-stream-error-message">{error}</p>}
-        </div>
-        <div className="create-stream-cont-right">
-          <div className="create-stream-input-pic" onClick={() => document.getElementById('image-upload').click()}>
-            {image ? (
-              <img src={image} alt="Uploaded" className="create-stream-uploaded-image" />
-            ) : (
-              <div className="create-stream-input-pic-placeholder"></div>
-            )}
-            <input
-              type="file"
-              id="image-upload"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleImageUpload}
-            />
-          </div>
-          <button className='create-stream-input-button' onClick={handleUpdateButtonClick}>
-            Обновить
-          </button>
-        </div>
-      </div>
-      <div className="Stream-b Stream-header-chosefrom-buttw">
+            </div>
+            <div className="Stream-bb Stream-header-chosefrom-buttw">
         <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
           <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes2}>
             <b className="Stream-header-chosefrom-butt-label">Рынок</b>
@@ -249,7 +298,31 @@ export default function EditStream() {
             </div>
           )}
         </div>
+
+          </div>
+          {error && <p className="create-stream-error-message">{error}</p>}
+        </div>
+        <div className="create-stream-cont-right">
+          <div className="create-stream-input-pic" onClick={() => document.getElementById('image-upload').click()}>
+            {image ? (
+              <img src={image} alt="Uploaded" className="create-stream-uploaded-image" />
+            ) : (
+              <div className="create-stream-input-pic-placeholder"></div>
+            )}
+            <input
+              type="file"
+              id="image-upload"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageUpload}
+            />
+          </div>
+          <button className='create-stream-input-button' onClick={handleUpdateButtonClick}>
+            Обновить
+          </button>
+        </div>
       </div>
+
     </div>
   );
 }

@@ -1,4 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+
 body{
+  font-family: 'Montserrat', monospace;
   margin: 0;
 }
 
@@ -296,11 +300,11 @@ body{
   border-width: 1px;
   border-style: groove;
   border-radius: 80px;
-  height: 20em;
+  height: 27em;
   width: 498px;
   margin-bottom: 71px;
   box-shadow: 8px 10px 8px rgba(122, 0, 229, 0.39);
-}
+  text-decoration: none;}
 .Stream-card-pic{
   margin-top: 10px;
   display: flex;
@@ -479,4 +483,6 @@ position: relative;
 }
 .Stream-edit-link{
   align-self: center; 
+  margin: 5px;
+  text-decoration:none;
 }
