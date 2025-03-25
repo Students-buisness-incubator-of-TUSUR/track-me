@@ -19,4 +19,6 @@ public interface UserTeamCardsUseCase {
   TeamCardDto getTeamCard(UUID id);
 
   void deleteTeamCard(UUID id);
+
+  Integer getTeamCardCount(UUID streamId);
 }

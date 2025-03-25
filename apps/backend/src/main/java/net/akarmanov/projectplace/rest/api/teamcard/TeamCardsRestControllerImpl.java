@@ -43,6 +43,12 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
   }
 
   @Override
+  public ResponseEntity<Integer> getTeamCardCount(UUID streamId) {
+    var count = userTeamCardsUseCase.getTeamCardCount(streamId);
+    return ResponseEntity.ok(count);
+  }
+
+  @Override
   public ResponseEntity<Void> deleteTeamCard(UUID id) {
     userTeamCardsUseCase.deleteTeamCard(id);
     return ResponseEntity.noContent().build();
