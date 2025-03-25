@@ -82,8 +82,6 @@ jobs:
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
             echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
             docker compose -f docker-compose.prod.yml down
-            docker rmi ghcr.io/${{ github.repository }}/backend:latest
-            docker rmi ghcr.io/${{ github.repository }}/frontend:latest
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             cd /home/vmv94/gateway/

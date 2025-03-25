@@ -35,8 +35,6 @@ jobs:
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env.backend
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env.backend
             echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env.backend
-            docker compose -f docker-compose.sbi.yml down
-            docker rmi ghcr.io/akarmanov2022/track-me/backend:latest
-            docker rmi ghcr.io/akarmanov2022/track-me/frontend:latest
+            docker compose -f docker-compose.sbi.yml down --rmi 
             docker compose -f docker-compose.sbi.yml pull
             docker compose -f docker-compose.sbi.yml up -d
