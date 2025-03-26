@@ -24,17 +24,17 @@ jobs:
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
             cd /home/${{ secrets.SBI_SSH_USERNAME }}/track-me
-            rm -rf .env.backend
+            rm -rf .env
             rm -rf .env.local
             echo "REACT_APP_BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" > .env.local
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.backend
-            echo "FRONTEND_HOST=${{ secrets.FRONTEND_HOST }}" >> .env.backend
-            echo "BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" >> .env.backend
-            echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env.backend
-            echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env.backend
-            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env.backend
-            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env.backend
-            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env.backend
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "FRONTEND_HOST=${{ secrets.FRONTEND_HOST }}" >> .env
+            echo "BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" >> .env
+            echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
+            echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
+            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
             docker compose -f docker-compose.sbi.yml down
             docker compose -f docker-compose.sbi.yml pull
             docker compose -f docker-compose.sbi.yml up -d

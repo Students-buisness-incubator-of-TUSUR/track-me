@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env.backend
+      - .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - backend_data:/usr/src/app
@@ -23,21 +23,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - frontend_data:/usr/src/app
 
-  db:
-    image: postgres:latest
-    container_name: track-me-db
-    environment:
-      POSTGRES_DB: project-place
-      POSTGRES_USER: project-place
-      POSTGRES_PASSWORD: project-place
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
 volumes:
-  postgres_data:
-    driver: local
   frontend_data:
     driver: local
   backend_data:
