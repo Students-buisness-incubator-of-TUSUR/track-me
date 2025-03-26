@@ -13,6 +13,14 @@ spring:
     url: jdbc:postgresql://localhost:5432/project-place-test
     username: postgres
     password: postgres
+    hikari:
+      schema: public
+      pool-name: project-place-test
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 60000
+      connection-timeout: 30000
+      max-lifetime: 1800000
   jpa:
     show-sql: true
     hibernate:
@@ -21,6 +29,7 @@ spring:
 
   liquibase:
     enabled: true
+    default-schema: public
 
 app:
   acl:
