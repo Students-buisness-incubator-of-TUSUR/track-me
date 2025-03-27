@@ -1,5 +1,12 @@
 name: Restrict Changes
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  pull-requests: write
+  security-events: write
+
 on:
   pull_request:
     paths-ignore:

@@ -1,4 +1,10 @@
 name: Build and Push Docker Images
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  pull-requests: write
+  security-events: write
 
 on:
   push:
@@ -51,7 +57,7 @@ jobs:
             ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-  deploy-on-stage:
+  deploy-on-dev:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:

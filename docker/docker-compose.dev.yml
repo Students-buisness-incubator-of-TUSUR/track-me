@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=project-place'
+      - 'POSTGRES_PASSWORD=project-place'
+      - 'POSTGRES_USER=project-place'
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - demo
+
+  backend:
+    container_name: track-me-backend
+    image: ghcr.io/akarmanov2022/track-me/backend:latest
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    environment:
+      #      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      DB_URL: jdbc:postgresql://postgres:5432/project-place
+      DB_USERNAME: project-place
+      DB_PASSWORD: project-place
+    ports:
+      - '8080:8080'
+    expose:
+      - '8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - demo
+
+  frontend:
+    container_name: track-me-frontend
+    image: ghcr.io/akarmanov2022/track-me/frontend:latest
+    restart: always
+    env_file:
+      - .env.local
+    depends_on:
+      - backend
+    ports:
+      - '3001:3000'
+    expose:
+      - '3001'
+    networks:
+      - demo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  postgres_data:
+
+networks:
+  demo:
+    driver: bridge
+    external: true

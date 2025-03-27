@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import net.akarmanov.projectplace.domain.User;
 import net.akarmanov.projectplace.domain.UserPhoto;
-import net.akarmanov.projectplace.mapping.UserPhotoMapper;
 import net.akarmanov.projectplace.repos.UserPhotoRepository;
 import net.akarmanov.projectplace.repos.UserRepository;
 import net.akarmanov.projectplace.services.exceptions.PhotoNotFoundException;
@@ -20,8 +19,6 @@ class UserPhotoServiceImpl implements UserPhotoService {
   private final UserPhotoRepository userPhotoRepository;
 
   private final UserRepository userRepository;
-
-  private final UserPhotoMapper userPhotoMapper;
 
   @SneakyThrows
   @Override
