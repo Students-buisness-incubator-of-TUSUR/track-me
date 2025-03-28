@@ -22,9 +22,9 @@ services:
       - postgres
     environment:
       #      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      DB_URL: jdbc:postgresql://postgres:5432/project-place
-      DB_USERNAME: project-place
-      DB_PASSWORD: project-place
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project-place
+      SPRING_DATASOURCE_USERNAME: project-place
+      SPRING_DATASOURCE_PASSWORD: project-place
     ports:
       - '8080:8080'
     expose:

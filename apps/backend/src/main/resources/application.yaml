@@ -20,7 +20,7 @@ spring:
     username: ${DB_USERNAME:project-place}
     url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
     hikari:
-      schema: ${DB_SCHEMA}
+      schema: ${DB_SCHEMA:public}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -33,7 +33,7 @@ spring:
         id:
           new_generator_mappings: true
   liquibase:
-    default-schema: ${DB_SCHEMA}
+    default-schema: ${DB_SCHEMA:public}
 error:
   handling:
     http-status-in-json-response: true

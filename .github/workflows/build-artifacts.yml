@@ -79,7 +79,7 @@ jobs:
             rm -rf .env
             rm -rf .env.local
             echo "REACT_APP_BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" > .env.local
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" > .env
             echo "FRONTEND_HOST=${{ secrets.FRONTEND_HOST }}" >> .env
             echo "BACKEND_HOST=${{ secrets.API_V1_BASE_URL }}" >> .env
             echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
@@ -90,5 +90,12 @@ jobs:
             docker compose -f docker-compose.prod.yml down
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
+      - name: Nginx Restart
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
             cd /home/vmv94/gateway/
             make restart
