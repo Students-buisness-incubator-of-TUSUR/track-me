@@ -302,6 +302,7 @@ body{
   border-radius: 80px;
   height: 27em;
   width: 498px;
+  min-width: 33em;
   margin-bottom: 71px;
   box-shadow: 8px 10px 8px rgba(122, 0, 229, 0.39);
   text-decoration: none;}

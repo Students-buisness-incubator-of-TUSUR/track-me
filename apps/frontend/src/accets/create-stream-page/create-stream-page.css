@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
+/* font-family: "Mulish", sans-serif; */
 .create-stream{
   box-sizing: border-box;
   min-height: 100%;
@@ -55,16 +57,24 @@
   display: flex;
   flex-direction: column;
   justify-content: stretch;
+  font-weight: 600;
+  font-size: 32px;
+  text-wrap: unset;
 }
 .create-stream-title{
+  font-family: "Mulish", sans-serif;
   text-wrap: 100;
   margin-left: 90px;
   margin-bottom: 29px;
-  font-weight: 400;
+  font-weight: 600;
   font-size: 64px;
   color: rgba(131, 56, 235, 1);
 }
 .create-stream-h1{
+  
+   white-space: nowrap; 
+  min-height: 80px;
+  font-family: "Mulish", sans-serif;
   margin-block-start: 0.67em;
   margin-block-end: 0.67em;
   font-weight: 600;
@@ -73,6 +83,7 @@
 }
 .create-stream-input-date,
 .create-stream-input{
+  margin-left: -50px;
   text-align:center;
   align-self: center;
   min-width: 217px;
@@ -87,12 +98,11 @@
   margin-block-end: 0.67em;
   
 }
-.create-stream-input-date::placeholder,
-.create-stream-input::placeholder{
-  text-align-last: center;
-  color: #ccc;
-  left: 50%;
+.create-stream-input-date:focus::placeholder,
+.create-stream-input:focus::placeholder {
+  color: transparent;
 }
+
 .Stream-b{
   position: relative;
   left: 22%;

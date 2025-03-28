@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './create-stream-page.css';
-import { useParams } from 'react-router-dom'; // Для получения ID потока из URL
+import { useParams } from 'react-router-dom'; 
+import { useNavigate } from "react-router-dom";
 
 export default function EditStream() {
   const { id } = useParams(); // Получаем ID потока из URL
   console.log(id);
   const [name, setName] = useState('');
+    const navigate = useNavigate();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showCheckboxes2, setShowCheckboxes2] = useState(false);
@@ -234,8 +236,9 @@ export default function EditStream() {
 
         console.log('Изображение успешно загружено');
       }
-
+      navigate("/streams");
       alert('Поток успешно обновлен!');
+
     } catch (error) {
       console.error('Ошибка:', error);
       setError('Не удалось обновить поток или загрузить изображение. Пожалуйста, попробуйте снова.');

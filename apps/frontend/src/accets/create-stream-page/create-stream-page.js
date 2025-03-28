@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './create-stream-page.css';
-
+import { useNavigate } from "react-router-dom";
 export default function CreateStream() {
   const [name, setName] = useState('');
+  const navigate = useNavigate(); 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showCheckboxes2, setShowCheckboxes2] = useState(false);
@@ -235,6 +236,7 @@ export default function CreateStream() {
       }
 
       alert('Поток успешно создан!');
+      navigate("/streams");
     } catch (error) {
       console.error('Ошибка:', error);
       setError('Не удалось создать поток или загрузить изображение. Пожалуйста, попробуйте снова.');
