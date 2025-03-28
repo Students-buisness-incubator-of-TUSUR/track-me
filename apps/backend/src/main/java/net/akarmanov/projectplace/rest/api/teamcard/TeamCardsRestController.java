@@ -66,6 +66,13 @@ public interface TeamCardsRestController {
       @RequestParam
       UUID id);
 
+  @GetMapping(value = "team-card/count")
+  @Operation(summary = "Получение количества карточек команды по потоку")
+  ResponseEntity<Integer> getTeamCardCount(
+      @Parameter(description = "Идентификатор потока, к которому относится карточка команды")
+      @RequestParam
+      UUID streamId);
+
   @DeleteMapping(value = "team-card")
   @Operation(summary = "Удаление карточки команды")
   ResponseEntity<Void> deleteTeamCard(

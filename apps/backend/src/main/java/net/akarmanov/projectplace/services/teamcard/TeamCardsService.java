@@ -29,4 +29,6 @@ public interface TeamCardsService {
   void deleteTeamCard(UUID id, UUID userId);
 
   TeamCard createTeamCard(TeamCard teamCard, UUID streamId, UUID userId);
+
+  Integer getTeamCardCount(UUID streamId);
 }

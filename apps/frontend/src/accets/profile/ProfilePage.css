@@ -169,22 +169,22 @@
 }
 
 .home-button {
-  width: 223px;
-  height: 49px;
-  position: absolute;
-  top: 15px;
-  left: 1658px;
-  border-radius: 40px;
-  border: 2px solid #44069A; 
-  background-color: #8338EA; 
-  color: #FFFFFF; 
-  font-size: 20px; 
-  font-weight: 700; 
+  position: absolute;  
+  bottom: 55px;       
+  right: 92px;       
+  width: 440px;
+  height: 70px;
+  background-color: #ffffff;
+  color: #8338EB;
+  border: none;
+  font-weight: 700;
+  font-size: 24px;
+  border-radius: 70px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none; 
+  text-decoration: none;
 }
 
 .error-message42 {

@@ -81,4 +81,9 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
   public void deleteTeamCard(UUID id) {
     teamCardsService.deleteTeamCard(id);
   }
+
+  @Override
+  public Integer getTeamCardCount(UUID streamId) {
+    return teamCardsService.getTeamCardCount(streamId);
+  }
 }

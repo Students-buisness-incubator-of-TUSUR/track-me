@@ -593,4 +593,30 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .andDo(print())
         .andExpect(status().isNotFound());
   }
+
+  @Test
+  @WithMockUser(value = "test_tracker",
+                roles = "TRACKER")
+  void getTeamCardCount_success() throws Exception {
+    var stream = streamRepository.findAll().getFirst();
+    mockMvc.perform(post("/api/v1/team-card")
+            .param("streamId", stream.getId().toString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "name": "Test",
+                  "description": "Test description",
+                  "ntiMarketId": "%s",
+                  "readinessLevel": "0-2"
+                }
+                """.formatted(ntiMarket.getId())))
+        .andDo(print())
+        .andExpect(status().isOk());
+
+    mockMvc.perform(get("/api/v1/team-card/count")
+            .param("streamId", stream.getId().toString()))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", is(1)));
+  }
 }

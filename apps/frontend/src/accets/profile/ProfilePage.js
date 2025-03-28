@@ -409,11 +409,11 @@ function ProfilePage() {
             Сохранить
           </button>
         )}
-      </div>
 
-      <button className="home-button" onClick={handleHomeButtonClick}>
+        <button className="home-button" onClick={handleHomeButtonClick}>
           Главная страница
         </button>
+      </div>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.UUID;
 
 @Service
@@ -131,6 +132,11 @@ public class DomainTeamCardsService implements TeamCardsService {
       teamCard.addStream(stream);
     }
     return createTeamCard(teamCard, userId);
+  }
+
+  @Override
+  public Integer getTeamCardCount(UUID streamId) {
+    return teamCardsRepository.countByStreamsIdIn(Collections.singletonList(streamId));
   }
 
   private TeamCard get(UUID teamCardId, UUID userId) {
