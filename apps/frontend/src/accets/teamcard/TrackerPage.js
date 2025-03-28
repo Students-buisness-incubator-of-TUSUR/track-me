@@ -298,12 +298,15 @@ function TrackerPage() {
     <div className="tracker-container">
       <header className="Stream-header">
         <div className="Stream-header-cont">
-          <h1 className="Stream-title">
-            {streamName ? streamName : "Название потока не получено"}
-          </h1>
-          <h1 className="Stream-title2">
-            {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate: "Название потока не получено"}
-          </h1>
+          <div className="Stream-header-cont-cont">          
+              <h1 className="Stream-title11">
+              {streamName ? streamName : "Название потока не получено"}
+            </h1>
+            <h1 className="Stream-title11">
+              {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate: "Название потока не получено"}
+            </h1>
+          </div>
+
           <div className="Stream-buttons">
             <Link to="/profile" className="Stream-pic"></Link>
           </div>

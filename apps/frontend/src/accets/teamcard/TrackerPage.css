@@ -7,9 +7,21 @@
     
   }
   
-  
-  
-  
+ .Stream-header-cont-cont{
+  display: flex;
+ } 
+.Stream-title11{
+  color: white;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  margin-top: 8px;
+  align-self: center;
+  margin-left: 140px;
+  font-size: 40px;
+  font-weight: 400;
+  margin: 0;
+  margin-left: 100px ;
+}  
+
   
   .tracker-search button {
     background-color: #a259ff;
