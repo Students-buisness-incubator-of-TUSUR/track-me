@@ -10,6 +10,10 @@ permissions:
 on:
   pull_request:
     branches: [ develop ]
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 jobs:
   backend-check:
@@ -30,13 +34,16 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build and Test Backend
         run: |
-          ./gradlew build jacocoTestReport sonar \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }} \
-            -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} \
+          ./gradlew build jacocoTestReport
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
+        with:
+          args: >
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.language=java
 
   frontend-check:
     runs-on: ubuntu-latest
