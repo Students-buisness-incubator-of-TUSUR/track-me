@@ -1,0 +1,22 @@
+spring:
+  security:
+    user:
+      name: superadmin
+      password: superadmin
+      roles: SUPERADMIN
+    oauth2:
+      authorizationserver:
+        client:
+          api-gateway-client:
+            registration:
+              client-id: api-gateway-client
+              client-secret: api-gateway-client-secret
+              client-authentication-methods:
+                - client_secret_jwt
+              authorization-grant-types:
+                - authorization_code
+                - client_credentials
+              redirect-uris:
+                - http://localhost:8080/login/oauth2/code/api-gateway-client
+server:
+  port: 9000

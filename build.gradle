@@ -1,13 +1,11 @@
 plugins {
-    id 'java'
-    id 'war'
     id 'jacoco'
     id 'org.sonarqube' version '4.0.0.2929'
 }
 
 subprojects {
-    apply plugin: 'war'
     apply plugin: 'java'
+    apply plugin: 'war'
     apply plugin: 'jacoco'
     apply plugin: 'org.sonarqube'
 
