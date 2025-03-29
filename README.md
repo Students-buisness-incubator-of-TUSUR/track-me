@@ -1,8 +1,9 @@
 # Track Me
 
-[![Build and Push Docker Images](https://github.com/akarmanov2022/track-me/actions/workflows/build-artifacts.yml/badge.svg)](https://github.com/akarmanov2022/track-me/actions/workflows/build-artifacts.yml)
+[![Build and Push Docker Images](https://github.com/akarmanov2022/track-me/actions/workflows/build-artifacts.yml/badge.svg)](https://github.com/akarmanov2022/track-me/actions/workflows/build-artifacts.yml) [![Deploy on SBI](https://github.com/akarmanov2022/track-me/actions/workflows/deploy-on-sbi.yml/badge.svg)](https://github.com/akarmanov2022/track-me/actions/workflows/deploy-on-sbi.yml)
 
-[![Deploy on SBI](https://github.com/akarmanov2022/track-me/actions/workflows/deploy-on-sbi.yml/badge.svg)](https://github.com/akarmanov2022/track-me/actions/workflows/deploy-on-sbi.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=akarmanov2022_track-me&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=akarmanov2022_track-me)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=akarmanov2022_track-me&metric=coverage)](https://sonarcloud.io/summary/new_code?id=akarmanov2022_track-me)
 
 Онлайн-сервис для автоматизации и мониторинга работы проектных команд (стартапов и стартап-проектов) и их кураторов (трекеров) в рамках университетских акселерационных программ.
 

@@ -1,9 +1,12 @@
 plugins {
+    id 'java'
+    id 'war'
     id 'jacoco'
     id 'org.sonarqube' version '4.0.0.2929'
 }
 
 subprojects {
+    apply plugin: 'war'
     apply plugin: 'java'
     apply plugin: 'jacoco'
     apply plugin: 'org.sonarqube'
@@ -13,6 +16,12 @@ subprojects {
 
     repositories {
         mavenCentral()
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
     }
 
     test {
