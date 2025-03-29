@@ -43,8 +43,6 @@ jobs:
           args: >
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.language=java
 
   frontend-check:
     runs-on: ubuntu-latest
