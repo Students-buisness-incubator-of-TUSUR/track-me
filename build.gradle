@@ -1,14 +1,7 @@
 plugins {
     id 'java'
-}
-
-allprojects {
-    group = 'net.akarmanov.projectplace'
-    version = '0.0.2-SNAPSHOT'
-
-    repositories {
-        mavenCentral()
-    }
+    id 'jacoco'
+    id 'org.sonarqube' version '4.0.0.2929'
 }
 
 java {
@@ -19,6 +12,11 @@ java {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'jacoco'
+    apply plugin: 'org.sonarqube'
+
+    group = 'net.akarmanov.projectplace'
+    version = '0.0.2-SNAPSHOT'
 
     repositories {
         mavenCentral()
@@ -26,5 +24,10 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        finalizedBy jacocoTestReport
+    }
+
+    jacocoTestReport {
+        dependsOn test
     }
 }
