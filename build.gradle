@@ -27,4 +27,11 @@ subprojects {
             html.required = true
         }
     }
+
+    sonar {
+        properties {
+            property "sonar.language", "java"
+            property "sonar.sourceEncoding", "UTF-8"
+        }
+    }
 }
