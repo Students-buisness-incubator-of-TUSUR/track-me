@@ -29,8 +29,15 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build and Test Backend
+        with:
+          args:
+            -PjacocoReportDir=build/reports/jacoco/test
+            -Psonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Psonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Psonar.host.url=https://sonarcloud.io
+            -Psonar.login=${{ secrets.SONAR_TOKEN }}
         run: |
-          ./gradlew build
+          ./gradlew build jacocoTestReport sonar
 
   frontend-check:
     runs-on: ubuntu-latest
