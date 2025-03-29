@@ -31,6 +31,11 @@ jobs:
       - name: Build and Test Backend
         run: |
           ./gradlew build jacocoTestReport
+      - name: SonarCloud Scan
+        run: |
+          ./gradlew sonarqube -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   frontend-check:
     runs-on: ubuntu-latest
@@ -49,18 +54,3 @@ jobs:
       - name: Test frontend
         run: npm run test
         working-directory: apps/frontend
-
-  sonar-checks:
-    needs: [ backend-check, frontend-check ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Analyze with SonarCloud
-
-        uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
-        with:
-          args:
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} # mandatory, default is the name of the project
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} # mandatory, default is the name of the organization
-          projectBaseDir: .
