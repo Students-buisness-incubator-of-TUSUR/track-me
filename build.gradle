@@ -6,6 +6,7 @@ plugins {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
+    apply plugin: 'org.sonarqube'
 
     group = 'net.akarmanov.projectplace'
     version = '0.0.2-SNAPSHOT'
