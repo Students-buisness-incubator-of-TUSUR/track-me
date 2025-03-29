@@ -1,4 +1,6 @@
 rootProject.name = 'track-me'
 
-include 'apps:backend'
+
+include ':backend'
+project(':backend').projectDir = file('apps/backend')
 
