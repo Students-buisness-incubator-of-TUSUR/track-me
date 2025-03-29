@@ -1,18 +1,11 @@
 plugins {
-    id 'java'
     id 'jacoco'
     id 'org.sonarqube' version '4.0.0.2929'
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
 subprojects {
+    apply plugin: 'java'
     apply plugin: 'jacoco'
-    apply plugin: 'org.sonarqube'
 
     group = 'net.akarmanov.projectplace'
     version = '0.0.2-SNAPSHOT'
