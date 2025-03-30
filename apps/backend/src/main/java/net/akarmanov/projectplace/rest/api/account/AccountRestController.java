@@ -3,6 +3,7 @@ package net.akarmanov.projectplace.rest.api.account;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import net.akarmanov.projectplace.rest.api.dto.UserCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;
 import net.akarmanov.projectplace.rest.api.dto.UserUpdateDTO;
 import org.springframework.http.MediaType;
@@ -33,4 +34,8 @@ public interface AccountRestController {
   @Operation(summary = "Изменение пароля текущего пользователя")
   ResponseEntity<Void> changePassword(@RequestParam String oldPassword,
                                       @RequestParam String newPassword);
+
+  @PostMapping("/register")
+  @Operation(summary = "Создание нового пользователя")
+  ResponseEntity<Void> registerUser(@RequestBody @Valid UserCreateDto userDto);
 }

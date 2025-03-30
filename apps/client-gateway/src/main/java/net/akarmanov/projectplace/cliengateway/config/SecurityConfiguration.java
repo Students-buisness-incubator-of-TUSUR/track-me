@@ -16,7 +16,7 @@ public class SecurityConfiguration {
   @Bean
   SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
     http
-        .csrf(Customizer.withDefaults())
+        .csrf(ServerHttpSecurity.CsrfSpec::disable)
         .cors(corsSpec -> corsSpec.configurationSource(request -> {
           var corsConfiguration = new CorsConfiguration();
           corsConfiguration.setAllowedOriginPatterns(List.of("*"));

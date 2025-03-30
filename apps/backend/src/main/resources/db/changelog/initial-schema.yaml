@@ -474,3 +474,37 @@ databaseChangeLog:
             referencedColumnNames: id
             constraintName: fk_password_reset_token_user
 
+  - changeSet:
+      id: project-place-15
+      author: akarmanov
+      changes:
+        - addColumn:
+            tableName: pp_user
+            columns:
+              - column:
+                  name: account_non_expired
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+                  defaultValueBoolean: true
+              - column:
+                  name: credentials_non_expired
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+                  defaultValueBoolean: true
+
+  - changeSet:
+      id: groups-initial
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                tableName: groups
+      changes:
+        - sqlFile:
+            path: sql/initial-groups.sql
+            dbms: postgresql
+            relativeToChangelogFile: true
+

@@ -1,6 +1,7 @@
 package net.akarmanov.projectplace.rest.api.account;
 
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.rest.api.dto.UserCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;
 import net.akarmanov.projectplace.rest.api.dto.UserUpdateDTO;
 import net.akarmanov.projectplace.services.user.AccountService;
@@ -28,6 +29,12 @@ public class AccountRestControllerImpl implements AccountRestController {
   @Override
   public ResponseEntity<Void> changePassword(String oldPassword, String newPassword) {
     accountService.changePassword(oldPassword, newPassword);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> registerUser(UserCreateDto userDto) {
+    accountService.registerUser(userDto);
     return ResponseEntity.noContent().build();
   }
 }
