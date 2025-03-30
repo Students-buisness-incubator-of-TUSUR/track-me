@@ -6,7 +6,7 @@ import net.akarmanov.projectplace.domain.User;
 import net.akarmanov.projectplace.models.UserRole;
 import net.akarmanov.projectplace.repos.UserRepository;
 import net.akarmanov.projectplace.rest.api.dto.SingInRequest;
-import net.akarmanov.projectplace.rest.api.dto.SingUpRequest;
+import net.akarmanov.projectplace.rest.api.dto.UserCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.UserRoleDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,7 +97,7 @@ class AuthRestControllerTest extends BaseApplicationTest {
 
   @Test
   void testSignUp_success() throws Exception {
-    var signUp = SingUpRequest.builder()
+    var signUp = UserCreateDto.builder()
         .password("newPassword")
         .phoneNumber("+71234567891")
         .telegramId("newTelegramId")
@@ -114,7 +114,7 @@ class AuthRestControllerTest extends BaseApplicationTest {
 
   @Test
   void testSignUp_failure() throws Exception {
-    var signUp = SingUpRequest.builder()
+    var signUp = UserCreateDto.builder()
         .password(PASSWORD)
         .phoneNumber("+71234567892")
         .role(UserRoleDto.ADMIN)

@@ -3,6 +3,9 @@ rootProject.name = 'track-me'
 include ':backend'
 project(':backend').projectDir = file('apps/backend')
 
+include ':client-gateway'
+project(':client-gateway').projectDir = file('apps/client-gateway')
+
 include ':auth-service'
 project(':auth-service').projectDir = file('services/auth-service')
 

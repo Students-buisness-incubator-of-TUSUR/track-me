@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 @Builder
 @Schema(description = "Запрос на регистрацию.")
-public class SingUpRequest {
+public class UserCreateDto {
 
   @Size(min = 6,
         max = 20,

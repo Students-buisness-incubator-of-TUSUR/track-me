@@ -7,16 +7,31 @@ spring:
     oauth2:
       authorizationserver:
         client:
-          api-gateway-client:
+          track-me:
             registration:
-              client-id: api-gateway-client
-              client-secret: api-gateway-client-secret
+              client-id: track-me-client
+              client-secret: "{bcrypt}$2a$12$MauKt/v9PcELn2RbIktW0etKpx9KxUHnnZWRMLG/Tk2RzMMEwkEN."
               client-authentication-methods:
-                - client_secret_jwt
+                - client_secret_basic
               authorization-grant-types:
                 - authorization_code
                 - client_credentials
+                - refresh_token
               redirect-uris:
-                - http://localhost:8080/login/oauth2/code/api-gateway-client
+                - http://127.0.0.1:8081/login/oauth2/code/track-me-as
+              scopes: openid, profile
+            require-authorization-consent: true
+        issuer: http://localhost:9000
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    password: ${DB_PASSWORD:project-place}
+    username: ${DB_USERNAME:project-place}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
+    hikari:
+      schema: ${DB_SCHEMA:public}
 server:
   port: 9000
+
+logging:
+  level:
+    org.springframework.security: trace

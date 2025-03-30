@@ -1,6 +1,8 @@
 package net.akarmanov.projectplace.mapping;
 
+import jakarta.validation.Valid;
 import net.akarmanov.projectplace.domain.User;
+import net.akarmanov.projectplace.rest.api.dto.UserCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;
 import net.akarmanov.projectplace.rest.api.dto.UserUpdateDTO;
 import org.mapstruct.Mapper;
@@ -20,4 +22,11 @@ public interface UserMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "enabled", ignore = true)
   void updateFromDto(UserUpdateDTO userDTO, @MappingTarget User user);
+
+  @Mapping(target = "userTeamCards", ignore = true)
+  @Mapping(target = "photo", ignore = true)
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "enabled", ignore = true)
+  @Mapping(target = "deleted", ignore = true)
+  User mapDtoToUser(@Valid UserCreateDto userDto);
 }

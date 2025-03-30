@@ -34,6 +34,11 @@ spring:
           new_generator_mappings: true
   liquibase:
     default-schema: ${DB_SCHEMA:public}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000
 error:
   handling:
     http-status-in-json-response: true
@@ -61,3 +66,7 @@ app:
     password: ${ADMIN_PASSWORD:superadmin}
   api-url: ${BACKEND_HOST:http://localhost:8080}
   app-url: ${FRONTEND_HOST:http://localhost:3000}
+
+#logging:
+#  level:
+#    org.springframework.security: trace
