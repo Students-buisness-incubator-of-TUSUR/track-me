@@ -1,6 +1,10 @@
 package net.akarmanov.projectplace.configuration;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.OAuthFlow;
+import io.swagger.v3.oas.models.security.OAuthFlows;
+import io.swagger.v3.oas.models.security.Scopes;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
@@ -21,48 +25,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SwaggerConfiguration {
 
-  public static final String BEARER_AUTH = "bearerAuth";
-
   private final AppProperties appProperties;
-
-  @Bean
-  public GroupedOpenApi baseOpenAPI() {
-    return GroupedOpenApi.builder()
-        .group("main")
-        .pathsToMatch("/api/v1/**")
-        .pathsToExclude("/api/v1/admin/**")
-        .addOpenApiCustomizer(openAPI -> openAPI
-            .info(new Info().title("Project Place API").version("1.0"))
-            .schemaRequirement(BEARER_AUTH, new SecurityScheme()
-                .type(Type.HTTP)
-                .scheme("bearer")
-                .name("Authorization")
-                .bearerFormat("JWT")
-                .in(SecurityScheme.In.HEADER))
-            .servers(List.of(
-                new Server().url(appProperties.getApiUrl())))
-            .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH)))
-        .build();
-  }
 
   @Bean
   public GroupedOpenApi adminAPI() {
     return GroupedOpenApi.builder()
-        .group("admin")
-        .pathsToMatch("/api/v1/admin/**")
-        .pathsToMatch("/api/v1/auth/**")
-        .packagesToScan("net.akarmanov.projectplace.rest.api.admin")
+        .group("backend")
         .addOpenApiCustomizer(openAPI -> openAPI
-            .info(new Info().title("Project Place Admin API").version("1.0"))
-            .schemaRequirement(BEARER_AUTH, new SecurityScheme()
-                .type(Type.HTTP)
-                .scheme("bearer")
-                .name("Authorization")
-                .bearerFormat("JWT")
-                .in(SecurityScheme.In.HEADER))
+            .info(new Info().title("TrackMe API").version("1.0"))
             .servers(List.of(
                 new Server().url(appProperties.getApiUrl())))
-            .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH)))
+            .addSecurityItem(new SecurityRequirement().addList("oauth2Scheme"))
+            .setComponents(new Components()
+                .addSecuritySchemes("oauth2Scheme", new SecurityScheme()
+                    .type(Type.OAUTH2)
+                    .flows(new OAuthFlows()
+                        .authorizationCode(new OAuthFlow()
+                            .tokenUrl(appProperties.getApiUrl() + "/oauth2/token")
+                            .authorizationUrl(appProperties.getApiUrl() + "/oauth2/authorize")
+                            .refreshUrl(appProperties.getApiUrl() + "/oauth2/refresh")
+                            .scopes(new Scopes()
+                                .addString("openid", "openid")))
+                        .clientCredentials(new OAuthFlow()
+                            .tokenUrl(appProperties.getApiUrl() + "/oauth2/token")
+                            .scopes(new Scopes()
+                                .addString("openid", "openid")))))))
         .build();
   }
 }

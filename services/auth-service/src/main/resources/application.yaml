@@ -52,28 +52,8 @@ app:
                enabled
         FROM pp_user
         WHERE telegram_id = ?
-      user-exists-sql: |
-        SELECT EXISTS (
-            SELECT 1
-            FROM pp_user
-            WHERE telegram_id = ?
-        )
-      change-password-sql: |
-        UPDATE pp_user
-        SET password = ?
-        WHERE telegram_id = ?
-      user-by-username-sql: |
-        SELECT telegram_id,
-                password,
-                enabled
-        FROM pp_user
-        WHERE telegram_id = ?
-      role-sql: |
-        SELECT telegram_id,
-               role
-        FROM pp_user
-        WHERE telegram_id = ?
-      create-user-sql: |
-        INSERT INTO pp_user (id,
-                             telegram_id, password, role, enabled, email)
-        VALUES (?, ?, ?, 'SUPERADMIN', ?, '')
+      authorities-by-username-sql: |
+        SELECT u.telegram_id,
+               u.role
+        FROM pp_user u
+        WHERE u.telegram_id = ?

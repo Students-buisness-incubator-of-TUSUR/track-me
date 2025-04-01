@@ -1,3 +1,4 @@
+
 spring:
   mail:
     host: ${MAIL_HOST:localhost}
@@ -69,4 +70,6 @@ app:
 
 #logging:
 #  level:
-#    org.springframework.security: trace
+logging:
+  level:
+    org.springframework.security: trace

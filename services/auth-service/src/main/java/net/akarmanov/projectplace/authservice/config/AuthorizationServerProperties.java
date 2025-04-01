@@ -19,5 +19,7 @@ public class AuthorizationServerProperties {
     private String selectUserSql;
 
     private String roleSql;
+
+    private String authoritiesByUsernameSql;
   }
 }

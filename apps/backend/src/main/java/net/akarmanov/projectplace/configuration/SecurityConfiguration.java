@@ -6,12 +6,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -19,6 +20,7 @@ import java.util.List;
 
 import static net.akarmanov.projectplace.models.UserRole.ADMIN;
 import static net.akarmanov.projectplace.models.UserRole.SUPER_ADMIN;
+import static net.akarmanov.projectplace.models.UserRole.TRACKER;
 
 /**
  * Настройки безопасности.
@@ -66,10 +68,11 @@ public class SecurityConfiguration {
                 "/api/v1/users/register",
                 "/v3/api-docs.yaml").permitAll()
             .requestMatchers("/api/v1/admin/**").hasRole(ADMIN.toString())
+            .requestMatchers("/api/v1/**").hasRole(TRACKER.toString())
             .requestMatchers("/api/v1/super-admin/**").hasRole(SUPER_ADMIN.toString())
             .anyRequest().authenticated())
         .oauth2ResourceServer(rs ->
-            rs.jwt(Customizer.withDefaults()));
+            rs.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
     return http.build();
   }
 
@@ -93,5 +96,17 @@ public class SecurityConfiguration {
   @Bean
   public SuperAdminSetupConfigurer superAdminSetupConfigurer() {
     return new SuperAdminSetupConfigurer(userService, passwordEncoder);
+  }
+
+  @Bean
+  public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
+        new JwtGrantedAuthoritiesConverter();
+    grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_"); // Добавляем префикс "ROLE_"
+    grantedAuthoritiesConverter.setAuthoritiesClaimName("roles"); // Читаем роли из "roles"
+
+    JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+    jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+    return jwtConverter;
   }
 }
