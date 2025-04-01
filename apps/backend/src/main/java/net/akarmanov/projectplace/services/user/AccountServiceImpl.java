@@ -51,7 +51,7 @@ public class AccountServiceImpl implements AccountService {
   @Transactional
   public void registerUser(UserCreateDto userDto) {
     var user = userMapper.mapDtoToUser(userDto);
-    user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+    user.setPassword("{bcrypt}" + passwordEncoder.encode(userDto.getPassword()));
     var registerUserFeature = runAsync(() -> registerUserInAs(userDto))
         .exceptionally(ex -> {
           throw new UserRegistrationException();

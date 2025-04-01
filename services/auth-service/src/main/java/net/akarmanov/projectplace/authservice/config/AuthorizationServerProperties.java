@@ -1,36 +1,23 @@
 package net.akarmanov.projectplace.authservice.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
+@Getter
 @Validated
 @ConfigurationProperties("app.authorizationserver")
 public class AuthorizationServerProperties {
-  private JdbcProperties jdbc = new JdbcProperties();
+  private final JdbcProperties jdbc = new JdbcProperties();
 
-  public JdbcProperties getJdbc() {
-    return jdbc;
-  }
-
+  @Setter
+  @Getter
   public static class JdbcProperties {
     private String updateUserSql;
 
     private String selectUserSql;
 
-    public String getUpdateUserSql() {
-      return updateUserSql;
-    }
-
-    public void setUpdateUserSql(String updateUserSql) {
-      this.updateUserSql = updateUserSql;
-    }
-
-    public String getSelectUserSql() {
-      return selectUserSql;
-    }
-
-    public void setSelectUserSql(String selectUserSql) {
-      this.selectUserSql = selectUserSql;
-    }
+    private String roleSql;
   }
 }
