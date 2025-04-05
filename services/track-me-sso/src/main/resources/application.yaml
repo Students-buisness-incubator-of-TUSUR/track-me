@@ -1,4 +1,8 @@
 spring:
+  profiles:
+    active: development
+  application:
+    name: track-me-sso
   security:
     oauth2:
       authorizationserver:
@@ -29,15 +33,37 @@ spring:
     username: ${DB_USERNAME:project-place}
     url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
     hikari:
-      schema: ${DB_SCHEMA:auth_service}
-  sql:
-    init:
-      mode: always
-      platform: postgres
-      schema-locations: classpath:schema/schema.ddl
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 10
+      initialization-fail-timeout: 1
+      leak-detection-threshold: 0
+      pool-name: "HikariPool-track-me-sso"
+      register-mbeans: true
+  liquibase:
+    enabled: true
+    change-log: classpath:db.changelog.yaml
+    contexts: dev prod
 server:
   port: 9000
 
 logging:
   level:
     org.springframework.security: trace
+
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  liquibase:
+    contexts: prod
+
+---
+spring:
+  config:
+    activate:
+      on-profile: development
+  liquibase:
+    contexts: prod, dev

@@ -9,7 +9,7 @@ subprojects {
     apply plugin: 'jacoco'
     apply plugin: 'org.sonarqube'
 
-    group = 'net.akarmanov.projectplace'
+    group = 'net.akarmanov.trackme'
     version = '0.0.2-SNAPSHOT'
 
     repositories {

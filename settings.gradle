@@ -4,8 +4,8 @@ include ':backend'
 project(':backend').projectDir = file('apps/backend')
 
 include ':track-me-gateway'
-project(':track-me-gateway').projectDir = file('apps/client-gateway')
+project(':track-me-gateway').projectDir = file('apps/track-me-gateway')
 
 include ':track-me-sso'
-project(':track-me-sso').projectDir = file('services/auth-service')
+project(':track-me-sso').projectDir = file('services/track-me-sso')
 
