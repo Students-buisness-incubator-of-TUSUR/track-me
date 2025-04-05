@@ -3,6 +3,22 @@ server:
 
 
 spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth
+          uri: http://localhost:9000
+          predicates:
+            - Path=/oauth/**
+            - Path=/oauth
+          filters:
+            - StripPrefix=1
+        - id: backend
+          uri: http://localhost:8080
+          predicates:
+            - Path=/**
+          filters:
+            - TokenRelay
   security:
     oauth2:
       client:
@@ -13,7 +29,7 @@ spring:
             client-authentication-method: client_secret_basic
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            scope: openid, profile, ROLE_TRACKER
+            scope: openid, profile
         provider:
           track-me:
             issuer-uri: http://localhost:9000

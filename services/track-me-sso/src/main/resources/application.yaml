@@ -6,7 +6,7 @@ spring:
           track-me:
             registration:
               client-id: track-me-client
-              client-secret: "{bcrypt}$2a$12$MauKt/v9PcELn2RbIktW0etKpx9KxUHnnZWRMLG/Tk2RzMMEwkEN."
+              client-secret: "$2a$12$MauKt/v9PcELn2RbIktW0etKpx9KxUHnnZWRMLG/Tk2RzMMEwkEN."
               client-authentication-methods:
                 - client_secret_basic
               authorization-grant-types:
@@ -18,42 +18,26 @@ spring:
               scopes: openid, profile
             require-authorization-consent: true
         issuer: http://localhost:9000
+        multiple-issuers-allowed: true
+      client:
+        provider:
+          track-me:
+            issuer-uri: http://localhost:9000
   datasource:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}
     username: ${DB_USERNAME:project-place}
     url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
     hikari:
-      schema: ${DB_SCHEMA:public}
+      schema: ${DB_SCHEMA:auth_service}
   sql:
     init:
       mode: always
+      platform: postgres
+      schema-locations: classpath:schema/schema.ddl
 server:
   port: 9000
 
 logging:
   level:
     org.springframework.security: trace
-
-app:
-  authorizationserver:
-    jdbc:
-      update-user-sql: |
-        UPDATE pp_user
-        SET telegram_id             = ?,
-            password                = ?,
-            enabled                 = ?,
-            account_non_expired     = ?,
-            credentials_non_expired = ?
-        WHERE id = ?
-      select-user-sql: |
-        SELECT telegram_id,
-               password,
-               enabled
-        FROM pp_user
-        WHERE telegram_id = ?
-      authorities-by-username-sql: |
-        SELECT u.telegram_id,
-               u.role
-        FROM pp_user u
-        WHERE u.telegram_id = ?

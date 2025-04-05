@@ -5,13 +5,9 @@ public enum UserRole {
   SUPER_ADMIN,
   TRACKER;
 
-
   @Override
   public String toString() {
     return name().toUpperCase();
   }
 
-  public String toRoleName() {
-    return "ROLE_" + name().toUpperCase();
-  }
 }
