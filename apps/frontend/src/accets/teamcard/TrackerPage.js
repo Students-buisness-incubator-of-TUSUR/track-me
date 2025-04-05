@@ -326,7 +326,7 @@ function TrackerPage() {
               />
             </div>
           </div>
-          <button className="Stream-butt">+ Создать карточку</button>
+          <Link to="/team-card"><button className="Stream-butt">+ Создать карточку</button></Link>
         </div>
         {/* Панель фильтров */}
         {isVisible && (
