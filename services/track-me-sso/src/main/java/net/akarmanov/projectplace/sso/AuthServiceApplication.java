@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.authservice;
+package net.akarmanov.projectplace.sso;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

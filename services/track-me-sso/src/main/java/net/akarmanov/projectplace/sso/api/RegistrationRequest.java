@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.authservice.api;
+package net.akarmanov.projectplace.sso.api;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

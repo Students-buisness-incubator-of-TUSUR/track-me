@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.authservice.config;
+package net.akarmanov.projectplace.sso.config;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;

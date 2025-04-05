@@ -27,6 +27,8 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
 
     annotationProcessor 'org.projectlombok:lombok'
+
+    implementation project(':commons')
 }
 
 test {

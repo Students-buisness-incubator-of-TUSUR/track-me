@@ -9,3 +9,6 @@ project(':track-me-gateway').projectDir = file('apps/track-me-gateway')
 include ':track-me-sso'
 project(':track-me-sso').projectDir = file('services/track-me-sso')
 
+include ':commons'
+findProject(':commons').projectDir = file('libs/commons')
+

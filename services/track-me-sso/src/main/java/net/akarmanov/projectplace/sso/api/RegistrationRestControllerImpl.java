@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.authservice.api;
+package net.akarmanov.projectplace.sso.api;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
