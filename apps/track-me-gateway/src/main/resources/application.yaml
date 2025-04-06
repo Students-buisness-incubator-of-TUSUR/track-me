@@ -3,20 +3,19 @@ server:
 
 
 spring:
+  application:
+    name: track-me-gateway
   cloud:
     gateway:
       routes:
         - id: auth
           uri: http://localhost:9000
           predicates:
-            - Path=/oauth/**
-            - Path=/oauth
-          filters:
-            - StripPrefix=1
+            - Path=/api/v1/registration/**
         - id: backend
           uri: http://localhost:8080
           predicates:
-            - Path=/**
+            - Path=/api/v1/**
           filters:
             - TokenRelay
   security:
@@ -36,3 +35,21 @@ spring:
 logging:
   level:
     org.springframework.security: trace
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    use-root-path: true
+    doc-expansion: none
+    disable-swagger-default-url: true
+    operationsSorter: method
+    tagsSorter: alpha
+    try-it-out-enabled: true
+    urls:
+      - name: TrackMe SSO Service
+        url: http://localhost:9000/v3/api-docs
+      - name: TrackMe Backend Service
+        display-name: TrackMe Backend Service
+        url: http://localhost:8080/v3/api-docs
+  api-docs:
+    enabled: true

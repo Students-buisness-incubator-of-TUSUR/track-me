@@ -2,6 +2,8 @@
 
 --changeSet akarmanov:system-oauth2-clients-1
 create sequence sso.system_oauth2_clients_sq START 1;
+--preconditions onFail:MARK_RAN onError:MARK_RAN
+--precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'system_oauth2_clients' AND table_schema = 'sso'
 
 --changeSet akarmanov:system-oauth2-clients-2
 CREATE TABLE sso.system_oauth2_clients
@@ -20,6 +22,8 @@ CREATE TABLE sso.system_oauth2_clients
     token_settings                VARCHAR(2000),
     constraint system_oauth2_clients_pk primary key (system_client_id)
 );
+--preconditions onFail:MARK_RAN
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'system_oauth2_clients' AND table_schema = 'sso'
 
 COMMENT ON table sso.system_oauth2_clients IS 'OAuth2 клиенты системы';
 COMMENT ON column sso.system_oauth2_clients.client_id IS 'ID клиента';
@@ -36,3 +40,5 @@ COMMENT ON column sso.system_oauth2_clients.token_settings IS 'Дополнит�
 
 --changeset akarmanov:system-oauth2-clients-3
 CREATE UNIQUE INDEX idx_system_oauth2_clients_n1 ON sso.system_oauth2_clients (client_id);
+--preconditions onFail:MARK_RAN
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_name = 'system_oauth2_clients' AND constraint_name = 'idx_system_oauth2_clients_n1'

@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.sso.config;
+package net.akarmanov.projectplace.sso.config.security;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -9,12 +9,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.oauth2.server.servlet.OAuth2AuthorizationServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -30,13 +30,9 @@ import org.springframework.security.oauth2.server.authorization.settings.Authori
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
-import javax.sql.DataSource;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
@@ -48,11 +44,15 @@ import java.util.UUID;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toSet;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 public class OAuth2AuthorizationServerConfig {
 
   private final OAuth2AuthorizationServerProperties oAuth2AuthorizationServerProperties;
+
+  private final PasswordEncoder passwordEncoder;
+
+  private final UserDetailsManager userDetailsManager;
 
   private static KeyPair generateRsaKey() {
     KeyPair keyPair;
@@ -64,11 +64,6 @@ public class OAuth2AuthorizationServerConfig {
       throw new IllegalStateException(ex);
     }
     return keyPair;
-  }
-
-  @Bean
-  PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
   }
 
   @Bean
@@ -88,7 +83,7 @@ public class OAuth2AuthorizationServerConfig {
   }
 
   @Bean
-  @Order(1)
+  @Order(Ordered.HIGHEST_PRECEDENCE)
   public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
       throws Exception {
     var authorizationServerConfigurer =
@@ -96,44 +91,27 @@ public class OAuth2AuthorizationServerConfig {
 
     http
         .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
+        .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+            .requestMatchers(
+                "/v3/api-docs",
+                "/swagger-ui/**",
+                "/api/v1/registration/register",
+                "/v3/api-docs/swagger-config").permitAll()
+            .anyRequest().authenticated())
         .with(authorizationServerConfigurer, authorizationServer ->
             authorizationServer
                 .oidc(Customizer.withDefaults())  // Enable OpenID Connect 1.0
-        )
-        .authorizeHttpRequests(authorize ->
-            authorize
-                .anyRequest().authenticated()
-        )
-        // Redirect to the login page when not authenticated from the
-        // authorization endpoint
-        .exceptionHandling(exceptions -> exceptions
-            .defaultAuthenticationEntryPointFor(
-                new LoginUrlAuthenticationEntryPoint("/login"),
-                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-            )
         );
+    // Redirect to the login page when not authenticated from the
+    // authorization endpoint
+    http.getSharedObject(AuthenticationManagerBuilder.class)
+        .userDetailsService(userDetailsManager)
+        .passwordEncoder(passwordEncoder);
+    http.csrf(csrf -> csrf
+        .ignoringRequestMatchers("/api/v1/registration/register")
+    );
 
     return http.build();
-  }
-
-  @Bean
-  @Order(2)
-  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
-      throws Exception {
-    http
-        .authorizeHttpRequests(authorize -> authorize
-            .anyRequest().authenticated()
-        )
-        // Form login handles the redirect to the login page from the
-        // authorization server filter chain
-        .formLogin(Customizer.withDefaults());
-
-    return http.build();
-  }
-
-  @Bean
-  public UserDetailsManager userDetailsService(DataSource dataSource) {
-    return new JdbcUserDetailsManager(dataSource);
   }
 
   @Bean

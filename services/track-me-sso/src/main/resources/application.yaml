@@ -44,6 +44,7 @@ spring:
     enabled: true
     change-log: classpath:db.changelog.yaml
     contexts: dev prod
+    default-schema: sso
 server:
   port: 9000
 

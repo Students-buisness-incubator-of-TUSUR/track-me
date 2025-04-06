@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS sso.users
     object_version_number INTEGER                     NOT NULL DEFAULT 0,
     constraint users_pk PRIMARY KEY (user_id)
 );
+--preconditions onFail:MARK_RAN
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'users' AND table_schema = 'sso'
 
 COMMENT ON TABLE sso.users IS 'Пользователи';
 COMMENT ON COLUMN sso.users.user_id IS 'УИ пользователя';
@@ -36,6 +38,10 @@ COMMENT ON column sso.users.object_version_number IS 'Номер версии з
 
 --changeset akarmanov:users-2
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_u1 ON sso.users (email);
+--preconditions onFail:MARK_RAN
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_name = 'users' AND constraint_name = 'idx_user_u1'
 
 --changeset akarmanov:users-3
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_u2 ON sso.users (username);
+--preconditions onFail:MARK_RAN
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_name = 'users' AND constraint_name = 'idx_user_u2'
