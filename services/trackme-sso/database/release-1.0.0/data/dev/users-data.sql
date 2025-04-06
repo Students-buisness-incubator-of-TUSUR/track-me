@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset akarmanov:users-data-1
+--changeset akarmanov:users-data.sql-1
 
 INSERT INTO sso.users (email, username, password_hash, full_name, avatar_url, active)
 VALUES ('admin@example.com', 'admin',

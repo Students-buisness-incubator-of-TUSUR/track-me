@@ -2,25 +2,25 @@ spring:
   profiles:
     active: development
   application:
-    name: track-me-sso
+    name: trackme-sso
+  session:
+    timeout: 1800                 # Время жизни сессии (в секундах)
+    redis:
+      flush-mode: on_save         # Указываем, когда изменения сеанса записываются в хранилище (immediate или on_save)
+      namespace: trackme-sso:session    # Пространство имен для ключей, используемых для хранения сессий.
+      save-mode: on_set_attribute # Определяет в какой момент происходит сохранение изменений сессии (on_set_attribute, on_get_attribute, always)
+  data:
+    redis: # Настраиваем подключение к Redis
+      client-type: lettuce        # Указываем тип клиента Redis (jedis или lettuce)
+      database: 1                 # Указываем номер БД Redis
+      host: 127.0.0.1             # Хост подключения
+      port: 6379                  # Порт подключения
+      password: trackme-redis    # Пароль подключения
+      username: trackme-redis
+
   security:
     oauth2:
       authorizationserver:
-        client:
-          track-me:
-            registration:
-              client-id: track-me-client
-              client-secret: "$2a$12$MauKt/v9PcELn2RbIktW0etKpx9KxUHnnZWRMLG/Tk2RzMMEwkEN."
-              client-authentication-methods:
-                - client_secret_basic
-              authorization-grant-types:
-                - authorization_code
-                - client_credentials
-                - refresh_token
-              redirect-uris:
-                - http://127.0.0.1:8081/login/oauth2/code/track-me-as
-              scopes: openid, profile
-            require-authorization-consent: true
         issuer: http://localhost:9000
         multiple-issuers-allowed: true
       client:
@@ -52,6 +52,16 @@ logging:
   level:
     org.springframework.security: trace
 
+app:
+  swagger:
+    auth-types:
+      auth-header-enabled: true
+      client-credentials-enabled: true
+      authorization-code-enabled: true
+    auth-oauth:
+      token-url: http://localhost:9000/oauth2/token
+      authorization_url: http://localhost:9000/oauth2/authorize
+      refresh-url: http://localhost:9000/oauth2/token
 
 ---
 spring:

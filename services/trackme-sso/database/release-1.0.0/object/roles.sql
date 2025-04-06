@@ -17,3 +17,13 @@ CREATE TABLE sso.roles
     constraint roles_pk primary key (role_id)
 );
 
+-- changeset akarmanov:roles-2
+CREATE TABLE user_roles
+(
+    user_id uuid NOT NULL,
+    role_id uuid NOT NULL,
+    constraint users_roles_pk primary key (user_id, role_id),
+    constraint users_roles_fk1 foreign key (user_id) references sso.users (user_id),
+    constraint users_roles_fk2 foreign key (role_id) references sso.roles (role_id)
+);
+

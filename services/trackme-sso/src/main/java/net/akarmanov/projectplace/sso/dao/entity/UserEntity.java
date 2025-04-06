@@ -1,8 +1,13 @@
 package net.akarmanov.projectplace.sso.dao.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -12,6 +17,8 @@ import net.akarmanov.projectplace.commons.dao.VersionedBusinessEntity;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -19,6 +26,13 @@ import java.util.UUID;
 @Entity
 @Table(schema = "sso", name = "users")
 public class UserEntity extends VersionedBusinessEntity<UUID> {
+  @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+  @JoinTable(schema = "sso", name = "user_roles",
+             joinColumns = @JoinColumn(name = "user_id"),
+             inverseJoinColumns = @JoinColumn(name = "role_id")
+  )
+  public Set<RoleEntity> roles = new HashSet<>();
+
   @Id
   @Column(name = "user_id", nullable = false)
   @UuidGenerator

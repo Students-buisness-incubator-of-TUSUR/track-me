@@ -8,11 +8,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.TimeZone;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Getter
 @Setter
@@ -37,7 +38,7 @@ public abstract class BusinessEntity<ID extends Serializable> implements CoreEnt
     this.creationDate = LocalDateTime.now(TimeZone.getDefault().toZoneId());
     this.lastUpdateDate = this.creationDate;
 
-    if (StringUtils.hasText(this.createdBy)) {
+    if (!hasText(this.createdBy)) {
       this.createdBy = findCurrentUser();
     }
     this.lastUpdatedBy = this.createdBy;

@@ -5,12 +5,26 @@ databaseChangeLog:
       relativeToChangelogFile: true
       context: prod
   - include:
+      file: object/roles.sql
+      relativeToChangelogFile: true
+      context: prod
+  - include:
       file: object/system-oauth2-clients.sql
       relativeToChangelogFile: true
       context: prod
 
   - include:
       file: data/system-oauth2-clients-data.sql
+      relativeToChangelogFile: true
+      context: prod
+
+  - include:
+      file: data/roles-data.sql
+      relativeToChangelogFile: true
+      context: prod
+
+  - include:
+      file: data/users-data.sql
       relativeToChangelogFile: true
       context: prod
 
