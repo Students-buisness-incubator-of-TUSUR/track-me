@@ -2,7 +2,7 @@
   position: relative;
   width: 1359px;
   height: 882px;
-  background-color: #8b50f9; /* Фон, похожий на фиолетовый из макета */
+  background-color: #8b50f9;
   border: 5px solid #44069A;
   border-radius: 70px;
   color: #fff;
@@ -56,7 +56,6 @@
   width: 60%;
 }
 
-
 .profile-label {
   display: block;
   padding-left: 36px;
@@ -66,7 +65,7 @@
 }
 
 .input-container {
-  position: relative; /* для абсолютного позиционирования иконки */
+  position: relative;
 }
 
 .profile-input {
@@ -76,25 +75,20 @@
   background-color: #E6D7FB;
   color: #000;
   padding-left: 24px;
-  padding-right: 50px; /* чтобы был зазор для иконки справа */
+  padding-right: 50px;
   border-radius: 70px;
   border: none;
   outline: none;
 }
 
-.profile-input:focus {
-  outline: none;
-  border: none;
-}
-
 .edit-icon123 {
   position: absolute;
-  right: -140px;       /* смещение от правого края */
-  top: 50%;          /* вертикальный центр */
+  right: -140px;
+  top: 50%;
   transform: translateY(-50%);
-  pointer-events: none; /* чтобы клик шел по инпуту, а не по иконке */
-  width: 24px;       /* подберите нужный размер */
-  height: 24px;      /* подберите нужный размер */
+  pointer-events: none;
+  width: 24px;
+  height: 24px;
 }
 
 .profile-avatar-section {
@@ -113,14 +107,13 @@
   background-color: #c5aaf9;
   border-radius: 70px;
 }
+
 .user-avatar {
   width: 440px;
   height: 440px;
   border-radius: 70px;
   object-fit: cover;
 }
-
-
 
 .default-avatar {
   width: 440px;
@@ -130,10 +123,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
- 
 }
-.upload-icon-profile{ 
+
+.upload-icon-profile {
   margin-top: 41px;
   margin-right: 41px;
   cursor: pointer;
@@ -144,13 +136,13 @@
   font-weight: 600;
   background-color: #ffffff;
   color: #8338EB;
-  padding: 0 80px; /* Отступы по бокам для динамической ширины */
+  padding: 0 80px;
   height: 55px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 30px;
-  white-space: nowrap; /* Чтобы текст не переносился */
+  white-space: nowrap;
 }
 
 .profile-team-cards-button {
@@ -169,9 +161,9 @@
 }
 
 .home-button {
-  position: absolute;  
-  bottom: 55px;       
-  right: 92px;       
+  position: absolute;
+  bottom: 55px;
+  right: 92px;
   width: 440px;
   height: 70px;
   background-color: #ffffff;
@@ -197,6 +189,5 @@
   text-align: center;
   color: white;
   font-size: 16px;
-  font-family: 'Montserrat', sans-serif; /* Чтобы padding не влиял на общую ширину */
+  font-family: 'Montserrat', sans-serif;
 }
-

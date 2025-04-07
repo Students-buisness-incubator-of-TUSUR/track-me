@@ -145,3 +145,98 @@
 .login-button:hover {
   background: #e6d7fb;
 }
+
+/* Добавляем медиа-запросы в конец файла Login.css */
+
+@media (max-width: 768px) {
+  .login-box {
+    width: 90% !important;
+    max-width: 600px;
+    padding: 30px !important;
+    border-radius: 50px;
+    height: auto !important;
+    min-height: 500px;
+  }
+
+  .login-h2 {
+    font-size: 72px;
+    margin-top: 0;
+    margin-bottom: 30px;
+  }
+
+  .login-input {
+    width: 100% !important;
+    padding: 20px !important;
+  }
+
+  .input-container {
+    max-width: 100% !important;
+  }
+
+  .login-label {
+    font-size: 20px;
+    margin-left: 15px;
+  }
+
+  .forgot-password {
+    font-size: 18px;
+  }
+
+  .register {
+    font-size: 18px;
+  }
+
+  .login-button {
+    max-width: 200px;
+    padding: 20px !important;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    padding: 20px !important;
+    border-radius: 40px;
+    min-height: 400px;
+  }
+
+  .login-h2 {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+
+  .login-label {
+    font-size: 16px;
+    margin-left: 10px;
+  }
+
+  .login-input {
+    padding: 15px !important;
+    font-size: 14px;
+  }
+
+  .forgot-password {
+    font-size: 14px;
+  }
+
+  .register {
+    font-size: 14px;
+  }
+
+  .login-button {
+    max-width: 160px;
+    padding: 15px !important;
+    font-size: 16px;
+  }
+
+  .error-message.oval {
+    font-size: 14px;
+    padding: 15px;
+    border-radius: 40px;
+  }
+
+  .eye-icon {
+    right: -15px;
+    width: 24px;
+  }
+}
