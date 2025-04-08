@@ -9,10 +9,10 @@
   border: 3px solid #44069A;
   text-align: center;
   display: flex;
-  position: relative; /* Установили, чтобы абсолютные элементы позиционировались относительно этого блока */
+  position: relative;
 }
 
-/* Заголовок формы  456*/
+/* Заголовок формы */
 .registration-title {
   font-size: 96px;
   width: 100%;
@@ -28,7 +28,7 @@
   display: flex;
   flex-direction: column;
   width: 50%;
-  position: relative; 
+  position: relative;
 }
 
 /* Группа полей ввода */
@@ -38,11 +38,11 @@
 }
 
 .role-select select {
-  width: 276px;  /* Сделать на всю ширину родителя */
-  height: 46px; /* Высота */
-  font-size: 20px; /* Размер шрифта */
-  padding: 10px; /* Внутренние отступы */
-  border-radius: 30px; /* Закругление углов */
+  width: 276px;
+  height: 46px;
+  font-size: 20px;
+  padding: 10px;
+  border-radius: 30px;
   background: #F5EFFF;
   border: none;
   outline: none;
@@ -71,25 +71,22 @@
   padding-left: 15px;
 }
 
-/* Поля с абсолютным позиционированием */
+/* Позиционирование полей */
 .fio-input { top: 125px; left: 104px; }
 .email-input { top: 250px; left: 104px; }
 .telephone-input { top: 375px; left: 104px; }
 .telegram-input { top: 500px; left: 104px; }
 .password-input { top: 625px; left: 104px; }
 .confirm-password-input { top: 750px; left: 104px; }
-.role-select { top: 540px; left: 804px; width: 490px; height:80px; }
+.role-select { top: 540px; left: 804px; width: 490px; height: 80px; }
 
-.email-input, .telephone-input {
-  z-index: 10;
-}
 /* Контейнер для аватара */
 .avatar-container {
-  position: absolute; /* Делаем блок независимым */
-  top: 200px;  /* Можешь менять */
-  right: 200px;  /* Можешь менять */
-  width: 338px; 
-  height: 338px; 
+  position: absolute;
+  top: 200px;
+  right: 200px;
+  width: 338px;
+  height: 338px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -104,22 +101,20 @@
   justify-content: center;
   align-items: center;
   background-image: url("no-photo.png");
-  background-size: cover;      /* Масштабирует изображение с сохранением пропорций */
-  background-position: center; /* Центрирует изображение */
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  position: absolute; 
-  top: -30px;  
-  left: 750px; 
+  position: absolute;
+  top: -30px;
+  left: 750px;
 }
-
 
 .avatar-box img {
   width: 100%;
   height: 100%;
   border-radius: 70px;
-  object-fit: cover; /* Обеспечивает обрезку изображения с сохранением пропорций */
+  object-fit: cover;
 }
-
 
 /* Иконка загрузки аватара */
 .upload-icon {
@@ -141,11 +136,10 @@
   font-weight: bold;
   cursor: pointer;
   position: absolute;
-  bottom: 75px; /* Можешь менять как хочешь */
-  right: -625px; /* Можешь менять как хочешь */
+  bottom: 75px;
+  right: -625px;
 }
 
-/* Эффект наведения на кнопку */
 .register-button:hover {
   background-color: #f3e5ff;
 }
