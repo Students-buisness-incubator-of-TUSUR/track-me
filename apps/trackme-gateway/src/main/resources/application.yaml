@@ -11,9 +11,17 @@ spring:
         - id: track-me-backend
           uri: http://localhost:8080
           predicates:
-            - Path=/api/**
+            - Path=/backend/**
           filters:
             - TokenRelay
+            - StripPrefix=1
+        - id: track-me-sso
+          uri: http://localhost:9000
+          predicates:
+            - Path=/sso/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
   security:
     oauth2:
       client:
