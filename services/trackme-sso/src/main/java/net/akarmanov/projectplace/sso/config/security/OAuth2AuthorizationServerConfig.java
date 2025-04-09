@@ -102,15 +102,18 @@ public class OAuth2AuthorizationServerConfig {
     http.getSharedObject(AuthenticationManagerBuilder.class)
         .userDetailsService(userDetailsService)
         .passwordEncoder(passwordEncoder);
+
+
     http.csrf(csrf -> csrf
         .ignoringRequestMatchers("/api/v1/registration/register")
     );
 
-    http.exceptionHandling(exceptionHandling ->
-        exceptionHandling.defaultAuthenticationEntryPointFor(
+    http.exceptionHandling(exceptions -> exceptions
+        .defaultAuthenticationEntryPointFor(
             new LoginUrlAuthenticationEntryPoint("/login"),
             new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
-        ));
+        )
+    );
 
     return http.build();
   }

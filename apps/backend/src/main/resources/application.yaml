@@ -48,7 +48,7 @@ error:
     log-levels:
       5xx: ERROR
 springdoc:
-  paths-to-match: /api/v1/**
+  paths-to-match: /api/**
   enable-spring-security: true
   show-actuator: true
 
