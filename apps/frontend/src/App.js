@@ -1,7 +1,6 @@
 import React from "react";
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./accets/login/Login.js";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Stream from "./accets/stream-page/stream-page.js";
 import TrackerPage from "./accets/teamcard/TrackerPage.js";
 import Register from "./accets/register/Registration.js";
@@ -15,6 +14,8 @@ import EditStream from "./accets/redo-stream-page/redo-stream-page.js"
 import MeetingCard from "./accets/meeting-card/meeting-card.js";
 import MeetingCard2 from "./accets/team-card-2/meeting-card-team.js";
 import TeamCard from "./accets/komand/team-card.js"
+import HomePage from "./accets/home/HomePage";
+
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
 
@@ -22,7 +23,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<HomePage/>}/>
         <Route path="/streams" element={<Stream />} />
         <Route path="/create-stream" element={<CreateStream />} />
         <Route path="/edit-stream/:id" element={<EditStream />} />
