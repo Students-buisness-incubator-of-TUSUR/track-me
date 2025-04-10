@@ -25,6 +25,7 @@ spring:
   security:
     oauth2:
       client:
+        location: http://localhost:3000/after-login
         registration:
           track-me-client:
             client-id: track-me-client

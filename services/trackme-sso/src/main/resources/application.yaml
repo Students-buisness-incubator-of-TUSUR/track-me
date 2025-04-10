@@ -6,12 +6,15 @@ spring:
   security:
     oauth2:
       authorizationserver:
-        issuer: http://localhost:9000
         multiple-issuers-allowed: true
+        authentication-success-url: http://localhost:3000/after-login
+        issuer-url: http://localhost:9000
+        custom-handler-header-name: Track-Me-Sso-Next-Location
       client:
-        provider:
-          track-me:
-            issuer-uri: http://localhost:9000
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID:Ov23li9LSVY7JkqnAVdR}
+            client-secret: e4836cdd4fe5e48481903637b3f53c9a60f7e5b8
   datasource:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}

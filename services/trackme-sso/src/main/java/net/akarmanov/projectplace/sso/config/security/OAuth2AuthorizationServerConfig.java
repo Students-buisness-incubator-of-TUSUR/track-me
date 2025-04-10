@@ -6,17 +6,14 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.security.oauth2.server.servlet.OAuth2AuthorizationServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
@@ -27,7 +24,6 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -39,16 +35,13 @@ import java.util.UUID;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toSet;
+import static net.akarmanov.projectplace.sso.config.security.SecurityConfiguration.PERMIT_ALL_PATTERNS;
 
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 public class OAuth2AuthorizationServerConfig {
 
-  private final OAuth2AuthorizationServerProperties oAuth2AuthorizationServerProperties;
-
-  private final PasswordEncoder passwordEncoder;
-
-  private final UserDetailsService userDetailsService;
+  private final AuthorizationServerProperties authorizationServerProperties;
 
   private static KeyPair generateRsaKey() {
     KeyPair keyPair;
@@ -80,41 +73,24 @@ public class OAuth2AuthorizationServerConfig {
 
   @Bean
   @Order(Ordered.HIGHEST_PRECEDENCE)
-  public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
-      throws Exception {
-    var authorizationServerConfigurer =
-        OAuth2AuthorizationServerConfigurer.authorizationServer();
+  public SecurityFilterChain authServerSecurityFilterChain(HttpSecurity http) throws Exception {
+    var authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
 
-    http
-        .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-        .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-            .requestMatchers(
-                "/v3/api-docs",
-                "/swagger-ui/**",
-                "/api/v1/registration/register",
-                "/v3/api-docs/swagger-config").permitAll()
-            .anyRequest().authenticated())
-        .with(authorizationServerConfigurer, authorizationServer ->
-            authorizationServer
-                .oidc(Customizer.withDefaults())  // Enable OpenID Connect 1.0
-        );
-
-    http.getSharedObject(AuthenticationManagerBuilder.class)
-        .userDetailsService(userDetailsService)
-        .passwordEncoder(passwordEncoder);
-
-
-    http.csrf(csrf -> csrf
-        .ignoringRequestMatchers("/api/v1/registration/register")
-    );
-
-    http.exceptionHandling(exceptions -> exceptions
-        .defaultAuthenticationEntryPointFor(
-            new LoginUrlAuthenticationEntryPoint("/login"),
-            new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+    var endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
+    http.securityMatcher(endpointsMatcher)
+        .authorizeHttpRequests(authorize ->
+            authorize
+                // ендпоинты которые вынесем из под security
+                .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
+                .anyRequest().authenticated()
         )
-    );
-
+        .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
+        .exceptionHandling(exceptions ->
+            exceptions.authenticationEntryPoint(
+                new LoginUrlAuthenticationEntryPoint("/login")))
+        .with(authorizationServerConfigurer, configurer ->
+            configurer
+                .oidc(Customizer.withDefaults()));
     return http.build();
   }
 
@@ -139,8 +115,12 @@ public class OAuth2AuthorizationServerConfig {
   @Bean
   public AuthorizationServerSettings authorizationServerSettings() {
     return AuthorizationServerSettings.builder()
-        .issuer(oAuth2AuthorizationServerProperties.getIssuer())
+        .issuer(authorizationServerProperties.getIssuerUrl())
         .build();
   }
 
+  @Bean
+  PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 }
