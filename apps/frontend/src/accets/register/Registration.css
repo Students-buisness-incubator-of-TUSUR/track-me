@@ -143,3 +143,139 @@
 .register-button:hover {
   background-color: #f3e5ff;
 }
+
+@media (max-width: 1400px) {
+  .registration-container {
+    transform: scale(0.8);
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .registration-container {
+    transform: scale(0.7);
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .registration-container {
+    transform: scale(0.6);
+    margin-top: 0;
+  }
+  
+  .registration-title {
+    font-size: 72px;
+    top: -60px;
+  }
+  
+  .input-field,
+  .register-button {
+    height: 50px;
+    font-size: 14px;
+  }
+  
+  .role-select select {
+    height: 40px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .registration-container {
+    transform: scale(0.8);
+    width: 95%;
+    height: auto;
+    margin: 10px auto;
+    padding: 30px 20px 60px;
+    flex-direction: column;
+  }
+  
+  .registration-title {
+    position: static;
+    transform: none;
+    font-size: 52px;
+    margin-bottom: 20px;
+    width: 100%;
+    text-align: center;
+    order: -1;
+  }
+  
+  .registration-form {
+    width: 100%;
+    position: static;
+    order: 1;
+  }
+  
+  .input-group {
+    position: static !important;
+    width: 100% !important;
+    margin-bottom: 15px;
+  }
+  
+  .input-field {
+    width: 100% !important;
+    height: 55px;
+    font-size: 14px;
+  }
+  
+  .input-group label {
+    padding-left: 20px;
+    font-size: 14px;
+  }
+  
+  .avatar-container {
+    position: static;
+    order: -2;
+    width: 100%;
+    margin: 0 auto 30px;
+  }
+  
+  .avatar-box {
+    position: static;
+    width: 280px;
+    height: 280px;
+    margin: 0 auto;
+  }
+  
+  .upload-icon {
+    position: static;
+  }
+
+  .role-select {
+    width: 100% !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 15px 0;
+  }
+  
+  .role-select select {
+    width: calc(100% - 30px) !important; /* 30px = padding (15px с каждой стороны) */
+    max-width: 470px; /* Максимальная ширина как у других инпутов */
+    height: 55px; /* Такая же высота */
+    font-size: 16px;
+    padding: 0 15px; /* Такой же отступ */
+    border-radius: 70px !important; /* Такой же радиус скругления */
+    margin: 5px 0;
+    appearance: none; /* Убираем дефолтные стили браузера */
+    -webkit-appearance: none;
+  }
+  
+  .register-button {
+    position: static !important;
+    width: 80%;
+    height: 60px;
+    margin: 30px auto 0;
+    font-size: 18px;
+    transform: none !important;
+  }
+  
+  /* Убираем все абсолютные позиционирования */
+  .fio-input, .email-input, .telephone-input, 
+  .telegram-input, .password-input, .confirm-password-input,
+  .role-select {
+    position: static !important;
+    margin: 15px 0;
+  }
+}
