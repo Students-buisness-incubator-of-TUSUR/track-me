@@ -14,7 +14,8 @@ import LoginRecovery2 from "./accets/login-recovery-2/login-recovery.js";
 import EditStream from "./accets/redo-stream-page/redo-stream-page.js"
 import MeetingCard from "./accets/meeting-card/meeting-card.js";
 import MeetingCard2 from "./accets/team-card-2/meeting-card-team.js";
-import TeamCard from "./accets/komand/team-card.js"
+import TeamCard from "./accets/komand/team-card.js";
+import TeamCardCreate from "./accets/create-teamcard/team-card-create.js";
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
 
@@ -38,6 +39,8 @@ function App() {
         <Route path="/list-trackers" element={<TrackerList />} />
         <Route path="/metcard" element={<MeetingCard />} />
         <Route path="/team-card" element={<TeamCard />} />
+        <Route path="/teamcard/create" element={<TeamCardCreate />} />
+        <Route path="/teamcard/:id" element={<TeamCard />} />
 
       </Routes>
     </Router>

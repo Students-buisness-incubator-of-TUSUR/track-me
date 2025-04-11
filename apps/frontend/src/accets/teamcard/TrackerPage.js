@@ -326,7 +326,13 @@ function TrackerPage() {
               />
             </div>
           </div>
-          <Link to="/team-card"><button className="Stream-butt">+ Создать карточку</button></Link>
+          <button
+            className="Stream-butt"
+            onClick={() => {
+              navigate(`/teamcard/create`);
+            }}>
+            + Создать карточку
+          </button>
         </div>
         {/* Панель фильтров */}
         {isVisible && (
@@ -477,9 +483,15 @@ function TrackerPage() {
           <p className="error-message">{error}</p>
         ) : filteredCards.length > 0 ? (
           visibleCards.map((card) => (
-            <div className="card" key={card.id}>
+            <div
+              className="card"
+              key={card.id}
+              onClick={() => navigate(`/teamcard/${card.id}?userId=${card.userId}`)}
+              style={{ cursor: "pointer" }}
+            >
               <div className="card-image" />
               <span className="status-completed">Завершено</span>
+          
               <div className="card-content">
                 <div className="text-container project-title">
                   <h3>{card.name}</h3>
@@ -489,12 +501,7 @@ function TrackerPage() {
                 </div>
                 <div className="under-cont">
                   <div className="text-container project-markets">
-                    <p>
-                      Рынки НТИ:{" "}
-                      {card.ntiMarket
-                        ? card.ntiMarket.displayName
-                        : "Неизвестен"}
-                    </p>
+                    <p>Рынки НТИ: {card.ntiMarket ? card.ntiMarket.displayName : "Неизвестен"}</p>
                   </div>
                   <div className="text-container project-trl">
                     <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
@@ -504,7 +511,16 @@ function TrackerPage() {
                   </div>
                 </div>
               </div>
-              <button className="edit-button">Редактировать</button>
+          
+              <button
+                className="edit-button"
+                onClick={(e) => {
+                  e.stopPropagation(); // чтобы не срабатывал переход по карточке
+                  navigate(`/teamcard/${card.id}?userId=${card.userId}&edit=true`);
+                }}
+              >
+                Редактировать
+              </button>
             </div>
           ))
         ) : (
