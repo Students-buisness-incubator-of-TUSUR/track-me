@@ -15,34 +15,36 @@ import MeetingCard from "./accets/meeting-card/meeting-card.js";
 import MeetingCard2 from "./accets/team-card-2/meeting-card-team.js";
 import TeamCard from "./accets/komand/team-card.js"
 import HomePage from "./accets/home/HomePage";
+import AfterLogin from "./accets/after-login/AfterLogin";
 
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage/>}/>
-        <Route path="/streams" element={<Stream />} />
-        <Route path="/create-stream" element={<CreateStream />} />
-        <Route path="/edit-stream/:id" element={<EditStream />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/superadmin" element={<SuperAdminPage />} />
-        <Route path="/team-cards" element={<TrackerPage />} />
-        <Route path="/team-cards-PR" element={<MeetingCard2 />} />
-        <Route path="/recovery" element={<LoginRecovery />} />
-        <Route path="/reset-password" element={<LoginRecovery2 />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/list-admins" element={<AdminList />} />
-        <Route path="/list-trackers" element={<TrackerList />} />
-        <Route path="/metcard" element={<MeetingCard />} />
-        <Route path="/team-card" element={<TeamCard />} />
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<HomePage/>}/>
+                <Route path="/after-login" element={<AfterLogin/>}/>
+                <Route path="/streams" element={<Stream/>}/>
+                <Route path="/create-stream" element={<CreateStream/>}/>
+                <Route path="/edit-stream/:id" element={<EditStream/>}/>
+                <Route path="/register" element={<Register/>}/>
+                <Route path="/admin" element={<AdminPage/>}/>
+                <Route path="/superadmin" element={<SuperAdminPage/>}/>
+                <Route path="/team-cards" element={<TrackerPage/>}/>
+                <Route path="/team-cards-PR" element={<MeetingCard2/>}/>
+                <Route path="/recovery" element={<LoginRecovery/>}/>
+                <Route path="/reset-password" element={<LoginRecovery2/>}/>
+                <Route path="/profile" element={<ProfilePage/>}/>
+                <Route path="/list-admins" element={<AdminList/>}/>
+                <Route path="/list-trackers" element={<TrackerList/>}/>
+                <Route path="/metcard" element={<MeetingCard/>}/>
+                <Route path="/team-card" element={<TeamCard/>}/>
 
-      </Routes>
-    </Router>
-  );
+            </Routes>
+        </Router>
+    );
 }
 
 export default App;

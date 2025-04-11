@@ -6,11 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.sso.config.security.handler.CustomAuthenticationSuccessHandler;
 import net.akarmanov.projectplace.sso.services.CustomOAuth2UserService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -18,6 +20,11 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -74,8 +81,7 @@ public class SecurityConfiguration {
         .userDetailsService(userDetailService)
         .passwordEncoder(passwordEncoder);
     http
-        .csrf(csrf ->
-            csrf.ignoringRequestMatchers("/api/v1/registration/register"));
+        .csrf(AbstractHttpConfigurer::disable);
     return http.formLogin(formLogin ->
             formLogin.successHandler(loginRequestSuccessHandler)
                 .failureHandler(failureHandler))
@@ -96,5 +102,18 @@ public class SecurityConfiguration {
     this.oAuth2successHandler = handler;
 
     this.failureHandler = new SimpleUrlAuthenticationFailureHandler();
+  }
+
+  @Bean
+  FilterRegistrationBean<CorsFilter> corsFilter() {
+    log.info("CREATING CORS FILTER");
+    var corsConfig = new CorsConfiguration();
+    corsConfig.setAllowedOrigins(List.of(CorsConfiguration.ALL)); // или "*" для тестов
+    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    corsConfig.setAllowedHeaders(List.of("*"));
+
+    var source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", corsConfig);
+    return new FilterRegistrationBean<>(new CorsFilter(source));
   }
 }

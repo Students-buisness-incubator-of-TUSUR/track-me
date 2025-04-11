@@ -3,9 +3,10 @@ import "./HomePage.css"; // Подключаем стили
 
 const HomePage = () => {
     const ssoLoginUrl = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080";
+    const clientId = process.env.REACT_APP_OAUTH2_CLIENT_ID;
 
     const handleSSOLogin = () => {
-        window.location.href = `${ssoLoginUrl}/oauth2/authorization/track-me-client`;
+        window.location.href = `${ssoLoginUrl}/oauth2/authorization/${clientId}`;
     };
 
     return (
