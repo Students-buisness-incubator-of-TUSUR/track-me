@@ -36,8 +36,39 @@
     cursor: pointer;
     font-weight: bold;
     transition: 0.3s;
+    margin-top: 20px; /* Adds spacing to separate it from the provider buttons */
 }
 
 .home-sso-button:hover {
+    background: #e6d7fb;
+}
+
+.home-provider-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* Adds spacing between the provider buttons */
+    margin-bottom: 20px; /* Adds spacing between provider buttons and SSO button */
+}
+
+.home-provider-button {
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.home-provider-button img {
+    width: 24px;
+    height: 24px;
+}
+
+.home-provider-button:hover {
     background: #e6d7fb;
 }

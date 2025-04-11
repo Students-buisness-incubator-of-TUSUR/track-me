@@ -22,10 +22,14 @@ spring:
             client-id: track-me-client
             client-secret: password
             provider: track-me-client
+            client-name: TrackMe SSO
             client-authentication-method: client_secret_basic
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             scope: openid, profile
+          github:
+            client-id: ${GITHUB_CLIENT_ID:Ov23li9LSVY7JkqnAVdR}
+            client-secret: e4836cdd4fe5e48481903637b3f53c9a60f7e5b8
         provider:
           track-me-client:
             issuer-uri: http://localhost:9000

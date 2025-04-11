@@ -22,7 +22,6 @@ public class SecurityConfiguration {
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
-
     return new CorsWebFilter(source);
   }
 }
