@@ -12,9 +12,9 @@ spring:
     oauth2:
       authorizationserver:
         multiple-issuers-allowed: true
-        authentication-success-url: http://localhost:3000/after-login
+        authentication-success-url: http://127.0.0.1:8081/
         issuer-url: http://localhost:9000
-        custom-handler-header-name: Track-Me-Sso-Next-Location
+        custom-handler-header-name: TrackMe-Sso-Next-Location
   datasource:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}

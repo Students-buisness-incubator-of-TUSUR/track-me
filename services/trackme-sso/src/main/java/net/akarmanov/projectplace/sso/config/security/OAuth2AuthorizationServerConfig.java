@@ -84,7 +84,6 @@ public class OAuth2AuthorizationServerConfig {
                 .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
                 .anyRequest().authenticated()
         )
-        .csrf(csrf -> csrf.ignoringRequestMatchers(endpointsMatcher))
         .exceptionHandling(exceptions ->
             exceptions.authenticationEntryPoint(
                 new LoginUrlAuthenticationEntryPoint("/login")
