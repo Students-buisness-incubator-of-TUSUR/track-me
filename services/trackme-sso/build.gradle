@@ -55,8 +55,8 @@ springBoot {
 }
 
 node {
-    version = '18.18.0'
-    npmVersion = '9.8.1'
+    version = '20.8.0'
+    npmVersion = '10.1.0'
     download = true
     nodeProjectDir = file("${projectDir}/frontend")
 }
