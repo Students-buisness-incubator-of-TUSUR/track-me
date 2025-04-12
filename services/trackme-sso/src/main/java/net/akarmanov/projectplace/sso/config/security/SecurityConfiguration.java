@@ -18,8 +18,6 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 @Slf4j
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -33,11 +31,7 @@ public class SecurityConfiguration {
       LOGIN_PAGE,
       "/static/**",
       "/v3/api-docs",
-      "/swagger-ui/**",
-      "/api/v1/registration/register",
-      "/v3/api-docs/swagger-config",
-      "/api/v1/registration/confirm",
-      "/index"
+      "/v3/api-docs/swagger-config"
   };
 
   private final UserDetailsService userDetailService;
@@ -57,7 +51,9 @@ public class SecurityConfiguration {
     http.getSharedObject(AuthenticationManagerBuilder.class)
         .userDetailsService(userDetailService)
         .passwordEncoder(passwordEncoder);
-    return http.formLogin(withDefaults())
+
+    return http.formLogin(formLogin ->
+            formLogin.loginPage(LOGIN_PAGE))
         .build();
   }
 
