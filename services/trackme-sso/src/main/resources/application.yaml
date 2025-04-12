@@ -3,6 +3,11 @@ spring:
     active: development
   application:
     name: trackme-sso
+  mvc:
+    static-path-pattern: /static/**
+  web:
+    resources:
+      static-locations: classpath:static
   security:
     oauth2:
       authorizationserver:
@@ -10,11 +15,6 @@ spring:
         authentication-success-url: http://localhost:3000/after-login
         issuer-url: http://localhost:9000
         custom-handler-header-name: Track-Me-Sso-Next-Location
-      client:
-        registration:
-          github:
-            client-id: ${GITHUB_CLIENT_ID:Ov23li9LSVY7JkqnAVdR}
-            client-secret: e4836cdd4fe5e48481903637b3f53c9a60f7e5b8
   datasource:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}
@@ -50,6 +50,7 @@ app:
       token-url: http://localhost:9000/oauth2/token
       authorization_url: http://localhost:9000/oauth2/authorize
       refresh-url: http://localhost:9000/oauth2/token
+  api-url: http://127.0.0.1:8081/sso
 
 ---
 spring:

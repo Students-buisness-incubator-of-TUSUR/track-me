@@ -17,6 +17,7 @@ CREATE TABLE sso.system_oauth2_clients
     client_authentication_methods VARCHAR(1000) NOT NULL,
     authorization_grant_types     VARCHAR(1000) NOT NULL,
     redirect_uris                 VARCHAR(1000),
+    post_logout_redirect_uris VARCHAR(1000),
     scopes                        VARCHAR(1000) NOT NULL,
     client_settings               VARCHAR(2000),
     token_settings                VARCHAR(2000),
@@ -37,6 +38,7 @@ COMMENT ON column sso.system_oauth2_clients.redirect_uris IS 'Доступные
 COMMENT ON column sso.system_oauth2_clients.scopes IS 'Области доступа';
 COMMENT ON column sso.system_oauth2_clients.client_settings IS 'Дополнительные настройки клиента';
 COMMENT ON column sso.system_oauth2_clients.token_settings IS 'Дополнительные настройки токена';
+COMMENT ON column sso.system_oauth2_clients.post_logout_redirect_uris IS 'URL-ы перенаправления после выхода из системы';
 
 --changeset akarmanov:system-oauth2-clients-3
 CREATE UNIQUE INDEX idx_system_oauth2_clients_n1 ON sso.system_oauth2_clients (client_id);

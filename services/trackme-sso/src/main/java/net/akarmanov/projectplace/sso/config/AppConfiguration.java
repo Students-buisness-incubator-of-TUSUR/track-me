@@ -8,7 +8,6 @@ import io.swagger.v3.oas.models.security.OAuthFlows;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.sso.AppProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
@@ -74,6 +73,8 @@ public class AppConfiguration {
     return new OpenAPI()
         .components(components)
         .security(securityRequirements)
+        .servers(List.of(new io.swagger.v3.oas.models.servers.Server()
+            .url(appProperties.getApiUrl())))
         .info(new Info()
             .title(buildProperties.getName())
             .version(buildProperties.getVersion())

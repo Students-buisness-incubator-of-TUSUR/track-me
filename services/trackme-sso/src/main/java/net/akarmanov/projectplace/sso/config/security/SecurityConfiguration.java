@@ -1,9 +1,7 @@
 package net.akarmanov.projectplace.sso.config.security;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.akarmanov.projectplace.sso.services.CustomOAuth2UserService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -14,10 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -42,31 +36,20 @@ public class SecurityConfiguration {
       "/swagger-ui/**",
       "/api/v1/registration/register",
       "/v3/api-docs/swagger-config",
-      "/api/v1/registration/confirm"
+      "/api/v1/registration/confirm",
+      "/index"
   };
-
-  private final CustomOAuth2UserService oAuth2UserService;
 
   private final UserDetailsService userDetailService;
 
   private final PasswordEncoder passwordEncoder;
 
   // handlers
-  private AuthenticationSuccessHandler oAuth2successHandler;
-
-  private AuthenticationFailureHandler failureHandler;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http)
       throws Exception {
-    var socialConfigurer = new SocialConfigurer()
-        .oAuth2UserService(oAuth2UserService)
-        .successHandler(oAuth2successHandler)
-        .failureHandler(failureHandler)
-        .formLogin(LOGIN_PAGE);
-
     http
-        .with(socialConfigurer, withDefaults())
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
             .anyRequest().authenticated());
@@ -76,13 +59,6 @@ public class SecurityConfiguration {
         .passwordEncoder(passwordEncoder);
     return http.formLogin(withDefaults())
         .build();
-  }
-
-  @PostConstruct
-  private void initializeHandlers() {
-    this.oAuth2successHandler = new SavedRequestAwareAuthenticationSuccessHandler();
-
-    this.failureHandler = new SimpleUrlAuthenticationFailureHandler();
   }
 
   @Bean

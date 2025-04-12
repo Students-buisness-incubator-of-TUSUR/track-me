@@ -59,6 +59,9 @@ public class SystemOauth2ClientEntity {
   @Column(name = "redirect_uris")
   private String redirectUris;
 
+  @Column(name = "post_logout_redirect_uris")
+  private String postLogoutRedirectUris;
+
   @Column(name = "scopes", nullable = false)
   private String scopes;
 
@@ -94,6 +97,15 @@ public class SystemOauth2ClientEntity {
       return Collections.emptySet();
     }
     return Arrays.stream(this.redirectUris.split(","))
+        .collect(Collectors.toSet());
+  }
+
+  @Transient
+  public Set<String> postLogoutRedirectUris() {
+    if (this.postLogoutRedirectUris == null) {
+      return Collections.emptySet();
+    }
+    return Arrays.stream(this.postLogoutRedirectUris.split(","))
         .collect(Collectors.toSet());
   }
 

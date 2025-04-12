@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.sso;
+package net.akarmanov.projectplace.sso.config;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -13,11 +13,15 @@ import java.util.List;
 @Validated
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
+
   @NestedConfigurationProperty
   private final CorsProperties cors = new CorsProperties();
 
   @NestedConfigurationProperty
   private final SwaggerProperties swagger = new SwaggerProperties();
+
+  @NotBlank(message = "URL cannot be blank")
+  private String apiUrl;
 
   @Data
   public static class CorsProperties {

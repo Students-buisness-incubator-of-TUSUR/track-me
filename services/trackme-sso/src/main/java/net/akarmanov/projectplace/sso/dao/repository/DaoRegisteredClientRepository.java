@@ -59,6 +59,7 @@ public class DaoRegisteredClientRepository implements RegisteredClientRepository
             entity.clientAuthenticationMethods()))
         .authorizationGrantTypes(authorizationGrantTypes -> authorizationGrantTypes.addAll(entity.authorizationGrantTypes()))
         .redirectUris(redirectUris -> redirectUris.addAll(entity.redirectUris()))
+        .postLogoutRedirectUris(postLogoutRedirectUris -> postLogoutRedirectUris.addAll(entity.postLogoutRedirectUris()))
         .scopes(scopes -> scopes.addAll(entity.scopes()))
         .tokenSettings(TokenSettings.builder()
             .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
@@ -83,6 +84,7 @@ public class DaoRegisteredClientRepository implements RegisteredClientRepository
             .map(AuthorizationGrantType::getValue)
             .collect(Collectors.joining(","))
         )
+        .setPostLogoutRedirectUris(String.join(",", dto.getPostLogoutRedirectUris()))
         .setRedirectUris(String.join(",", dto.getRedirectUris()))
         .setScopes(String.join(",", dto.getScopes()));
   }

@@ -11,9 +11,17 @@ spring:
         - id: track-me-backend
           uri: http://localhost:8080
           predicates:
-            - Path=/api/v1/**
+            - Path=/backend/**
           filters:
             - TokenRelay
+            - StripPrefix=1
+        - id: track-me-sso
+          uri: http://localhost:9000
+          predicates:
+            - Path=/sso/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
   security:
     oauth2:
       client:
@@ -45,11 +53,14 @@ springdoc:
     tagsSorter: alpha
     try-it-out-enabled: true
     urls:
-      - name: TrackMe SSO Service
-        url: http://localhost:9000/v3/api-docs
+      - name: TrackMe SSO
+        url: http://127.0.0.1:8081/sso/v3/api-docs
       - name: TrackMe Backend
         display-name: TrackMe Backend
-        url: http://localhost:8080/v3/api-docs
+        url: http://127.0.0.1:8081/backend/v3/api-docs
+    with-credentials: true
     use-root-path: true
+    csrf:
+      enabled: true
   api-docs:
     enabled: true
