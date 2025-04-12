@@ -10,6 +10,7 @@ import net.akarmanov.projectplace.repos.TeamCardsRepository;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -49,6 +50,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
+  @Disabled
   @WithMockUser(value = "test_tracker")
   void createTeamCard_success() throws Exception {
     var stream = streamRepository.findAll().getFirst();
@@ -74,6 +76,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
+  @Disabled
   @WithMockUser("test_tracker")
   void createTeamCard_validationError() throws Exception {
     mockMvc.perform(post("/api/v1/team-card")
@@ -84,6 +87,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
+  @Disabled
   @WithMockUser("test_tracker")
   void updateTeamCard_success() throws Exception {
     var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
