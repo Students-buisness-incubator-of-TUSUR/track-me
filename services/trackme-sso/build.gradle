@@ -3,6 +3,7 @@ plugins {
     id 'war'
     id 'org.springframework.boot' version '3.4.0'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'com.github.node-gradle.node' version '7.0.2'
 }
 
 repositories {
@@ -44,7 +45,7 @@ sourceSets {
             srcDirs = ['src/main/java']
         }
         resources {
-            srcDirs = ['src/main/resources', 'database']
+            srcDirs = ['src/main/resources', 'database', 'frontend/build']
         }
     }
 }
@@ -52,3 +53,26 @@ sourceSets {
 springBoot {
     buildInfo()
 }
+
+node {
+    version = '18.18.0'
+    npmVersion = '9.8.1'
+    download = true
+    nodeProjectDir = file("${projectDir}/frontend")
+}
+
+tasks.register('buildReact', NpmTask) {
+    dependsOn npmInstall
+    workingDir = file("${projectDir}/frontend")
+    args = ['run', 'build']
+}
+
+processResources.dependsOn(buildReact)
+
+tasks.register('copyFrontend', Copy) {
+    dependsOn buildReact
+    from("${projectDir}/frontend/build")
+    into("${projectDir}/src/main/resources/static")
+}
+
+processResources.dependsOn(copyFrontend)

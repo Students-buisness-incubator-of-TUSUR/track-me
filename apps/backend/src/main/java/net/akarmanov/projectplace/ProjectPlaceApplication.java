@@ -16,9 +16,7 @@ public class ProjectPlaceApplication {
 
   @Bean
   CommandLineRunner commandLineRunner() {
-    return args -> {
-      log.info("Сервер запущен");
-    };
+    return args -> log.info("Сервер запущен");
   }
 
 }

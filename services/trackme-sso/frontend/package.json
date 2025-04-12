@@ -16,7 +16,11 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "clean": "rimraf build",
+    "build:prod": "react-scripts build --mode=production",
+    "build:dev": "react-scripts build --mode=development",
+    "build:staging": "react-scripts build --mode=staging"
   },
   "eslintConfig": {
     "extends": [
