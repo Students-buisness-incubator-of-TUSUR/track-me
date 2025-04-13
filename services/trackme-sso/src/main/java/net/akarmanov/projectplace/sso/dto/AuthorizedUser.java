@@ -19,6 +19,8 @@ public class AuthorizedUser extends User implements OAuth2User {
 
   private String fullName;
 
+  private String email;
+
   private String avatarUrl;
 
   private Map<String, Object> oauthAttributes;
@@ -128,6 +130,11 @@ public class AuthorizedUser extends User implements OAuth2User {
 
     public AuthorizedUserBuilder avatarUrl(String avatarUrl) {
       this.entity.setAvatarUrl(avatarUrl);
+      return this;
+    }
+
+    public AuthorizedUserBuilder email(String email) {
+      this.entity.setEmail(email);
       return this;
     }
 

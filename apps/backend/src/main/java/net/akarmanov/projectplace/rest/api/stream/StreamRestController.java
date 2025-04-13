@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,5 +61,5 @@ public interface StreamRestController {
   @Operation(summary = "Получить список рынков НТИ",
              description = "Возвращает список рынков НТИ")
   @GetMapping("/nti-markets")
-  List<NTIMarketDto> getNTIMarkets();
+  List<NTIMarketDto> getNTIMarkets(Authentication authentication);
 }

@@ -12,6 +12,7 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -60,7 +61,7 @@ public class StreamRestControllerImpl implements StreamRestController {
   }
 
   @Override
-  public List<NTIMarketDto> getNTIMarkets() {
+  public List<NTIMarketDto> getNTIMarkets(Authentication authentication) {
     return streamUseCase.getNTIMarkets();
   }
 }

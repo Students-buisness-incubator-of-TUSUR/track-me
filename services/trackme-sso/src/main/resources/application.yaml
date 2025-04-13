@@ -15,6 +15,24 @@ spring:
         authentication-success-url: http://127.0.0.1:8081/
         issuer-url: http://localhost:9000
         custom-handler-header-name: TrackMe-Sso-Next-Location
+        authorization-ttl: 720000ms
+        authorization-consent-ttl: 720000ms
+  session:
+    redis:
+      flush-mode: immediate
+      namespace: track-me-sso:session
+  data:
+    redis:
+      client-type: lettuce
+      database: 0
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
+      username: ${REDIS_USER:trackme-redis}
+      password: ${REDIS_PASSWORD:trackme-redis}
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
   datasource:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}

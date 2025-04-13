@@ -6,10 +6,12 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -58,16 +60,28 @@ public class OAuth2AuthorizationServerConfig {
   @Bean
   OAuth2TokenCustomizer<JwtEncodingContext> jwtTokenCustomizer() {
     return context -> {
-      if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
-        context.getClaims().claims(claims -> {
-          Set<String> roles =
-              AuthorityUtils.authorityListToSet(context.getPrincipal().getAuthorities())
-                  .stream()
-                  .map(c -> c.replaceFirst("^ROLE_", ""))
-                  .collect(collectingAndThen(toSet(), Collections::unmodifiableSet));
-          claims.put("roles", roles);
-        });
+      if (!OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+        return;
       }
+      context.getClaims().claims(claims -> {
+        var principal = context.getPrincipal();
+        Set<String> roles =
+            AuthorityUtils.authorityListToSet(principal.getAuthorities())
+                .stream()
+                .map(c -> c.replaceFirst("^ROLE_", ""))
+                .collect(collectingAndThen(toSet(), Collections::unmodifiableSet));
+        claims.put("roles", roles);
+        var authorization = context.getAuthorization();
+        if (authorization != null) {
+          claims.put("authorization_id", authorization.getId());
+        }
+        if (principal instanceof UsernamePasswordAuthenticationToken token) {
+          var user = (AuthorizedUser) token.getPrincipal();
+          claims.put("user_id", user.getId());
+          claims.put("email", user.getEmail());
+          claims.put("full_name", user.getFullName());
+        }
+      });
     };
   }
 

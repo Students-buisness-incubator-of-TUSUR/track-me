@@ -22,6 +22,9 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.session:spring-session-jdbc'
+    implementation 'org.springframework.session:spring-session-data-redis'
     compileOnly 'org.projectlombok:lombok'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
@@ -67,6 +70,16 @@ tasks.register('buildReact', NpmTask) {
     args = ['run', 'build']
 }
 
+// Очистка ресурсов в templates и static
+tasks.register('cleanFrontendResources', Delete) {
+    delete fileTree("${projectDir}/src/main/resources/static") {
+        exclude "index.html"
+    }
+    delete fileTree("${projectDir}/src/main/resources/templates") {
+        include "index.html"
+    }
+}
+
 // Копирование ресурсов в templates и static
 tasks.register('copyFrontendResources', Copy) {
     dependsOn buildReact
@@ -86,6 +99,7 @@ tasks.register('copyIndexHtml', Copy) {
 
 // Гарантируем, что это выполнится до bootJar
 processResources {
+    dependsOn cleanFrontendResources
     dependsOn copyIndexHtml
     dependsOn copyFrontendResources
 }

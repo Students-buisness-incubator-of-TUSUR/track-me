@@ -25,6 +25,7 @@ public class AuthorizedUserMapper {
         .id(entity.getId())
         .fullName(entity.getFullName())
         .avatarUrl(entity.getAvatarUrl())
+        .email(entity.getEmail())
         .build();
   }
 
