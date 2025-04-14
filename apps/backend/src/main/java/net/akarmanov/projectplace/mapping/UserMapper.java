@@ -15,7 +15,7 @@ public interface UserMapper {
 
   UserDTO mapUserToDto(User user);
 
-  @Mapping(target = "userTeamCards", ignore = true)
+  @Mapping(target = "deleted", ignore = true)
   @Mapping(target = "role", ignore = true)
   @Mapping(target = "photo", ignore = true)
   @Mapping(target = "password", ignore = true)
@@ -23,7 +23,6 @@ public interface UserMapper {
   @Mapping(target = "enabled", ignore = true)
   void updateFromDto(UserUpdateDTO userDTO, @MappingTarget User user);
 
-  @Mapping(target = "userTeamCards", ignore = true)
   @Mapping(target = "photo", ignore = true)
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "enabled", ignore = true)

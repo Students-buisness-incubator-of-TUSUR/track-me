@@ -56,10 +56,8 @@ public class TeamCard {
   @Enumerated(EnumType.STRING)
   private TeamCardStatus status;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id",
-              nullable = false)
-  private User user;
+  @Column(nullable = false)
+  private UUID userId;
 
   @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
   @JoinColumn(name = "nti_market_id", nullable = false)

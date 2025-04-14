@@ -8,7 +8,6 @@ import net.akarmanov.projectplace.repos.TeamCardsRepository;
 import net.akarmanov.projectplace.services.acl.AclService;
 import net.akarmanov.projectplace.services.exceptions.TeamCardNotFoundException;
 import net.akarmanov.projectplace.services.stream.StreamService;
-import net.akarmanov.projectplace.services.user.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,17 +24,13 @@ public class DomainTeamCardsService implements TeamCardsService {
 
   private final TeamCardsRepository teamCardsRepository;
 
-  private final UserService userService;
-
   private final StreamService streamService;
 
   private final AclService aclService;
 
   @Override
   public TeamCard createTeamCard(TeamCard createTeamCard) {
-    var user = userService.getCurrentUser();
     createTeamCard.setStatus(TeamCardStatus.OK);
-    createTeamCard.setUser(user);
     createTeamCard = teamCardsRepository.save(createTeamCard);
     aclService.createAcl(createTeamCard);
     return createTeamCard;
@@ -77,11 +72,10 @@ public class DomainTeamCardsService implements TeamCardsService {
   @Transactional
   @PreAuthorize("hasRole('ADMIN')")
   public TeamCard createTeamCard(TeamCard create, UUID userId) {
-    var user = userService.getUser(userId);
-    create.setUser(user);
+    create.setUserId(userId);
     create.setStatus(TeamCardStatus.OK);
     create = teamCardsRepository.save(create);
-    aclService.updateAcl(create, user.getUsername());
+    aclService.updateAcl(create, userId.toString());
     return create;
   }
 
@@ -93,14 +87,13 @@ public class DomainTeamCardsService implements TeamCardsService {
                                  UUID userId) {
     var teamCard = get(teamCardId, userId);
     updateTeamCard(teamCardDto, teamCard);
-    var user = userService.getUser(userId);
-    teamCard.setUser(user);
+    teamCard.setUserId(userId);
     if (streamId != null) {
       var stream = streamService.getById(streamId);
       teamCard.addStream(stream);
     }
     teamCard = teamCardsRepository.save(teamCard);
-    aclService.updateAcl(teamCard, user.getUsername());
+    aclService.updateAcl(teamCard, userId.toString());
     return teamCard;
   }
 

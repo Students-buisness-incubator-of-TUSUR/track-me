@@ -11,11 +11,10 @@ import org.mapstruct.MappingTarget;
 public interface TeamCardMapper {
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "streams", ignore = true)
-  @Mapping(target = "user", ignore = true)
   TeamCard mapToEntity(TeamCardDto dto);
 
+  @Mapping(target = "userId", ignore = true)
   @Mapping(target = "ntiMarket", ignore = true)
-  @Mapping(target = "user", ignore = true)
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "streams", ignore = true)
   @Mapping(target = "status", ignore = true)
@@ -25,16 +24,16 @@ public interface TeamCardMapper {
            expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
   TeamCard mapToEntity(TeamCardCreateOrUpdateDto dto);
 
-  @Mapping(target = "userId", source = "user.id")
+  @Mapping(target = "userId", source = "userId")
   @Mapping(target = "readinessLevel", expression = "java( entity.getReadinessLevel().getValue() )")
   TeamCardDto mapToDto(TeamCard entity);
 
+  @Mapping(target = "userId", ignore = true)
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "ntiMarket", ignore = true)
   @Mapping(target = "streams", ignore = true)
   @Mapping(target = "enabled", ignore = true)
   @Mapping(target = "id", ignore = true)
-  @Mapping(target = "user", ignore = true)
   @Mapping(target = "status", ignore = true)
   void updateFromDto(TeamCardCreateOrUpdateDto dto, @MappingTarget TeamCard entity);
 }

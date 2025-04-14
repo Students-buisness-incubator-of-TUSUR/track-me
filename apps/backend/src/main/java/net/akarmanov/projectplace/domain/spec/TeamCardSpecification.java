@@ -56,10 +56,10 @@ public class TeamCardSpecification implements Specification<TeamCard> {
     };
   }
 
-  public static Specification<TeamCard> userEquals(UUID userId) {
+  public static Specification<TeamCard> userEquals(String userId) {
     return (root, query, criteriaBuilder) -> {
       var userJoin = root.join("user");
-      return criteriaBuilder.equal(userJoin.get("id"), userId);
+      return criteriaBuilder.equal(userJoin.get("id"), UUID.fromString(userId));
     };
   }
 

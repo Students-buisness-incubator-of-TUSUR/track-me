@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -37,7 +38,8 @@ public interface TeamCardsRestController {
              })
   ResponseEntity<TeamCardDto> createTeamCard(@RequestParam UUID streamId,
                                              @Valid @RequestBody
-                                             TeamCardCreateOrUpdateDto teamCardDto);
+                                             TeamCardCreateOrUpdateDto teamCardDto,
+                                             Authentication authentication);
 
   @PatchMapping(value = "team-card",
                 consumes = "application/json",
@@ -55,7 +57,7 @@ public interface TeamCardsRestController {
       @RequestBody @Valid FilterRequest filters,
       @ParameterObject
       @PageableDefault
-      Pageable pageable);
+      Pageable pageable, Authentication authentication);
 
   @GetMapping(value = "team-card",
               produces = "application/json")

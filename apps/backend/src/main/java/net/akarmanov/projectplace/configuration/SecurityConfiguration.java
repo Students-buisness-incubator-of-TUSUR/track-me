@@ -1,7 +1,6 @@
 package net.akarmanov.projectplace.configuration;
 
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.services.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -11,7 +10,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -31,9 +29,6 @@ import static net.akarmanov.projectplace.models.UserRole.TRACKER;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-  private final UserService userService;
-
-  private final PasswordEncoder passwordEncoder;
 
   /**
    * Устонавливает фильтры безопасности.
@@ -89,16 +84,6 @@ public class SecurityConfiguration {
     String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
                        "ROLE_ADMIN > ROLE_TRACKER";
     return RoleHierarchyImpl.fromHierarchy(hierarchy);
-  }
-
-  /**
-   * Конструирует {@link SuperAdminSetupConfigurer}.
-   *
-   * @return {@link SuperAdminSetupConfigurer}.
-   */
-  @Bean
-  public SuperAdminSetupConfigurer superAdminSetupConfigurer() {
-    return new SuperAdminSetupConfigurer(userService, passwordEncoder);
   }
 
   @Bean

@@ -64,42 +64,13 @@ node {
     nodeProjectDir = file("${projectDir}/frontend")
 }
 
-tasks.register('buildReact', NpmTask) {
-    dependsOn npmInstall
-    workingDir = file("${projectDir}/frontend")
-    args = ['run', 'build']
-}
-
-// Очистка ресурсов в templates и static
-tasks.register('cleanFrontendResources', Delete) {
-    delete fileTree("${projectDir}/src/main/resources/static") {
-        exclude "index.html"
-    }
-    delete fileTree("${projectDir}/src/main/resources/templates") {
-        include "index.html"
-    }
-}
-
-// Копирование ресурсов в templates и static
-tasks.register('copyFrontendResources', Copy) {
-    dependsOn buildReact
-    from("${projectDir}/frontend/build/static") {
-        exclude "index.html"
-    }
-    into "${projectDir}/src/main/resources/static"
-}
-
-tasks.register('copyIndexHtml', Copy) {
-    dependsOn buildReact
+tasks.register('copyReactResources', Sync) {
     from("${projectDir}/frontend/build") {
-        include "index.html"
+        exclude 'index.html'
     }
-    into "${projectDir}/src/main/resources/templates"
-}
+    into("${layout.buildDirectory.dir("resources/main/static")}")
 
-// Гарантируем, что это выполнится до bootJar
-processResources {
-    dependsOn cleanFrontendResources
-    dependsOn copyIndexHtml
-    dependsOn copyFrontendResources
+    from("${projectDir}/frontend/build/index.html") {
+        into("${layout.buildDirectory.dir("resources/main/static")}")
+    }
 }

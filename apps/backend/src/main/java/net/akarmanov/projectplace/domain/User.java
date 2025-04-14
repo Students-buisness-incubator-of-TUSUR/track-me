@@ -7,7 +7,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
@@ -25,9 +24,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -87,11 +84,6 @@ public class User implements UserDetails {
 
   @Email
   private String email;
-
-  @OneToMany(mappedBy = "user",
-             cascade = CascadeType.ALL)
-  @Builder.Default
-  private Set<TeamCard> userTeamCards = new HashSet<>();
 
   @OneToOne(mappedBy = "user",
             cascade = CascadeType.ALL)

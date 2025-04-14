@@ -10,10 +10,10 @@ import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.services.nti.NtiMarketService;
 import net.akarmanov.projectplace.services.stream.StreamService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
-import net.akarmanov.projectplace.services.user.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -30,20 +30,23 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
 
   private final StreamService streamService;
 
-  private final UserService userService;
-
   private final TeamCardMapper teamCardMapper;
 
   private final NtiMarketService ntiMarketService;
 
   @Override
   @Transactional
-  public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard, UUID streamId) {
+  public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard, UUID streamId,
+                                    Authentication authentication) {
+    var userId = UUID.fromString(authentication.getName());
     var ntiMarketId = teamCard.ntiMarketId();
+
     var stream = streamService.findActive(streamId);
     var teamCardEntity = teamCardMapper.mapToEntity(teamCard);
-    teamCardEntity.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
-    teamCardEntity.setUser(userService.getCurrentUser());
+    var ntiMarket = ntiMarketService.getNtiMarket(ntiMarketId);
+
+    teamCardEntity.setNtiMarket(ntiMarket);
+    teamCardEntity.setUserId(userId);
     teamCardEntity.addStream(stream);
     teamCardEntity.setStatus(TeamCardStatus.OK);
     var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);
@@ -62,10 +65,11 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
   }
 
   @Override
-  public Page<TeamCardDto> getTeamCards(List<Filter> filters, Pageable pageable) {
-    var user = userService.getCurrentUser();
+  public Page<TeamCardDto> getTeamCards(List<Filter> filters,
+                                        Authentication authentication,
+                                        Pageable pageable) {
     var page = teamCardsService.getTeamCards(withFilters(filters)
-            .and(userEquals(user.getId())),
+            .and(userEquals(authentication.getName())),
         pageable);
     return page.map(teamCardMapper::mapToDto);
   }

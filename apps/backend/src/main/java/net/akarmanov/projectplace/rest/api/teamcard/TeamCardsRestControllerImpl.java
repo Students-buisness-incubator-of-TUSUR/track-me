@@ -8,6 +8,7 @@ import net.akarmanov.projectplace.usecases.UserTeamCardsUseCase;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -19,20 +20,24 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
   private final UserTeamCardsUseCase userTeamCardsUseCase;
 
   @Override
-  public ResponseEntity<TeamCardDto> createTeamCard(UUID streamId, TeamCardCreateOrUpdateDto dto) {
-    var createTeamCardDto = userTeamCardsUseCase.createTeamCard(dto, streamId);
+  public ResponseEntity<TeamCardDto> createTeamCard(UUID streamId, TeamCardCreateOrUpdateDto dto,
+                                                    Authentication authentication) {
+    var createTeamCardDto = userTeamCardsUseCase.createTeamCard(dto, streamId, authentication);
     return ResponseEntity.ok(createTeamCardDto);
   }
 
   @Override
-  public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId, TeamCardCreateOrUpdateDto dto) {
+  public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId,
+                                                    TeamCardCreateOrUpdateDto dto) {
     var updatedTeamCard = userTeamCardsUseCase.updateTeamCard(teamCardId, dto);
     return ResponseEntity.ok(updatedTeamCard);
   }
 
   @Override
-  public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(FilterRequest filterRequest, Pageable pageable) {
-    var page = userTeamCardsUseCase.getTeamCards(filterRequest.filters(), pageable);
+  public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(FilterRequest filterRequest,
+                                                              Pageable pageable,
+                                                              Authentication authentication) {
+    var page = userTeamCardsUseCase.getTeamCards(filterRequest.filters(), authentication, pageable);
     return ResponseEntity.ok(new PagedModel<>(page));
   }
 
