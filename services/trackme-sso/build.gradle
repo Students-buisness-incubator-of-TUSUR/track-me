@@ -57,6 +57,7 @@ springBoot {
     buildInfo()
 }
 
+
 node {
     version = '20.8.0'
     npmVersion = '10.1.0'
@@ -64,13 +65,27 @@ node {
     nodeProjectDir = file("${projectDir}/frontend")
 }
 
-tasks.register('copyReactResources', Sync) {
-    from("${projectDir}/frontend/build") {
-        exclude 'index.html'
-    }
-    into("${layout.buildDirectory.dir("resources/main/static")}")
-
-    from("${projectDir}/frontend/build/index.html") {
-        into("${layout.buildDirectory.dir("resources/main/static")}")
-    }
+tasks.register('installReact', NpmTask) {
+    args = ['install']
+    workingDir = file("${projectDir}/frontend")
 }
+
+tasks.register('buildReact', NpmTask) {
+    args = ['run', 'build']
+    workingDir = file("${projectDir}/frontend")
+    dependsOn installReact // Зависит от установки зависимостей
+}
+
+tasks.register('copyReactBuild', Copy) {
+    from file("${projectDir}/frontend/build/static") // Путь к собранному React приложению
+    into 'src/main/resources/static'
+    dependsOn buildReact // Зависит от сборки React
+}
+
+tasks.register('copyIndexToTemplates', Copy) {
+    from file("${projectDir}/frontend/build/index.html") // Путь к index.html
+    into 'src/main/resources/templates'
+    dependsOn copyReactBuild // Зависит от копирования React сборки
+}
+
+processResources.dependsOn copyIndexToTemplates

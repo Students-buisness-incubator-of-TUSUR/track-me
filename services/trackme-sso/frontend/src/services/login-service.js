@@ -29,6 +29,21 @@ export class LoginAPI {
             }
         });
     }
+
+    register(userData) {
+        return axios.post("/register", userData)
+            .then(response => {
+                if (response.status === 200) {
+                    window.location = "/registration-success";
+                } else {
+                    throw new Error("Registration failed");
+                }
+            })
+            .catch(error => {
+                console.error("Registration error:", error);
+                alert("Ошибка! Проверьте введенные данные.");
+            });
+    }
 }
 
 

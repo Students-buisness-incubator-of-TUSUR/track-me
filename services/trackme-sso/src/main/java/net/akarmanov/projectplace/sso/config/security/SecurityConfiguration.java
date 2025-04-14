@@ -35,6 +35,8 @@ public class SecurityConfiguration {
 
   static final String[] PERMIT_ALL_PATTERNS = {
       LOGIN_PAGE,
+      "/register",
+      "/registration-success",
       "/static/**",
       "/v3/api-docs",
       "/v3/api-docs/swagger-config"
