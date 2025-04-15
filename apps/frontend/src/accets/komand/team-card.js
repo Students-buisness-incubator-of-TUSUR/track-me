@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "./team-card.css";
 
-const backendHost = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080";
+const backendHost = process.env.REACT_APP_BACKEND_HOST || "https://localhost:8080";
 
 const TeamCard = () => {
   const navigate = useNavigate();
@@ -28,6 +28,27 @@ const TeamCard = () => {
   const forceEdit = query.get("edit") === "true";
   const [isEditing, setIsEditing] = useState(forceEdit);
 
+  const [showNTI, setShowNTI] = useState(false);
+  const [showTRL, setShowTRL] = useState(false);
+  const [selectedMarket, setSelectedMarket] = useState(null);
+  const [selectedTRL, setSelectedTRL] = useState(null);
+
+  const [isCreatingMeeting, setIsCreatingMeeting] = useState(false);
+  const [newMeetingData, setNewMeetingData] = useState({
+    number: "",
+    startDate: new Date().toISOString(),
+    link: "",
+    tasksCurrentMeeting: "",
+    tasksNextMeeting: "",
+  });
+
+  const trlLevels = [
+    { id: 1, label: "0-2" },
+    { id: 2, label: "3-5" },
+    { id: 3, label: "6-8" },
+    { id: 4, label: "9-10" },
+  ];
+
   useEffect(() => {
     fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=10`, {
       headers: {
@@ -41,6 +62,27 @@ const TeamCard = () => {
       })
       .catch(err => console.error("Ошибка загрузки встреч:", err));
   }, [id, currentPage, token]);
+
+  useEffect(() => {
+    // Fetch the list of meetings for the team card
+    fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}&page=0&size=10`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Ошибка при загрузке списка встреч");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setMeetings(data.content || []);
+      })
+      .catch((error) => {
+        console.error("Ошибка при загрузке встреч:", error);
+      });
+  }, [id, token]);
 
   useEffect(() => {
     const endpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
@@ -128,8 +170,73 @@ const TeamCard = () => {
       .catch(err => console.error("Ошибка загрузки рынков НТИ:", err));
   }, [token]);
 
+  useEffect(() => {
+    // Set initial selected market and TRL when team data loads
+    if (teamData.ntiMarket) {
+      setSelectedMarket(teamData.ntiMarket);
+    }
+    if (teamData.readinessLevel) {
+      const trl = trlLevels.find(t => t.label === teamData.readinessLevel);
+      setSelectedTRL(trl || null);
+    }
+  }, [teamData]);
+
+  const handleMarketSelect = (market) => {
+    setSelectedMarket(market);
+    setShowNTI(false);
+    if (isEditing) {
+      setEditedData(prev => ({ ...prev, ntiMarketId: market.id }));
+    }
+  };
+
+  const handleTRLSelect = (trl) => {
+    setSelectedTRL(trl);
+    setShowTRL(false);
+    if (isEditing) {
+      setEditedData(prev => ({ ...prev, readinessLevel: trl.label }));
+    }
+  };
+
   const handleChange = (e) => {
     setEditedData({ ...editedData, [e.target.name]: e.target.value });
+  };
+
+  const handleNewMeetingChange = (e) => {
+    const { name, value } = e.target;
+    setNewMeetingData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateMeeting = async () => {
+    try {
+      const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...newMeetingData,
+          startDate: new Date(newMeetingData.startDate).toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Ошибка при создании встречи");
+      }
+
+      const createdMeeting = await response.json();
+      setMeetings((prev) => [...prev, createdMeeting]);
+      setIsCreatingMeeting(false);
+      setNewMeetingData({
+        number: "",
+        startDate: new Date().toISOString(),
+        link: "",
+        tasksCurrentMeeting: "",
+        tasksNextMeeting: "",
+      });
+    } catch (error) {
+      console.error("Ошибка при создании встречи:", error);
+    }
   };
 
   const handleSave = () => {
@@ -182,8 +289,48 @@ const TeamCard = () => {
       .catch((err) => console.error("Ошибка при сохранении:", err));
   };
 
+  const handleDeactivate = async () => {
+    if (!window.confirm('Вы уверены, что хотите деактивировать карточку команды?')) {
+      return;
+    }
+
+    const baseEndpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
+      ? `${backendHost}/api/v1/admin/team-card`
+      : `${backendHost}/api/v1/team-card`;
+    
+    const params = new URLSearchParams();
+
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+      // Админский запрос требует teamCardId и userId трекера
+      params.append("teamCardId", id);
+      params.append("userId", teamData.user.id);
+    } else {
+      // Для трекера нужен только teamCardId
+      params.append("teamCardId", id);
+    }
+
+    try {
+      const response = await fetch(`${baseEndpoint}?${params.toString()}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Ошибка при деактивации карточки");
+      }
+
+      // После успешной деактивации возвращаемся назад
+      navigate(-1);
+    } catch (error) {
+      console.error("Ошибка при деактивации:", error);
+    }
+  };
+
   const handleAddMeeting = () => {
-    navigate(`/meeting/new?teamId=${id}&userId=${userId}`);
+    const teamCardId = id; // id из useParams() - это teamCardId
+    navigate(`/meeting/new?teamId=${teamCardId}&userId=${userId}`);
   };
 
   const handlePageChange = (pageIndex) => {
@@ -193,21 +340,14 @@ const TeamCard = () => {
   return (
     <div className="team-card-widget-container">
       <button className="close-button-widget" onClick={() => navigate(-1)}>×</button>
-      {!isEditing ? (
-        <button
-          className="edit-button-widget"
-          onClick={() => setIsEditing(true)}
-        >
-          Редактировать
-        </button>
-      ) : (
-        <button
-          className="edit-button-widget"
-          onClick={handleSave}
-        >
-          Сохранить
-        </button>
-      )}
+
+      <button 
+        className="edit-button-widget" 
+        onClick={isEditing ? handleSave : () => setIsEditing(true)}
+        disabled={!teamData}
+      >
+        {isEditing ? "Сохранить" : "Редактировать"}
+      </button>
 
       <div className="team-card-content">
         <div className="left-column">
@@ -261,23 +401,74 @@ const TeamCard = () => {
               <div className="meetings-left">
                 <span className="team-label-widget">Встречи:</span>
                 <div className="meetings-grid-widget">
-                  {meetings.map((meeting, index) => (
+                  {meetings.map((meeting) => (
                     <div 
                       key={meeting.id} 
                       className={`meeting-item-widget ${meeting.status === 'DONE' ? 'done' : 'planned'}`}
                       onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&userId=${userId}`)}
                     >
-                      <span className="meeting-number-widget">{meeting.number || index + 1}</span>
+                      <span className="meeting-number-widget">{meeting.number || "-"}</span>
                       <span className="meeting-date-widget">
                         {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
                           day: '2-digit',
-                          month: '2-digit'
+                          month: '2-digit',
+                          year: 'numeric'
                         })}
                       </span>
+                      {meeting.link && (
+                        <a href={meeting.link} target="_blank" rel="noopener noreferrer" className="meeting-link-widget">
+                          Ссылка на встречу
+                        </a>
+                      )}
+                      {meeting.tasks && meeting.tasks.length > 0 && (
+                        <ul className="meeting-tasks-widget">
+                          {meeting.tasks.map((task) => (
+                            <li key={task.id}>{task.description}</li>
+                          ))}
+                        </ul>
+                      )}
                       {meeting.status === 'DONE' && <span className="check-mark-widget">✓</span>}
                     </div>
                   ))}
-                  <div className="meeting-item-widget add" onClick={handleAddMeeting}>+</div>
+                  {isCreatingMeeting && (
+                    <div className="new-meeting-form">
+                      <input
+                        type="text"
+                        name="number"
+                        placeholder="Номер встречи"
+                        value={newMeetingData.number}
+                        onChange={handleNewMeetingChange}
+                      />
+                      <input
+                        type="datetime-local"
+                        name="startDate"
+                        value={new Date(newMeetingData.startDate).toISOString().slice(0, 16)}
+                        onChange={handleNewMeetingChange}
+                      />
+                      <input
+                        type="text"
+                        name="link"
+                        placeholder="Ссылка на встречу"
+                        value={newMeetingData.link}
+                        onChange={handleNewMeetingChange}
+                      />
+                      <textarea
+                        name="tasksCurrentMeeting"
+                        placeholder="Задачи текущей встречи"
+                        value={newMeetingData.tasksCurrentMeeting}
+                        onChange={handleNewMeetingChange}
+                      />
+                      <textarea
+                        name="tasksNextMeeting"
+                        placeholder="Задачи к следующей встрече"
+                        value={newMeetingData.tasksNextMeeting}
+                        onChange={handleNewMeetingChange}
+                      />
+                      <button onClick={handleCreateMeeting}>Создать</button>
+                      <button onClick={() => setIsCreatingMeeting(false)}>Отмена</button>
+                    </div>
+                  )}
+                  <div className="meeting-item-widget add" onClick={() => navigate(`/meeting/new?teamId=${id}&userId=${userId}`)}>+</div>
                 </div>
 
                 {totalPages > 1 && (
@@ -298,51 +489,51 @@ const TeamCard = () => {
 
         <div className="right-panel">
           <div className="dropdown-block">
-            <div className="dropdown-toggle">
-              Рынок НТИ
+            <div 
+              className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
+              onClick={() => isEditing && setShowNTI(!showNTI)}
+            >
+              {selectedMarket?.displayName || "Рынок НТИ"}
             </div>
-            <div className="team-input-wrapper">
-              <select
-                className="team-input-widget"
-                name="ntiMarketId"
-                value={editedData.ntiMarketId || ""}
-                onChange={handleChange}
-                disabled={!isEditing}
-              >
-                <option value="">Выберите рынок НТИ</option>
-                {ntiMarkets.map(market => (
-                  <option key={market.id} value={market.id}>
+            {isEditing && showNTI && (
+              <div className="dropdown-list">
+                {ntiMarkets.map((market) => (
+                  <div
+                    key={market.id}
+                    className="dropdown-item"
+                    onClick={() => handleMarketSelect(market)}
+                  >
                     {market.displayName}
-                  </option>
+                  </div>
                 ))}
-              </select>
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="dropdown-block">
-            <div className="dropdown-toggle">
-              TRL
+            <div 
+              className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
+              onClick={() => isEditing && setShowTRL(!showTRL)}
+            >
+              {selectedTRL?.label || "TRL"}
             </div>
-            <div className="team-input-wrapper">
-              <select
-                className="team-input-widget"
-                name="readinessLevel"
-                value={editedData.readinessLevel || ""}
-                onChange={handleChange}
-                disabled={!isEditing}
-              >
-                <option value="">Выберите уровень</option>
-                <option value="0-2">0-2</option>
-                <option value="3-5">3-5</option>
-                <option value="6-8">6-8</option>
-                <option value="9-10">9-10</option>
-              </select>
-            </div>
+            {isEditing && showTRL && (
+              <div className="dropdown-list">
+                {trlLevels.map((trl) => (
+                  <div
+                    key={trl.id}
+                    className="dropdown-item"
+                    onClick={() => handleTRLSelect(trl)}
+                  >
+                    {trl.label}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Show stream selection only for admin/superadmin */}
       {(role === "ADMIN" || role === "SUPER_ADMIN") && isEditing ? (
         <select
           className="stream-select"
@@ -368,7 +559,7 @@ const TeamCard = () => {
       )}
       
       <div className="button-group-widget">
-        <button className="red-button-widget">
+        <button className="red-button-widget" onClick={handleDeactivate}>
           <span>Деактивировать</span>
         </button>
       </div>

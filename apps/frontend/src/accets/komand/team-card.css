@@ -75,7 +75,12 @@ body {
 
 .right-panel {
     width: 300px;
-    margin-top: 20px;
+    position: absolute;
+    right: 80px;
+    top: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .inputs-container {
@@ -144,14 +149,77 @@ select.team-input-widget option {
 }
 
 .dropdown-block {
-    margin-bottom: 20px;
+    width: 100%;
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
 }
 
 .dropdown-toggle {
-    color: #333;
-    font-size: 24px;
-    font-weight: 500;
-    margin-bottom: 10px;
+    font-weight: bold;
+    cursor: default;
+    color: white;
+    background: #caa7f9;
+    padding: 14px 20px;
+    border: none;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    text-align: center;
+    position: relative;
+}
+
+.dropdown-toggle.editable {
+    cursor: pointer;
+}
+
+.dropdown-toggle.editable::after {
+    content: "▾";
+    position: absolute;
+    right: 14px;
+    font-size: 12px;
+}
+
+.dropdown-list {
+    background: #caa7f9;
+    min-width: 260px;
+    max-width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px 14px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #8e44fd #caa7f9;
+}
+
+.dropdown-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dropdown-list::-webkit-scrollbar-track {
+    background: #caa7f9;
+    border-radius: 4px;
+}
+
+.dropdown-list::-webkit-scrollbar-thumb {
+    background-color: #8e44fd;
+    border-radius: 4px;
+    border: 2px solid #caa7f9;
+}
+
+.dropdown-item {
+    color: white;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    cursor: pointer;
 }
 
 .meeting-title-widget {
@@ -293,18 +361,21 @@ select.team-input-widget option {
     background: #EF4444;
     color: white;
     border: none;
-    padding: 0;
+    padding: 10px 25px;
     border-radius: 20px;
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
-    text-align: center;
     min-width: 180px;
     height: 49px;
     display: flex;
-    flex-direction: row;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.red-button-widget:hover {
+    background: #DC2626;
 }
 
 .stream-select {

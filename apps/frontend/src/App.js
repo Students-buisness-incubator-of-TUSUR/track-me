@@ -41,7 +41,7 @@ function App() {
         <Route path="/team-card" element={<TeamCard />} />
         <Route path="/teamcard/create" element={<TeamCardCreate />} />
         <Route path="/teamcard/:id" element={<TeamCard />} />
-
+        <Route path="/meeting/new" element={<MeetingCard />} />
       </Routes>
     </Router>
   );
