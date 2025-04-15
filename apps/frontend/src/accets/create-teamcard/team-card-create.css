@@ -68,6 +68,10 @@ body {
   box-sizing: border-box;
 }
 
+.create-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 .create-edit-icon {
   position: absolute;
   right: 12px;
@@ -111,6 +115,8 @@ body {
   border-bottom-right-radius: 0;
   text-align: center;
   position: relative;
+  opacity: 1;
+  transition: opacity 0.3s;
 }
 
 .create-dropdown-toggle::after {
@@ -118,6 +124,20 @@ body {
   position: absolute;
   right: 14px;
   font-size: 12px;
+}
+
+.create-dropdown-toggle.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.create-dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
 }
 
 .create-checkbox-list {

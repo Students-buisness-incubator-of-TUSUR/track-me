@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import "./team-card.css";
@@ -15,7 +15,6 @@ const TeamCard = () => {
 
   const userId = query.get("userId");
   const role = decoded.role;
-  const currentUserName = decoded.fullName || "ФИО трекера";
 
   const [teamData, setTeamData] = useState({});
   const [editedData, setEditedData] = useState({});
@@ -24,7 +23,7 @@ const TeamCard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [streams, setStreams] = useState([]);
   const [ntiMarkets, setNtiMarkets] = useState([]);
-  const [trackers, setTrackers] = useState([]); // Initialize as empty array
+  const [trackers, setTrackers] = useState([]);
   const forceEdit = query.get("edit") === "true";
   const [isEditing, setIsEditing] = useState(forceEdit);
 
@@ -42,47 +41,51 @@ const TeamCard = () => {
     tasksNextMeeting: "",
   });
 
-  const trlLevels = [
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState(null);
+
+  const trlLevels = useMemo(() => [
     { id: 1, label: "0-2" },
     { id: 2, label: "3-5" },
     { id: 3, label: "6-8" },
     { id: 4, label: "9-10" },
-  ];
+  ], []);
 
   useEffect(() => {
-    fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=10`, {
-      headers: {
-        "Authorization": `Bearer ${token}`,
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-block')) {
+        setShowNTI(false);
+        setShowTRL(false);
       }
-    })
-      .then(res => res.json())
-      .then(data => {
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleApiError = (error, context) => {
+    console.error(`Error in ${context}:`, error);
+    setApiError(`Ошибка при ${context}: ${error.message}`);
+  };
+
+  useEffect(() => {
+    const loadMeetings = async () => {
+      try {
+        const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=10`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
         setMeetings(data.content || []);
         setTotalPages(data.totalPages || 1);
-      })
-      .catch(err => console.error("Ошибка загрузки встреч:", err));
+      } catch (error) {
+        handleApiError(error, "загрузке встреч");
+      }
+    };
+    loadMeetings();
   }, [id, currentPage, token]);
-
-  useEffect(() => {
-    // Fetch the list of meetings for the team card
-    fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}&page=0&size=10`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Ошибка при загрузке списка встреч");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setMeetings(data.content || []);
-      })
-      .catch((error) => {
-        console.error("Ошибка при загрузке встреч:", error);
-      });
-  }, [id, token]);
 
   useEffect(() => {
     const endpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
@@ -104,11 +107,10 @@ const TeamCard = () => {
           readinessLevel: data.readinessLevel || ""
         });
       })
-      .catch(err => console.error("Ошибка загрузки карточки:", err));
+      .catch(err => handleApiError(err, "загрузке карточки"));
   }, [id, userId, role, token]);
 
   useEffect(() => {
-    // Load trackers list only for admin/superadmin
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
       fetch(`${backendHost}/api/v1/users`, {
         method: "POST",
@@ -128,14 +130,13 @@ const TeamCard = () => {
           setTrackers(data.content || []);
         })
         .catch((err) => {
-          console.error("Ошибка загрузки трекеров:", err);
+          handleApiError(err, "загрузке трекеров");
           setTrackers([]);
         });
     }
   }, [role, token]);
 
   useEffect(() => {
-    // Load streams only for admin/superadmin
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
       fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
         method: "POST",
@@ -152,12 +153,11 @@ const TeamCard = () => {
             : [];
           setStreams(streamsWithNames);
         })
-        .catch((err) => console.error("Ошибка загрузки потоков:", err));
+        .catch((err) => handleApiError(err, "загрузке потоков"));
     }
   }, [role, token]);
 
   useEffect(() => {
-    // Загрузка рынков НТИ
     fetch(`${backendHost}/api/v1/streams/nti-markets`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -167,11 +167,10 @@ const TeamCard = () => {
       .then(data => {
         setNtiMarkets(data);
       })
-      .catch(err => console.error("Ошибка загрузки рынков НТИ:", err));
+      .catch(err => handleApiError(err, "загрузке рынков НТИ"));
   }, [token]);
 
   useEffect(() => {
-    // Set initial selected market and TRL when team data loads
     if (teamData.ntiMarket) {
       setSelectedMarket(teamData.ntiMarket);
     }
@@ -235,17 +234,19 @@ const TeamCard = () => {
         tasksNextMeeting: "",
       });
     } catch (error) {
-      console.error("Ошибка при создании встречи:", error);
+      handleApiError(error, "создании встречи");
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setIsLoading(true);
+    setApiError(null);
+
     const patchData = {
       ntiMarketId: editedData.ntiMarketId,
       readinessLevel: editedData.readinessLevel,
     };
 
-    // Add additional fields only for admin/superadmin
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
       patchData.name = editedData.name;
       patchData.description = editedData.description;
@@ -254,11 +255,10 @@ const TeamCard = () => {
     const baseEndpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
       ? `${backendHost}/api/v1/admin/team-card`
       : `${backendHost}/api/v1/team-card`;
-    
+
     const params = new URLSearchParams();
     params.append("teamCardId", id);
 
-    // Add admin-only params
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
       params.append("userId", editedData.userId || userId);
       if (editedData.streamId) {
@@ -266,27 +266,28 @@ const TeamCard = () => {
       }
     }
 
-    const endpoint = `${baseEndpoint}?${params.toString()}`;
+    try {
+      const response = await fetch(`${baseEndpoint}?${params.toString()}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(patchData),
+      });
 
-    fetch(endpoint, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(patchData),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Ошибка при сохранении: " + res.status);
-        }
-        return res.json();
-      })
-      .then((updated) => {
-        setTeamData(updated);
-        setIsEditing(false);
-      })
-      .catch((err) => console.error("Ошибка при сохранении:", err));
+      if (!response.ok) {
+        throw new Error("Ошибка при сохранении: " + response.status);
+      }
+
+      const updated = await response.json();
+      setTeamData(updated);
+      setIsEditing(false);
+    } catch (error) {
+      handleApiError(error, "сохранении изменений");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDeactivate = async () => {
@@ -297,15 +298,13 @@ const TeamCard = () => {
     const baseEndpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
       ? `${backendHost}/api/v1/admin/team-card`
       : `${backendHost}/api/v1/team-card`;
-    
+
     const params = new URLSearchParams();
 
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
-      // Админский запрос требует teamCardId и userId трекера
       params.append("teamCardId", id);
       params.append("userId", teamData.user.id);
     } else {
-      // Для трекера нужен только teamCardId
       params.append("teamCardId", id);
     }
 
@@ -321,10 +320,9 @@ const TeamCard = () => {
         throw new Error("Ошибка при деактивации карточки");
       }
 
-      // После успешной деактивации возвращаемся назад
       navigate(-1);
     } catch (error) {
-      console.error("Ошибка при деактивации:", error);
+      handleApiError(error, "деактивации карточки");
     }
   };
 
@@ -339,10 +337,25 @@ const TeamCard = () => {
       <button 
         className="edit-button-widget" 
         onClick={isEditing ? handleSave : () => setIsEditing(true)}
-        disabled={!teamData}
+        disabled={!teamData || isLoading}
       >
-        {isEditing ? "Сохранить" : "Редактировать"}
+        {isLoading ? "Сохранение..." : (isEditing ? "Сохранить" : "Редактировать")}
       </button>
+
+      {apiError && (
+        <div className="error-message" style={{ 
+          position: 'absolute', 
+          top: '80px', 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          backgroundColor: '#ffebee',
+          padding: '10px 20px',
+          borderRadius: '4px',
+          color: '#c62828'
+        }}>
+          {apiError}
+        </div>
+      )}
 
       <div className="team-card-content">
         <div className="left-column">

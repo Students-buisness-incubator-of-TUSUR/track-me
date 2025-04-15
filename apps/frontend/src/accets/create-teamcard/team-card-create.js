@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./team-card-create.css";
 import penIcon from "./pen.png";
 
@@ -7,8 +7,6 @@ const backendHost = process.env.REACT_APP_BACKEND_HOST || "https://xn--b1afb6bcb
 
 const TeamCard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const query = new URLSearchParams(location.search);
   const token = localStorage.getItem("accessToken");
   
   const [error, setError] = useState("");
@@ -29,6 +27,22 @@ const TeamCard = () => {
     tracker: "",
     streamId: null
   });
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.create-dropdown-block') && !event.target.closest('.tracker-select-container')) {
+        setShowNTI(false);
+        setShowTRL(false);
+        setShowStreams(false);
+        setShowTrackers(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Получаем информацию о текущем пользователе
   useEffect(() => {
@@ -133,32 +147,47 @@ const TeamCard = () => {
 
   const handleTrackerSelect = (tracker) => {
     setSelectedTracker(tracker);
-    setFormData(prev => ({ ...prev, tracker: tracker.fullName }));
+    setFormData(prev => ({ 
+      ...prev, 
+      tracker: tracker.fullName,
+      trackerId: tracker.id // Добавляем ID трекера в formData
+    }));
     setShowTrackers(false);
   };
 
+  const validateForm = () => {
+    const errors = [];
+    if (!formData.name?.trim()) errors.push("Название команды обязательно");
+    if (!selectedMarket) errors.push("Выберите рынок НТИ");
+    if (!selectedTRL) errors.push("Выберите уровень TRL");
+    if (!formData.streamId) errors.push("Привяжите к потоку");
+    if (currentUser?.role === "ADMIN" && !selectedTracker) {
+      errors.push("Выберите трекера");
+    }
+    return errors;
+  };
+
   const handleCreate = async () => {
-    if (!formData.name || !selectedMarket || !selectedTRL || !formData.streamId) {
-      setError("Пожалуйста, заполните все обязательные поля");
+    const errors = validateForm();
+    if (errors.length > 0) {
+      setError(errors.join("\n"));
       return;
     }
 
-    if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN") && !selectedTracker) {
-      setError("Пожалуйста, выберите существующего трекера из списка");
-      return;
-    }
-
-    const payload = {
-      name: formData.name,
-      description: formData.description || "Описание карточки команды",
-      ntiMarketId: selectedMarket.id,
-      readinessLevel: selectedTRL.label
-    };
-
+    setIsLoading(true);
     try {
+      const payload = {
+        name: formData.name,
+        description: formData.description || "Описание карточки команды",
+        ntiMarketId: selectedMarket.id,
+        readinessLevel: selectedTRL.label
+      };
+
       let url = `${backendHost}`;
+      
+      // Добавляем userId в URL если выбран трекер
       if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN")) {
-        url += `/api/v1/admin/team-card?streamId=${formData.streamId}&userId=${selectedTracker.id}`;
+        url += `/api/v1/admin/team-card?streamId=${formData.streamId}&userId=${selectedTracker?.id}`;
       } else {
         url += `/api/v1/team-card?streamId=${formData.streamId}`;
       }
@@ -181,6 +210,8 @@ const TeamCard = () => {
       navigate(`/teamcard/${data.id}`);
     } catch (error) {
       setError(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -236,6 +267,7 @@ const TeamCard = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              placeholder="Введите название команды"
             />
             <img src={penIcon} alt="edit" className="create-edit-icon" />
           </div>
@@ -303,11 +335,19 @@ const TeamCard = () => {
         </div>
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message" style={{ whiteSpace: 'pre-line' }}>
+          {error}
+        </div>
+      )}
 
       <div className="create-button-container">
-        <button className="create-button" onClick={handleCreate}>
-          Создать
+        <button 
+          className="create-button" 
+          onClick={handleCreate}
+          disabled={isLoading}
+        >
+          {isLoading ? "Создание..." : "Создать"}
         </button>
       </div>
     </div>
