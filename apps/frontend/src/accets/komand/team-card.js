@@ -179,7 +179,7 @@ const TeamCard = () => {
       const trl = trlLevels.find(t => t.label === teamData.readinessLevel);
       setSelectedTRL(trl || null);
     }
-  }, [teamData]);
+  }, [teamData, trlLevels]);
 
   const handleMarketSelect = (market) => {
     setSelectedMarket(market);
@@ -326,11 +326,6 @@ const TeamCard = () => {
     } catch (error) {
       console.error("Ошибка при деактивации:", error);
     }
-  };
-
-  const handleAddMeeting = () => {
-    const teamCardId = id; // id из useParams() - это teamCardId
-    navigate(`/meeting/new?teamId=${teamCardId}&userId=${userId}`);
   };
 
   const handlePageChange = (pageIndex) => {
