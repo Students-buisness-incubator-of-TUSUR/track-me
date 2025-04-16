@@ -5,13 +5,18 @@ import LoginAPI from "../../services/login-service";
 const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleLogin = (e) => {
         e.preventDefault();
+        setErrorMessage(""); // Сброс сообщения об ошибке перед новой попыткой
         LoginAPI.login(username, password)
             .catch((error) => {
-                console.error("Login failed", error);
-                alert("Ошибка! Неверный логин или пароль");
+                if (error.response && error.response.status === 401) {
+                    setErrorMessage("Неверный логин или пароль");
+                } else {
+                    setErrorMessage("Произошла ошибка. Попробуйте позже.");
+                }
             });
     };
 
@@ -40,6 +45,7 @@ const Login = () => {
                         Войти
                     </button>
                 </form>
+                {errorMessage && <p className="error-message">{errorMessage}</p>}
                 <div className="login-links">
                     <a href={`/register`} className="login-link">
                         Регистрация

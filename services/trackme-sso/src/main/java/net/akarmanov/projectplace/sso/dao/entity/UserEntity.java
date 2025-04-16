@@ -65,4 +65,12 @@ public class UserEntity extends VersionedBusinessEntity<UUID> {
   @Column(name = "active", nullable = false)
   private Boolean active = false;
 
+  @ColumnDefault("false")
+  @Column(name = "phone_number")
+  private String phoneNumber;
+
+  @ColumnDefault("true")
+  @Column(name = "account_non_locked")
+  private Boolean accountNonLocked = true;
+
 }

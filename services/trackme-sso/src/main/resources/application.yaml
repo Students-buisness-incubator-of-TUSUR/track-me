@@ -5,9 +5,6 @@ spring:
     name: trackme-sso
   mvc:
     static-path-pattern: /static/**
-  web:
-    resources:
-      static-locations: classpath:static
   security:
     oauth2:
       authorizationserver:

@@ -23,6 +23,10 @@ public class AuthorizedUser extends User implements OAuth2User {
 
   private String avatarUrl;
 
+  private String phoneNumber;
+
+  private Boolean accountNonLocked;
+
   private Map<String, Object> oauthAttributes;
 
   public AuthorizedUser(String username,
@@ -140,6 +144,16 @@ public class AuthorizedUser extends User implements OAuth2User {
 
     public AuthorizedUserBuilder oauthAttributes(Map<String, Object> userSasInfo) {
       this.entity.setOauthAttributes(userSasInfo);
+      return this;
+    }
+
+    public AuthorizedUserBuilder phoneNumber(String phoneNumber) {
+      this.entity.setPhoneNumber(phoneNumber);
+      return this;
+    }
+
+    public AuthorizedUserBuilder accountNonLocked(Boolean accountNonLocked) {
+      this.entity.setAccountNonLocked(accountNonLocked);
       return this;
     }
 

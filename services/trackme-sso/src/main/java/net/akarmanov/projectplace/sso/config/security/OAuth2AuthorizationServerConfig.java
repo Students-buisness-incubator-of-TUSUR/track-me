@@ -12,11 +12,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -24,6 +24,7 @@ import org.springframework.security.oauth2.server.authorization.config.annotatio
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -37,6 +38,7 @@ import java.util.UUID;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toSet;
+import static net.akarmanov.projectplace.sso.config.security.SecurityConfiguration.LOGIN_PAGE;
 import static net.akarmanov.projectplace.sso.config.security.SecurityConfiguration.PERMIT_ALL_PATTERNS;
 
 @Configuration(proxyBeanMethods = false)
@@ -80,6 +82,7 @@ public class OAuth2AuthorizationServerConfig {
           claims.put("user_id", user.getId());
           claims.put("email", user.getEmail());
           claims.put("full_name", user.getFullName());
+          claims.put("username", user.getUsername());
         }
       });
     };
@@ -100,11 +103,30 @@ public class OAuth2AuthorizationServerConfig {
         )
         .exceptionHandling(exceptions ->
             exceptions.authenticationEntryPoint(
-                new LoginUrlAuthenticationEntryPoint("/login")
+                new LoginUrlAuthenticationEntryPoint(LOGIN_PAGE)
             ))
         .with(authorizationServerConfigurer, configurer ->
-            configurer
-                .oidc(Customizer.withDefaults()));
+            configurer.oidc(oidc ->
+                oidc
+                    .userInfoEndpoint(userInfoEndpoint ->
+                        userInfoEndpoint
+                            .userInfoMapper(context -> {
+                              var principal = context.getAuthentication().getPrincipal();
+                              if (principal instanceof JwtAuthenticationToken jwtAuthToken) {
+                                var jwt = jwtAuthToken.getToken();
+                                var claims = jwt.getClaims();
+                                return OidcUserInfo.builder()
+                                    .claims(stringObjectMap ->
+                                        stringObjectMap.putAll(claims))
+                                    .subject(claims.get("sub").toString())
+                                    .email(claims.get("email").toString())
+                                    .build();
+                              }
+                              return null;
+                            })
+                    )
+            )
+        );
     return http.build();
   }
 

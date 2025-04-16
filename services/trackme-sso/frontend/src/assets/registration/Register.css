@@ -53,3 +53,9 @@
 .register-button:hover {
     background: #e6d7fb;
 }
+
+.back-button {
+    background: #e6d7fb;
+    color: #8338EB;
+    margin-top: 10px;
+}

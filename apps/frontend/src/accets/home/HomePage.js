@@ -5,6 +5,7 @@ const HomePage = () => {
     const ssoLoginUrl = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080";
 
     const handleSSOLogin = () => {
+
         window.location.href = `${ssoLoginUrl}/oauth2/authorization/track-me-client`;
     };
 

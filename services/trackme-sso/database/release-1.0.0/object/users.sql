@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS sso.users
     password_hash         VARCHAR(500),
     full_name             VARCHAR(255),
     avatar_url            varchar(255),
+    phone_number       VARCHAR(20),
     active                boolean                     not null default false,
+    account_non_locked boolean not null default true,
 
     created_by            VARCHAR(50)                 NOT NULL DEFAULT 'system',
     created_date          TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT current_timestamp,
@@ -29,12 +31,14 @@ COMMENT ON COLUMN sso.users.avatar_url IS 'Ссылка на аватар';
 COMMENT ON COLUMN sso.users.username IS 'Имя пользователя';
 COMMENT ON COLUMN sso.users.full_name IS 'ФИО пользователя';
 COMMENT ON column sso.users.active IS 'Активен ли пользователь';
+COMMENT ON column sso.users.phone_number IS 'Телефонный номер пользователя';
 
 COMMENT ON column sso.users.created_by IS 'Логин пользователя, создавшего запись';
 COMMENT ON column sso.users.created_date IS 'Дата создания записи';
 COMMENT ON column sso.users.last_updated_by IS 'Логин пользователя, изменившего запись';
 COMMENT ON column sso.users.last_updated_date IS 'Дата последнего обновления записи';
 COMMENT ON column sso.users.object_version_number IS 'Номер версии записи в БД';
+COMMENT ON column sso.users.account_non_locked IS 'Заблокирован ли пользователь';
 
 --changeset akarmanov:users-2
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_u1 ON sso.users (email);

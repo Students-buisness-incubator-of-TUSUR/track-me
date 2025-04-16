@@ -22,6 +22,10 @@ const Register = () => {
             });
     };
 
+    const handleBack = () => {
+        window.history.back();
+    };
+
     return (
         <div className="register-container">
             <div className="register-box">
@@ -73,6 +77,9 @@ const Register = () => {
                         Зарегистрироваться
                     </button>
                 </form>
+                <button onClick={handleBack} className="register-button back-button">
+                    Назад
+                </button>
             </div>
         </div>
     );

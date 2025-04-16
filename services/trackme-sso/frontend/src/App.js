@@ -2,7 +2,7 @@ import './App.css';
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Login from "./assets/login/Login";
 import Register from "./assets/registration/Register";
-import RegistrationSuccess from "./assets/registration/RegistrationSuccess";
+import RegistrationSuccess from "./assets/registration-success/RegistrationSuccess";
 
 function App() {
     return (

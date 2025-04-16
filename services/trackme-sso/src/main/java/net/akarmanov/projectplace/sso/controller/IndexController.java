@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.sso.mvc;
+package net.akarmanov.projectplace.sso.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

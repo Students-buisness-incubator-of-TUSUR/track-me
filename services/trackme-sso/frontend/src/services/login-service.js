@@ -1,4 +1,6 @@
 import axios from 'axios';
+import store from '../store';
+import {setUser} from '../store/userSlice';
 
 export class LoginAPI {
     __LOGIN_URL = "/login";
@@ -18,16 +20,23 @@ export class LoginAPI {
 
         console.log(formData.get("username"));
         console.log(formData.get("password"));
-        return axios.post(this.__LOGIN_URL, formData).then(result => {
-            // проверяем есть ли спец. заголовок
-            console.log("Result: " + result.data);
-            console.log("Result headers: " + result.headers);
-            if (result.headers.has(this.__LOCATION_HEADER)) {
-                console.log("Result headers: " + result.headers);
-                // переходим на указанный в заголовке адрес
-                window.location = result.headers.get(this.__LOCATION_HEADER);
-            }
-        });
+        return axios.post(this.__LOGIN_URL, formData)
+            .then(result => {
+                if (result.headers.has(this.__LOCATION_HEADER)) {
+                    this.getUserinfo().then(() => {
+                        window.location = result.headers.get(LoginAPI.__LOCATION_HEADER);
+                    })
+                }
+            });
+    }
+
+    getUserinfo() {
+        return axios.get("/userinfo", {
+            withCredentials: true
+        })
+            .then(result => {
+                store.dispatch(setUser(result.data));
+            });
     }
 
     register(userData) {
@@ -38,10 +47,6 @@ export class LoginAPI {
                 } else {
                     throw new Error("Registration failed");
                 }
-            })
-            .catch(error => {
-                console.error("Registration error:", error);
-                alert("Ошибка! Проверьте введенные данные.");
             });
     }
 }
