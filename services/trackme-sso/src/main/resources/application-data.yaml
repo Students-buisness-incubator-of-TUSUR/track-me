@@ -1,0 +1,53 @@
+spring:
+  profiles:
+    active: development
+  session:
+    redis:
+      flush-mode: immediate
+      namespace: track-me-sso:session
+  data:
+    redis:
+      client-type: lettuce
+      database: 0
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
+      username: ${REDIS_USER:trackme-redis}
+      password: ${REDIS_PASSWORD:trackme-redis}
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    password: ${DB_PASSWORD:project-place}
+    username: ${DB_USERNAME:project-place}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 10
+      initialization-fail-timeout: 1
+      leak-detection-threshold: 0
+      pool-name: "HikariPool-track-me-sso"
+      register-mbeans: true
+  liquibase:
+    enabled: true
+    change-log: classpath:db.changelog.yaml
+    contexts: dev prod
+    default-schema: sso
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  liquibase:
+    contexts: prod
+
+---
+spring:
+  config:
+    activate:
+      on-profile: development
+  liquibase:
+    contexts: prod, dev
