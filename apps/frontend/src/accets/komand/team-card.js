@@ -357,37 +357,44 @@ const TeamCard = () => {
         </div>
       )}
 
-      <div className="team-card-content">
+      
         <div className="left-column">
           <div className="inputs-container">
-            <div className="team-info-widget">
+            <div className="create-card-info">
               <span className="team-label-widget">Трекер:</span>
               <div className="team-input-wrapper">
                 {(role === "ADMIN" || role === "SUPER_ADMIN") && isEditing ? (
-                  <select
-                    className="team-input-widget"
-                    name="userId"
-                    value={editedData.userId || ""}
-                    onChange={handleChange}
-                  >
-                    <option value="">Выберите трекера</option>
-                    {Array.isArray(trackers) && trackers.map(tracker => (
-                      <option key={tracker.id} value={tracker.id}>
-                        {tracker.fullName}
-                      </option>
-                    ))}
-                  </select>
+                  <>
+                    <select
+                      className="team-input-widget"
+                      name="userId"
+                      value={editedData.userId || ""}
+                      onChange={handleChange}
+                    >
+                      <option value="">Выберите трекера</option>
+                      {Array.isArray(trackers) && trackers.map(tracker => (
+                        <option key={tracker.id} value={tracker.id}>
+                          {tracker.fullName}
+                        </option>
+                      ))}
+                    </select>
+                    <img src={require("./pen.png")} alt="edit" className="edit-icon" />
+                  </>
                 ) : (
-                  <input
-                    className="team-input-widget"
-                    value={teamData.user?.fullName || ""}
-                    readOnly
-                    placeholder="ФИО трекера"
-                  />
+                  <>
+                    <input
+                      className="team-input-widget"
+                      value={teamData.user?.fullName || ""}
+                      readOnly
+                      placeholder="ФИО трекера"
+                    />
+                    {/* Не показываем pen для readonly */}
+                  </>
                 )}
               </div>
             </div>
-
+            
+          
             <div className="team-info-widget">
               <span className="team-label-widget">Название команды:</span>
               <div className="team-input-wrapper">
@@ -540,33 +547,35 @@ const TeamCard = () => {
             )}
           </div>
         </div>
-      </div>
+      
 
       {(role === "ADMIN" || role === "SUPER_ADMIN") && isEditing ? (
-        <select
-          className="stream-select"
-          name="streamId"
-          value={editedData.streamId || ""}
-          onChange={handleChange}
-          style={{
-            position: 'absolute',
-            left: '40px',
-            bottom: '40px',
-            width: '300px'
-          }}
-        >
-          <option value="" disabled>Выберите поток</option>
-          {streams.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
+        <div className="stream-attach-button-container">
+          <div className="dropdown-block">
+            <select
+              className="dropdown-toggle"
+              name="streamId"
+              value={editedData.streamId || ""}
+              onChange={handleChange}
+            >
+              <option value="" disabled>Выберите поток</option>
+              {streams.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       ) : (
-        <button className="purple-button-widget" disabled>
-          <span>{teamData.stream ? teamData.stream.name : 'Не привязан к потоку'}</span>
-        </button>
+        <div className="stream-attach-button-container">
+          <div className="dropdown-block">
+            <div className="dropdown-toggle">
+              {teamData.stream ? teamData.stream.name : 'Не привязан к потоку'}
+            </div>
+          </div>
+        </div>
       )}
       
-      <div className="button-group-widget">
+      <div className="red-button-container">
         <button className="red-button-widget" onClick={handleDeactivate}>
           <span>Деактивировать</span>
         </button>

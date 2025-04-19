@@ -1,4 +1,4 @@
-/* team-card-create.css */
+@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
 
 body {
   margin: 0;
@@ -9,9 +9,10 @@ body {
 
 .create-card-container {
   position: relative;
-  max-width: 1400px;
-  min-height: 600px;
-  max-height: 80vh;
+  max-width: 1900px;
+  min-width: 80vh;
+  min-height: 80vh;
+  max-height: 1000px;
   margin: 40px auto;
   padding: 40px;
   background: #fff;
@@ -46,13 +47,17 @@ body {
 }
 
 .create-card-label {
-  font-weight: 600;
-  margin-bottom: 6px;
+  display: block;
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 24px;
+  font-weight: 500;
 }
 
 .create-input-wrapper {
   position: relative;
   width: 100%;
+  max-width: 600px;
 }
 
 .create-input {
@@ -66,6 +71,7 @@ body {
   font-size: 16px;
   line-height: 40px;
   box-sizing: border-box;
+  max-width: 600px;
 }
 
 .create-input::placeholder {
@@ -80,6 +86,7 @@ body {
   width: 25px;
   height: 25px;
   cursor: pointer;
+  z-index: 2;
 }
 
 .create-meetings-block {
@@ -197,8 +204,8 @@ body {
 
 .create-button-container {
   position: absolute;
-  right: 40px;
-  bottom: 30px;
+  right: 50px;
+  bottom: 33px;
 }
 
 .create-button {
@@ -229,8 +236,8 @@ body {
 
 .stream-attach-button-container {
   position: absolute;
-  bottom: 20px;
-  left: 40px;
+  bottom: 33px;
+  left: 50px;
   width: 300px;
 }
 

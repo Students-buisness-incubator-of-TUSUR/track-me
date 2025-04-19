@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
-/* Стили для TeamCard */
 
 body {
     margin: 0;
@@ -10,9 +9,10 @@ body {
 
 .team-card-widget-container {
     position: relative;
-    max-width: 1400px;
-    min-height: 600px;
-    max-height: 80vh;
+    max-width: 1900px;
+    min-width: 80vh;
+    min-height: 80vh;
+    max-height: 1000px;
     margin: 40px auto;
     padding: 40px;
     background: #fff;
@@ -30,6 +30,8 @@ body {
   border: none;
   color: #8e44fd;
   cursor: pointer;
+  top: 38px;
+  right: 50px;
 }
 
 .team-title-widget {
@@ -48,11 +50,11 @@ body {
     padding: 10px 25px;
     border-radius: 20px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 20px;
     font-weight: 500;
     position: absolute;
-    top: 40px;
-    right: 80px;
+    top: 38px;
+    right: 137px;
 }
 
 .edit-button-widget:disabled {
@@ -61,8 +63,20 @@ body {
     background: #a169f7;
 }
 
+.edit-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    z-index: 2;
+}
+
 .team-card-content {
     display: flex;
+    min-width: 80vh;
     flex-direction: row;
     justify-content: space-between;
     margin-top: 40px;
@@ -70,8 +84,12 @@ body {
 }
 
 .left-column {
-    flex: 1;
-    margin-right: 40px;
+  margin-top: 40px;
+  width: 50%;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
 .right-panel {
@@ -87,9 +105,8 @@ body {
 .inputs-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 28px;
     margin-bottom: 30px;
-    max-width: 600px;
 }
 
 .team-info-widget {
@@ -106,20 +123,22 @@ body {
 
 .team-input-wrapper {
     position: relative;
-    display: flex;
-    align-items: center;
+    width: 100%;
+    max-width: 600px;
 }
 
 .team-input-widget {
     width: 100%;
     height: 40px;
-    padding: 0 15px;
-    border-radius: 15px;
+    padding: 0 48px 0 20px;
     border: none;
-    background: #8B5CF6;
-    color: white;
-    font-size: 14px;
-    transition: opacity 0.3s;
+    background: #a169f7;
+    border-radius: 20px;
+    color: #fff;
+    font-size: 16px;
+    line-height: 40px;
+    box-sizing: border-box;
+    max-width: 600px;
 }
 
 .team-input-widget::placeholder {
@@ -159,7 +178,7 @@ select.team-input-widget option {
 
 .dropdown-toggle {
     font-weight: bold;
-    cursor: default;
+    cursor: pointer;
     color: white;
     background: #caa7f9;
     padding: 14px 20px;
@@ -185,9 +204,6 @@ select.team-input-widget option {
     font-size: 12px;
 }
 
-.dropdown-toggle.editable:hover {
-    background-color: #8e44fd;
-}
 
 .dropdown-toggle:not(.editable) {
     opacity: 0.7;
@@ -370,21 +386,21 @@ select.team-input-widget option {
     cursor: default;
 }
 
+.red-button-container {
+    position: absolute;
+    right: 50px;
+    bottom: 33px;
+}
+
 .red-button-widget {
     background: #EF4444;
     color: white;
-    border: none;
-    padding: 10px 25px;
-    border-radius: 20px;
+    padding: 14px 32px;
     font-size: 16px;
-    font-weight: 500;
+    border: none;
+    border-radius: 30px;
     cursor: pointer;
-    min-width: 180px;
-    height: 49px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    transition: background 0.3s;
 }
 
 .red-button-widget:hover {
@@ -411,6 +427,13 @@ select.team-input-widget option {
 .stream-select option {
     background: #8B5CF6;
     color: white;
+}
+
+.stream-attach-button-container {
+  position: absolute;
+  bottom: 33px;
+  left: 50px;
+  width: 300px;
 }
 
 .loading-overlay {
