@@ -15,7 +15,12 @@ public class SecurityConfiguration {
   @Bean
   public CorsWebFilter corsWebFilter() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of(CorsConfiguration.ALL)); // или "*" для тестов
+    config.setAllowedOrigins(List.of(
+        "http://127.0.0.1:8081",
+        "http://127.0.0.1:3000",
+        "http://localhost:8081",
+        "http://localhost:3000"
+    )); // или "*" для тестов
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true);
