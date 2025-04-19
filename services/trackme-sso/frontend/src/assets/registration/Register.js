@@ -17,7 +17,7 @@ const Register = () => {
         LoginAPI.register(userData)
             .then((response) => {
                 if (response.status === 200) {
-                    window.location = "/registration-success";
+                    window.location = "/client/registration-success";
                 } else {
                     throw new Error("Registration failed");
                 }
