@@ -3,22 +3,29 @@ import "./Register.css";
 import LoginAPI from "../../services/login-service";
 
 const Register = () => {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
-    const [telegramId, setTelegramId] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
     const [role, setRole] = useState("TRACKER");
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleRegister = (e) => {
         e.preventDefault();
-        const userData = {fullName, email, phone, telegramId, role};
+        const userData = {username, password, fullName, email, phoneNumber, role};
         LoginAPI.register(userData)
-            .then(() => {
-                window.location = "/registration-success";
+            .then((response) => {
+                if (response.status === 200) {
+                    window.location = "/registration-success";
+                } else {
+                    throw new Error("Registration failed");
+                }
             })
             .catch((error) => {
                 console.error("Registration failed", error);
-                alert("Ошибка! Проверьте введенные данные.");
+                const message = error.response?.data?.message || "Ошибка регистрации. Попробуйте снова.";
+                setErrorMessage(message);
             });
     };
 
@@ -30,7 +37,24 @@ const Register = () => {
         <div className="register-container">
             <div className="register-box">
                 <h1 className="register-title">Регистрация</h1>
+                {errorMessage && <div className="error-message">{errorMessage}</div>}
                 <form className="register-form" onSubmit={handleRegister}>
+                    <input
+                        type="text"
+                        className="register-input"
+                        placeholder="Имя пользователя"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                    <input
+                        type="password"
+                        className="register-input"
+                        placeholder="Пароль"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
                     <input
                         type="text"
                         className="register-input"
@@ -51,16 +75,8 @@ const Register = () => {
                         type="tel"
                         className="register-input"
                         placeholder="Номер телефона"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                    />
-                    <input
-                        type="text"
-                        className="register-input"
-                        placeholder="Telegram ID"
-                        value={telegramId}
-                        onChange={(e) => setTelegramId(e.target.value)}
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
                         required
                     />
                     <select

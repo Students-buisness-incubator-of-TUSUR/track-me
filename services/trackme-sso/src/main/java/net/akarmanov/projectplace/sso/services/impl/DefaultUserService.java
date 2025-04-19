@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.sso.services;
+package net.akarmanov.projectplace.sso.services.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -8,16 +8,16 @@ import net.akarmanov.projectplace.sso.dao.repository.UserRepository;
 import net.akarmanov.projectplace.sso.dto.AuthProvider;
 import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
-import net.akarmanov.projectplace.sso.excaption.AuthException;
-import net.akarmanov.projectplace.sso.excaption.RegistrationException;
+import net.akarmanov.projectplace.sso.exception.AuthException;
+import net.akarmanov.projectplace.sso.exception.RegistrationException;
 import net.akarmanov.projectplace.sso.mapper.AuthorizedUserMapper;
+import net.akarmanov.projectplace.sso.services.UserService;
 import net.akarmanov.projectplace.sso.type.AuthErrorCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -106,7 +106,8 @@ public class DefaultUserService implements UserService {
       user.setUsername(email.substring(0, email.indexOf("@")));
       user.setActive(true);
       // добавляем роль по умолчанию
-      user.setRoles(Set.of(roleRepository.findByCode("TRACKER")));
+//       TODO: добавить роль по умолчанию
+//      user.setRoles(Set.of(roleRepository.findByCode("TRACKER")));
       return userRepository.save(user);
     }
     return userOptional.get();
@@ -125,9 +126,7 @@ public class DefaultUserService implements UserService {
     user.setUsername(userDto.username());
     user.setFullName(userDto.fullName());
     user.setActive(false);
-    user.getRoles().add(userDto.roles().stream()
-        .map(roleRepository::findByCode)
-        .findFirst()
+    user.getRoles().add(roleRepository.findByCode(userDto.role())
         .orElseThrow(() -> new AuthException(AuthErrorCode.ROLE_NOT_FOUND)));
     user.setPasswordHash(passwordEncoder.encode(userDto.password()));
     return userRepository.save(user);

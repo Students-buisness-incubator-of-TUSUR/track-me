@@ -33,14 +33,14 @@ import java.util.List;
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
 
-  public static final String LOGIN_PAGE = "/login";
+  public static final String LOGIN_PAGE = "/client/login";
 
   static final String[] PERMIT_ALL_PATTERNS = {
-      LOGIN_PAGE,
-      "/register",
       "/registration-success",
       "/static/**",
+      "/client/**",
       "/v3/api-docs",
+      "/api/v1/registration/**",
       "/v3/api-docs/swagger-config"
   };
 
@@ -69,8 +69,8 @@ public class SecurityConfiguration {
 
     http.csrf(AbstractHttpConfigurer::disable);
 
-    http.exceptionHandling(exceptions -> exceptions
-        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+    http.exceptionHandling(configurer ->
+        configurer.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
 
     return http.formLogin(formLogin ->
             formLogin.loginPage(LOGIN_PAGE)

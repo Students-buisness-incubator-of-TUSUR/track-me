@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.sso.services;
+package net.akarmanov.projectplace.sso.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.sso.dao.repository.UserRepository;

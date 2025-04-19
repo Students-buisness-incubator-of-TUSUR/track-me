@@ -47,10 +47,10 @@ const Login = () => {
                 </form>
                 {errorMessage && <p className="error-message">{errorMessage}</p>}
                 <div className="login-links">
-                    <a href={`/register`} className="login-link">
+                    <a href={`/client/registration`} className="login-link">
                         Регистрация
                     </a>
-                    <a href={`/reset-password`} className="login-link">
+                    <a href={`/client/reset-password`} className="login-link">
                         Забыли пароль?
                     </a>
                 </div>

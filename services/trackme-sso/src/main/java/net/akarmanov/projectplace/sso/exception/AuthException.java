@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.sso.excaption;
+package net.akarmanov.projectplace.sso.exception;
 
 import lombok.Getter;
 import net.akarmanov.projectplace.sso.type.AuthErrorCode;

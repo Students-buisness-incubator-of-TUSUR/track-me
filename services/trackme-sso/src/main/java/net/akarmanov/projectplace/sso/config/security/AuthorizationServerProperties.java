@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 public class AuthorizationServerProperties {
   private String issuerUrl;
 
-  private String introspectionEndpoint;
+  private String registrationConfirmationEndpoint;
 
   private String authenticationSuccessUrl;
 

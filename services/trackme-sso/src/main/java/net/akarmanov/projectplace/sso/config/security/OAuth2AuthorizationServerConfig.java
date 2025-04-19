@@ -101,10 +101,9 @@ public class OAuth2AuthorizationServerConfig {
                 .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
                 .anyRequest().authenticated()
         )
-        .exceptionHandling(exceptions ->
-            exceptions.authenticationEntryPoint(
-                new LoginUrlAuthenticationEntryPoint(LOGIN_PAGE)
-            ))
+        .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(
+            new LoginUrlAuthenticationEntryPoint(LOGIN_PAGE)
+        ))
         .with(authorizationServerConfigurer, configurer ->
             configurer.oidc(oidc ->
                 oidc

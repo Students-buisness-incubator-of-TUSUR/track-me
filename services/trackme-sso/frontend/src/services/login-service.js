@@ -1,9 +1,7 @@
 import axios from 'axios';
-import store from '../store';
-import {setUser} from '../store/userSlice';
 
 export class LoginAPI {
-    __LOGIN_URL = "/login";
+    __LOGIN_URL = "/client/login";
     __LOCATION_HEADER = process.env.REACT_APP_SSO_LOCATION_HEADER;
 
     /**
@@ -22,34 +20,17 @@ export class LoginAPI {
         console.log(formData.get("password"));
         return axios.post(this.__LOGIN_URL, formData)
             .then(result => {
+                console.log(result.headers);
                 if (result.headers.has(this.__LOCATION_HEADER)) {
-                    this.getUserinfo().then(() => {
-                        window.location = result.headers.get(LoginAPI.__LOCATION_HEADER);
-                    })
+                    window.location = result.headers.get(this.__LOCATION_HEADER);
                 }
-            });
-    }
-
-    getUserinfo() {
-        return axios.get("/userinfo", {
-            withCredentials: true
-        })
-            .then(result => {
-                store.dispatch(setUser(result.data));
             });
     }
 
     register(userData) {
-        return axios.post("/register", userData)
-            .then(response => {
-                if (response.status === 200) {
-                    window.location = "/registration-success";
-                } else {
-                    throw new Error("Registration failed");
-                }
-            });
+        return axios.post("/api/v1/registration/init", userData);
     }
 }
 
-
-export default new LoginAPI();
+let loginAPI = new LoginAPI();
+export default loginAPI;

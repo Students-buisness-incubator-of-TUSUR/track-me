@@ -2,11 +2,8 @@ package net.akarmanov.projectplace.sso.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-
-import java.util.List;
 
 
 /**
@@ -33,8 +30,7 @@ public record RegistrationRequestDto(
     @NotBlank(message = "Email не может быть пустым.")
     @Email(message = "Email должен быть корректным.")
     String email,
-    @NotNull(message = "Список ролей не может быть null.")
-    @Size(min = 1, message = "Список ролей не может быть пустым.")
-    List<String> roles
+    @NotBlank(message = "Роль не может быть пустой.")
+    String role
 ) {
 }

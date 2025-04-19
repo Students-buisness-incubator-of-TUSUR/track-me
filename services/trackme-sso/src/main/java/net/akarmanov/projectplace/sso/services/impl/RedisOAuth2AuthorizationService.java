@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.sso.services;
+package net.akarmanov.projectplace.sso.services.impl;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
