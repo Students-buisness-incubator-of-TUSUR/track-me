@@ -1,0 +1,55 @@
+import axios from "axios";
+import store from "../store";
+import {setUser} from "../store/userSlice";
+
+function LoginService() {
+    const backendUrl = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8081";
+    const userinfoUrl = `${backendUrl}/sso/userinfo`;
+    const logoutUrl = `${backendUrl}/logout`;
+
+    const register = async (userData) => {
+        try {
+            const response = await axios.post(`${backendUrl}/register`, userData);
+            if (response.status === 200) {
+                console.log("Registration successful");
+            } else {
+                throw new Error("Registration failed");
+            }
+        } catch (error) {
+            console.error("Registration failed:", error);
+            throw error;
+        }
+    };
+
+    const logout = async () => {
+        try {
+            await axios.post(logoutUrl, {}, {withCredentials: true});
+            console.log("Logout successful");
+        } catch (error) {
+            console.error("Logout failed:", error);
+            throw error;
+        }
+    };
+
+    const getUserInfo = async () => {
+        try {
+            const response = await axios.get(userinfoUrl, {withCredentials: true});
+            if (response.status === 200) {
+                // Assuming you have a Redux store or similar to save user data
+                store.dispatch(setUser(response.data));
+                return response.data;
+            }
+        } catch (error) {
+            console.error("Failed to fetch user info:", error);
+            throw error;
+        }
+    };
+
+    return {
+        register,
+        logout,
+        getUserInfo,
+    };
+}
+
+export default LoginService;

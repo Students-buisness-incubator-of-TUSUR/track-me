@@ -9,6 +9,7 @@ const HomePage = () => {
         window.location.href = `${ssoLoginUrl}/oauth2/authorization/track-me-client`;
     };
 
+
     const handleGithubLogin = () => {
         window.location.href = `${ssoLoginUrl}/oauth2/authorization/github`;
     };
@@ -28,14 +29,14 @@ const HomePage = () => {
                 <p className="home-description">Управляйте своими потоками и командами с
                     легкостью.</p>
                 <div className="home-provider-buttons">
-                    <button className="home-provider-button" onClick={handleGithubLogin}>
-                        <img src="/icons/github-logo.svg" alt="GitHub"/>
-                    </button>
                     <button className="home-provider-button" onClick={handleGoogleLogin}>
                         <img src="/icons/google-logo.svg" alt="Google"/>
                     </button>
                     <button className="home-provider-button" onClick={handleTelegramLogin}>
                         <img src="/icons/telegram-logo.svg" alt="Telegram"/>
+                    </button>
+                    <button className="home-provider-button" onClick={handleGithubLogin}>
+                        <img src="/icons/github-logo.svg" alt="GitHub"/>
                     </button>
                 </div>
                 <button className="home-sso-button" onClick={handleSSOLogin}>

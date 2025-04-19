@@ -1,14 +1,31 @@
 import {useEffect} from "react";
+import loginService from "../../services/login-service";
+import {useNavigate} from "react-router-dom";
 
 function AfterLogin() {
+    let service = loginService();
+    const navigate = useNavigate();
+
     useEffect(() => {
-        fetch('http://localhost:8081/api/sso/userinfo', {credentials: 'include', method: 'GET'})
-            .then(response => response.json())
-            .then(data => {
-                return data
+        service.getUserInfo()
+            .then((data) => {
+                let roles = data.roles;
+                let isAdmin = roles.includes("ADMIN");
+                let isTracker = roles.includes("TRACKER");
+                let isSuperadmin = roles.includes("SUPER_ADMIN");
+
+                if (isAdmin) {
+                    navigate("/streams");
+                } else if (isTracker) {
+                    navigate("/team-cards");
+                } else if (isSuperadmin) {
+                    navigate("/streams");
+                } else {
+                    navigate("/home");
+                }
             })
             .catch(error => {
-                console.error("Error fetching user info:", error);
+                console.error("Error during login:", error);
             });
     }, []);
 }
