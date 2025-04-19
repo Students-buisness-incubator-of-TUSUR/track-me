@@ -16,6 +16,8 @@ function TrackerPage() {
   const [ntiMarkets, setNtiMarkets] = useState([]);
   const [selectedStreams, setSelectedStreams] = useState([]);
   const [streams, setStreams] = useState([]);
+  const [userRole, setUserRole] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   // Состояния для отображения панели фильтров и групп чекбоксов
@@ -77,13 +79,12 @@ function TrackerPage() {
   // Функция для запроса карточек с заданными фильтрами
   const fetchCards = useCallback((filters = []) => {
     const token = localStorage.getItem("accessToken");
-    let userRole = null;
 
     try {
-      // Получаем роль из токена напрямую
       const decoded = JSON.parse(atob(token.split('.')[1]));
-      userRole = decoded.role;
-      console.log("Decoded role from token:", userRole);
+      setUserRole(decoded.role);
+      setUserId(decoded.userId);
+      console.log("Decoded token:", decoded);
     } catch (e) {
       console.error("Error decoding token:", e);
     }
@@ -93,28 +94,29 @@ function TrackerPage() {
       return;
     }
 
-    if (!userRole) {
-      console.error("Role not found in token");
-      setError("Ошибка авторизации: роль не определена");
-      return;
+    const allFilters = [...filters];
+
+    // Для админа добавляем фильтр по потоку, для трекера - по его ID
+    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+      allFilters.push({
+        fieldName: "streams.name",
+        type: "EQ",
+        value: localStorage.getItem("streamName")
+      });
+    } else if (userRole === "TRACKER" && userId) {
+      allFilters.push({
+        fieldName: "userId",
+        type: "EQ",
+        value: userId
+      });
     }
 
-    // Добавляем фильтр по текущему потоку
-    const streamFilter = {
-      fieldName: "streams.name",
-      type: "EQ",
-      value: localStorage.getItem("streamName")
-    };
-
-    const allFilters = [...filters, streamFilter];
-
-    // Используем правильный эндпоинт в зависимости от роли
     const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
       ? `${backendHost}/api/v1/admin/team-cards` 
       : `${backendHost}/api/v1/team-cards`;
 
     console.log("Using role:", userRole);
-    console.log("Using endpoint:", endpoint);
+    console.log("Using filters:", allFilters);
 
     fetch(`${endpoint}?page=0&size=150`, {
       method: "POST",
@@ -140,7 +142,7 @@ function TrackerPage() {
         console.error("Error fetching cards:", err);
         setError(`Ошибка при загрузке карточек: ${err.message}`);
       });
-  }, [backendHost]);
+  }, [backendHost, userRole, userId]);
 
   useEffect(() => {
     // Проверяем роль при загрузке компонента
@@ -289,12 +291,17 @@ function TrackerPage() {
       <header className="Stream-header">
         <div className="Stream-header-cont">
           <div className="Stream-header-cont-cont">          
-              <h1 className="Stream-title11">
-              {streamName ? streamName : "Название потока не получено"}
-            </h1>
             <h1 className="Stream-title11">
-              {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate: "Название потока не получено"}
+              {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+                ? (streamName ? streamName : "Название потока не получено")
+                : "Track-me"
+              }
             </h1>
+            {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
+              <h1 className="Stream-title11">
+                {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate : "Название потока не получено"}
+              </h1>
+            )}
           </div>
 
           <div className="Stream-buttons">
