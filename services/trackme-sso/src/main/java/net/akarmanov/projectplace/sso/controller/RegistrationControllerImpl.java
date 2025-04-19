@@ -1,5 +1,6 @@
 package net.akarmanov.projectplace.sso.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,9 @@ public class RegistrationControllerImpl implements RegistrationController {
   }
 
   @Override
-  public ResponseEntity<Void> confirm(String token) {
-    return null;
+  public ResponseEntity<Void> confirm(String token, HttpServletRequest request) {
+    log.info("Confirming user with token: {}", token);
+    registrationService.confirm(token, request);
+    return ResponseEntity.ok().build();
   }
 }

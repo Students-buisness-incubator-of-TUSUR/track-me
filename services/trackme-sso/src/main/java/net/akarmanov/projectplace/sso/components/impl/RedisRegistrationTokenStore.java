@@ -4,7 +4,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.sso.components.RegistrationTokenStore;
 import net.akarmanov.projectplace.sso.dto.RegistrationToken;
@@ -16,7 +15,6 @@ import org.springframework.security.crypto.codec.Hex;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.UUID;
 
 import static org.apache.commons.lang3.RandomStringUtils.secureStrong;
@@ -53,19 +51,20 @@ public class RedisRegistrationTokenStore implements RegistrationTokenStore {
   public RegistrationToken generateToken(HttpServletResponse response) {
     var sessionId = generateSessionId();
     var token = secureStrong().nextNumeric(12);
+    var tokenHash = CryptoUtils.hash(sessionId + "-" + token);
     log.info("Generate token = {}. Generate sessionId = {}", token, sessionId);
 
     store.set(SESSION_ID_TO_TOKEN + sessionId,
-        token,
+        tokenHash,
         cookieMaxAge);
-    var cookie = new Cookie(cookieName, token);
+    var cookie = new Cookie(cookieName, sessionId);
     cookie.setMaxAge((int) cookieMaxAge.getSeconds());
     cookie.setSecure(true);
     cookie.setHttpOnly(true);
     cookie.setDomain(cookieDomain);
     response.addCookie(cookie);
 
-    return new RegistrationToken(sessionId, token);
+    return new RegistrationToken(sessionId, tokenHash);
   }
 
   @Override
@@ -85,7 +84,8 @@ public class RedisRegistrationTokenStore implements RegistrationTokenStore {
     return false;
   }
 
-  private String getSessionId(HttpServletRequest request) {
+  @Override
+  public String getSessionId(HttpServletRequest request) {
     if (request.getCookies() == null) {
       return null;
     }
@@ -100,7 +100,7 @@ public class RedisRegistrationTokenStore implements RegistrationTokenStore {
   private String generateSessionId() throws CryptoException {
     UUID uuid = UUID.randomUUID();
     String salt = secureStrong().nextAlphabetic(8);
-    return Arrays.toString(Hex.encode(CryptoUtils.pbkdf(
+    return new String(Hex.encode(CryptoUtils.pbkdf(
         uuid.toString(),
         salt.getBytes(StandardCharsets.UTF_8),
         256,

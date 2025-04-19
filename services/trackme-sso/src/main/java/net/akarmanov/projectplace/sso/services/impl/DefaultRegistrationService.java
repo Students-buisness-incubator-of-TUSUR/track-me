@@ -1,5 +1,6 @@
 package net.akarmanov.projectplace.sso.services.impl;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,18 +34,26 @@ public class DefaultRegistrationService implements RegistrationService {
       throw InformationException.builder("$account.already.exist").build();
     }
 
-    RegistrationToken token = tokenStore.generateToken(response);
+    RegistrationToken registrationToken = tokenStore.generateToken(response);
     try {
-      registrationStore.save(requestDto, token.sessionId());
+      registrationStore.save(requestDto, registrationToken.sessionId());
     } catch (Exception e) {
       throw InformationException.builder("$happened.unexpected.error").build();
     }
 
-    log.info("Registration token = {}. SessionId = {}", token.token(), token.sessionId());
+    log.info("Registration token = {}. SessionId = {}",
+        registrationToken.token(),
+        registrationToken.sessionId());
+    mailService.sendRegistrationConfirmationEmail(requestDto.email(), registrationToken.token());
   }
 
   @Override
-  public void confirm(String token) {
-    // TODO: implement confirmation logic
+  public void confirm(String token, HttpServletRequest request) {
+    if (tokenStore.isTokenValid(token, request)) {
+      throw InformationException.builder("$happened.unexpected.error").build();
+    }
+    var sessionId = tokenStore.getSessionId(request);
+    registrationStore.take(sessionId)
+        .ifPresent(userService::saveUser);
   }
 }

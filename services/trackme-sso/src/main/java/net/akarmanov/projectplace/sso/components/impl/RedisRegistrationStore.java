@@ -1,14 +1,15 @@
 package net.akarmanov.projectplace.sso.components.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import net.akarmanov.projectplace.sso.components.RegistrationStore;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class RedisRegistrationStore implements RegistrationStore {
@@ -23,19 +24,22 @@ public class RedisRegistrationStore implements RegistrationStore {
 
   private final ObjectMapper objectMapper;
 
+  @SneakyThrows
   @Override
-  public void save(RegistrationRequestDto dto, String sessionId) throws JsonProcessingException {
+  public void save(RegistrationRequestDto dto, String sessionId) {
     var json = objectMapper.writeValueAsString(dto);
     store.set(SESSION_ID_TO_REG_DATA + sessionId, json, expireAfter);
   }
 
+  @SneakyThrows
   @Override
-  public RegistrationRequestDto take(String sessionId) throws JsonProcessingException {
+  public Optional<RegistrationRequestDto> take(String sessionId) {
     var json = store.get(SESSION_ID_TO_REG_DATA + sessionId);
     if (json == null) {
-      return null;
+      return Optional.empty();
     }
+
     redisTemplate.delete(sessionId);
-    return objectMapper.readValue(json, RegistrationRequestDto.class);
+    return Optional.of(objectMapper.readValue(json, RegistrationRequestDto.class));
   }
 }

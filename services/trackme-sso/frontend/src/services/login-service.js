@@ -28,7 +28,18 @@ export class LoginAPI {
     }
 
     register(userData) {
-        return axios.post("/api/v1/registration/init", userData);
+        return axios.post("/api/v1/registration/init", userData)
+            .then(response => {
+                const cookies = response.headers['set-cookie'];
+                if (cookies) {
+                    const sessionCookie = cookies.find(cookie =>
+                        cookie.startsWith('trackme-sso-temporary-session='));
+                    if (sessionCookie) {
+                        document.cookie = sessionCookie; // Save the cookie in the browser
+                    }
+                }
+                return response;
+            });
     }
 }
 

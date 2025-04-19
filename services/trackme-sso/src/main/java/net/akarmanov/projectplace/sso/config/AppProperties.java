@@ -23,6 +23,8 @@ public class AppProperties {
   @NotBlank(message = "URL cannot be blank")
   private String apiUrl;
 
+  private MailProperties mail = new MailProperties();
+
   @Data
   public static class CorsProperties {
     private List<CorsConfig> configs = new ArrayList<>();
@@ -71,5 +73,14 @@ public class AppProperties {
       @NotBlank(message = "User Info URL cannot be null")
       private String refreshUrl;
     }
+  }
+
+  @Data
+  public static class MailProperties {
+    @NotBlank(message = "Mail from cannot be blank")
+    private String from;
+
+    @NotBlank(message = "Mail subject cannot be blank")
+    private String subject;
   }
 }

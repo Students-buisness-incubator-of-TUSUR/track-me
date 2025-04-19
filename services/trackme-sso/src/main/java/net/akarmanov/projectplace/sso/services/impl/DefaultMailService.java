@@ -20,6 +20,8 @@ import static java.util.concurrent.CompletableFuture.runAsync;
 @RequiredArgsConstructor
 public class DefaultMailService implements MailService {
 
+  public static final String CONFIRMATION_HTML = "mail/email-confirmation.html";
+
   private final JavaMailSender mailSender;
 
   private final TemplateEngine templateEngine;
@@ -34,12 +36,15 @@ public class DefaultMailService implements MailService {
   }
 
   private void sendConfirmationEmail(String email, String token) {
-    var content = generateEmailContent(email, token);
     try {
       log.info("Отправка email на адрес: {}", email);
       var message = mailSender.createMimeMessage();
       var helper = new MimeMessageHelper(message, true, "UTF-8");
+
+      var content = generateEmailContent(email, token);
       helper.setTo(email);
+      helper.setFrom(appProperties.getMail().getFrom());
+      helper.setSubject("[" + appProperties.getMail().getSubject() + "] Сброс пароля");
       helper.setText(content, true);
       mailSender.send(message);
       log.info("Email успешно отправлен на адрес: {}", email);
@@ -52,12 +57,15 @@ public class DefaultMailService implements MailService {
     var context = new Context();
     context.setVariable("email", email);
     context.setVariable("token", token);
+    context.setVariable("appName", appProperties.getMail().getSubject());
+    context.setVariable("supportEmail", appProperties.getMail().getFrom());
     context.setVariable("confirmationLink", getConfirmationLink(token));
-    return templateEngine.process("registration-confirmation.html", context);
+    return templateEngine.process(CONFIRMATION_HTML, context);
   }
 
   private String getConfirmationLink(String token) {
-    var httpUrl = authorizationServerProperties.getIssuerUrl() + authorizationServerProperties.getRegistrationConfirmationEndpoint();
+    var httpUrl =
+        authorizationServerProperties.getIssuerUrl() + authorizationServerProperties.getRegistrationConfirmationEndpoint();
     return UriComponentsBuilder.fromUriString(httpUrl, ParserType.WHAT_WG)
         .queryParam("token", token)
         .build().toUriString();

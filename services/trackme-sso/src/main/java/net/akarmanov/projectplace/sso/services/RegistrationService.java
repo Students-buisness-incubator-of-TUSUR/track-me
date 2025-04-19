@@ -1,5 +1,6 @@
 package net.akarmanov.projectplace.sso.services;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 
@@ -15,7 +16,8 @@ public interface RegistrationService {
   /**
    * Подтверждение регистрации пользователя.
    *
-   * @param token токен подтверждения.
+   * @param token   токен подтверждения.
+   * @param request
    */
-  void confirm(String token);
+  void confirm(String token, HttpServletRequest request);
 }
