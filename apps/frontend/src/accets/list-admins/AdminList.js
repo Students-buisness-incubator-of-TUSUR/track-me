@@ -150,7 +150,8 @@ function AdminList() {
       {/* --- ШАПКА (Header) --- */}
       <header className="Stream-header">
         <div className="Stream-header-cont">
-          <h1 className="Stream-title">Название</h1>
+        <div className='Stream-header-logo'/>
+          <h1 className="Stream-title">TrackMe</h1>
           <div className="Stream-buttons">
             <Link to="/list-trackers">
             <button className="Stream-butt">Трекеры</button>
