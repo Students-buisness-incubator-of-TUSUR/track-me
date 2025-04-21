@@ -47,4 +47,4 @@ app:
 registration-store:
   cookie-name: trackme-sso-temporary-session
   cookie-domain: localhost
-  cookie-max-age: 1h
+  cookie-max-age: 10m
