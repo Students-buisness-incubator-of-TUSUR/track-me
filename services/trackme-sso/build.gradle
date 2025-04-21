@@ -30,6 +30,10 @@ dependencies {
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+
+
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.springframework.boot:spring-boot-docker-compose'
     runtimeOnly 'org.postgresql:postgresql'
@@ -74,19 +78,21 @@ tasks.register('installReact', NpmTask) {
 tasks.register('buildReact', NpmTask) {
     args = ['run', 'build']
     workingDir = file("${projectDir}/frontend")
-    dependsOn installReact // Зависит от установки зависимостей
+    dependsOn installReact
 }
 
-tasks.register('copyReactBuild', Copy) {
-    from file("${projectDir}/frontend/build/static") // Путь к собранному React приложению
-    into 'src/main/resources/static'
-    dependsOn buildReact // Зависит от сборки React
+// Копируем ассеты
+tasks.register('copyReactStatic', Copy) {
+    dependsOn 'buildReact'
+    from("${projectDir}/frontend/build/static")
+    into("src/main/resources/static")
 }
 
-tasks.register('copyIndexToTemplates', Copy) {
-    from file("${projectDir}/frontend/build/index.html") // Путь к index.html
-    into 'src/main/resources/templates'
-    dependsOn copyReactBuild // Зависит от копирования React сборки
+// Копируем index.html в шаблоны Thymeleaf
+tasks.register('copyReactIndex', Copy) {
+    dependsOn 'buildReact'
+    from("${projectDir}/frontend/build/index.html")
+    into("src/main/resources/templates")
 }
 
-processResources.dependsOn copyIndexToTemplates
+processResources.dependsOn('copyReactStatic', 'copyReactIndex')
