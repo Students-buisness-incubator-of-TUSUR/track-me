@@ -1,4 +1,4 @@
-package net.akarmanov.projectplace.filters;
+package net.akarmanov.projectplace.commons.filters;
 
 import jakarta.validation.constraints.NotBlank;
 
