@@ -1,6 +1,8 @@
 server:
   port: 8081
 
+app:
+  after-login-endpoint: ${FRONTEND_URL:http://localhost:3000/after-login}
 
 spring:
   application:
