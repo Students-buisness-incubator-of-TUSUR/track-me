@@ -1,7 +1,7 @@
 package net.akarmanov.projectplace.domain.spec;
 
+import net.akarmanov.projectplace.commons.filters.Filter;
 import net.akarmanov.projectplace.domain.ReadinessLevel;
-import net.akarmanov.projectplace.filters.Filter;
 
 public class SpecificationUtils {
 

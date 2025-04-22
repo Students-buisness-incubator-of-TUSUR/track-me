@@ -4,9 +4,9 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import net.akarmanov.projectplace.commons.filters.Filter;
+import net.akarmanov.projectplace.commons.filters.FilterFieldNotAllowedException;
 import net.akarmanov.projectplace.domain.Stream;
-import net.akarmanov.projectplace.filters.Filter;
-import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;

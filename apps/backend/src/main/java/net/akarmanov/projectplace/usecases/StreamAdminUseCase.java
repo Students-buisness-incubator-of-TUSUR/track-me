@@ -2,8 +2,8 @@ package net.akarmanov.projectplace.usecases;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.domain.spec.StreamSpecification;
-import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.mapping.StreamMapper;
 import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;

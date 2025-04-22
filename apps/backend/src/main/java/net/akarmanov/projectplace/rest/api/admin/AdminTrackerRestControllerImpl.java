@@ -2,7 +2,7 @@ package net.akarmanov.projectplace.rest.api.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.akarmanov.projectplace.filters.FilterRequest;
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;
 import net.akarmanov.projectplace.services.admin.AdministrationService;
 import org.springframework.data.domain.Page;

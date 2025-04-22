@@ -3,7 +3,7 @@ package net.akarmanov.projectplace.rest.api.admin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import net.akarmanov.projectplace.filters.FilterRequest;
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;

@@ -2,8 +2,8 @@ package net.akarmanov.projectplace.rest.api.admin;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.domain.spec.TeamCardSpecification;
-import net.akarmanov.projectplace.filters.FilterRequest;
 import net.akarmanov.projectplace.mapping.TeamCardMapper;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;

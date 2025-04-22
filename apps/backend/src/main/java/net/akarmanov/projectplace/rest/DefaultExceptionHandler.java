@@ -2,7 +2,7 @@ package net.akarmanov.projectplace.rest;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import net.akarmanov.projectplace.filters.FilterFieldNotAllowedException;
+import net.akarmanov.projectplace.commons.filters.FilterFieldNotAllowedException;
 import net.akarmanov.projectplace.services.exceptions.PPNotFoundException;
 import net.akarmanov.projectplace.services.reset.ExpiredTokenException;
 import net.akarmanov.projectplace.services.reset.InvalidTokenException;

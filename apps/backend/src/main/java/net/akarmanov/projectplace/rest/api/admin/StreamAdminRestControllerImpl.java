@@ -1,7 +1,7 @@
 package net.akarmanov.projectplace.rest.api.admin;
 
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.filters.FilterRequest;
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamUpdateDto;

@@ -2,7 +2,7 @@ package net.akarmanov.projectplace.usecases;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.filters.Filter;
+import net.akarmanov.projectplace.commons.filters.Filter;
 import net.akarmanov.projectplace.mapping.TeamCardMapper;
 import net.akarmanov.projectplace.models.TeamCardStatus;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;

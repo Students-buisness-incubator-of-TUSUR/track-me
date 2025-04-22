@@ -1,8 +1,8 @@
 package net.akarmanov.projectplace.usecases;
 
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.commons.filters.Filter;
 import net.akarmanov.projectplace.domain.spec.StreamSpecification;
-import net.akarmanov.projectplace.filters.Filter;
 import net.akarmanov.projectplace.mapping.NtiMarketMapper;
 import net.akarmanov.projectplace.mapping.StreamMapper;
 import net.akarmanov.projectplace.rest.api.dto.NTIMarketDto;

@@ -1,7 +1,7 @@
 package net.akarmanov.projectplace.rest.api.teamcard;
 
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.filters.FilterRequest;
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.usecases.UserTeamCardsUseCase;

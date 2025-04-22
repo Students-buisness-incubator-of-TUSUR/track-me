@@ -3,7 +3,7 @@ package net.akarmanov.projectplace.services.admin;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.filters.Filter;
+import net.akarmanov.projectplace.commons.filters.Filter;
 import net.akarmanov.projectplace.mapping.UserMapper;
 import net.akarmanov.projectplace.models.UserRole;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;

@@ -2,7 +2,7 @@ package net.akarmanov.projectplace.services.admin;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import net.akarmanov.projectplace.filters.Filter;
+import net.akarmanov.projectplace.commons.filters.Filter;
 import net.akarmanov.projectplace.rest.api.dto.UserDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
