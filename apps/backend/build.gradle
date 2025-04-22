@@ -38,6 +38,8 @@ dependencies {
     implementation 'io.github.wimdeblauwe:error-handling-spring-boot-starter:4.4.0'
     implementation 'org.mapstruct:mapstruct:1.6.2'
 
+    implementation project(':commons')
+
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
