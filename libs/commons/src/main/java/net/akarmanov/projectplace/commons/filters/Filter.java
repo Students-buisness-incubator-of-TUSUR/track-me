@@ -1,7 +1,5 @@
 package net.akarmanov.projectplace.commons.filters;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Path;
@@ -26,19 +24,11 @@ import static org.springframework.util.CollectionUtils.isEmpty;
  * @param values    значения
  */
 @Builder
-@Schema(description = "Фильтр для запросов поиска")
 public record Filter(@NotBlank(message = "Имя поля не может быть пустым")
-                     @Schema(description = "Имя поля")
                      String fieldName,
-                     @Schema(description = "Тип операции",
-                             implementation = OperationType.class,
-                             allowableValues = {"EQ", "LIKE"})
                      @NotNull(message = "Тип операции не может быть пустым")
                      OperationType type,
-                     @Schema(description = "Значения", defaultValue = "null")
                      List<String> values,
-                     @Schema(description = "Значение",
-                             name = "value") @JsonProperty("value")
                      String singleValue) {
   public static final String START_DATE_FIELD = "startDate";
 
