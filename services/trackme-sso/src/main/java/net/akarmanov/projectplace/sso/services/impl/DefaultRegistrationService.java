@@ -8,6 +8,7 @@ import net.akarmanov.projectplace.sso.components.RegistrationStore;
 import net.akarmanov.projectplace.sso.components.RegistrationTokenStore;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import net.akarmanov.projectplace.sso.dto.RegistrationToken;
+import net.akarmanov.projectplace.sso.exception.ConfirmRegistrationException;
 import net.akarmanov.projectplace.sso.exception.InformationException;
 import net.akarmanov.projectplace.sso.services.MailService;
 import net.akarmanov.projectplace.sso.services.RegistrationService;
@@ -53,6 +54,11 @@ public class DefaultRegistrationService implements RegistrationService {
       throw InformationException.builder("$happened.unexpected.error").build();
     }
     var sessionId = tokenStore.getSessionId(request);
+
+    if (sessionId == null) {
+      throw new ConfirmRegistrationException("$registration.confirm.error.no.session.id");
+    }
+
     registrationStore.take(sessionId)
         .ifPresent(userService::saveUser);
   }

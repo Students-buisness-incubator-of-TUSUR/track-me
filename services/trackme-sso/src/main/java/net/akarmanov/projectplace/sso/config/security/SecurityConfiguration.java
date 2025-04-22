@@ -36,6 +36,7 @@ public class SecurityConfiguration {
   public static final String LOGIN_PAGE = "/client/login";
 
   static final String[] PERMIT_ALL_PATTERNS = {
+      LOGIN_PAGE,
       "/registration-success",
       "/static/**",
       "/client/**",

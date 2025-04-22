@@ -28,6 +28,7 @@
     "eject": "react-scripts eject",
     "clean": "rimraf build",
     "build": "react-scripts build",
+    "postbuild": "rm -rf ../src/main/resources/static/*",
     "build:staging": "react-scripts build --mode staging"
   },
   "eslintConfig": {

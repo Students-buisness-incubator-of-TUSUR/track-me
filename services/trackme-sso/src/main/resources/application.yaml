@@ -6,6 +6,9 @@ spring:
     name: trackme-sso
   mvc:
     static-path-pattern: /static/**
+  web:
+    resources:
+      static-locations: classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/
   mail:
     host: ${MAIL_HOST:smtp.tusur.ru}
     port: ${MAIL_PORT:465}
@@ -27,6 +30,11 @@ spring:
 logging:
   level:
     org.springframework.security: trace
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  paths-to-exclude: /client/**
 
 app:
   swagger:

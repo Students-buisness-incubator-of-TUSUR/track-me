@@ -7,6 +7,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.sso.dto.ErrorResponseDto;
+import net.akarmanov.projectplace.sso.exception.ConfirmRegistrationException;
 import net.akarmanov.projectplace.sso.exception.RegistrationException;
 import net.akarmanov.projectplace.sso.exception.ServiceException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -126,6 +127,23 @@ public class GlobalExceptionControllerAdvice {
       RegistrationException exception
   ) {
     logRequestException(request, exception);
+    return new ResponseEntity<>(
+        ErrorResponseDto.builder()
+            .error("registration.exception")
+            .message(exception.getMessage())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .timestamp(System.currentTimeMillis())
+            .build(),
+        HttpStatus.BAD_REQUEST
+    );
+  }
+
+  @ExceptionHandler(ConfirmRegistrationException.class)
+  public ResponseEntity<ErrorResponseDto> resolveConfirmRegistrationException(
+      HttpServletRequest request,
+      ConfirmRegistrationException exception) {
+    logRequestException(request, exception);
+
     return new ResponseEntity<>(
         ErrorResponseDto.builder()
             .error("registration.exception")

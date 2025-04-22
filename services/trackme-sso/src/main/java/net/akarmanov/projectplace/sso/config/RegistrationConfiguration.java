@@ -1,7 +1,6 @@
 package net.akarmanov.projectplace.sso.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.sso.components.RegistrationStore;
 import net.akarmanov.projectplace.sso.components.RegistrationTokenStore;
@@ -10,7 +9,6 @@ import net.akarmanov.projectplace.sso.components.impl.RedisRegistrationTokenStor
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 @Configuration

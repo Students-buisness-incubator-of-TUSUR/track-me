@@ -8,4 +8,4 @@ spring:
         custom-handler-header-name: TrackMe-Sso-Next-Location
         authorization-ttl: 720000ms
         authorization-consent-ttl: 720000ms
-        registration-confirmation-endpoint: /registration/confirmation
+        registration-confirmation-endpoint: /client/registration-confirm
