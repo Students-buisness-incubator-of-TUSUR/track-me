@@ -74,10 +74,9 @@ public class SecurityConfiguration {
         configurer.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
 
     return http.formLogin(formLogin ->
-            formLogin.loginPage(LOGIN_PAGE)
-                .loginProcessingUrl(LOGIN_PAGE)
-                .successHandler(loginRequestSuccessHandler)
-                .failureHandler(failureHandler))
+            formLogin
+                .loginPage(LOGIN_PAGE)
+                .loginProcessingUrl(LOGIN_PAGE))
         .build();
   }
 

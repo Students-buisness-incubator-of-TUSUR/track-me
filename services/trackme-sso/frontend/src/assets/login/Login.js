@@ -1,56 +1,62 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
+import {useLocation} from "react-router-dom";
 import "./Login.css";
-import LoginAPI from "../../services/login-service";
 
 const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const location = useLocation();
 
-    const handleLogin = (e) => {
-        e.preventDefault();
-        setErrorMessage(""); // Сброс сообщения об ошибке перед новой попыткой
-        LoginAPI.login(username, password)
-            .catch((error) => {
-                if (error.response && error.response.status === 401) {
-                    setErrorMessage("Неверный логин или пароль");
-                } else {
-                    setErrorMessage("Произошла ошибка. Попробуйте позже.");
-                }
-            });
-    };
+    useEffect(() => {
+        // Проверка: если пришли на страницу с query ?error или error в state - выводим ошибку
+        const params = new URLSearchParams(location.search);
+        if (params.get("error")) {
+            setErrorMessage("Неверный логин или пароль.");
+        }
+    }, [location]);
 
     return (
         <div className="login-container">
             <div className="login-box">
                 <h1 className="login-title">Вход в TrackMe</h1>
-                <form className="login-form" onSubmit={handleLogin}>
+                <form
+                    className="login-form"
+                    method="POST"
+                    action="/client/login"
+                    autoComplete="username">
                     <input
                         type="text"
+                        name="username"
                         className="login-input"
                         placeholder="Логин"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
+                        autoComplete="username"
                     />
                     <input
                         type="password"
+                        name="password"
                         className="login-input"
                         placeholder="Пароль"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        autoComplete="current-password"
                     />
                     <button type="submit" className="login-button">
                         Войти
                     </button>
                 </form>
-                {errorMessage && <p className="error-message">{errorMessage}</p>}
+                {errorMessage && (
+                    <p className="error-message">{errorMessage}</p>
+                )}
                 <div className="login-links">
-                    <a href={`/client/registration`} className="login-link">
+                    <a href="/client/registration" className="login-link">
                         Регистрация
                     </a>
-                    <a href={`/client/reset-password`} className="login-link">
+                    <a href="/client/reset-password" className="login-link">
                         Забыли пароль?
                     </a>
                 </div>

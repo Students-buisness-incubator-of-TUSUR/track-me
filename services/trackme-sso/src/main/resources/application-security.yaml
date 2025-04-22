@@ -3,9 +3,7 @@ spring:
     oauth2:
       authorizationserver:
         multiple-issuers-allowed: true
-        authentication-success-url: http://127.0.0.1:3000/after-login
         issuer-url: http://localhost:9000
-        custom-handler-header-name: TrackMe-Sso-Next-Location
         authorization-ttl: 720000ms
         authorization-consent-ttl: 720000ms
         registration-confirmation-endpoint: /client/registration-confirm

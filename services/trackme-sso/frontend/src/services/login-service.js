@@ -11,9 +11,9 @@ export class LoginAPI {
 
         return axios.post(this.__LOGIN_URL, formData, {
             withCredentials: true
-        }).then(result => {
-            if (result.headers.has(this.__LOCATION_HEADER)) {
-                window.location = result.headers.get(this.__LOCATION_HEADER);
+        }).then(response => {
+            if (response.redirected) {
+                window.location = response.url;
             }
         });
     }
