@@ -22,7 +22,7 @@ on:
       - reopened
 
 jobs:
-  backend-check:
+  trackme-backend-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,18 +38,18 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
-      - name: Build and Test Backend
+      - name: Build, Test & SonarQube Backend
         run: |
-          ./gradlew build jacocoTestReport sonar \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+          ./gradlew :backend:build :backend:jacocoTestReport :backend:sonar \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }} \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
             -Dsonar.pullrequest.key=${{ github.event.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }}
 
-  frontend-check:
+  trackme-frontend-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,3 +66,70 @@ jobs:
       - name: Test frontend
         run: npm run test
         working-directory: apps/frontend
+      - name: SonarQube Frontend
+        run: |
+          npm install -g sonar-scanner
+          sonar-scanner \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_FRONTEND }} \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.pullrequest.key=${{ github.event.number }} \
+            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }}
+        working-directory: apps/frontend
+
+  trackme-gateway-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
+      - name: Build, Test & SonarQube Gateway
+        run: |
+          ./gradlew :trackme-gateway:build :trackme-gateway:jacocoTestReport :trackme-gateway:sonar \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_GATEWAY }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.pullrequest.key=${{ github.event.number }} \
+            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }}
+
+  trackme-sso-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-sso-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
+      - name: Build, Test & SonarQube SSO
+        run: |
+          ./gradlew :trackme-sso:build :trackme-sso:jacocoTestReport :trackme-sso:sonar \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_SSO }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.pullrequest.key=${{ github.event.number }} \
+            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }}
