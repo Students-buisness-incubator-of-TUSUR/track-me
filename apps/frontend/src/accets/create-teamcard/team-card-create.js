@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import "./team-card-create.css";
 import penIcon from "./pen.png";
+import {useSelector} from "react-redux";
 
-const backendHost = process.env.REACT_APP_BACKEND_HOST || "https://xn--b1afb6bcb.xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai";
+const backendHost = process.env.REACT_APP_BACKEND_HOST + '/backend';
 
 const TeamCard = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("accessToken");
+  const user = useSelector(state => state.user);
   
   const [error, setError] = useState("");
   const [streams, setStreams] = useState([]);
@@ -47,9 +48,7 @@ const TeamCard = () => {
   // Получаем информацию о текущем пользователе
   useEffect(() => {
     fetch(`${backendHost}/api/v1/users/current/info`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     })
       .then((response) => response.json())
       .then((userData) => {
@@ -65,7 +64,7 @@ const TeamCard = () => {
         console.error("Ошибка при получении данных пользователя:", error);
         setError("Ошибка при получении данных пользователя");
       });
-  }, [token]);
+  }, []);
 
   const trlLevels = [
     { id: 1, label: "0-2" },
@@ -79,30 +78,30 @@ const TeamCard = () => {
     fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({ filters: [] }),
+      credentials: "include"
     })
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
         if (data?.content) setStreams(data.content);
       })
       .catch(() => setError("Ошибка при загрузке потоков"));
-  }, [token]);
+  }, []);
 
   // Загрузка рынков НТИ
   useEffect(() => {
     fetch(`${backendHost}/api/v1/streams/nti-markets`, {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: "include",
     })
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
         if (data) setMarkets(data);
       })
       .catch(() => setError("Ошибка при загрузке рынков НТИ"));
-  }, [token]);
+  }, []);
 
   // Загрузка списка трекеров для админа
   useEffect(() => {
@@ -111,8 +110,8 @@ const TeamCard = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({ filters: [] }),
       })
         .then((res) => res.ok ? res.json() : null)
@@ -123,7 +122,7 @@ const TeamCard = () => {
         })
         .catch(() => setError("Ошибка при загрузке списка трекеров"));
     }
-  }, [currentUser, token]);
+  }, [currentUser]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -196,8 +195,8 @@ const TeamCard = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 

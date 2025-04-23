@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import "./ProfilePage.css";
 
 // Импорт иконок
-import penIcon from "./pen.png"; 
+import penIcon from "./pen.png";
 import uploadIcon from "./upload.png";
 
 function ProfilePage() {
@@ -12,7 +12,7 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
-  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
+  const backendHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/backend';
 
   // Флаг редактирования
   const [isEditing, setIsEditing] = useState(false);
@@ -21,20 +21,13 @@ function ProfilePage() {
   const [editedData, setEditedData] = useState({});
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
 
-    if (!token) {
-      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-      setLoading(false);
-      return;
-    }
-
-    fetch(`${backendHost}/api/v1/users/current/info`, {
+    fetch(`${backendHost}/api/v1/account/info`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include"
     })
       .then((response) => {
         if (!response.ok) {
@@ -61,13 +54,9 @@ function ProfilePage() {
   useEffect(() => {
     if (!userData) return;
 
-    const token = localStorage.getItem("accessToken");
-
     fetch(`${backendHost}/api/v1/users/${userData.telegramId}/photo`, {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
     })
       .then((res) => {
         if (!res.ok) {
@@ -134,14 +123,12 @@ function ProfilePage() {
       return; // Если данные невалидны, не отправляем запрос
     }
 
-    const token = localStorage.getItem("accessToken");
-
     fetch(`${backendHost}/api/v1/users/current/update`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify(editedData),
     })
       .then((response) => {
@@ -204,16 +191,14 @@ function ProfilePage() {
 
     const imageUrl = URL.createObjectURL(file);
     setUserPhoto(imageUrl);
-
-    const token = localStorage.getItem("accessToken");
     const formData = new FormData();
     formData.append("file", file);
 
     fetch(`${backendHost}/api/v1/users/${userData.telegramId}/photo`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: formData,
     })
       .then((response) => {

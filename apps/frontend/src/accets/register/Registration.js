@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import './Registration.css';
 import axios from 'axios';
 
@@ -14,7 +14,7 @@ const Registration = () => {
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewPhoto, setPreviewPhoto] = useState(null);
-  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
+  const backendHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/backend';
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

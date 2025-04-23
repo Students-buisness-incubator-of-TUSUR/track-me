@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useState} from "react";
+import {useNavigate} from "react-router-dom";
 import "./login-recovery.css";
 
 const LoginRecovery = () => {
@@ -8,7 +8,7 @@ const LoginRecovery = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
-  const backendHost = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080";
+  const backendHost = (process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080") + '/backend';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

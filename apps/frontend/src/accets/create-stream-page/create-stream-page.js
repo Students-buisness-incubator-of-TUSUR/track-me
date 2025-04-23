@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import './create-stream-page.css';
-import { useNavigate } from "react-router-dom";
+import {useNavigate} from "react-router-dom";
+import {useSelector} from "react-redux";
+import axios from "axios";
+
 export default function CreateStream() {
   const [name, setName] = useState('');
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [showCheckboxes2, setShowCheckboxes2] = useState(false);
@@ -12,38 +15,21 @@ export default function CreateStream() {
   const [selectedCheckboxes, setSelectedCheckboxes] = useState([]);
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
-
+  const backendHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/backend';
   const checkboxesRef = useRef(null);
 
+  // Получаем информацию о пользователе из redux store
+  const user = useSelector(state => state.user);
+
+  // Фетчим данные для чекбоксов рынков как на stream-page.js (без проверки токена)
   const fetchCheckboxesData = useCallback(async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-      return;
-    }
     try {
-      const response = await fetch(`${backendHost}/api/v1/streams/nti-markets`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.get(`${backendHost}/api/v1/streams/nti-markets`, {
+        withCredentials: true,
       });
-
-      if (!response.ok) {
-        throw new Error('Ошибка при загрузке данных для чекбоксов');
-      }
-
-      const result = await response.json();
-      const formattedData = result.map((item) => ({
-        id: item.id,
-        name: item.displayName,
-        description: "useless описание",
-      }));
-      setCheckboxesData2(formattedData);
+      setCheckboxesData2(response.data);
     } catch (error) {
-      console.error('Ошибка при загрузке данных для чекбоксов:', error);
-      setError('Не удалось загрузить данные для чекбоксов.');
+      setError("Не удалось загрузить данные для чекбоксов.");
     }
   }, [backendHost]);
 
@@ -112,14 +98,11 @@ export default function CreateStream() {
 
   const isValidDate = (date) => {
     const [day, month, year] = date.split('.').map(Number);
-
     if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
     if (month < 1 || month > 12) return false;
     if (day < 1 || day > 31) return false;
-
     const daysInMonth = new Date(year, month, 0).getDate();
     if (day > daysInMonth) return false;
-
     return true;
   };
 
@@ -140,6 +123,7 @@ export default function CreateStream() {
     }
   };
 
+  // Переписанное создание потока — убран accessToken, юзер инфо есть в redux store (но серверу не посылается)
   const handleCreateButtonClick = async () => {
     setError('');
 
@@ -170,75 +154,55 @@ export default function CreateStream() {
       endDate: formatDate(endDate),
       ntiMarketIds: selectedCheckboxes,
       description: "useless описание",
+      // Можно передавать user.id или user.name, если это согласовано с бекендом
     };
 
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-        return;
-      }
-
-      const createStreamResponse = await fetch(`${backendHost}/api/v1/admin/stream`, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!createStreamResponse.ok) {
-        throw new Error('Ошибка при создании потока');
-      }
-
-      const streamResult = await createStreamResponse.json();
-      console.log('Поток успешно создан:', streamResult);
-      if (!token) {
-        setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-        return;
-      }
+      // Создать поток
+      const createStreamResponse = await axios.post(
+          `${backendHost}/api/v1/admin/stream`,
+          requestData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+      );
+      const streamResult = createStreamResponse.data;
+      // Загрузка изображения
       if (imageFile) {
         const formData = new FormData();
         formData.append('file', imageFile);
-        const uploadImageResponse = await fetch(`${backendHost}/api/v1/streams/${streamResult.id}/image`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (!uploadImageResponse.ok) {
-          throw new Error('Ошибка при загрузке изображения');
-        }
-
-        console.log('Изображение успешно загружено');
-      }
-      else {
+        await axios.post(
+            `${backendHost}/api/v1/streams/${streamResult.id}/image`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              withCredentials: true,
+            }
+        );
+      } else {
         const defaultImageResponse = await fetch('rabbit.png');
         const defaultImageBlob = await defaultImageResponse.blob();
         const formData = new FormData();
         formData.append('file', defaultImageBlob, 'rabbit.png');
-        const uploadImageResponse = await fetch(`${backendHost}/api/v1/streams/${streamResult.id}/image`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (!uploadImageResponse.ok) {
-          throw new Error('Ошибка при загрузке изображения');
-        }
-
-        console.log('Изображение успешно загружено');
+        await axios.post(
+            `${backendHost}/api/v1/streams/${streamResult.id}/image`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              withCredentials: true,
+            }
+        );
       }
-
       alert('Поток успешно создан!');
       navigate("/streams");
     } catch (error) {
-      console.error('Ошибка:', error);
       setError('Не удалось создать поток или загрузить изображение. Пожалуйста, попробуйте снова.');
     }
   };
@@ -303,23 +267,19 @@ export default function CreateStream() {
       <div className="Stream-b Stream-header-chosefrom-buttw">
         <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
           <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes2}>
-            <b className="Stream-header-chosefrom-butt-label">Рынок</b>
-            <div className="Stream-header-chosefrom-butt-pic"></div>
+            <span>Выбрать рынки (макс. 3)</span>
           </div>
           {showCheckboxes2 && (
-            <div className="Stream-header-checkboxes">
-              {checkboxesData2.map((formattedData, index) => (
-                <div key={formattedData.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
+              <div className="Stream-header-chosefrom-menu">
+                {checkboxesData2.map((item) => (
+                    <label key={item.id} className="Stream-header-chosefrom-checkbox-label">
                   <input
                     type="checkbox"
-                    className="custom-checkbox"
-                    id={formattedData.id}
-                    checked={selectedCheckboxes.includes(formattedData.id)}
-                    onChange={() => handleCheckboxChange(formattedData.id)}
-                    disabled={selectedCheckboxes.length >= 3 && !selectedCheckboxes.includes(formattedData.id)}
+                    checked={selectedCheckboxes.includes(item.id)}
+                    onChange={() => handleCheckboxChange(item.id)}
                   />
-                  <label className='Stream-header-checkbox-label'>{formattedData.name}</label>
-                </div>
+                      <span>{item.displayName || item.name}</span>
+                    </label>
               ))}
             </div>
           )}

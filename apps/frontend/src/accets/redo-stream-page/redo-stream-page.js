@@ -15,21 +15,16 @@ export default function EditStream() {
   const [selectedCheckboxes, setSelectedCheckboxes] = useState([]); // Выбранные рынки НТИ
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8081';
+  const backendHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8081') + '/backend';
   const checkboxesRef = useRef(null);
   // Функция для загрузки изображения потока
   const fetchStreamImage = useCallback(async (streamId) => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-      return null;
-    }
     try {
       const response = await fetch(`${backendHost}/api/v1/streams/${streamId}/image`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -48,17 +43,10 @@ export default function EditStream() {
 
   // Загрузка данных потока
   const fetchStreamData = useCallback(async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-      return;
-    }
     try {
       const response = await fetch(`${backendHost}/api/v1/admin/stream/${id}`, {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -103,16 +91,12 @@ export default function EditStream() {
   }, []);
   // Загрузка всех рынков НТИ
   const fetchNtiMarkets = useCallback(async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-      return;
-    }
     try {
       const response = await fetch(`${backendHost}/api/v1/streams/nti-markets`, {
         method: 'GET',
+        credentials: 'include',
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -199,18 +183,13 @@ export default function EditStream() {
     };
 
     try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        setError("Ошибка: отсутствует токен авторизации. Выполните вход.");
-        return;
-      }
 
       const updateStreamResponse = await fetch(`${backendHost}/api/v1/admin/stream/${id}`, {
         method: 'PATCH',
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(requestData),
       });
 
@@ -223,9 +202,7 @@ export default function EditStream() {
         formData.append('file', imageFile);
         const uploadImageResponse = await fetch(`${backendHost}/api/v1/streams/${id}/image`, {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: 'include',
           body: formData,
         });
 

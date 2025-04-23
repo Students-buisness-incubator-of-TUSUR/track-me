@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import React, {useEffect, useMemo, useState} from "react";
+import {Link} from "react-router-dom";
 import "./TrackerList.css";
 import trueIcon from "./true.png";
 import falseIcon from "./false.png";
@@ -16,20 +16,17 @@ function TrackerList() {
   const [hoveredTracker, setHoveredTracker] = useState(null);
   const [hoveredButton, setHoveredButton] = useState(null);
 
-  // Получаем реальный токен из localStorage
-  const token = localStorage.getItem("accessToken");
-
   // Если фильтры не изменяются, мемоизируем их
   const filters = useMemo(() => [], []);
-  const backendHost = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080";
+  const backendHost = (process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080") + '/backend';
 
   useEffect(() => {
     fetch(`${backendHost}/api/v1/admin/users/trackers?page=0&size=10`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
       },
+      credentials: 'include',
       body: JSON.stringify({ filters: filters }),
     })
       .then((response) => {
@@ -55,7 +52,7 @@ function TrackerList() {
       .catch((err) => {
         console.error("Ошибка при загрузке трекеров:", err);
       });
-  }, [token, filters, backendHost]);
+  }, [filters, backendHost]);
 
   const confirmUser = (userId) => {
     const url = `${backendHost}/api/v1/admin/users/confirm?userId=${userId}`;
@@ -64,8 +61,8 @@ function TrackerList() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
       },
+      credentials: 'include'
     })
       .then((response) => {
         if (!response.ok) {
@@ -104,8 +101,8 @@ function TrackerList() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
       },
+      credentials: 'include',
     })
       .then((response) => {
         if (!response.ok) {

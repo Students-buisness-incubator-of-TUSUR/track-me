@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./meeting-card.css";
 
-const backendHost = process.env.REACT_APP_BACKEND_HOST || "https://xn--b1afb6bcb.xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai";
+const backendHost = process.env.REACT_APP_BACKEND_HOST + '/backend';
 
 const MeetingCard = () => {
   const { meetingId } = useParams();
@@ -11,7 +11,6 @@ const MeetingCard = () => {
   const query = new URLSearchParams(location.search);
   const teamId = query.get("teamId");
   const userId = query.get("userId");
-  const token = localStorage.getItem("accessToken");
 
   const isNewMeeting = meetingId === "new";
 
@@ -30,9 +29,7 @@ const MeetingCard = () => {
   useEffect(() => {
     if (!isNewMeeting && meetingId) {
       fetch(`${backendHost}/api/v1/meetings/${meetingId}?teamCardId=${teamId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        }
+        credentials: 'include',
       })
       .then(res => {
         if (!res.ok) throw new Error('Ошибка загрузки встречи');
@@ -48,7 +45,7 @@ const MeetingCard = () => {
         }
       });
     }
-  }, [meetingId, teamId, token, isNewMeeting]);
+  }, [meetingId, teamId, isNewMeeting]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -76,8 +73,8 @@ const MeetingCard = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
+          credentials: 'include',
           body: JSON.stringify({
             ...meetingPayload,
             startDate: meetingData.startDate
@@ -101,8 +98,8 @@ const MeetingCard = () => {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
             },
+            credentials: 'include',
             body: JSON.stringify(meetingPayload)
           }
         );

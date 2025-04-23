@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import "./TrackerPage.css";
 
-import { Link, useNavigate } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import {useSelector} from "react-redux";
 
 function TrackerPage() {
   const [cards, setCards] = useState([]);
@@ -19,7 +20,7 @@ function TrackerPage() {
   const [userRole, setUserRole] = useState(null);
   const [userId, setUserId] = useState(null);
 
-  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
+  const backendHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/backend';
   // Состояния для отображения панели фильтров и групп чекбоксов
   const [isVisible, setIsVisible] = useState(false);
   const [showCheckboxesStream, setShowCheckboxesStream] = useState(false); // Для "Все потоки"
@@ -36,6 +37,7 @@ function TrackerPage() {
   const navigate = useNavigate();
   // const numberOfCheckboxes = 9;
   const numberOfCheckboxes1 = year - 2015;
+  const user = useSelector((state) => state.user);
 
   // Данные для TRL – используем реальные диапазоны
   const trlRanges = [
@@ -78,20 +80,12 @@ function TrackerPage() {
 
   // Функция для запроса карточек с заданными фильтрами
   const fetchCards = useCallback((filters = []) => {
-    const token = localStorage.getItem("accessToken");
 
     try {
-      const decoded = JSON.parse(atob(token.split('.')[1]));
-      setUserRole(decoded.role);
-      setUserId(decoded.userId);
-      console.log("Decoded token:", decoded);
+      setUserRole(user.roles[0]);
+      setUserId(user.id);
     } catch (e) {
       console.error("Error decoding token:", e);
-    }
-
-    if (!token) {
-      setError("Отсутствует токен авторизации");
-      return;
     }
 
     const allFilters = [...filters];
@@ -122,8 +116,8 @@ function TrackerPage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       body: JSON.stringify({ filters: allFilters }),
     })
       .then((response) => {
@@ -142,7 +136,7 @@ function TrackerPage() {
         console.error("Error fetching cards:", err);
         setError(`Ошибка при загрузке карточек: ${err.message}`);
       });
-  }, [backendHost, userRole, userId]);
+  }, [userRole, userId, backendHost, user.roles, user.id]);
 
   useEffect(() => {
     // Проверяем роль при загрузке компонента
@@ -180,18 +174,13 @@ function TrackerPage() {
   }, [navigate, backendHost, fetchCards]);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
-      return;
-    }
   
     fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
+      credentials: "include",
       // Передаём именно массив фильтров, как ожидает сервер
       body: JSON.stringify({ filters: [] }),
     })
