@@ -31,10 +31,7 @@ subprojects {
         }
     }
 
-    sonar {
-        properties {
-            property "sonar.language", "java"
-            property "sonar.sourceEncoding", "UTF-8"
-        }
+    sonarqube {
+
     }
 }

@@ -40,7 +40,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build, Test & SonarQube Backend
         run: |
-          ./gradlew :backend:build :backend:jacocoTestReport :backend:sonar \
+          ./gradlew :backend:build :backend:jacocoTestReport :backend:sonarqube \
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }} \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
@@ -98,7 +98,7 @@ jobs:
           key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build, Test & SonarQube Gateway
         run: |
-          ./gradlew :trackme-gateway:build :trackme-gateway:jacocoTestReport :trackme-gateway:sonar \
+          ./gradlew :trackme-gateway:build :trackme-gateway:jacocoTestReport :trackme-gateway:sonarqube \
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_GATEWAY }} \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
@@ -125,7 +125,7 @@ jobs:
           key: ${{ runner.os }}-gradle-sso-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build, Test & SonarQube SSO
         run: |
-          ./gradlew :trackme-sso:build :trackme-sso:jacocoTestReport :trackme-sso:sonar \
+          ./gradlew :trackme-sso:build :trackme-sso:jacocoTestReport :trackme-sso:sonarqube \
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_SSO }} \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
