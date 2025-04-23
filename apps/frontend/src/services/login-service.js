@@ -1,11 +1,12 @@
 import axios from "axios";
-import store from "../store";
 import {setUser} from "../store/userSlice";
+import {useDispatch} from "react-redux";
 
 function LoginService() {
     const backendUrl = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8081";
-    const userinfoUrl = `${backendUrl}/sso/userinfo`;
+    const userinfoUrl = `${backendUrl}/sso/api/v1/account/info`;
     const logoutUrl = `${backendUrl}/logout`;
+    const dispatch = useDispatch();
 
     const register = async (userData) => {
         try {
@@ -33,10 +34,12 @@ function LoginService() {
 
     const getUserInfo = async () => {
         try {
-            const response = await axios.get(userinfoUrl, {withCredentials: true});
+            const response = await axios.get(userinfoUrl, {
+                withCredentials: true,
+            });
             if (response.status === 200) {
                 // Assuming you have a Redux store or similar to save user data
-                store.dispatch(setUser(response.data));
+                dispatch(setUser(response.data));
                 return response.data;
             }
         } catch (error) {

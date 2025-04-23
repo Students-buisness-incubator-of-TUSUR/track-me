@@ -27,7 +27,7 @@ function AfterLogin() {
             .catch(error => {
                 console.error("Error during login:", error);
             });
-    }, []);
+    }, [navigate, service]);
 }
 
 export default AfterLogin;

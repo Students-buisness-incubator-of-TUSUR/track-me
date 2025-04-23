@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import './create-stream-page.css';
-import { useParams } from 'react-router-dom'; 
-import { useNavigate } from "react-router-dom";
+import {useNavigate, useParams} from 'react-router-dom';
 
 export default function EditStream() {
   const { id } = useParams(); // Получаем ID потока из URL
@@ -16,7 +15,7 @@ export default function EditStream() {
   const [selectedCheckboxes, setSelectedCheckboxes] = useState([]); // Выбранные рынки НТИ
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
+  const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8081';
   const checkboxesRef = useRef(null);
   // Функция для загрузки изображения потока
   const fetchStreamImage = useCallback(async (streamId) => {
