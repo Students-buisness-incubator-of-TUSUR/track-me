@@ -23,13 +23,15 @@ function LoginService() {
     };
 
     const logout = async () => {
-        try {
-            await axios.post(logoutUrl, {}, {withCredentials: true});
-            console.log("Logout successful");
-        } catch (error) {
-            console.error("Logout failed:", error);
-            throw error;
-        }
+        return await axios.post(logoutUrl, {}, {
+            withCredentials: true,
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            }
+        })
+            .then(() => {
+                console.log("Logout successful");
+            })
     };
 
     const getUserInfo = async () => {

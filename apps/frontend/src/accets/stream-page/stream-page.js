@@ -29,6 +29,7 @@ export default function Stream() {
     const [imageUrls, setImageUrls] = useState({});
     let year = today.getFullYear();
     const backendHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/backend';
+    const logoutHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/logout';
     const numberOfCheckboxes = year - 2015;
 
     // Убираем использование и проверку токена
@@ -349,6 +350,9 @@ export default function Stream() {
                         </Link>
                         <button className="Stream-butt">Все команды</button>
                         <Link to="/profile" className="Stream-pic"></Link>
+                        <Link to={logoutHost}>
+                            <button className="Stream-butt">Выход</button>
+                        </Link>
                     </div>
                 </div>
                 <div className="Stream-header-bottom-cont">
