@@ -10,6 +10,7 @@ import net.akarmanov.projectplace.sso.dto.ErrorResponseDto;
 import net.akarmanov.projectplace.sso.exception.ConfirmRegistrationException;
 import net.akarmanov.projectplace.sso.exception.RegistrationException;
 import net.akarmanov.projectplace.sso.exception.ServiceException;
+import net.akarmanov.projectplace.sso.exception.WrongOldPasswordException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionControllerAdvice {
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  @ExceptionHandler({NoResultException.class, EmptyResultDataAccessException.class, UsernameNotFoundException.class})
+  @ExceptionHandler(value = {NoResultException.class, EmptyResultDataAccessException.class, UsernameNotFoundException.class},
+                    produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveNoResult(HttpServletRequest request,
                                                           Exception exception) {
     logRequestException(request, exception);
@@ -42,7 +44,7 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  @ExceptionHandler({EntityNotFoundException.class})
+  @ExceptionHandler(value = {EntityNotFoundException.class}, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveEntityNotFound(HttpServletRequest request,
                                                                 Exception exception) {
     logRequestException(request, exception);
@@ -58,7 +60,7 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.FORBIDDEN)
-  @ExceptionHandler(AccessDeniedException.class)
+  @ExceptionHandler(value = AccessDeniedException.class, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveAccessDeniedException(
       HttpServletRequest request,
       Exception exception
@@ -76,7 +78,7 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler({ConstraintViolationException.class})
+  @ExceptionHandler(value = {ConstraintViolationException.class}, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveConstraintViolation(
       HttpServletRequest request,
       ConstraintViolationException exception
@@ -94,7 +96,7 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(IllegalArgumentException.class)
+  @ExceptionHandler(value = IllegalArgumentException.class, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveIllegalArgument(
       HttpServletRequest request,
       IllegalArgumentException exception
@@ -112,7 +114,24 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(MethodArgumentNotValidException.class)
+  @ExceptionHandler(value = WrongOldPasswordException.class, produces = "application/json")
+  public ResponseEntity<ErrorResponseDto> resolveWrongOldPassword(
+      HttpServletRequest request,
+      WrongOldPasswordException exception) {
+    logRequestException(request, exception);
+    return new ResponseEntity<>(
+        ErrorResponseDto.builder()
+            .error("wrong.old.password.exception")
+            .message(exception.getMessage())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .timestamp(System.currentTimeMillis())
+            .build(),
+        HttpStatus.BAD_REQUEST
+    );
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(value = MethodArgumentNotValidException.class, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveMethodArgumentNotValid(
       HttpServletRequest request,
       MethodArgumentNotValidException exception
@@ -130,7 +149,7 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(RegistrationException.class)
+  @ExceptionHandler(value = RegistrationException.class, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveRegistrationException(
       HttpServletRequest request,
       RegistrationException exception
@@ -148,7 +167,7 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(ConfirmRegistrationException.class)
+  @ExceptionHandler(value = ConfirmRegistrationException.class, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveConfirmRegistrationException(
       HttpServletRequest request,
       ConfirmRegistrationException exception) {
@@ -166,7 +185,7 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(ServiceException.class)
+  @ExceptionHandler(value = ServiceException.class, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveServiceException(
       HttpServletRequest request,
       ServiceException exception
@@ -185,7 +204,7 @@ public class GlobalExceptionControllerAdvice {
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(Exception.class)
+  @ExceptionHandler(value = Exception.class, produces = "application/json")
   public ResponseEntity<ErrorResponseDto> resolveGeneralException(
       HttpServletRequest request,
       Exception exception

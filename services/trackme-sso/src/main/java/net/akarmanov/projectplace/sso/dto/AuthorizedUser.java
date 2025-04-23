@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,23 +30,6 @@ public class AuthorizedUser extends User implements OAuth2User {
 
   private Map<String, Object> oauthAttributes;
 
-  public AuthorizedUser(String username, String password) {
-    super(username,
-        password,
-        true,
-        true,
-        true,
-        true,
-        Collections.emptyList());
-  }
-
-
-  public AuthorizedUser(String username,
-                        String password,
-                        Collection<? extends GrantedAuthority> authorities) {
-    super(username, password, authorities);
-  }
-
   public AuthorizedUser(
       String username,
       String password,
@@ -64,12 +46,6 @@ public class AuthorizedUser extends User implements OAuth2User {
         credentialsNonExpired,
         accountNonLocked,
         authorities);
-  }
-
-  public static AuthorizedUserBuilder builder(String username,
-                                              String password,
-                                              Collection<? extends GrantedAuthority> authorities) {
-    return new AuthorizedUserBuilder(username, password, authorities);
   }
 
   public static AuthorizedUserBuilder builder(
@@ -107,15 +83,6 @@ public class AuthorizedUser extends User implements OAuth2User {
   public static class AuthorizedUserBuilder {
 
     private final AuthorizedUser entity;
-
-    AuthorizedUserBuilder(String username,
-                          String password,
-                          Collection<? extends GrantedAuthority> authorities) {
-      if (password == null) {
-        password = "";
-      }
-      this.entity = new AuthorizedUser(username, password, authorities);
-    }
 
     AuthorizedUserBuilder(
         String username,

@@ -1,6 +1,8 @@
 package net.akarmanov.projectplace.sso.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.sso.dto.UserDto;
 import net.akarmanov.projectplace.sso.dto.UserUpdateDto;
@@ -29,6 +31,14 @@ public class DefaultAccountController implements AccountController {
   @Override
   public ResponseEntity<Void> update(@Valid UserUpdateDto userDto, Authentication authentication) {
     accountService.updateUser(userDto, authentication);
+    return ResponseEntity.ok().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> changePassword(@NotBlank @Size(min = 6) String newPassword,
+                                             @NotBlank @Size(min = 6) String oldPassword,
+                                             Authentication authentication) {
+    accountService.changePassword(newPassword, oldPassword, authentication);
     return ResponseEntity.ok().build();
   }
 }

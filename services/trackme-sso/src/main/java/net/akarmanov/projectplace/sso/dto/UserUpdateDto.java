@@ -12,6 +12,7 @@ public record UserUpdateDto(
     @NotBlank
     String fullName,
     @Email
+    @NotBlank
     String email,
     @NotBlank
     @Pattern(regexp = "^\\+?\\d{10,15}$")

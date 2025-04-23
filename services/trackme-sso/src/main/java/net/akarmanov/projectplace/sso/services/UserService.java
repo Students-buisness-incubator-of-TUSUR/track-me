@@ -47,4 +47,6 @@ public interface UserService {
   UserEntity findById(UUID id);
 
   void save(UserEntity userEntity);
+
+  void changePassword(UUID userId, String newPassword, String oldPassword);
 }

@@ -30,4 +30,11 @@ public class DefaultAccountService implements AccountService {
     userMapper.updateUserEntityFromUserDto(userDto, userEntity);
     userService.save(userEntity);
   }
+
+  @Override
+  public void changePassword(String newPassword,
+                             String oldPassword, Authentication authentication) {
+    var userId = UUID.fromString(authentication.getName());
+    userService.changePassword(userId, newPassword, oldPassword);
+  }
 }

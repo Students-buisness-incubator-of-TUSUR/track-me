@@ -9,6 +9,7 @@ import net.akarmanov.projectplace.sso.dto.AuthProvider;
 import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import net.akarmanov.projectplace.sso.exception.AuthException;
+import net.akarmanov.projectplace.sso.exception.WrongOldPasswordException;
 import net.akarmanov.projectplace.sso.mapper.AuthorizedUserMapper;
 import net.akarmanov.projectplace.sso.services.UserService;
 import net.akarmanov.projectplace.sso.type.AuthErrorCode;
@@ -182,5 +183,15 @@ public class DefaultUserService implements UserService {
   public void save(UserEntity userEntity) {
     Assert.notNull(userEntity, "UserEntity must not be null");
     userRepository.save(userEntity);
+  }
+
+  @Override
+  public void changePassword(UUID userId, String newPassword, String oldPassword) {
+    var userEntity = findById(userId);
+    if (!passwordEncoder.matches(oldPassword, userEntity.getPasswordHash())) {
+      throw new WrongOldPasswordException("$password.wrong");
+    }
+    userEntity.setPasswordHash(passwordEncoder.encode(newPassword));
+    save(userEntity);
   }
 }
