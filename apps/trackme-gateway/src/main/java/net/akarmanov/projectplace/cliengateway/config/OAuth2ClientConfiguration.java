@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
@@ -14,9 +13,11 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
-import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
+import org.springframework.web.cors.CorsConfiguration;
 
-import static org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository.withHttpOnlyFalse;
+import java.util.List;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -34,13 +35,23 @@ public class OAuth2ClientConfiguration {
   @Bean
   SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
     http
-        .csrf(csrf -> csrf.csrfTokenRepository(withHttpOnlyFalse())
-            .csrfTokenRequestHandler(new ServerCsrfTokenRequestAttributeHandler()))
+        .csrf(ServerHttpSecurity.CsrfSpec::disable)
+        .cors(cors -> cors.configurationSource(request -> {
+          var config = new CorsConfiguration();
+          config.setAllowedOrigins(List.of(
+              "http://127.0.0.1:3000",
+              "http://localhost:3000"
+          )); // или "*" для тестов
+          config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+          config.setAllowedHeaders(List.of("*"));
+          config.setAllowCredentials(true);
+          return config;
+        }))
         .authorizeExchange(exchange ->
             exchange.anyExchange().authenticated())
         .oauth2Login(oauth2Login ->
             oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler))
-        .oauth2Client(Customizer.withDefaults())
+        .oauth2Client(withDefaults())
         .logout(logout -> logout
             .logoutSuccessHandler(logoutSuccessHandler));
     return http.build();
