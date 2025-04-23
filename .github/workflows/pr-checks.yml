@@ -39,7 +39,7 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build & Test Backend
-        run: ./gradlew :backend:build
+        run: ./gradlew :backend:build :backend:jacocoTestReport
 
   trackme-frontend-check:
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build & Test Gateway
-        run: ./gradlew :trackme-gateway:build
+        run: ./gradlew :trackme-gateway:build :trackme-gateway:jacocoTestReport
 
   trackme-sso-check:
     runs-on: ubuntu-latest
@@ -95,7 +95,7 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-sso-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
       - name: Build & Test SSO
-        run: ./gradlew :trackme-sso:build
+        run: ./gradlew :trackme-sso:build :trackme-sso:jacocoTestReport
 
   sonarqube-check:
     runs-on: ubuntu-latest
