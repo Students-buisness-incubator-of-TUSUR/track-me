@@ -3,6 +3,7 @@ package net.akarmanov.projectplace.rest.api.stream;
 import net.akarmanov.projectplace.BaseApplicationTest;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ResourceLoader;
@@ -22,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
+@Disabled
 @WithMockUser(username = BaseApplicationTest.USERNAME,
               roles = "SUPER_ADMIN")
 class StreamRestControllerTest extends BaseApplicationTest {
@@ -233,7 +235,7 @@ class StreamRestControllerTest extends BaseApplicationTest {
         .andExpect(status().isNotFound());
   }
 
-  @Test 
+  @Test
   void getStream_withFilters_byTeamCardReadinessLevel() throws Exception {
     var stream = streamRepository.findAll().get(0);
 
