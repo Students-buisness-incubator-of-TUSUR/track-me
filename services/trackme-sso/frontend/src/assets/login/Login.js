@@ -11,7 +11,7 @@ const Login = () => {
     useEffect(() => {
         // Проверка: если пришли на страницу с query ?error или error в state - выводим ошибку
         const params = new URLSearchParams(location.search);
-        if (params.get("error")) {
+        if (params.has("error")) {
             setErrorMessage("Неверный логин или пароль.");
         }
     }, [location]);
