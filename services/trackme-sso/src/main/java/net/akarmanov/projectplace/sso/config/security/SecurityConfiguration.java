@@ -1,11 +1,8 @@
 package net.akarmanov.projectplace.sso.config.security;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.akarmanov.projectplace.sso.config.security.handler.CustomAuthenticationSuccessHandler;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -16,15 +13,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-
-import java.util.List;
 
 @Slf4j
 @EnableWebSecurity
@@ -49,13 +38,6 @@ public class SecurityConfiguration {
 
   private final PasswordEncoder passwordEncoder;
 
-  private final AuthorizationServerProperties properties;
-
-  // handlers
-  private AuthenticationSuccessHandler loginRequestSuccessHandler;
-
-  private AuthenticationFailureHandler failureHandler;
-
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http)
       throws Exception {
@@ -69,6 +51,7 @@ public class SecurityConfiguration {
         .passwordEncoder(passwordEncoder);
 
     http.csrf(AbstractHttpConfigurer::disable);
+    http.cors(AbstractHttpConfigurer::disable);
 
     http.exceptionHandling(configurer ->
         configurer.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
@@ -78,30 +61,5 @@ public class SecurityConfiguration {
                 .loginPage(LOGIN_PAGE)
                 .loginProcessingUrl(LOGIN_PAGE))
         .build();
-  }
-
-  @Bean
-  FilterRegistrationBean<CorsFilter> corsFilter() {
-    log.info("CREATING CORS FILTER");
-    var corsConfig = new CorsConfiguration();
-    corsConfig.setAllowedOrigins(List.of(CorsConfiguration.ALL)); // или "*" для тестов
-    corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    corsConfig.setAllowedHeaders(List.of("*"));
-
-    var source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", corsConfig);
-    return new FilterRegistrationBean<>(new CorsFilter(source));
-  }
-
-  @PostConstruct
-  private void initializeHandlers() {
-    // создаём кастомный AuthenticationSuccessHandler для формы логина
-    this.loginRequestSuccessHandler = new CustomAuthenticationSuccessHandler(
-        properties.getAuthenticationSuccessUrl(),
-        properties.getCustomHandlerHeaderName()
-    );
-
-    // указываем стандартный AuthenticationSuccessHandler для OAuth2 Client
-    this.failureHandler = new SimpleUrlAuthenticationFailureHandler();
   }
 }

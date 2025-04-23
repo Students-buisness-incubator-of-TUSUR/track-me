@@ -6,16 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
 @Validated
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
-
-  @NestedConfigurationProperty
-  private final CorsProperties cors = new CorsProperties();
 
   @NestedConfigurationProperty
   private final SwaggerProperties swagger = new SwaggerProperties();
@@ -24,28 +18,6 @@ public class AppProperties {
   private String apiUrl;
 
   private MailProperties mail = new MailProperties();
-
-  @Data
-  public static class CorsProperties {
-    private List<CorsConfig> configs = new ArrayList<>();
-
-    public record CorsConfig(
-        @NotBlank(message = "Origin cannot be blank")
-        String origin,
-        @NotBlank(message = "Method cannot be blank")
-        String method,
-        @NotBlank(message = "Header cannot be blank")
-        String header,
-        boolean allowCredentials,
-        long maxAge,
-        boolean exposedHeaders,
-        boolean allowOrigin,
-        boolean allowMethod,
-        boolean allowHeader,
-        long maxAgeSeconds
-    ) {
-    }
-  }
 
   @Data
   public static class SwaggerProperties {
