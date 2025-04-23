@@ -13,9 +13,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-
-import java.util.List;
 
 import static net.akarmanov.projectplace.models.UserRole.ADMIN;
 import static net.akarmanov.projectplace.models.UserRole.SUPER_ADMIN;
@@ -41,19 +38,7 @@ public class SecurityConfiguration {
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .csrf(AbstractHttpConfigurer::disable)
-        .cors(cors -> cors.configurationSource(request -> {
-          var corsConfiguration = new CorsConfiguration();
-          corsConfiguration.setAllowedOriginPatterns(List.of("*"));
-          corsConfiguration.setAllowedMethods(List.of("GET",
-              "POST",
-              "PUT",
-              "DELETE",
-              "OPTIONS",
-              "PATCH"));
-          corsConfiguration.setAllowedHeaders(List.of("*"));
-          corsConfiguration.setAllowCredentials(true);
-          return corsConfiguration;
-        }))
+        .cors(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(request -> request
             .requestMatchers("/api/v1/auth/**").permitAll()
             .requestMatchers(
