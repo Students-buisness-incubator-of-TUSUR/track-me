@@ -1,5 +1,6 @@
 package net.akarmanov.projectplace.commons.filters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Path;
@@ -29,6 +30,7 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
                      @NotNull(message = "Тип операции не может быть пустым")
                      OperationType type,
                      List<String> values,
+                     @JsonProperty("value")
                      String singleValue) {
   public static final String START_DATE_FIELD = "startDate";
 
