@@ -29,7 +29,7 @@ export default function Stream() {
     const [imageUrls, setImageUrls] = useState({});
     let year = today.getFullYear();
     const backendHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/backend';
-    const logoutHost = (process.env.REACT_APP_BACKEND_LOGOUT_HOST || 'http://localhost:8080') + '/logout';
+    const logoutHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/logout';
     const numberOfCheckboxes = year - 2015;
 
     // Убираем использование и проверку токена
