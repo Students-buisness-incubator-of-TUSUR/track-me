@@ -38,16 +38,8 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
-      - name: Build, Test & SonarQube Backend
-        run: |
-          ./gradlew :backend:build :backend:jacocoTestReport :backend:sonarqube \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }} \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-            -Dsonar.pullrequest.key=${{ github.event.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }}
+      - name: Build & Test Backend
+        run: ./gradlew :backend:build
 
   trackme-frontend-check:
     runs-on: ubuntu-latest
@@ -66,19 +58,6 @@ jobs:
       - name: Test frontend
         run: npm run test
         working-directory: apps/frontend
-      - name: SonarQube Frontend
-        run: |
-          npm install -g sonar-scanner
-          sonar-scanner \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_FRONTEND }} \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-            -Dsonar.pullrequest.key=${{ github.event.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }}
-        working-directory: apps/frontend
 
   trackme-gateway-check:
     runs-on: ubuntu-latest
@@ -96,16 +75,8 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
-      - name: Build, Test & SonarQube Gateway
-        run: |
-          ./gradlew :trackme-gateway:build :trackme-gateway:jacocoTestReport :trackme-gateway:sonarqube \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_GATEWAY }} \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-            -Dsonar.pullrequest.key=${{ github.event.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }}
+      - name: Build & Test Gateway
+        run: ./gradlew :trackme-gateway:build
 
   trackme-sso-check:
     runs-on: ubuntu-latest
@@ -123,13 +94,50 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-sso-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
-      - name: Build, Test & SonarQube SSO
+      - name: Build & Test SSO
+        run: ./gradlew :trackme-sso:build
+
+  sonarqube-check:
+    runs-on: ubuntu-latest
+    needs:
+      - trackme-backend-check
+      - trackme-frontend-check
+      - trackme-gateway-check
+      - trackme-sso-check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java for SonarQube
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: SonarQube
         run: |
-          ./gradlew :trackme-sso:build :trackme-sso:jacocoTestReport :trackme-sso:sonarqube \
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_SSO }} \
+          ./gradlew jacocoTestReport sonarqube \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_BACKEND }} \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
             -Dsonar.pullrequest.key=${{ github.event.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }}
+
+      # Frontend SonarQube
+      - name: Set up Node.js for SonarQube frontend
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - name: SonarQube Frontend
+        run: |
+          npm install -g sonar-scanner
+          sonar-scanner \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_FRONTEND }} \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.pullrequest.key=${{ github.event.number }} \
+            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }}
+        working-directory: apps/frontend
