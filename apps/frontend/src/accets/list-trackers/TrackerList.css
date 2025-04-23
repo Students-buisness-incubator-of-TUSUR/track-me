@@ -5,11 +5,11 @@
     margin-top: -32px;
     margin-left: 201px;
     margin-right: 201px;
-    
-  }
-  
-  /* Общий контейнер «пузырька» */
-  .tracker-item-true {
+
+}
+
+/* Общий контейнер «пузырька» */
+.tracker-item-true {
     /* Размер/отступы подбирайте по вкусу */
     width: 360px;
     height: 91px;
@@ -18,17 +18,17 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    
-    
-   
+
+
     background-color: #ffffff;
     border-radius: 70px; /* Сильное скругление */
     box-shadow: 14px 15px 7px rgba(112, 14, 240, 0.4); /* лёгкая фиолетовая тень */
     border: 2px solid #44069A; /* тонкая оконтовка */
-    
-    
-  }
-  .tracker-item-edit {
+
+
+}
+
+.tracker-item-edit {
     /* Размер/отступы подбирайте по вкусу */
     width: 360px;
     height: 91px;
@@ -38,107 +38,112 @@
     align-items: center;
     justify-content: flex-start;
     cursor: pointer;
-    
-   
+
+
     background-color: #ffffff;
     border-radius: 70px; /* Сильное скругление */
     box-shadow: 14px 15px 7px rgba(112, 14, 240, 0.4); /* лёгкая фиолетовая тень */
     border: 2px solid #878685; /* тонкая оконтовка */
-    
-    
-  }
-  .error-message.oval2 {
+
+
+}
+
+.error-message.oval2 {
     border-radius: 70px;
     padding: 7px;
     margin-top: 50px;
     margin-left: 50px;
     color: red;
     text-align: center;
-    
+
     font-size: 16px;
     font-family: 'Montserrat', sans-serif;
-  }
-  /* Заглушка для аватара — круг слева */
-  .tracker-avatar {
+}
+
+/* Заглушка для аватара — круг слева */
+.tracker-avatar {
     width: 66px;
     height: 66px;
     border-radius: 57px;
     background-color: #ccc;
     margin-left: 39px;
-   
 
-  }
-  .img-listli{
+
+}
+
+.img-listli {
     margin-top: 10px;
-  }
-  .green-checkmark{
+}
+
+.green-checkmark {
     display: flex;
     margin-left: 270px;
     margin-top: 20px;
     position: absolute;
-  }
-  .edit-icon{
+}
+
+.edit-icon {
     display: flex;
     margin-left: 270px;
     margin-top: 20px;
     position: absolute;
-  }
-  
-  /* Блок с текстом (ФИО, ник) */
-  .tracker-text {
+}
+
+/* Блок с текстом (ФИО, ник) */
+.tracker-text {
     display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* Это обеспечит, что ФИО будет сверху, а ник внизу */
-  height: 100%; 
+    flex-direction: column;
+    justify-content: space-between; /* Это обеспечит, что ФИО будет сверху, а ник внизу */
+    height: 100%;
     margin-left: 70px;
     margin-top: -8px;
     /* Чтобы занять всё оставшееся место между аватаром и галочкой */
     flex: 1;
-    
-  }
-  
-  .tracker-fio {
+
+}
+
+.tracker-fio {
     font-weight: 400;
-  font-size: 18px;
-  margin-left: 13px;
-  color: black;
-  
- 
-  
-  }
-  
-  .tracker-nick {
+    font-size: 18px;
+    margin-left: 13px;
+    color: black;
+
+
+}
+
+.tracker-nick {
     font-weight: 400;
     font-size: 14px;
     margin-left: 13px;
     color: black;
     margin-top: 0px;
-  }
-  
-  /* Галочка, если трекер активен */
-  .tracker-check {
+}
+
+/* Галочка, если трекер активен */
+.tracker-check {
     width: 24px;
     height: 24px;
     /* Можно вставить иконку через background-image */
     background: url('data:image/svg+xml;base64,...') no-repeat center center;
     background-size: contain;
     margin-left: 12px;
-  }
-  
-  .tracker-item-edit {
+}
+
+.tracker-item-edit {
     position: relative; /* Устанавливаем родительский контейнер */
     display: flex;
     align-items: center;
-    
-  }
-  .tracker-item-true {
+
+}
+
+.tracker-item-true {
     position: relative; /* Устанавливаем родительский контейнер */
     display: flex;
     align-items: center;
     cursor: pointer;
-  }
-  
-  .tracker-edit-panel12 {
+}
+
+.tracker-edit-panel12 {
     position: absolute;
     right: -50px; /* Сдвигаем влево от иконки */
     height: 37px;
@@ -148,15 +153,16 @@
     background: white;
     border: 2px solid #44069A;
     border-radius: 70px;
-    
+
     display: flex;
     gap: 5px;
     box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
     z-index: 10;
-    
-    
-  }
-  .tracker-edit-panel {
+
+
+}
+
+.tracker-edit-panel {
     position: absolute;
     right: -100px; /* Сдвигаем влево от иконки */
     height: 37px;
@@ -166,69 +172,70 @@
     background: white;
     border: 2px solid #44069A;
     border-radius: 70px;
-    
+
     display: flex;
     gap: 5px;
     box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
     z-index: 10;
-    
-  }
-  
-  .confirm-button,
-  .cancel-button {
+
+}
+
+.confirm-button,
+.cancel-button {
     background: none;
     border: none;
     font-size: 18px;
     cursor: pointer;
-  }
-  
-  .confirm-button {
+}
+
+.confirm-button {
     margin-left: 15px;
     margin-top: 4px;
-  }
-  
-  .cancel-button {
+}
+
+.cancel-button {
     margin-left: 0px;
     margin-top: 4px;
-    
-  }
-  
-  .tooltip {
+
+}
+
+.tooltip {
     position: absolute;
     bottom: -25px;
     width: 94px;
     height: 22px;
-    
+
     border-radius: 20px;
     font-size: 13px;
     font-weight: 700;
     display: flex;
-  justify-content: center;  /* Центрирует текст по горизонтали */
-  align-items: center;      /* Центрирует текст по вертикали */
-  text-align: center;
-  }
-  .tooltip-green {
+    justify-content: center; /* Центрирует текст по горизонтали */
+    align-items: center; /* Центрирует текст по вертикали */
+    text-align: center;
+}
+
+.tooltip-green {
     color: #0DB862;
     background-color: white;
     border: 1px solid #0DB862;
-    
-  }
-  
-  .tooltip-red {
+
+}
+
+.tooltip-red {
     color: #D34F4F;
     background-color: white;
     border: 1px solid #D34F4F;
-  }
-  
-  .confirm-button {
+}
+
+.confirm-button {
     position: relative;
     margin-left: 15px;
     margin-top: 4px;
-  }
-  
-  .cancel-button {
+}
+
+.cancel-button {
     position: relative;
     margin-left: 0px;
     margin-top: 4px;
-  }
+}
   

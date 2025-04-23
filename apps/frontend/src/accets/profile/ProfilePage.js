@@ -12,7 +12,6 @@ function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userPhoto, setUserPhoto] = useState(null);
-    const backendHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/backend';
     const ssoHost = (process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080') + '/sso';
 
     // Флаг редактирования

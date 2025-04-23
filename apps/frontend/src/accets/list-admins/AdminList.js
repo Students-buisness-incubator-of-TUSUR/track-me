@@ -8,337 +8,343 @@ import trueIcon2 from "./true2.png";
 import falseIcon2 from "./false2.png";
 
 function AdminList() {
-  const [trackers, setTrackers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [visibleTrackersStart, setVisibleTrackersStart] = useState(0);
-  const [error, setError] = useState(null);
-  const trackersPerPage = 20;
-  const [hoveredTracker, setHoveredTracker] = useState(null);
-  const [hoveredButton, setHoveredButton] = useState(null);
+    const [trackers, setTrackers] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [visibleTrackersStart, setVisibleTrackersStart] = useState(0);
+    const [error, setError] = useState(null);
+    const trackersPerPage = 20;
+    const [hoveredTracker, setHoveredTracker] = useState(null);
+    const [hoveredButton, setHoveredButton] = useState(null);
 
-  // Если фильтры не изменяются, мемоизируем их
-  const filters = useMemo(() => [], []);
-  const backendHost = (process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080") + '/backend';
+    // Если фильтры не изменяются, мемоизируем их
+    const filters = useMemo(() => [], []);
+    const backendHost = (process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080") + '/backend';
 
-  useEffect(() => {
-    fetch(`${backendHost}/api/v1/admin/users/administrators?page=0&size=10`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-      body: JSON.stringify({ filters: filters }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError("Ошибка авторизации! Пожалуйста, выполните вход заново.");
-          } else {
-            setError("Ошибка при загрузке трекеров. Статус: " + response.status);
-          }
-          throw new Error("Ошибка запроса");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Полученные данные:", data);
-        if (data && data.content) {
-          setTrackers(data.content);
-          setVisibleTrackersStart(0);
-        } else {
-          setError("Неверный формат данных, полученных с сервера (trackers).");
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка при загрузке трекеров:", err);
-      });
-  }, [filters, backendHost]);
+    useEffect(() => {
+        fetch(`${backendHost}/api/v1/admin/users/administrators?page=0&size=10`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: 'include',
+            body: JSON.stringify({filters: filters}),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        setError("Ошибка авторизации! Пожалуйста, выполните вход заново.");
+                    } else {
+                        setError("Ошибка при загрузке трекеров. Статус: " + response.status);
+                    }
+                    throw new Error("Ошибка запроса");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                console.log("Полученные данные:", data);
+                if (data && data.content) {
+                    setTrackers(data.content);
+                    setVisibleTrackersStart(0);
+                } else {
+                    setError("Неверный формат данных, полученных с сервера (trackers).");
+                }
+            })
+            .catch((err) => {
+                console.error("Ошибка при загрузке трекеров:", err);
+            });
+    }, [filters, backendHost]);
 
-  const confirmUser = (userId) => {
-    const url = `${backendHost}/api/v1/admin/users/confirm?userId=${userId}`;
+    const confirmUser = (userId) => {
+        const url = `${backendHost}/api/v1/admin/users/confirm?userId=${userId}`;
 
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Ошибка при подтверждении пользователя: ${response.statusText}`);
-        }
-        return response.text().then((text) => {
-          if (text) {
-            try {
-              return JSON.parse(text);
-            } catch (e) {
-              throw new Error("Ответ не является валидным JSON");
-            }
-          } else {
-            return {};
-          }
-        });
-      })
-      .then(() => {
-        // Обновляем состояние: делаем пользователя активным
-        setTrackers((prevTrackers) =>
-          prevTrackers.map((tracker) =>
-            tracker.id === userId ? { ...tracker, enabled: true } : tracker
-          )
-        );
-      })
-      .catch((err) => {
-        console.error("Ошибка при подтверждении пользователя:", err);
-        setError(`Ошибка при подтверждении пользователя: ${err.message}`);
-      });
-  };
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: 'include',
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Ошибка при подтверждении пользователя: ${response.statusText}`);
+                }
+                return response.text().then((text) => {
+                    if (text) {
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            throw new Error("Ответ не является валидным JSON");
+                        }
+                    } else {
+                        return {};
+                    }
+                });
+            })
+            .then(() => {
+                // Обновляем состояние: делаем пользователя активным
+                setTrackers((prevTrackers) =>
+                    prevTrackers.map((tracker) =>
+                        tracker.id === userId ? {...tracker, enabled: true} : tracker
+                    )
+                );
+            })
+            .catch((err) => {
+                console.error("Ошибка при подтверждении пользователя:", err);
+                setError(`Ошибка при подтверждении пользователя: ${err.message}`);
+            });
+    };
 
-  const deleteUser = (userId) => {
-    const url = `${backendHost}/api/v1/admin/users/delete?userId=${userId}`;
+    const deleteUser = (userId) => {
+        const url = `${backendHost}/api/v1/admin/users/delete?userId=${userId}`;
 
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Ошибка при удалении пользователя: ${response.statusText}`);
-        }
-        return response.text();
-      })
-      .then(() => {
-        // Убираем удалённого пользователя из списка
-        setTrackers((prevTrackers) => prevTrackers.filter((tracker) => tracker.id !== userId));
-      })
-      .catch((err) => {
-        console.error("Ошибка при удалении пользователя:", err);
-        setError(`Ошибка при удалении пользователя: ${err.message}`);
-      });
-  };
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: 'include',
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Ошибка при удалении пользователя: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(() => {
+                // Убираем удалённого пользователя из списка
+                setTrackers((prevTrackers) => prevTrackers.filter((tracker) => tracker.id !== userId));
+            })
+            .catch((err) => {
+                console.error("Ошибка при удалении пользователя:", err);
+                setError(`Ошибка при удалении пользователя: ${err.message}`);
+            });
+    };
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-    setVisibleTrackersStart(0);
-  };
+    const handleSearchChange = (event) => {
+        setSearchQuery(event.target.value);
+        setVisibleTrackersStart(0);
+    };
 
-  const filteredTrackers = trackers.filter((tracker) =>
-    (tracker.fullName || "").toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    const filteredTrackers = trackers.filter((tracker) =>
+        (tracker.fullName || "").toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const visibleTrackers = filteredTrackers.slice(
-    visibleTrackersStart,
-    visibleTrackersStart + trackersPerPage
-  );
+    const visibleTrackers = filteredTrackers.slice(
+        visibleTrackersStart,
+        visibleTrackersStart + trackersPerPage
+    );
 
-  const handleShowMore = () => {
-    setVisibleTrackersStart((prev) => prev + trackersPerPage);
-  };
+    const handleShowMore = () => {
+        setVisibleTrackersStart((prev) => prev + trackersPerPage);
+    };
 
-  const handleShowPrevious = () => {
-    setVisibleTrackersStart((prev) => Math.max(prev - trackersPerPage, 0));
-  };
+    const handleShowPrevious = () => {
+        setVisibleTrackersStart((prev) => Math.max(prev - trackersPerPage, 0));
+    };
 
-  return (
-    <div className="tracker-container">
-      {/* --- ШАПКА (Header) --- */}
-      <header className="Stream-header">
-        <div className="Stream-header-cont">
-        <div className='Stream-header-logo'/>
-          <h1 className="Stream-title">TrackMe</h1>
-          <div className="Stream-buttons">
-            <Link to="/list-trackers">
-            <button className="Stream-butt">Трекеры</button>
-            </Link>
-            <Link to="/streams">
-              <button className="Stream-butt">Потоки</button>
-            </Link>
-            <Link to="/team-cards">
-            <button className="Stream-butt">Все команды</button>
-            </Link>
-            <Link to="/profile" className="Stream-pic"></Link>
-          </div>
-        </div>
-        {/* Поле поиска */}
-        <div className="Stream-header-bottom-cont">
-          <div className="Stream-search-cont">
-            <div className="Stream-search-contcont">
-              <button className="Stream-settings-pic2"></button>
-              <input
-                type="search"
-                placeholder="Найти"
-                className="Stream-search"
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
+    return (
+        <div className="tracker-container">
+            {/* --- ШАПКА (Header) --- */}
+            <header className="Stream-header">
+                <div className="Stream-header-cont">
+                    <div className='Stream-header-logo'/>
+                    <h1 className="Stream-title">TrackMe</h1>
+                    <div className="Stream-buttons">
+                        <Link to="/list-trackers">
+                            <button className="Stream-butt">Трекеры</button>
+                        </Link>
+                        <Link to="/streams">
+                            <button className="Stream-butt">Потоки</button>
+                        </Link>
+                        <Link to="/team-cards">
+                            <button className="Stream-butt">Все команды</button>
+                        </Link>
+                        <Link to="/profile" className="Stream-pic"></Link>
+                    </div>
+                </div>
+                {/* Поле поиска */}
+                <div className="Stream-header-bottom-cont">
+                    <div className="Stream-search-cont">
+                        <div className="Stream-search-contcont">
+                            <button className="Stream-settings-pic2"></button>
+                            <input
+                                type="search"
+                                placeholder="Найти"
+                                className="Stream-search"
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-      {/* --- ОСНОВНОЕ СОДЕРЖИМОЕ --- */}
-      <main className="tracker-list-content">
-        {error && <div className="error-message oval2">{error}</div>}
-        <div className="tracker-grid">
-          {visibleTrackers.length > 0 ? (
-            visibleTrackers.map((tracker, index) =>
-              tracker.enabled ? (
-                <div
-                  className="tracker-item-true"
-                  key={tracker.id || index}
-                  onClick={() => setHoveredTracker(tracker.id)}
-                  onMouseLeave={() => setHoveredTracker(null)}
-                >
-                  <div className="tracker-avatar">
-                    {hoveredTracker === tracker.id && (
-                      <div className="tracker-edit-panel12">
-                        {/* Кнопка с галочкой – закрывает меню */}
-                        <button
-                          className="confirm-button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setHoveredTracker(null);
-                          }}
-                          onMouseEnter={() => setHoveredButton("confirm")}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        >
-                          <img
-                            src={hoveredButton === "cancel" ? trueIcon2 : trueIcon}
-                            alt="Ничего не происходит"
-                          />
-                        </button>
-                        {hoveredButton === "cancel" && (
-                          <span className="tooltip tooltip-red">Удалить</span>
-                        )}
-                        {/* Кнопка с крестиком – удаляет пользователя */}
-                        <button
-                          className="cancel-button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteUser(tracker.id);
-                          }}
-                          onMouseEnter={() => setHoveredButton("cancel")}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        >
-                          <img
-                            src={hoveredButton === "confirm" ? falseIcon2 : falseIcon}
-                            alt="Удалить"
-                          />
-                        </button>
-                        {hoveredButton === "confirm" && (
-                          <span className="tooltip tooltip-green">Оставить</span>
-                        )}
-                      </div>
-                    )}
-                    <span className="green-checkmark" title="Включён">
-                      <img src={trueIcon} alt="Подтвержден" />
+            {/* --- ОСНОВНОЕ СОДЕРЖИМОЕ --- */}
+            <main className="tracker-list-content">
+                {error && <div className="error-message oval2">{error}</div>}
+                <div className="tracker-grid">
+                    {visibleTrackers.length > 0 ? (
+                        visibleTrackers.map((tracker, index) =>
+                                tracker.enabled ? (
+                                    <div
+                                        className="tracker-item-true"
+                                        key={tracker.id || index}
+                                        onClick={() => setHoveredTracker(tracker.id)}
+                                        onMouseLeave={() => setHoveredTracker(null)}
+                                    >
+                                        <div className="tracker-avatar">
+                                            {hoveredTracker === tracker.id && (
+                                                <div className="tracker-edit-panel12">
+                                                    {/* Кнопка с галочкой – закрывает меню */}
+                                                    <button
+                                                        className="confirm-button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setHoveredTracker(null);
+                                                        }}
+                                                        onMouseEnter={() => setHoveredButton("confirm")}
+                                                        onMouseLeave={() => setHoveredButton(null)}
+                                                    >
+                                                        <img
+                                                            src={hoveredButton === "cancel" ? trueIcon2 : trueIcon}
+                                                            alt="Ничего не происходит"
+                                                        />
+                                                    </button>
+                                                    {hoveredButton === "cancel" && (
+                                                        <span
+                                                            className="tooltip tooltip-red">Удалить</span>
+                                                    )}
+                                                    {/* Кнопка с крестиком – удаляет пользователя */}
+                                                    <button
+                                                        className="cancel-button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            deleteUser(tracker.id);
+                                                        }}
+                                                        onMouseEnter={() => setHoveredButton("cancel")}
+                                                        onMouseLeave={() => setHoveredButton(null)}
+                                                    >
+                                                        <img
+                                                            src={hoveredButton === "confirm" ? falseIcon2 : falseIcon}
+                                                            alt="Удалить"
+                                                        />
+                                                    </button>
+                                                    {hoveredButton === "confirm" && (
+                                                        <span
+                                                            className="tooltip tooltip-green">Оставить</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <span className="green-checkmark" title="Включён">
+                      <img src={trueIcon} alt="Подтвержден"/>
                     </span>
-                    <div className="tracker-text">
-                      <div className="tracker-fio">{tracker.fullName}</div>
-                      <div className="tracker-nick">@{tracker.telegramId}</div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="tracker-item-edit"
-                  key={tracker.id || index}
-                  onClick={() => setHoveredTracker(tracker.id)}
-                  onMouseLeave={() => setHoveredTracker(null)}
-                >
-                  <div className="tracker-avatar">
-                    {hoveredTracker === tracker.id && (
-                      <div className="tracker-edit-panel">
-                        <button
-                          className="confirm-button"
-                          onClick={() => confirmUser(tracker.id)}
-                          onMouseEnter={() => setHoveredButton("confirm")}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        >
-                          <img
-                            src={hoveredButton === "cancel" ? trueIcon2 : trueIcon}
-                            alt="Подтвердить"
-                          />
-                        </button>
-                        {hoveredButton === "cancel" && (
-                          <span className="tooltip tooltip-red">Отменить</span>
-                        )}
-                        <button
-                          className="cancel-button"
-                          onClick={() => deleteUser(tracker.id)}
-                          onMouseEnter={() => setHoveredButton("cancel")}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        >
-                          <img
-                            src={hoveredButton === "confirm" ? falseIcon2 : falseIcon}
-                            alt="Отклонить"
-                          />
-                        </button>
-                        {hoveredButton === "confirm" && (
-                          <span className="tooltip tooltip-green">Подтвердить</span>
-                        )}
-                      </div>
+                                            <div className="tracker-text">
+                                                <div className="tracker-fio">{tracker.fullName}</div>
+                                                <div
+                                                    className="tracker-nick">@{tracker.telegramId}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div
+                                        className="tracker-item-edit"
+                                        key={tracker.id || index}
+                                        onClick={() => setHoveredTracker(tracker.id)}
+                                        onMouseLeave={() => setHoveredTracker(null)}
+                                    >
+                                        <div className="tracker-avatar">
+                                            {hoveredTracker === tracker.id && (
+                                                <div className="tracker-edit-panel">
+                                                    <button
+                                                        className="confirm-button"
+                                                        onClick={() => confirmUser(tracker.id)}
+                                                        onMouseEnter={() => setHoveredButton("confirm")}
+                                                        onMouseLeave={() => setHoveredButton(null)}
+                                                    >
+                                                        <img
+                                                            src={hoveredButton === "cancel" ? trueIcon2 : trueIcon}
+                                                            alt="Подтвердить"
+                                                        />
+                                                    </button>
+                                                    {hoveredButton === "cancel" && (
+                                                        <span
+                                                            className="tooltip tooltip-red">Отменить</span>
+                                                    )}
+                                                    <button
+                                                        className="cancel-button"
+                                                        onClick={() => deleteUser(tracker.id)}
+                                                        onMouseEnter={() => setHoveredButton("cancel")}
+                                                        onMouseLeave={() => setHoveredButton(null)}
+                                                    >
+                                                        <img
+                                                            src={hoveredButton === "confirm" ? falseIcon2 : falseIcon}
+                                                            alt="Отклонить"
+                                                        />
+                                                    </button>
+                                                    {hoveredButton === "confirm" && (
+                                                        <span
+                                                            className="tooltip tooltip-green">Подтвердить</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <div className="edit-icon" title="Редактировать">
+                                                <img src={editIcon} alt="Редактировать"/>
+                                            </div>
+                                            <div className="tracker-text">
+                                                <div className="tracker-fio">{tracker.fullName}</div>
+                                                <div
+                                                    className="tracker-nick">@{tracker.telegramId}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                        )
+                    ) : (
+                        <p className="error-message oval2">Нет трекеров для отображения</p>
                     )}
-                    <div className="edit-icon" title="Редактировать">
-                      <img src={editIcon} alt="Редактировать" />
-                    </div>
-                    <div className="tracker-text">
-                      <div className="tracker-fio">{tracker.fullName}</div>
-                      <div className="tracker-nick">@{tracker.telegramId}</div>
-                    </div>
-                  </div>
                 </div>
-              )
-            )
-          ) : (
-            <p className="error-message oval2">Нет трекеров для отображения</p>
-          )}
-        </div>
-      </main>
+            </main>
 
-      {/* --- ФУТЕР (Footer) с пагинацией --- */}
-      {filteredTrackers.length > 0 && (
-        <footer className="Stream-footer">
-          <div className="Stream-footer-butts">
-            <div className="Stream-footer-p-butt-1">
-              {visibleTrackersStart > 0 && (
-                <button
-                  onClick={handleShowPrevious}
-                  className="Stream-footer-button-1"
-                ></button>
-              )}
-            </div>
-            <div className="Stream-footer-p-butts">
-              {visibleTrackersStart > 0 && (
-                <button
-                  onClick={handleShowPrevious}
-                  className="Stream-footer-button-2"
-                ></button>
-              )}
-              <button className="Stream-footer-button-3"></button>
-              {visibleTrackersStart + trackersPerPage < filteredTrackers.length && (
-                <button
-                  onClick={handleShowMore}
-                  className="Stream-footer-button-4"
-                ></button>
-              )}
-            </div>
-            <div className="Stream-footer-p-butt-5">
-              {visibleTrackersStart + trackersPerPage < filteredTrackers.length && (
-                <button
-                  onClick={handleShowMore}
-                  className="Stream-footer-button-5"
-                ></button>
-              )}
-            </div>
-          </div>
-        </footer>
-      )}
-    </div>
-  );
+            {/* --- ФУТЕР (Footer) с пагинацией --- */}
+            {filteredTrackers.length > 0 && (
+                <footer className="Stream-footer">
+                    <div className="Stream-footer-butts">
+                        <div className="Stream-footer-p-butt-1">
+                            {visibleTrackersStart > 0 && (
+                                <button
+                                    onClick={handleShowPrevious}
+                                    className="Stream-footer-button-1"
+                                ></button>
+                            )}
+                        </div>
+                        <div className="Stream-footer-p-butts">
+                            {visibleTrackersStart > 0 && (
+                                <button
+                                    onClick={handleShowPrevious}
+                                    className="Stream-footer-button-2"
+                                ></button>
+                            )}
+                            <button className="Stream-footer-button-3"></button>
+                            {visibleTrackersStart + trackersPerPage < filteredTrackers.length && (
+                                <button
+                                    onClick={handleShowMore}
+                                    className="Stream-footer-button-4"
+                                ></button>
+                            )}
+                        </div>
+                        <div className="Stream-footer-p-butt-5">
+                            {visibleTrackersStart + trackersPerPage < filteredTrackers.length && (
+                                <button
+                                    onClick={handleShowMore}
+                                    className="Stream-footer-button-5"
+                                ></button>
+                            )}
+                        </div>
+                    </div>
+                </footer>
+            )}
+        </div>
+    );
 }
 
 export default AdminList;

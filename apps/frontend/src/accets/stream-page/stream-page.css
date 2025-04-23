@@ -1,728 +1,774 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
 
-body{
-  font-family: 'Montserrat', monospace;
-  margin: 0;
+body {
+    font-family: 'Montserrat', monospace;
+    margin: 0;
 }
 
-.Stream-header-cont{
-  display: flex;
-  flex-direction: row;
-  align-content: space-between;
-  justify-content: space-between;
-  max-height: 95px;
-  background-color: #8202CD;
-  border-bottom-left-radius: 50px 50px;
-  border-bottom-right-radius: 50px 50px;
-  min-height: 69px;
+.Stream-header-cont {
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    justify-content: space-between;
+    max-height: 95px;
+    background-color: #8202CD;
+    border-bottom-left-radius: 50px 50px;
+    border-bottom-right-radius: 50px 50px;
+    min-height: 69px;
 }
-.Stream-header-bottom-cont{
-  display: flex;
-  flex-direction: row;
-  align-content: space-between;
-  justify-content: space-between;
-  margin-right: 121px;
-  margin-left: 157px;
-  margin-top: 20px;
+
+.Stream-header-bottom-cont {
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    justify-content: space-between;
+    margin-right: 121px;
+    margin-left: 157px;
+    margin-top: 20px;
 }
-.Stream-header-afterclick-cont{
-  display: flex;
-  flex-direction: row;
-  align-content: space-between;
-  justify-content: space-between;
+
+.Stream-header-afterclick-cont {
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    justify-content: space-between;
 }
-.Stream-header-afterclick-left{
-  margin-left: 143px;
+
+.Stream-header-afterclick-left {
+    margin-left: 143px;
 }
-.Stream-header-afterclick-right{
-  display: flex;
-  flex-direction: column;
+
+.Stream-header-afterclick-right {
+    display: flex;
+    flex-direction: column;
 }
-.Stream-header-afterclick-left-up{
-  display: flex;
-  flex-direction: row;
+
+.Stream-header-afterclick-left-up {
+    display: flex;
+    flex-direction: row;
 
 }
-.Stream-header-chose-butt{
-  width: 223px;
-  height: 60px;
-  border-radius: 40px;
-  background-color: rgba(131, 56, 234, 1);
-  color: white;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  font-size: 20px;
-  border: none;
-  margin-top: 20px;
-  margin-right: 39px;
-  cursor: pointer;
+
+.Stream-header-chose-butt {
+    width: 223px;
+    height: 60px;
+    border-radius: 40px;
+    background-color: rgba(131, 56, 234, 1);
+    color: white;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 20px;
+    border: none;
+    margin-top: 20px;
+    margin-right: 39px;
+    cursor: pointer;
 }
+
 .Stream-header-checkboxes {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  margin-top: -10px;
-  margin-left: 17px;
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: -10px;
+    margin-left: 17px;
 }
 
 .Stream-header-checkbox {
-  width: 50%;
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+    width: 50%;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
 .Stream-header-checkbox input {
-  width: 17px;
-  height: 17px;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  border: 1px solid white; /* Белая окантовка */
-  border-radius: 4px;
-  background-color: transparent;
-  cursor: pointer;
-  position: relative;
+    width: 17px;
+    height: 17px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: 1px solid white; /* Белая окантовка */
+    border-radius: 4px;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
 }
+
 .Stream-header-checkbox input:checked::before {
-  content: "✔";
-  color: black; /* Черная галочка */
-  font-size: 14px;
-  font-weight: bold;
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    content: "✔";
+    color: black; /* Черная галочка */
+    font-size: 14px;
+    font-weight: bold;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .first-row {
-  order: 1;
+    order: 1;
 }
 
 .second-row {
-  order: 2;
+    order: 2;
 }
+
 .third-row {
-  order: 3;
+    order: 3;
 }
+
 .Stream-header-chosefrom-buttw,
 .Stream-header-chosefrom-butt2,
 .Stream-header-chosefrom-butt3,
-.Stream-header-chosefrom-butt{
-  display: flex;
-  flex-direction: column;
-  margin-right: 39px;
-  width: 268px;
-  height: min-content;
-  border-radius: 31px;
-  background-color: #CDAFF7;
-  opacity: 100;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  font-size: 13px;
-  border: none;
-  justify-content: space-between;
-  box-sizing: border-box;
-  
+.Stream-header-chosefrom-butt {
+    display: flex;
+    flex-direction: column;
+    margin-right: 39px;
+    width: 268px;
+    height: min-content;
+    border-radius: 31px;
+    background-color: #CDAFF7;
+    opacity: 100;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 13px;
+    border: none;
+    justify-content: space-between;
+    box-sizing: border-box;
+
 }
 
-.Stream-header-chosefrom-butt-cont{
-  display: flex;
-  margin-right: 39px;
-  width: 268px;
-  height: 60px;
-  color: white;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  font-size: 20px;
-  border: none;
-  justify-content: space-between;
+.Stream-header-chosefrom-butt-cont {
+    display: flex;
+    margin-right: 39px;
+    width: 268px;
+    height: 60px;
+    color: white;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 20px;
+    border: none;
+    justify-content: space-between;
 }
+
 .Stream-header-chosefrom-butt-pic,
-.Stream-header-chosefrom-butt-label{
-  margin-inline: 34px;
-  display: flex;
-  align-items: center;
+.Stream-header-chosefrom-butt-label {
+    margin-inline: 34px;
+    display: flex;
+    align-items: center;
 }
-.Stream-header-chosefrom-butt-pic{
-  background-image: url(arrow.png);
-  width: 22px;
-  height: 22px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  align-self: center;
-}
-.Stream-header-chose-butt2{
-  width: 223px;
-  height: 60px;
-  border-radius: 40px;
-  background-color: rgba(131, 56, 234, 0.4);
-  color: white;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  font-size: 20px;
-  border-color: rgba(68, 6, 154, 1);
-  margin-top: 20px;
-  margin-right: 39px;
-  cursor: pointer;
 
-  
+.Stream-header-chosefrom-butt-pic {
+    background-image: url(arrow.png);
+    width: 22px;
+    height: 22px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    align-self: center;
 }
+
+.Stream-header-chose-butt2 {
+    width: 223px;
+    height: 60px;
+    border-radius: 40px;
+    background-color: rgba(131, 56, 234, 0.4);
+    color: white;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 20px;
+    border-color: rgba(68, 6, 154, 1);
+    margin-top: 20px;
+    margin-right: 39px;
+    cursor: pointer;
+
+
+}
+
 .Stream-title2,
-.Stream-title{
-  margin: 0;
-  margin-block: 0;
-  
-  position: absolute;
-  color: white;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+.Stream-title {
+    margin: 0;
+    margin-block: 0;
+
+    position: absolute;
+    color: white;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
-.Stream-buttons{
-  align-items: center;
-  display: flex;
-  text-align: center;
+
+.Stream-buttons {
+    align-items: center;
+    display: flex;
+    text-align: center;
 }
-.Stream-butt{ 
-  width: 223px;
-  height: 49px;
-  margin: 10px;
-  font-weight: 700;
-  border-radius: 50px;
-  background-color: white;
-  color: #843AEB;
-  border: 2px solid #44069A;
-  font-size: 20px;
-  cursor: pointer;
+
+.Stream-butt {
+    width: 223px;
+    height: 49px;
+    margin: 10px;
+    font-weight: 700;
+    border-radius: 50px;
+    background-color: white;
+    color: #843AEB;
+    border: 2px solid #44069A;
+    font-size: 20px;
+    cursor: pointer;
 
 }
+
 .Stream-title2,
-.Stream-title{
-  margin-top: 8px;
-  height: 69px;
-  margin-left: 140px;
-  font-size: 40px;
-  font-weight: 400;
-}
-.Stream-title2{
-  height: auto;
-  position: relative;
-  margin-top: 15px;
-  margin-left: 300px;
-  font-size: 30px;
-}
-.Stream-pic{
-  display: flex;
-  align-self: center;
-  background-image: url("personal_account_1.png");
-  width: 42px;
-  height: 42px;
-  margin-left: 59px;
-  margin-right: 121px;
-}
-.Stream-settings-pic{
-  display: flex;
-  align-self: center;
-  width: 101px;
-  height: 60px;
-  background-image: url("image.png");
-  background-size: cover;
-  border-radius: 60px;
-  border-color: white;
-}
-.Stream-settings-pic2{
-  background-color: transparent;
-  display: flex;
-  align-self: center;
-  width: 28px;
-  height: 27px;
-  margin: 59px;
-  background-image: url("Group.png");
-  background-size:auto;
-  border: transparent;
-}
-.Stream-bottom-buttons{
-  display: flex;
-  }
-.Stream-search-cont{
-  display: flex;
-  text-align: center;
-  justify-content: center;
-  flex-direction: row;
+.Stream-title {
+    margin-top: 8px;
+    height: 69px;
+    margin-left: 140px;
+    font-size: 40px;
+    font-weight: 400;
 }
 
-.Stream-search-contcont{
-  display: flex;
-  align-self: center;
-  justify-self: end;
-  width: 649px;
-  height: 60px;
-  border-radius: 50px;
-  margin-left: 20px;
-  background-color: rgba(131, 56, 234, 0.4);
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  font-size: 24px;
-  color: white;
+.Stream-title2 {
+    height: auto;
+    position: relative;
+    margin-top: 15px;
+    margin-left: 300px;
+    font-size: 30px;
 }
+
+.Stream-pic {
+    display: flex;
+    align-self: center;
+    background-image: url("personal_account_1.png");
+    width: 42px;
+    height: 42px;
+    margin-left: 59px;
+    margin-right: 121px;
+}
+
+.Stream-settings-pic {
+    display: flex;
+    align-self: center;
+    width: 101px;
+    height: 60px;
+    background-image: url("image.png");
+    background-size: cover;
+    border-radius: 60px;
+    border-color: white;
+}
+
+.Stream-settings-pic2 {
+    background-color: transparent;
+    display: flex;
+    align-self: center;
+    width: 28px;
+    height: 27px;
+    margin: 59px;
+    background-image: url("Group.png");
+    background-size: auto;
+    border: transparent;
+}
+
+.Stream-bottom-buttons {
+    display: flex;
+}
+
+.Stream-search-cont {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    flex-direction: row;
+}
+
+.Stream-search-contcont {
+    display: flex;
+    align-self: center;
+    justify-self: end;
+    width: 649px;
+    height: 60px;
+    border-radius: 50px;
+    margin-left: 20px;
+    background-color: rgba(131, 56, 234, 0.4);
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 24px;
+    color: white;
+}
+
 .Stream-search {
-  display: flex;
-  justify-self: end;
-  width: 563px;
-  height: 60px;
-  border-top-right-radius: 60px;
-  border-bottom-right-radius: 60px;
-  background-color: transparent;
-  border-color: transparent;
-  color: white;
+    display: flex;
+    justify-self: end;
+    width: 563px;
+    height: 60px;
+    border-top-right-radius: 60px;
+    border-bottom-right-radius: 60px;
+    background-color: transparent;
+    border-color: transparent;
+    color: white;
 }
+
 .Stream-search {
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  font-size: 24px;
-  background-color: transparent;
-  border-color: transparent;
-  color: white;
-}
-.Stream-search::placeholder{
-  color: white; 
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 24px;
+    background-color: transparent;
+    border-color: transparent;
+    color: white;
 }
 
-.Stream-main{
-  margin-top: 26px;
-  display: flex;
-  align-content: space-between;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  margin-right: 101px;
-  margin-left: 101px;
-}
-.Stream-card{
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  justify-content: center;
-  border-color: rgb(230, 230, 230);
-  border-width: 1px;
-  border-style: groove;
-  border-radius: 80px;
-  height: 27em;
-  width: 498px;
-  min-width: 33em;
-  margin-bottom: 71px;
-  box-shadow: 8px 10px 8px rgba(122, 0, 229, 0.39);
-  text-decoration: none;}
-.Stream-card-pic{
-  margin-top: 10px;
-  display: flex;
-  align-self: center;
-  width: 383px;
-  height: 100%;
-  background-position: 50%;
-  background-size: cover;
-  border-radius: 80px;
-}
-.Stream-card-headText{
-  text-align: center;
-  font-weight: 800;
-  font-size: 36px;
-  color: rgba(131, 56, 235, 1);
-}
-.Stream-card-bodyText{
-  text-align: center;
-  font-weight: 400;
-  font-size: 14px;
-  color: black;
-}
-.Stream-footer{
-  display: flex;
-  flex-direction: column;
-  bottom: 0;
-  min-height: 100px;
-  justify-content: center;
-  align-content: center;
+.Stream-search::placeholder {
+    color: white;
 }
 
-.Stream-footer-butts{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-self: center;
-  justify-content: center;
-  width: auto;
-  height: 24px;
+.Stream-main {
+    margin-top: 26px;
+    display: flex;
+    align-content: space-between;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-right: 101px;
+    margin-left: 101px;
 }
-.Stream-footer-button{
-  padding: 0;
-  height: 24px;
-  width: 24px;
-  border: none;
-  background: none; 
-}
-.Stream-footer-button-1{
-  z-index: 2;
-  height: 24px;
-  width: 24px;
-  border: none;
-  background: none;
-  background-image: url("Polygon-4.jpg");
-  background-size: contain;
-  background-repeat: no-repeat;
-  padding-block: 0px;
-  padding-inline: 0px;
-}
-.Stream-footer-button-2{
-  height: 24px;
-  width: 24px;
-  margin-left: 11px;
-  margin-right: 11px;
-  border: none;
-  background: none;
-  background-image: url("Ellipse\ 6.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  padding-block: 0px;
-  padding-inline: 0px;
 
+.Stream-card {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    border-color: rgb(230, 230, 230);
+    border-width: 1px;
+    border-style: groove;
+    border-radius: 80px;
+    height: 27em;
+    width: 498px;
+    min-width: 33em;
+    margin-bottom: 71px;
+    box-shadow: 8px 10px 8px rgba(122, 0, 229, 0.39);
+    text-decoration: none;
 }
-.Stream-footer-button-3{
-  height: 24px;
-  width: 24px;
-  border: none;
-  background: none;
-  background-image: url("Group\ 58.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  padding-block: 0px;
-  padding-inline: 0px;
-  margin-left: 11px;
-  margin-right: 11px;
-  
-}
-.Stream-footer-button-4{
-  height: 24px;
-  width: 24px;
-  border: none;
-  margin-left: 11px;
-  margin-right: 11px;
-  background: none;
-  background-image: url("Ellipse\ 6.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  padding-block: 0px;
-  padding-inline: 0px;
-}
-.Stream-footer-button-5{
-  position: sticky;
-  height: 24px;
-  width: 24px;
-  border: none;
-  background: none;
-  background-image: url("Polygon-3.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  padding-block: 0px;
-  padding-inline: 0px;
-  justify-self: right;
-}
-.Stream-footer-p-butt-5{
-  display: flex;
-  position: absolute;
-  justify-self: center;
-  width: 300px;  
-  justify-content: right;
-}
-.Stream-footer-p-butt-1{
 
-  display: flex;
-  position: absolute;
-  justify-self: center;
-  width: 300px;
-  justify-content: left;
-}
-.Stream-footer-p-butts{
-  justify-content: space-between;
-  display: flex;
-  align-self: center;
-  justify-content: space-between;
-  width: auto;
-  height: 24px;
-  z-index: 2;
-}
-.Stream-header-chosefrom-cont{
-  margin-top: 20px;
-  position: relative;
-  display: flex;
-  width: auto;
-  height: min-content;
-  justify-content: space-between;
-}
 .Stream-card-pic {
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f0f0f0; 
-} 
+    margin-top: 10px;
+    display: flex;
+    align-self: center;
+    width: 383px;
+    height: 100%;
+    background-position: 50%;
+    background-size: cover;
+    border-radius: 80px;
+}
+
+.Stream-card-headText {
+    text-align: center;
+    font-weight: 800;
+    font-size: 36px;
+    color: rgba(131, 56, 235, 1);
+}
+
+.Stream-card-bodyText {
+    text-align: center;
+    font-weight: 400;
+    font-size: 14px;
+    color: black;
+}
+
+.Stream-footer {
+    display: flex;
+    flex-direction: column;
+    bottom: 0;
+    min-height: 100px;
+    justify-content: center;
+    align-content: center;
+}
+
+.Stream-footer-butts {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-self: center;
+    justify-content: center;
+    width: auto;
+    height: 24px;
+}
+
+.Stream-footer-button {
+    padding: 0;
+    height: 24px;
+    width: 24px;
+    border: none;
+    background: none;
+}
+
+.Stream-footer-button-1 {
+    z-index: 2;
+    height: 24px;
+    width: 24px;
+    border: none;
+    background: none;
+    background-image: url("Polygon-4.jpg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-block: 0px;
+    padding-inline: 0px;
+}
+
+.Stream-footer-button-2 {
+    height: 24px;
+    width: 24px;
+    margin-left: 11px;
+    margin-right: 11px;
+    border: none;
+    background: none;
+    background-image: url("Ellipse\ 6.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-block: 0px;
+    padding-inline: 0px;
+
+}
+
+.Stream-footer-button-3 {
+    height: 24px;
+    width: 24px;
+    border: none;
+    background: none;
+    background-image: url("Group\ 58.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-block: 0px;
+    padding-inline: 0px;
+    margin-left: 11px;
+    margin-right: 11px;
+
+}
+
+.Stream-footer-button-4 {
+    height: 24px;
+    width: 24px;
+    border: none;
+    margin-left: 11px;
+    margin-right: 11px;
+    background: none;
+    background-image: url("Ellipse\ 6.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-block: 0px;
+    padding-inline: 0px;
+}
+
+.Stream-footer-button-5 {
+    position: sticky;
+    height: 24px;
+    width: 24px;
+    border: none;
+    background: none;
+    background-image: url("Polygon-3.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding-block: 0px;
+    padding-inline: 0px;
+    justify-self: right;
+}
+
+.Stream-footer-p-butt-5 {
+    display: flex;
+    position: absolute;
+    justify-self: center;
+    width: 300px;
+    justify-content: right;
+}
+
+.Stream-footer-p-butt-1 {
+
+    display: flex;
+    position: absolute;
+    justify-self: center;
+    width: 300px;
+    justify-content: left;
+}
+
+.Stream-footer-p-butts {
+    justify-content: space-between;
+    display: flex;
+    align-self: center;
+    justify-content: space-between;
+    width: auto;
+    height: 24px;
+    z-index: 2;
+}
+
+.Stream-header-chosefrom-cont {
+    margin-top: 20px;
+    position: relative;
+    display: flex;
+    width: auto;
+    height: min-content;
+    justify-content: space-between;
+}
+
+.Stream-card-pic {
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+}
 
 .Stream-card-pic img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Чтобы изображение заполняло блок */
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Чтобы изображение заполняло блок */
 }
+
 .Stream-card-pic-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-image: url("rabbit.png");
-  color: #666; /* Цвет текста */
-  font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url("rabbit.png");
+    color: #666; /* Цвет текста */
+    font-size: 14px;
 }
+
 .Stream-header-logo {
-position: relative;
-  border-radius: 50px;
-  width: 300px;
-  height: 65px;
-  background-image: url("logo.svg");
-  background-size: 100%;
-  background-repeat: no-repeat;
-  background-position: left;
+    position: relative;
+    border-radius: 50px;
+    width: 300px;
+    height: 65px;
+    background-image: url("logo.svg");
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: left;
 }
-.Stream-edit-link{
-  align-self: center; 
-  margin: 5px;
-  text-decoration:none;
+
+.Stream-edit-link {
+    align-self: center;
+    margin: 5px;
+    text-decoration: none;
 }
+
 /* Планшетная версия (768px - 1024px) */
 @media (max-width: 1024px) {
-  .Stream-main {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Две колонки */
-    gap: 70px; /* Промежуток между карточками */
-    margin: 20px 40px !important; /* Центрируем контейнер */
-  }
+    .Stream-main {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Две колонки */
+        gap: 70px; /* Промежуток между карточками */
+        margin: 20px 40px !important; /* Центрируем контейнер */
+    }
 
-  .Stream-card {
-    width: 100% !important; /* Занимаем всю ширину колонки */
-    height: 400px !important; /* Фиксированная высота */
-    min-width: unset !important;
-    margin-bottom: 0;
-    aspect-ratio: 1/1; /* Сохраняем квадратную форму */
-    padding: 15px; /* Внутренние отступы */
-  }
+    .Stream-card {
+        width: 100% !important; /* Занимаем всю ширину колонки */
+        height: 400px !important; /* Фиксированная высота */
+        min-width: unset !important;
+        margin-bottom: 0;
+        aspect-ratio: 1/1; /* Сохраняем квадратную форму */
+        padding: 15px; /* Внутренние отступы */
+    }
 
-  .Stream-card-pic {
-    width: 100% !important;
-    height: 60% !important; /* Задаем пропорции изображения */
-    border-radius: 40px;
-    margin-top: 0;
-  }
+    .Stream-card-pic {
+        width: 100% !important;
+        height: 60% !important; /* Задаем пропорции изображения */
+        border-radius: 40px;
+        margin-top: 0;
+    }
 
-  .Stream-card-headText {
-    font-size: 24px !important; /* Уменьшаем размер заголовка */
-    margin: 10px 0;
-  }
+    .Stream-card-headText {
+        font-size: 24px !important; /* Уменьшаем размер заголовка */
+        margin: 10px 0;
+    }
 
-  .Stream-card-bodyText {
-    font-size: 12px !important; /* Уменьшаем основной текст */
-    line-height: 1.4;
-  }
+    .Stream-card-bodyText {
+        font-size: 12px !important; /* Уменьшаем основной текст */
+        line-height: 1.4;
+    }
 }
 
 /* Планшеты (768px) */
 @media (max-width: 768px) {
-  .Stream-header-cont {
-    flex-wrap: nowrap;
-    padding: 10px 15px; /* Уменьшаем отступы */
-    gap: 10px; /* Добавляем промежутки между элементами */
-  }
+    .Stream-header-cont {
+        flex-wrap: nowrap;
+        padding: 10px 15px; /* Уменьшаем отступы */
+        gap: 10px; /* Добавляем промежутки между элементами */
+    }
 
-  .Stream-header-logo {
-    width: 250px !important; /* Уменьшаем ширину */
-    margin: 0 !important;
-    flex-shrink: 0; /* Запрещаем уменьшение */
-    margin-right: -150px !important; /* Добавляем небольшой правый отступ */
-  }
+    .Stream-header-logo {
+        width: 250px !important; /* Уменьшаем ширину */
+        margin: 0 !important;
+        flex-shrink: 0; /* Запрещаем уменьшение */
+        margin-right: -150px !important; /* Добавляем небольшой правый отступ */
+    }
 
-  .Stream-title {
-    overflow: hidden;
-    text-indent: -9999px
-  }
+    .Stream-title {
+        overflow: hidden;
+        text-indent: -9999px
+    }
 
-  .Stream-butt {
-    width: 140px !important; /* Уменьшаем ширину кнопок */
-    font-size: 14px !important;
-    padding: 0 10px; /* Внутренние отступы */
-    flex-shrink: 1; /* Разрешаем небольшое сжатие */
-  }
+    .Stream-butt {
+        width: 140px !important; /* Уменьшаем ширину кнопок */
+        font-size: 14px !important;
+        padding: 0 10px; /* Внутренние отступы */
+        flex-shrink: 1; /* Разрешаем небольшое сжатие */
+    }
 
-  .Stream-pic {
-    width: 35px; /* Уменьшенная иконка профиля */
-    height: 35px;
-    margin: 0 30px; /* Меньшие отступы */
-  }
+    .Stream-pic {
+        width: 35px; /* Уменьшенная иконка профиля */
+        height: 35px;
+        margin: 0 30px; /* Меньшие отступы */
+    }
 
-  .Stream-search-contcont {
-    width: 100% !important; /* Фиксируем ширину */
-    min-width: 480px; /* Минимальная ширина */
-    flex-shrink: 1; /* Разрешаем сжатие */
-    margin-left: 10px;
-  }
+    .Stream-search-contcont {
+        width: 100% !important; /* Фиксируем ширину */
+        min-width: 480px; /* Минимальная ширина */
+        flex-shrink: 1; /* Разрешаем сжатие */
+        margin-left: 10px;
+    }
 
-  .Stream-search {
-    width: 85% !important; /* Оставляем место для иконки */
-    padding-right: 15px; /* Отступ от края */
-  }
+    .Stream-search {
+        width: 85% !important; /* Оставляем место для иконки */
+        padding-right: 15px; /* Отступ от края */
+    }
 
-  .Stream-header-chose-butt {
-    width: 180px !important; /* Уменьшаем кнопку */
-    font-size: 16px !important;
-    margin-right: 15px !important;
-    white-space: nowrap; /* Запрещаем перенос текста */
-    padding: 0 15px;
-  }
+    .Stream-header-chose-butt {
+        width: 180px !important; /* Уменьшаем кнопку */
+        font-size: 16px !important;
+        margin-right: 15px !important;
+        white-space: nowrap; /* Запрещаем перенос текста */
+        padding: 0 15px;
+    }
 
-  .Stream-header-bottom-cont {
-    margin: 0 20px !important; /* Уменьшаем боковые отступы */
-    flex-wrap: nowrap; /* Запрещаем перенос элементов */
-  }
+    .Stream-header-bottom-cont {
+        margin: 0 20px !important; /* Уменьшаем боковые отступы */
+        flex-wrap: nowrap; /* Запрещаем перенос элементов */
+    }
 
-  .Stream-card {
-    height: 250px !important;
-    border-radius: 50px;
-  }
-  
-  .Stream-card-headText {
-    font-size: 18px !important;
-  }
-  
-  .Stream-card-bodyText {
-    font-size: 10px !important;
-  }
+    .Stream-card {
+        height: 250px !important;
+        border-radius: 50px;
+    }
+
+    .Stream-card-headText {
+        font-size: 18px !important;
+    }
+
+    .Stream-card-bodyText {
+        font-size: 10px !important;
+    }
 }
 
 /* Мобильные устройства (до 480px) */
 @media (max-width: 480px) {
-  .Stream-header-logo,
-  .Stream-title,
-  .Stream-title2 {
-    display: none !important;
-  }
+    .Stream-header-logo,
+    .Stream-title,
+    .Stream-title2 {
+        display: none !important;
+    }
 
-  .Stream-header-cont {
-    padding: 10px;
-    flex-wrap: nowrap;
-    border-bottom-left-radius: 30px 30px;
-    border-bottom-right-radius: 30px 30px;
-  }
-  
-  .Stream-butt {
-    height: 40px; /* Уменьшаем высоту */
-    max-width: 95%;
-    min-width: 120px; /* Уменьшаем минимальную ширину */
-    padding: 0 5px; /* Корректируем отступы */
-    font-size: 16px; /* Уменьшаем размер текста */
-    border-radius: 25px; /* Делаем менее закругленными */
-    margin: 0 -1px; /* Уменьшаем отступы между кнопками */
-    text-decoration: none !important;
-  }
-  
-  .Stream-pic {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .Stream-header-bottom-cont {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 5px;
-  }
-  
-  .Stream-header-bottom-cont::-webkit-scrollbar {
-    display: none;
-  }
+    .Stream-header-cont {
+        padding: 10px;
+        flex-wrap: nowrap;
+        border-bottom-left-radius: 30px 30px;
+        border-bottom-right-radius: 30px 30px;
+    }
 
-  .Stream-header-bottom-cont > * {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+    .Stream-butt {
+        height: 40px; /* Уменьшаем высоту */
+        max-width: 95%;
+        min-width: 120px; /* Уменьшаем минимальную ширину */
+        padding: 0 5px; /* Корректируем отступы */
+        font-size: 16px; /* Уменьшаем размер текста */
+        border-radius: 25px; /* Делаем менее закругленными */
+        margin: 0 -1px; /* Уменьшаем отступы между кнопками */
+        text-decoration: none !important;
+    }
 
-  .Stream-header-chose-butt {
-    width: 80px !important;
-    height: 40px !important;
-    min-width: unset !important; /* Отключаем минимальную ширину */
-    font-size: 14px !important;
-    padding: 0 8px !important;
-    margin: 0 !important;
-    border-radius: 25px !important;
-    overflow: hidden; /* Фиксируем обрезку содержимого */
-  }
+    .Stream-pic {
+        width: 30px;
+        height: 30px;
+    }
 
-  /* Уменьшаем внутренние элементы */
-  .Stream-header-chosefrom-butt-label {
-    font-size: 12px !important;
-    white-space: nowrap;
-    text-decoration: none !important;
-  }
-  
-  .Stream-header-chosefrom-butt-pic {
-    width: 16px !important;
-    height: 16px !important;
-    margin: 0 5px !important;
-  }
+    .Stream-header-bottom-cont {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 5px;
+    }
 
-  .Stream-search-contcont {
-    height: 40px;
-    width: 100% !important; /* Фиксируем ширину */
-    min-width: 200px; /* Минимальная ширина */
-    flex-shrink: 1; /* Разрешаем сжатие */
-    margin-left: 10px;
-  }
+    .Stream-header-bottom-cont::-webkit-scrollbar {
+        display: none;
+    }
 
-  .Stream-search {
-    font-size: 16px; 
-    text-align: start;
-    width: 40% !important; /* Оставляем место для иконки */
-    height: 100% !important;
-    padding-right: 5px; /* Отступ от края */
-  }
+    .Stream-header-bottom-cont > * {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-  
+    .Stream-header-chose-butt {
+        width: 80px !important;
+        height: 40px !important;
+        min-width: unset !important; /* Отключаем минимальную ширину */
+        font-size: 14px !important;
+        padding: 0 8px !important;
+        margin: 0 !important;
+        border-radius: 25px !important;
+        overflow: hidden; /* Фиксируем обрезку содержимого */
+    }
 
-  /* Карточки */
-  .Stream-main {
-    grid-template-columns: 1fr !important;
-    gap: 15px;
-    margin: 10px !important;
-  }
+    /* Уменьшаем внутренние элементы */
+    .Stream-header-chosefrom-butt-label {
+        font-size: 12px !important;
+        white-space: nowrap;
+        text-decoration: none !important;
+    }
 
-  .Stream-card {
-    aspect-ratio: 1/1 !important; /* Основное изменение - сохраняем соотношение */
-    height: auto !important; /* Убираем фиксированную высоту */
-    width: 70% !important;
-    min-width: unset !important;
-    border-radius: 40px;
-    padding: 12px;
-    margin-bottom: 15px !important;
-  }
+    .Stream-header-chosefrom-butt-pic {
+        width: 16px !important;
+        height: 16px !important;
+        margin: 0 5px !important;
+    }
 
-  .Stream-card-pic {
-    height: 65% !important; /* Увеличиваем область изображения */
-    border-radius: 30px;
-    margin-top: 5px;
-  }
+    .Stream-search-contcont {
+        height: 40px;
+        width: 100% !important; /* Фиксируем ширину */
+        min-width: 200px; /* Минимальная ширина */
+        flex-shrink: 1; /* Разрешаем сжатие */
+        margin-left: 10px;
+    }
 
-  .Stream-card-headText {
-    font-size: 16px !important;
-    margin: 8px 0;
-  }
+    .Stream-search {
+        font-size: 16px;
+        text-align: start;
+        width: 40% !important; /* Оставляем место для иконки */
+        height: 100% !important;
+        padding-right: 5px; /* Отступ от края */
+    }
 
-  .Stream-card-bodyText {
-    font-size: 12px !important;
-    line-height: 1.3;
-    padding: 0 8px;
-  }
 
-  /* Иконки */
-  .Stream-pic {
-    width: 35px !important;
-    height: 35px !important;
-    margin: 0 10px !important;
-  }
+    /* Карточки */
+    .Stream-main {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+        margin: 10px !important;
+    }
+
+    .Stream-card {
+        aspect-ratio: 1/1 !important; /* Основное изменение - сохраняем соотношение */
+        height: auto !important; /* Убираем фиксированную высоту */
+        width: 70% !important;
+        min-width: unset !important;
+        border-radius: 40px;
+        padding: 12px;
+        margin-bottom: 15px !important;
+    }
+
+    .Stream-card-pic {
+        height: 65% !important; /* Увеличиваем область изображения */
+        border-radius: 30px;
+        margin-top: 5px;
+    }
+
+    .Stream-card-headText {
+        font-size: 16px !important;
+        margin: 8px 0;
+    }
+
+    .Stream-card-bodyText {
+        font-size: 12px !important;
+        line-height: 1.3;
+        padding: 0 8px;
+    }
+
+    /* Иконки */
+    .Stream-pic {
+        width: 35px !important;
+        height: 35px !important;
+        margin: 0 10px !important;
+    }
 }

@@ -5,7 +5,7 @@ body {
     font-family: 'Segoe UI', sans-serif;
     background: #ffffff;
     color: #333;
-  }
+}
 
 .team-card-widget-container {
     position: relative;
@@ -22,16 +22,16 @@ body {
 }
 
 .close-button-widget {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 24px;
-  background: transparent;
-  border: none;
-  color: #8e44fd;
-  cursor: pointer;
-  top: 38px;
-  right: 50px;
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 24px;
+    background: transparent;
+    border: none;
+    color: #8e44fd;
+    cursor: pointer;
+    top: 38px;
+    right: 50px;
 }
 
 .team-title-widget {
@@ -84,12 +84,12 @@ body {
 }
 
 .left-column {
-  margin-top: 40px;
-  width: 50%;
-  padding-right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
+    margin-top: 40px;
+    width: 50%;
+    padding-right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
 }
 
 .right-panel {
@@ -430,10 +430,10 @@ select.team-input-widget option {
 }
 
 .stream-attach-button-container {
-  position: absolute;
-  bottom: 33px;
-  left: 50px;
-  width: 300px;
+    position: absolute;
+    bottom: 33px;
+    left: 50px;
+    width: 300px;
 }
 
 .loading-overlay {
@@ -459,8 +459,12 @@ select.team-input-widget option {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .error-message {
@@ -472,12 +476,18 @@ select.team-input-widget option {
     padding: 10px 20px;
     border-radius: 4px;
     color: #c62828;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     animation: fadeIn 0.3s ease-in-out;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translate(-50%, -10px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
+    from {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
 }

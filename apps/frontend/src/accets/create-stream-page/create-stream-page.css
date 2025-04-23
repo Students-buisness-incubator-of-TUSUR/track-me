@@ -1,286 +1,300 @@
 @import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
 /* font-family: "Mulish", sans-serif; */
-.create-stream{
-  box-sizing: border-box;
-  min-height: 100%;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  flex-direction: column;
-  background-color: rgba(68, 68, 68, 1);
-}
-.create-stream-cont{
-  
-  justify-content: space-between;
-  align-self: center;
-  display: flex;
-  flex-direction: row;
-  width: 1542px;
-  height: 612px;
-  border-radius: 70px;
-  background-color: white;
-  padding-bottom: 30px;
-}
-.create-stream-cont-left,
-.create-stream-cont-right{
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-  justify-content: center;
-  align-content: center;
-}
-.create-stream-row{
-  display: flex;
-  flex-direction: row;
-}
-.create-stream-input-pic{
-  align-self: center;
-  width: 466px;
-  height: 369px;
-  border-radius: 70px;
-  background-color: rgba(217, 217, 217, 1);
-}
-.create-stream-input-button{
-  margin-top: 43px;
-  align-self: center;
-  width: 217px;
-  height: 70px;
-  border-radius: 70px;
-  background-color: rgba(131, 56, 235, 1);
-  color: white;
-  border: none;
-}
-.create-stream-col{
-  margin-left: 90px;
-  display: flex;
-  flex-direction: column;
-  justify-content: stretch;
-  font-weight: 600;
-  font-size: 32px;
-  text-wrap: unset;
-}
-.create-stream-title{
-  font-family: "Mulish", sans-serif;
-  text-wrap: 100;
-  margin-left: 90px;
-  margin-bottom: 29px;
-  font-weight: 600;
-  font-size: 64px;
-  color: rgba(131, 56, 235, 1);
-}
-.create-stream-h1{
-  
-   white-space: nowrap; 
-  min-height: 80px;
-  font-family: "Mulish", sans-serif;
-  margin-block-start: 0.67em;
-  margin-block-end: 0.67em;
-  font-weight: 600;
-  font-size: 32px;
-  color: black;
-}
-.create-stream-input-date,
-.create-stream-input{
-  margin-left: -50px;
-  text-align:center;
-  align-self: center;
-  min-width: 217px;
-  height: 70px;
-  border-radius: 70px;
-  background-color: rgba(131, 56, 235, 1);
-  color: white;
-  border: none;
-  font-weight: 600;
-  font-size: 32px;
-  margin-block-start: 0.67em;
-  margin-block-end: 0.67em;
-  
-}
-.create-stream-input-date:focus::placeholder,
-.create-stream-input:focus::placeholder {
-  color: transparent;
+.create-stream {
+    box-sizing: border-box;
+    min-height: 100%;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    flex-direction: column;
+    background-color: rgba(68, 68, 68, 1);
 }
 
-.Stream-b{
-  position: relative;
-  left: 22%;
-  bottom: 100px;
+.create-stream-cont {
+
+    justify-content: space-between;
+    align-self: center;
+    display: flex;
+    flex-direction: row;
+    width: 1542px;
+    height: 612px;
+    border-radius: 70px;
+    background-color: white;
+    padding-bottom: 30px;
 }
-.Stream-header-checkbox{
-  display: flex;
-  align-items: center;
-  gap: 8px; /* Расстояние между чекбоксом и текстом */
+
+.create-stream-cont-left,
+.create-stream-cont-right {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    justify-content: center;
+    align-content: center;
 }
-.Stream-header-checkbox-label{
-  font-weight: 600;
-  font-size: 13px;
+
+.create-stream-row {
+    display: flex;
+    flex-direction: row;
 }
-.custom-checkbox{
-  width: 17px;
-  height: 17px;
-}
-.create-stream-input-pic{
-  background-image: url("./download.png");
-  background-size: auto;
-  background-repeat: no-repeat;
-  background-position: 50%;
-}
+
 .create-stream-input-pic {
-  width: 466px; /* Ширина блока для картинки */
-  height: 369px; /* Высота блока для картинки */
-  border: 2px dashed #ccc; /* Рамка для визуального выделения */
-  border-radius: 40px; /* Закругление углов */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer; /* Курсор в виде указателя, чтобы показать, что это кликабельный элемент */
-  overflow: hidden; /* Обрезать картинку, если она выходит за пределы блока */
-  position: relative;
-  background-color: #f9f9f9; /* Фоновый цвет для блока */
+    align-self: center;
+    width: 466px;
+    height: 369px;
+    border-radius: 70px;
+    background-color: rgba(217, 217, 217, 1);
+}
+
+.create-stream-input-button {
+    margin-top: 43px;
+    align-self: center;
+    width: 217px;
+    height: 70px;
+    border-radius: 70px;
+    background-color: rgba(131, 56, 235, 1);
+    color: white;
+    border: none;
+}
+
+.create-stream-col {
+    margin-left: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    font-weight: 600;
+    font-size: 32px;
+    text-wrap: unset;
+}
+
+.create-stream-title {
+    font-family: "Mulish", sans-serif;
+    text-wrap: 100;
+    margin-left: 90px;
+    margin-bottom: 29px;
+    font-weight: 600;
+    font-size: 64px;
+    color: rgba(131, 56, 235, 1);
+}
+
+.create-stream-h1 {
+
+    white-space: nowrap;
+    min-height: 80px;
+    font-family: "Mulish", sans-serif;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    font-weight: 600;
+    font-size: 32px;
+    color: black;
+}
+
+.create-stream-input-date,
+.create-stream-input {
+    margin-left: -50px;
+    text-align: center;
+    align-self: center;
+    min-width: 217px;
+    height: 70px;
+    border-radius: 70px;
+    background-color: rgba(131, 56, 235, 1);
+    color: white;
+    border: none;
+    font-weight: 600;
+    font-size: 32px;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+
+}
+
+.create-stream-input-date:focus::placeholder,
+.create-stream-input:focus::placeholder {
+    color: transparent;
+}
+
+.Stream-b {
+    position: relative;
+    left: 22%;
+    bottom: 100px;
+}
+
+.Stream-header-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Расстояние между чекбоксом и текстом */
+}
+
+.Stream-header-checkbox-label {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.custom-checkbox {
+    width: 17px;
+    height: 17px;
+}
+
+.create-stream-input-pic {
+    background-image: url("./download.png");
+    background-size: auto;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.create-stream-input-pic {
+    width: 466px; /* Ширина блока для картинки */
+    height: 369px; /* Высота блока для картинки */
+    border: 2px dashed #ccc; /* Рамка для визуального выделения */
+    border-radius: 40px; /* Закругление углов */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer; /* Курсор в виде указателя, чтобы показать, что это кликабельный элемент */
+    overflow: hidden; /* Обрезать картинку, если она выходит за пределы блока */
+    position: relative;
+    background-color: #f9f9f9; /* Фоновый цвет для блока */
 }
 
 .create-stream-input-pic-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ccc; /* Цвет текста или иконки */
-  font-size: 16px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc; /* Цвет текста или иконки */
+    font-size: 16px;
 }
 
 .create-stream-uploaded-image {
-  width: 100%; /* Картинка занимает всю ширину блока */
-  height: 100%; /* Картинка занимает всю высоту блока */
-  object-fit: cover; /* Картинка масштабируется, чтобы заполнить блок без искажений */
-  border-radius: 8px; /* Закругление углов для картинки */
+    width: 100%; /* Картинка занимает всю ширину блока */
+    height: 100%; /* Картинка занимает всю высоту блока */
+    object-fit: cover; /* Картинка масштабируется, чтобы заполнить блок без искажений */
+    border-radius: 8px; /* Закругление углов для картинки */
 }
 
 /* Стили для скрытого input */
 #image-upload {
-  display: none; /* Скрываем input */
+    display: none; /* Скрываем input */
 }
 
 
 .create-stream-error-message {
-  left: 100px;
-  display: flex
-;
-  position: relative;
-  margin-bottom: 40px;
-  color: red;
+    left: 100px;
+    display: flex;
+    position: relative;
+    margin-bottom: 40px;
+    color: red;
 }
 
 /* Добавляем новые медиа-запросы и корректируем существующие */
 @media (max-width: 992px) {
-  .create-stream-cont {
-    width: 95%;
-    height: auto;
-    flex-direction: column;
-    padding: 30px;
-    border-radius: 40px;
-    align-items: center;
-  }
+    .create-stream-cont {
+        width: 95%;
+        height: auto;
+        flex-direction: column;
+        padding: 30px;
+        border-radius: 40px;
+        align-items: center;
+    }
 
-  .create-stream-cont-left,
-  .create-stream-cont-right {
-    width: 100%;
-    align-items: center;
-  }
+    .create-stream-cont-left,
+    .create-stream-cont-right {
+        width: 100%;
+        align-items: center;
+    }
 
-  .create-stream-title {
-    font-size: 48px;
-    margin-left: 0;
-    text-align: center;
-  }
+    .create-stream-title {
+        font-size: 48px;
+        margin-left: 0;
+        text-align: center;
+    }
 
-  .create-stream-col {
-    width: 100%;
-    align-items: center;
-    margin-left: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: stretch;
-    text-wrap: unset;
-  }
+    .create-stream-col {
+        width: 100%;
+        align-items: center;
+        margin-left: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: stretch;
+        text-wrap: unset;
+    }
 
-  .create-stream-h1 {
-    margin: 15px 0 5px 0 !important; /* Уменьшаем отступы */
-    width: 100% !important;
-    padding: 0 15px; /* Симметричные отступы */
-  }
+    .create-stream-h1 {
+        margin: 15px 0 5px 0 !important; /* Уменьшаем отступы */
+        width: 100% !important;
+        padding: 0 15px; /* Симметричные отступы */
+    }
 
-  .create-stream-input,
-  .create-stream-input-date {
-    font-size: 24px;
-    height: 60px;
-    margin-left: 0;
-    width: 90%;
-    max-width: 400px;
-    align-self: center;
-  }
+    .create-stream-input,
+    .create-stream-input-date {
+        font-size: 24px;
+        height: 60px;
+        margin-left: 0;
+        width: 90%;
+        max-width: 400px;
+        align-self: center;
+    }
 
-  .create-stream-input-button {
-    width: 200px;
-    height: 60px;
-    font-size: 18px;
-    order: 3;
-    flex-direction: column;
-    margin-top: 70px !important; /* Убираем верхний отступ */
-  }
+    .create-stream-input-button {
+        width: 200px;
+        height: 60px;
+        font-size: 18px;
+        order: 3;
+        flex-direction: column;
+        margin-top: 70px !important; /* Убираем верхний отступ */
+    }
 
-  .create-stream-input-pic {
-    width: 80%;
-    height: 300px;
-    margin-bottom: 30px;
-  }
+    .create-stream-input-pic {
+        width: 80%;
+        height: 300px;
+        margin-bottom: 30px;
+    }
 
-  .Stream-b {
-    margin-top: -50px !important;
-    order: 0;
-    width: 100%; /* Занимает всю ширину */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Центрирование по горизонтали */
-    justify-content: center; /* Центрирование по вертикали */
-    margin-left: 150px !important;
-  }
+    .Stream-b {
+        margin-top: -50px !important;
+        order: 0;
+        width: 100%; /* Занимает всю ширину */
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Центрирование по горизонтали */
+        justify-content: center; /* Центрирование по вертикали */
+        margin-left: 150px !important;
+    }
 }
 
 @media (max-width: 480px) {
-  .create-stream-cont {
-    padding: 20px 15px !important;
-    border-radius: 30px;
-  }
+    .create-stream-cont {
+        padding: 20px 15px !important;
+        border-radius: 30px;
+    }
 
-  .create-stream-title {
-    font-size: 28px;
-    padding: 0 10px;
-    white-space: nowrap;
-  }
+    .create-stream-title {
+        font-size: 28px;
+        padding: 0 10px;
+        white-space: nowrap;
+    }
 
-  .create-stream-h1 {
-    text-align: left !important;
-    padding: 0 7px !important;
-    margin: 13px 0 -15px 0 !important;
-  }
+    .create-stream-h1 {
+        text-align: left !important;
+        padding: 0 7px !important;
+        margin: 13px 0 -15px 0 !important;
+    }
 
-  .create-stream-input,
-  .create-stream-input-date {
-    height: 45px !important; 
-    width: 100% !important;
-  }
+    .create-stream-input,
+    .create-stream-input-date {
+        height: 45px !important;
+        width: 100% !important;
+    }
 
-  .create-stream-input-button {
-    height: 50px;
-    font-size: 16px;
-  }
+    .create-stream-input-button {
+        height: 50px;
+        font-size: 16px;
+    }
 
-  .Stream-b {
-    width: 100%;
-    margin-top: -50px !important;
-    margin-left: 10px !important;
-  }
+    .Stream-b {
+        width: 100%;
+        margin-top: -50px !important;
+        margin-left: 10px !important;
+    }
 }

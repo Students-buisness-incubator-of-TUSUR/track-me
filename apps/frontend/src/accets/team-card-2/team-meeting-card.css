@@ -1,155 +1,156 @@
 /* Общий контейнер, чтобы карточка была по центру экрана */
 .team-card-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 150vh; /* или height: 100vh; если нужно на всю высоту */
-  background-color: #f5f5f5; /* светлый фон для контраста */
-  margin: 0;
-  padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 150vh; /* или height: 100vh; если нужно на всю высоту */
+    background-color: #f5f5f5; /* светлый фон для контраста */
+    margin: 0;
+    padding: 0;
 }
 
 /* Основная "карточка" */
 .team-card {
-  position: relative;
-  background-color: #ffffff;
-  width: 1100px;
-  border-radius: 70px;
-  
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  font-family: Arial, sans-serif;
+    position: relative;
+    background-color: #ffffff;
+    width: 1100px;
+    border-radius: 70px;
+
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    font-family: Arial, sans-serif;
 }
 
 /* Кнопка "Редактировать" в правом верхнем углу */
 .edit-button {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: #7b52ab;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s ease;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #7b52ab;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease;
 }
+
 .edit-button:hover {
-  background-color: #6a4298;
-  transform: scale(1.05);
+    background-color: #6a4298;
+    transform: scale(1.05);
 }
 
 /* Шапка карточки: трекер + название команды */
 .team-header {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 40px;
-  margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-bottom: 30px;
 }
 
 /* Стили для полей трекера и команды */
 .tracker-field,
 .teamname-field {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .tracker-label,
 .teamname-label {
-  font-weight: bold;
-  font-size: 16px;
-  margin-bottom: 8px;
-  color: #333;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #333;
 }
 
 .tracker-input,
 .teamname-input {
-  border: 2px solid #ccc;
-  border-radius: 10px;
-  padding: 10px;
-  font-size: 16px;
-  width: 250px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 16px;
+    width: 250px;
 }
 
 /* Сетка кружочков */
 .meetings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  gap: 20px;
-  max-width: 600px;
-  margin-bottom: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 20px;
+    max-width: 600px;
+    margin-bottom: 30px;
 }
 
 /* Каждый кружок */
 .meeting-circle {
-  position: relative;
-  width: 70px;
-  height: 70px;
-  background-color: #8338eb;
-  border-radius: 50%;
-  color: #ffffff;
-  font-weight: bold;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  transition: transform 0.3s ease;
-  cursor: default;
+    position: relative;
+    width: 70px;
+    height: 70px;
+    background-color: #8338eb;
+    border-radius: 50%;
+    color: #ffffff;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease;
+    cursor: default;
 }
 
 .meeting-circle:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 /* Номер встречи */
 .meeting-number {
-  font-size: 20px;
-  line-height: 1;
+    font-size: 20px;
+    line-height: 1;
 }
 
 /* Дата под номером */
 .meeting-date {
-  font-size: 14px;
-  line-height: 1;
-  margin-top: 2px;
+    font-size: 14px;
+    line-height: 1;
+    margin-top: 2px;
 }
 
 /* Галочка для завершённых встреч */
 .checkmark {
-  position: absolute;
-  top: 5px;
-  right: 8px;
-  font-size: 16px;
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    font-size: 16px;
 }
 
 /* Модификатор completed (можно менять цвет) */
 .meeting-circle.completed {
-  background-color: #7b52ab;
+    background-color: #7b52ab;
 }
 
 /* Нижняя часть карточки с двумя кнопками */
 .team-footer {
-  display: flex;
-  gap: 20px;
+    display: flex;
+    gap: 20px;
 }
 
 /* Кнопки "Название потока" и "Деактивировать" */
 .stream-button,
 .deactivate-button {
-  background-color: #7b52ab;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s ease;
+    background-color: #7b52ab;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease;
 }
 
 .stream-button:hover,
 .deactivate-button:hover {
-  background-color: #6a4298;
-  transform: scale(1.05);
+    background-color: #6a4298;
+    transform: scale(1.05);
 }

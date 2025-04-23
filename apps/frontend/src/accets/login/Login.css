@@ -3,240 +3,240 @@
 
 /* Общий контейнер */
 .login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #ffffff;
-  font-family: 'Montserrat', monospace;
-  font-weight: 200;/* Добавляем шрифт ко всему контейнеру */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #ffffff;
+    font-family: 'Montserrat', monospace;
+    font-weight: 200; /* Добавляем шрифт ко всему контейнеру */
 }
 
 /* Блок логина */
 .login-box {
-  background: #8338EB;
-  padding: 40px;
-  border-radius: 70px;
-  border: 2px solid #44069A;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  width: 872px;
-  height: 566px;
-  padding-top: -400px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    background: #8338EB;
+    padding: 40px;
+    border-radius: 70px;
+    border: 2px solid #44069A;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    width: 872px;
+    height: 566px;
+    padding-top: -400px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Заголовок */
 .login-h2 {
-  font-family: 'Montserrat',  monospace;
-  font-weight: 450; /* Указываем тонкий шрифт */
-  font-size: 96px;
-  color: white;
-  margin-bottom: 20px;
-  margin-top: -30px;
+    font-family: 'Montserrat', monospace;
+    font-weight: 450; /* Указываем тонкий шрифт */
+    font-size: 96px;
+    color: white;
+    margin-bottom: 20px;
+    margin-top: -30px;
 }
 
 /* Сообщение об ошибке */
 .error-message.oval {
-  border-radius: 70px;
-  padding: 20px;
-  margin-top: -10px;
-  background-color: #FF000080;
-  text-align: center;
-  color: white;
-  font-size: 16px;
-  font-family: 'Montserrat', sans-serif;
+    border-radius: 70px;
+    padding: 20px;
+    margin-top: -10px;
+    background-color: #FF000080;
+    text-align: center;
+    color: white;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
 }
 
 /* Поля ввода */
 .input-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* Выравнивание по левому краю */
-  width: 100%;
-  max-width: 470px;
-  margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Выравнивание по левому краю */
+    width: 100%;
+    max-width: 470px;
+    margin-bottom: 15px;
 }
 
 /* Текст над полями */
 .login-label {
-  font-size: 24px;
-  color: white;
-  font-family: 'Montserrat', sans-serif;
-  margin-bottom: 5px;
-  margin-left: 25px;
-  text-align: left;
-  width: 100%;
+    font-size: 24px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    margin-bottom: 5px;
+    margin-left: 25px;
+    text-align: left;
+    width: 100%;
 }
 
 /* Поля ввода */
 .login-input {
-  width: 470px;
-  padding: 25px;
-  border: none;
-  border-radius: 70px;
-  background: #E6D7FB;
-  font-size: 16px;
-  outline: none;
-  font-family: 'Montserrat', sans-serif; /* Применяем шрифт к полям ввода */
+    width: 470px;
+    padding: 25px;
+    border: none;
+    border-radius: 70px;
+    background: #E6D7FB;
+    font-size: 16px;
+    outline: none;
+    font-family: 'Montserrat', sans-serif; /* Применяем шрифт к полям ввода */
 }
 
 /* Контейнер для пароля */
 .password-container {
-  position: relative;
-  width: 100%;
+    position: relative;
+    width: 100%;
 }
 
 .eye-icon {
-  position: absolute;
-  right: -20px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 20px;
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 20px;
 }
 
 /* Стили для ссылок */
-.forgot-password{
-  display: block;
-  margin-top: 10px;
-  color: white;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 24px;
-  text-decoration: none;
-  cursor: pointer;
+.forgot-password {
+    display: block;
+    margin-top: 10px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 24px;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 .register {
-  display: block;
-  margin-top: 10px;
-  color: white;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 20px;
-  text-decoration: none;
-  cursor: pointer;
+    display: block;
+    margin-top: 10px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 /* Изменение цвета при наведении */
 .forgot-password:hover,
 .register:hover {
-  color: #d1c6f0;
+    color: #d1c6f0;
 }
 
 /* Кнопка входа */
 .login-button {
-  width: 100%;
-  max-width: 276px;
-  background: white;
-  color: #8338EB;
-  font-size: 24px;
-  padding: 25px;
-  border: none;
-  border-radius: 70px;
-  margin-top: 15px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
-  font-family: 'Montserrat', sans-serif; /* Применяем шрифт к кнопке */
+    width: 100%;
+    max-width: 276px;
+    background: white;
+    color: #8338EB;
+    font-size: 24px;
+    padding: 25px;
+    border: none;
+    border-radius: 70px;
+    margin-top: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    font-family: 'Montserrat', sans-serif; /* Применяем шрифт к кнопке */
 }
 
 .login-button:hover {
-  background: #e6d7fb;
+    background: #e6d7fb;
 }
 
 /* Добавляем медиа-запросы в конец файла Login.css */
 
 @media (max-width: 768px) {
-  .login-box {
-    width: 90% !important;
-    max-width: 600px;
-    padding: 30px !important;
-    border-radius: 50px;
-    height: auto !important;
-    min-height: 500px;
-  }
+    .login-box {
+        width: 90% !important;
+        max-width: 600px;
+        padding: 30px !important;
+        border-radius: 50px;
+        height: auto !important;
+        min-height: 500px;
+    }
 
-  .login-h2 {
-    font-size: 72px;
-    margin-top: 0;
-    margin-bottom: 30px;
-  }
+    .login-h2 {
+        font-size: 72px;
+        margin-top: 0;
+        margin-bottom: 30px;
+    }
 
-  .login-input {
-    width: 100% !important;
-    padding: 20px !important;
-  }
+    .login-input {
+        width: 100% !important;
+        padding: 20px !important;
+    }
 
-  .input-container {
-    max-width: 100% !important;
-  }
+    .input-container {
+        max-width: 100% !important;
+    }
 
-  .login-label {
-    font-size: 20px;
-    margin-left: 15px;
-  }
+    .login-label {
+        font-size: 20px;
+        margin-left: 15px;
+    }
 
-  .forgot-password {
-    font-size: 18px;
-  }
+    .forgot-password {
+        font-size: 18px;
+    }
 
-  .register {
-    font-size: 18px;
-  }
+    .register {
+        font-size: 18px;
+    }
 
-  .login-button {
-    max-width: 200px;
-    padding: 20px !important;
-    font-size: 20px;
-  }
+    .login-button {
+        max-width: 200px;
+        padding: 20px !important;
+        font-size: 20px;
+    }
 }
 
 @media (max-width: 480px) {
-  .login-box {
-    padding: 20px !important;
-    border-radius: 40px;
-    min-height: 400px;
-  }
+    .login-box {
+        padding: 20px !important;
+        border-radius: 40px;
+        min-height: 400px;
+    }
 
-  .login-h2 {
-    font-size: 48px;
-    margin-bottom: 20px;
-  }
+    .login-h2 {
+        font-size: 48px;
+        margin-bottom: 20px;
+    }
 
-  .login-label {
-    font-size: 16px;
-    margin-left: 10px;
-  }
+    .login-label {
+        font-size: 16px;
+        margin-left: 10px;
+    }
 
-  .login-input {
-    padding: 15px !important;
-    font-size: 14px;
-  }
+    .login-input {
+        padding: 15px !important;
+        font-size: 14px;
+    }
 
-  .forgot-password {
-    font-size: 14px;
-  }
+    .forgot-password {
+        font-size: 14px;
+    }
 
-  .register {
-    font-size: 14px;
-  }
+    .register {
+        font-size: 14px;
+    }
 
-  .login-button {
-    max-width: 160px;
-    padding: 15px !important;
-    font-size: 16px;
-  }
+    .login-button {
+        max-width: 160px;
+        padding: 15px !important;
+        font-size: 16px;
+    }
 
-  .error-message.oval {
-    font-size: 14px;
-    padding: 15px;
-    border-radius: 40px;
-  }
+    .error-message.oval {
+        font-size: 14px;
+        padding: 15px;
+        border-radius: 40px;
+    }
 
-  .eye-icon {
-    right: -15px;
-    width: 24px;
-  }
+    .eye-icon {
+        right: -15px;
+        width: 24px;
+    }
 }
