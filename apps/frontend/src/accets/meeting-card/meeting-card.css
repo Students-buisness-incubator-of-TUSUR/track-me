@@ -3,116 +3,40 @@
     justify-content: center;
     align-items: center;
     background: #ffffff;
+    min-height: 100vh;
+    padding: 20px;
 }
 
 .unique-meeting-card {
-    width: 1900px;
-    height: 1100px;
+    width: 1200px;
+    min-height: 800px;
     border-radius: 70px;
     background: #c19bf5;
     font-family: Arial, sans-serif;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     position: relative;
+    padding: 40px;
 }
 
-.unique-meeting-number {
-    background: #8338EB;
-    margin-left: 100px;
-    margin-top: 95px;
-    color: white;
-    padding: 10px 100px;
-    border-radius: 70px;
-    font-size: 24px;
-}
-
-.unique-meeting-date {
-    color: white;
-    background-color: #8338EB;
-    padding: 5px 25px;
-    border-radius: 70px;
-    margin-top: 25px;
-    margin-left: -300px;
-    display: inline-block;
-    vertical-align: top;
-    white-space: nowrap;
-    font-size: 24px;
-}
-
-.unique-meeting-info {
-    margin-bottom: 15px;
-    font-size: 18px;
-    display: flex;
-    align-items: flex-start;
-    flex-wrap: wrap;
-}
-
-.unique-label {
-    margin-left: 100px;
-    margin-top: 30px;
-    display: inline-block;
-    width: 374px;
-    vertical-align: top;
-    margin-right: 10px;
-    white-space: normal;
-    font-size: 24px;
+.unique-close-button {
+    position: absolute;
+    top: 20px;
+    right: 100px;
+    background: transparent;
+    border: none;
     color: #ffffff;
-    margin-right: 10px;
-}
-
-.unique-task {
-    background: #fff;
-    color: #000000;
-    padding: 50px 550px;
-    border-radius: 70px;
-    margin-top: 35px;
-    margin-left: -20px;
-    font-size: 16px;
-    font-weight: bold;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-}
-
-.unique-status {
-    background: #0db862;
-    color: white;
-    margin-top: 20px;
-    margin-left: -15px;
-    padding: 25px 150px;
-    border-radius: 70px;
-    font-size: 16px;
-    font-weight: 300;
-    text-align: center;
-}
-
-.unique-screenshot {
-    width: 500px;
-    height: 250px;
-    background: #ccc;
-    border-radius: 70px;
-    margin-top: 15px;
-}
-
-.unique-link {
-    background: #ffffff;
-    color: #333;
-    padding: 12px;
-    border-radius: 70px;
-    width: 1040px;
-    text-align: center;
-    margin-top: 10px;
-    font-size: 16px;
+    font-size: 30px;
+    cursor: pointer;
 }
 
 .unique-edit-button {
     background: #8338EB;
     color: white;
     border: none;
-    margin-top: 35px;
-    margin-right: 140px;
-    padding: 10px 20px;
+    padding: 10px 30px;
     border-radius: 70px;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     transition: 0.3s ease;
     position: absolute;
@@ -120,7 +44,110 @@
     right: 20px;
 }
 
-.unique-edit-button:hover {
-    background: #6a4298;
+.unique-done-button {
+    background: #22c55e;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 70px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    transition: 0.3s ease;
+    margin-top: 20px;
+}
+
+.unique-edit-button:hover,
+.unique-done-button:hover {
+    opacity: 0.9;
     transform: scale(1.05);
+}
+
+.error-message {
+    color: #ef4444;
+    background: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    margin: 10px 0;
+}
+
+.unique-meeting-number {
+    display: inline-block;
+    background: #8338EB;
+    color: white;
+    padding: 10px 40px;
+    border-radius: 70px;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.unique-meeting-info {
+    margin-bottom: 25px;
+}
+
+.unique-label {
+    display: block;
+    color: #ffffff;
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.unique-meeting-date {
+    display: inline-block;
+    background: #8338EB;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 70px;
+    font-size: 16px;
+}
+
+.unique-task {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    min-height: 100px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.unique-textarea {
+    width: 100%;
+    min-height: 100px;
+    border-radius: 20px;
+    padding: 15px;
+    border: none;
+    resize: vertical;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.unique-input {
+    width: 100%;
+    height: 40px;
+    border-radius: 20px;
+    padding: 0 15px;
+    border: none;
+    box-sizing: border-box;
+}
+
+.unique-link {
+    display: inline-block;
+    background: white;
+    padding: 10px 20px;
+    border-radius: 70px;
+    color: #8338EB;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+input[type="datetime-local"] {
+    background: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 70px;
+    font-size: 16px;
+    font-family: inherit;
 }

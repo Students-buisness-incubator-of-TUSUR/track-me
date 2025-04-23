@@ -487,3 +487,242 @@ position: relative;
   margin: 5px;
   text-decoration:none;
 }
+/* Планшетная версия (768px - 1024px) */
+@media (max-width: 1024px) {
+  .Stream-main {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Две колонки */
+    gap: 70px; /* Промежуток между карточками */
+    margin: 20px 40px !important; /* Центрируем контейнер */
+  }
+
+  .Stream-card {
+    width: 100% !important; /* Занимаем всю ширину колонки */
+    height: 400px !important; /* Фиксированная высота */
+    min-width: unset !important;
+    margin-bottom: 0;
+    aspect-ratio: 1/1; /* Сохраняем квадратную форму */
+    padding: 15px; /* Внутренние отступы */
+  }
+
+  .Stream-card-pic {
+    width: 100% !important;
+    height: 60% !important; /* Задаем пропорции изображения */
+    border-radius: 40px;
+    margin-top: 0;
+  }
+
+  .Stream-card-headText {
+    font-size: 24px !important; /* Уменьшаем размер заголовка */
+    margin: 10px 0;
+  }
+
+  .Stream-card-bodyText {
+    font-size: 12px !important; /* Уменьшаем основной текст */
+    line-height: 1.4;
+  }
+}
+
+/* Планшеты (768px) */
+@media (max-width: 768px) {
+  .Stream-header-cont {
+    flex-wrap: nowrap;
+    padding: 10px 15px; /* Уменьшаем отступы */
+    gap: 10px; /* Добавляем промежутки между элементами */
+  }
+
+  .Stream-header-logo {
+    width: 250px !important; /* Уменьшаем ширину */
+    margin: 0 !important;
+    flex-shrink: 0; /* Запрещаем уменьшение */
+    margin-right: -150px !important; /* Добавляем небольшой правый отступ */
+  }
+
+  .Stream-title {
+    overflow: hidden;
+    text-indent: -9999px
+  }
+
+  .Stream-butt {
+    width: 140px !important; /* Уменьшаем ширину кнопок */
+    font-size: 14px !important;
+    padding: 0 10px; /* Внутренние отступы */
+    flex-shrink: 1; /* Разрешаем небольшое сжатие */
+  }
+
+  .Stream-pic {
+    width: 35px; /* Уменьшенная иконка профиля */
+    height: 35px;
+    margin: 0 30px; /* Меньшие отступы */
+  }
+
+  .Stream-search-contcont {
+    width: 100% !important; /* Фиксируем ширину */
+    min-width: 480px; /* Минимальная ширина */
+    flex-shrink: 1; /* Разрешаем сжатие */
+    margin-left: 10px;
+  }
+
+  .Stream-search {
+    width: 85% !important; /* Оставляем место для иконки */
+    padding-right: 15px; /* Отступ от края */
+  }
+
+  .Stream-header-chose-butt {
+    width: 180px !important; /* Уменьшаем кнопку */
+    font-size: 16px !important;
+    margin-right: 15px !important;
+    white-space: nowrap; /* Запрещаем перенос текста */
+    padding: 0 15px;
+  }
+
+  .Stream-header-bottom-cont {
+    margin: 0 20px !important; /* Уменьшаем боковые отступы */
+    flex-wrap: nowrap; /* Запрещаем перенос элементов */
+  }
+
+  .Stream-card {
+    height: 250px !important;
+    border-radius: 50px;
+  }
+  
+  .Stream-card-headText {
+    font-size: 18px !important;
+  }
+  
+  .Stream-card-bodyText {
+    font-size: 10px !important;
+  }
+}
+
+/* Мобильные устройства (до 480px) */
+@media (max-width: 480px) {
+  .Stream-header-logo,
+  .Stream-title,
+  .Stream-title2 {
+    display: none !important;
+  }
+
+  .Stream-header-cont {
+    padding: 10px;
+    flex-wrap: nowrap;
+    border-bottom-left-radius: 30px 30px;
+    border-bottom-right-radius: 30px 30px;
+  }
+  
+  .Stream-butt {
+    height: 40px; /* Уменьшаем высоту */
+    max-width: 95%;
+    min-width: 120px; /* Уменьшаем минимальную ширину */
+    padding: 0 5px; /* Корректируем отступы */
+    font-size: 16px; /* Уменьшаем размер текста */
+    border-radius: 25px; /* Делаем менее закругленными */
+    margin: 0 -1px; /* Уменьшаем отступы между кнопками */
+    text-decoration: none !important;
+  }
+  
+  .Stream-pic {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .Stream-header-bottom-cont {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 5px;
+  }
+  
+  .Stream-header-bottom-cont::-webkit-scrollbar {
+    display: none;
+  }
+
+  .Stream-header-bottom-cont > * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .Stream-header-chose-butt {
+    width: 80px !important;
+    height: 40px !important;
+    min-width: unset !important; /* Отключаем минимальную ширину */
+    font-size: 14px !important;
+    padding: 0 8px !important;
+    margin: 0 !important;
+    border-radius: 25px !important;
+    overflow: hidden; /* Фиксируем обрезку содержимого */
+  }
+
+  /* Уменьшаем внутренние элементы */
+  .Stream-header-chosefrom-butt-label {
+    font-size: 12px !important;
+    white-space: nowrap;
+    text-decoration: none !important;
+  }
+  
+  .Stream-header-chosefrom-butt-pic {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 5px !important;
+  }
+
+  .Stream-search-contcont {
+    height: 40px;
+    width: 100% !important; /* Фиксируем ширину */
+    min-width: 200px; /* Минимальная ширина */
+    flex-shrink: 1; /* Разрешаем сжатие */
+    margin-left: 10px;
+  }
+
+  .Stream-search {
+    font-size: 16px; 
+    text-align: start;
+    width: 40% !important; /* Оставляем место для иконки */
+    height: 100% !important;
+    padding-right: 5px; /* Отступ от края */
+  }
+
+  
+
+  /* Карточки */
+  .Stream-main {
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+    margin: 10px !important;
+  }
+
+  .Stream-card {
+    aspect-ratio: 1/1 !important; /* Основное изменение - сохраняем соотношение */
+    height: auto !important; /* Убираем фиксированную высоту */
+    width: 70% !important;
+    min-width: unset !important;
+    border-radius: 40px;
+    padding: 12px;
+    margin-bottom: 15px !important;
+  }
+
+  .Stream-card-pic {
+    height: 65% !important; /* Увеличиваем область изображения */
+    border-radius: 30px;
+    margin-top: 5px;
+  }
+
+  .Stream-card-headText {
+    font-size: 16px !important;
+    margin: 8px 0;
+  }
+
+  .Stream-card-bodyText {
+    font-size: 12px !important;
+    line-height: 1.3;
+    padding: 0 8px;
+  }
+
+  /* Иконки */
+  .Stream-pic {
+    width: 35px !important;
+    height: 35px !important;
+    margin: 0 10px !important;
+  }
+}

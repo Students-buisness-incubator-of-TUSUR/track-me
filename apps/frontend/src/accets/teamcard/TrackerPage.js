@@ -16,6 +16,8 @@ function TrackerPage() {
   const [ntiMarkets, setNtiMarkets] = useState([]);
   const [selectedStreams, setSelectedStreams] = useState([]);
   const [streams, setStreams] = useState([]);
+  const [userRole, setUserRole] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const backendHost = process.env.REACT_APP_BACKEND_HOST || 'http://localhost:8080';
   // Состояния для отображения панели фильтров и групп чекбоксов
@@ -35,10 +37,6 @@ function TrackerPage() {
   // const numberOfCheckboxes = 9;
   const numberOfCheckboxes1 = year - 2015;
 
-
-
-  
-
   // Данные для TRL – используем реальные диапазоны
   const trlRanges = [
     { id: "trl-0-2", label: "0-2" },
@@ -46,7 +44,8 @@ function TrackerPage() {
     { id: "trl-6-8", label: "6-8" },
     { id: "trl-9-10", label: "9-10" },
   ];
-// Обновленный обработчик выбора TRL
+
+  // Обновленный обработчик выбора TRL
   const handleTrlChange = (trlValue) => {
     setSelectedTrl((prev) => 
       prev.includes(trlValue) 
@@ -54,6 +53,7 @@ function TrackerPage() {
         : [...prev, trlValue] // Добавляем, если не выбран
     );
   };
+
   const handleNtiMarketChange = (market) => {
     setSelectedNtiMarkets((prev) =>
       prev.includes(market.name)
@@ -61,6 +61,7 @@ function TrackerPage() {
         : [...prev, market.name] // Add if not selected
     );
   };
+
   const handleStreamChange = (streamName) => {
     setSelectedStreams((prev) =>
       prev.includes(streamName)
@@ -68,74 +69,102 @@ function TrackerPage() {
         : [...prev, streamName]
     );
   };
+
   // Данные для чекбоксов "год"
   const checkboxesData = Array.from({ length: numberOfCheckboxes1 }, (_, index) => ({
     id: `checkbox-${index + 1}`,
     label: `${index + 2016}`,
   }));
-  
+
   // Функция для запроса карточек с заданными фильтрами
-  const fetchCards = useCallback((filters) => {
+  const fetchCards = useCallback((filters = []) => {
     const token = localStorage.getItem("accessToken");
+
+    try {
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      setUserRole(decoded.role);
+      setUserId(decoded.userId);
+      console.log("Decoded token:", decoded);
+    } catch (e) {
+      console.error("Error decoding token:", e);
+    }
+
     if (!token) {
-      setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
+      setError("Отсутствует токен авторизации");
       return;
     }
-    console.log(localStorage.getItem("streamName"))
-    filters.push({
-      fieldName: "streams.name",
-      type: "EQ",
-      value: localStorage.getItem("streamName"),
-    });
 
-    fetch(`${backendHost}/api/v1/team-cards?page=0&size=150`, {
+    const allFilters = [...filters];
+
+    // Для админа добавляем фильтр по потоку, для трекера - по его ID
+    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+      allFilters.push({
+        fieldName: "streams.name",
+        type: "EQ",
+        value: localStorage.getItem("streamName")
+      });
+    } else if (userRole === "TRACKER" && userId) {
+      allFilters.push({
+        fieldName: "userId",
+        type: "EQ",
+        value: userId
+      });
+    }
+
+    const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+      ? `${backendHost}/api/v1/admin/team-cards` 
+      : `${backendHost}/api/v1/team-cards`;
+
+    console.log("Using role:", userRole);
+    console.log("Using filters:", allFilters);
+
+    fetch(`${endpoint}?page=0&size=150`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ filters: filters }),
+      body: JSON.stringify({ filters: allFilters }),
     })
       .then((response) => {
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError("Ошибка авторизации! Пожалуйста, выполните вход заново.");
-          } else {
-            setError("Ошибка при загрузке карточек. Статус: " + response.status);
-          }
-          throw new Error("Ошибка запроса");
-        }
+        console.log("Response status:", response.status); // Проверяем статус ответа
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
       })
       .then((data) => {
+        console.log("Response data:", data); // Смотрим что приходит
         if (data && data.content) {
           setCards(data.content);
           setVisibleCardsStart(0);
-        } else {
-          setError("Неверный формат данных, полученных с сервера (team-cards).");
         }
       })
       .catch((err) => {
-        console.error("Ошибка при загрузке карточек:", err);
+        console.error("Error fetching cards:", err);
+        setError(`Ошибка при загрузке карточек: ${err.message}`);
       });
-  }, [backendHost]);
+  }, [backendHost, userRole, userId]);
 
   useEffect(() => {
-    // При загрузке получаем карточки без фильтров
+    // Проверяем роль при загрузке компонента
+    const role = localStorage.getItem("userRole");
+    console.log("Initial role check:", role);
+    
+    // Загружаем карточки без фильтров при первом рендере
     fetchCards([]);
+    
     // Запрос текущего потока
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
       return;
     }
+
     fetch(`${backendHost}/api/v1/streams/nti-markets`, { 
-    method: "GET",
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
-    
     .then((response) => {
       if (!response.ok) {
         throw new Error("Ошибка при загрузке рынков НТИ");
@@ -148,33 +177,6 @@ function TrackerPage() {
     .catch((error) => {
       console.error(error);
     });
-    // fetch(`${backendHost}/api/v1/streams/current`, {
-    //   method: "GET",
-    //   headers: {
-    //     Authorization: `Bearer ${token}`,
-    //   },
-    // })
-    //   .then((response) => {
-    //     if (!response.ok) {
-    //       if (response.status === 401) {
-    //         setError("Ошибка авторизации при получении потока! Выполните вход заново.");
-    //       } else {
-    //         setError("Ошибка при загрузке потока. Статус: " + response.status);
-    //       }
-    //       throw new Error("Ошибка запроса потока");
-    //     }
-    //     return response.json();
-    //   })
-    //   .then((data) => {
-    //     if (data && data.name) {
-    //       setStreamName(localStorage.getItem("streamName"));
-    //     } else {
-    //       setError("Неверный формат данных, полученных с сервера (streams).");
-    //     }
-    //   })
-    //   .catch((err) => {
-    //     console.error("Ошибка при загрузке потока:", err);
-    //   });
   }, [navigate, backendHost, fetchCards]);
 
   useEffect(() => {
@@ -216,9 +218,6 @@ function TrackerPage() {
         console.error(error);
       });
   }, [backendHost]);
-  
-
-  
 
   // Фильтрация карточек по поисковому запросу
   const filteredCards = cards.filter((card) =>
@@ -244,42 +243,35 @@ function TrackerPage() {
     setIsVisible(!isVisible);
   };
 
-  // Обработчик применения фильтров (только фильтр по TRL)
+  // Обработчик применения фильтров
   const applyFilters = () => {
     const filters = [];
-  
-    // Фильтр по TRL
+    
     if (selectedTrl.length > 0) {
       filters.push({
         fieldName: "readinessLevel",
         type: "EQ",
         values: selectedTrl,
-        value: "string",
       });
     }
-  
-    // Фильтр по рынкам НТИ
+
     if (selectedNtiMarkets.length > 0) {
       filters.push({
         fieldName: "ntiMarket.name",
         type: "EQ",
         values: selectedNtiMarkets,
-        value: "string",
       });
     }
-  
-    // Фильтр по потокам
+
     if (selectedStreams.length > 0) {
       filters.push({
         fieldName: "streams.name",
         type: "EQ",
         values: selectedStreams,
-        value: "string",
       });
     }
-  
-    console.log("Применяемые фильтры:", filters);
-  
+
+    console.log("Applying filters:", filters);
     fetchCards(filters);
     setIsVisible(false);
   };
@@ -299,12 +291,17 @@ function TrackerPage() {
       <header className="Stream-header">
         <div className="Stream-header-cont">
           <div className="Stream-header-cont-cont">          
-              <h1 className="Stream-title11">
-              {streamName ? streamName : "Название потока не получено"}
-            </h1>
             <h1 className="Stream-title11">
-              {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate: "Название потока не получено"}
+              {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+                ? (streamName ? streamName : "Название потока не получено")
+                : "Track-me"
+              }
             </h1>
+            {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
+              <h1 className="Stream-title11">
+                {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate : "Название потока не получено"}
+              </h1>
+            )}
           </div>
 
           <div className="Stream-buttons">
@@ -326,7 +323,13 @@ function TrackerPage() {
               />
             </div>
           </div>
-          <Link to="/team-card"><button className="Stream-butt">+ Создать карточку</button></Link>
+          <button
+            className="Stream-butt"
+            onClick={() => {
+              navigate(`/teamcard/create`);
+            }}>
+            + Создать карточку
+          </button>
         </div>
         {/* Панель фильтров */}
         {isVisible && (
@@ -477,9 +480,15 @@ function TrackerPage() {
           <p className="error-message">{error}</p>
         ) : filteredCards.length > 0 ? (
           visibleCards.map((card) => (
-            <div className="card" key={card.id}>
+            <div
+              className="card"
+              key={card.id}
+              onClick={() => navigate(`/teamcard/${card.id}?userId=${card.userId}`)}
+              style={{ cursor: "pointer" }}
+            >
               <div className="card-image" />
               <span className="status-completed">Завершено</span>
+          
               <div className="card-content">
                 <div className="text-container project-title">
                   <h3>{card.name}</h3>
@@ -489,12 +498,7 @@ function TrackerPage() {
                 </div>
                 <div className="under-cont">
                   <div className="text-container project-markets">
-                    <p>
-                      Рынки НТИ:{" "}
-                      {card.ntiMarket
-                        ? card.ntiMarket.displayName
-                        : "Неизвестен"}
-                    </p>
+                    <p>Рынки НТИ: {card.ntiMarket ? card.ntiMarket.displayName : "Неизвестен"}</p>
                   </div>
                   <div className="text-container project-trl">
                     <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
@@ -504,7 +508,16 @@ function TrackerPage() {
                   </div>
                 </div>
               </div>
-              <button className="edit-button">Редактировать</button>
+          
+              <button
+                className="edit-button"
+                onClick={(e) => {
+                  e.stopPropagation(); // чтобы не срабатывал переход по карточке
+                  navigate(`/teamcard/${card.id}?userId=${card.userId}&edit=true`);
+                }}
+              >
+                Редактировать
+              </button>
             </div>
           ))
         ) : (

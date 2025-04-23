@@ -1,130 +1,483 @@
-.team-card-container {
-    display: flex;
-    justify-content: center;
+@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #ffffff;
+    color: #333;
+  }
+
+.team-card-widget-container {
+    position: relative;
+    max-width: 1900px;
+    min-width: 80vh;
+    min-height: 80vh;
+    max-height: 1000px;
+    margin: 40px auto;
     padding: 40px;
-    background-color: #f4f4f4;
-    min-height: 100vh;
-    box-sizing: border-box;
+    background: #fff;
+    border-radius: 40px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+    display: flex;
 }
 
-.team-card {
-    background: white;
-    padding: 30px;
+.close-button-widget {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 24px;
+  background: transparent;
+  border: none;
+  color: #8e44fd;
+  cursor: pointer;
+  top: 38px;
+  right: 50px;
+}
+
+.team-title-widget {
+    font-size: 24px;
+    color: #333;
+    font-weight: 600;
+    position: absolute;
+    top: 40px;
+    left: 40px;
+}
+
+.edit-button-widget {
+    background: #8B5CF6;
+    color: white;
+    border: none;
+    padding: 10px 25px;
     border-radius: 20px;
-    width: 90%;
-    max-width: 1200px;
-    height: auto;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 500;
+    position: absolute;
+    top: 38px;
+    right: 137px;
+}
+
+.edit-button-widget:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: #a169f7;
+}
+
+.edit-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.team-card-content {
+    display: flex;
+    min-width: 80vh;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 40px;
+    height: calc(100% - 200px);
+}
+
+.left-column {
+  margin-top: 40px;
+  width: 50%;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.right-panel {
+    width: 300px;
+    position: absolute;
+    right: 80px;
+    top: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.inputs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-bottom: 30px;
+}
+
+.team-info-widget {
+    width: 100%;
+}
+
+.team-label-widget {
+    display: block;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.team-input-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+}
+
+.team-input-widget {
+    width: 100%;
+    height: 40px;
+    padding: 0 48px 0 20px;
+    border: none;
+    background: #a169f7;
+    border-radius: 20px;
+    color: #fff;
+    font-size: 16px;
+    line-height: 40px;
+    box-sizing: border-box;
+    max-width: 600px;
+}
+
+.team-input-widget::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.team-input-widget:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+textarea.team-input-widget {
+    min-height: 80px;
+    line-height: 1.4;
+}
+
+select.team-input-widget {
+    appearance: none;
+    padding-right: 30px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+}
+
+select.team-input-widget option {
+    background: #8B5CF6;
+    color: white;
+}
+
+.dropdown-block {
+    width: 100%;
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.dropdown-toggle {
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+    background: #caa7f9;
+    padding: 14px 20px;
+    border: none;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    text-align: center;
+    position: relative;
+    opacity: 1;
+    transition: opacity 0.3s, background-color 0.3s;
+}
+
+.dropdown-toggle.editable {
+    cursor: pointer;
+}
+
+.dropdown-toggle.editable::after {
+    content: "▾";
+    position: absolute;
+    right: 14px;
+    font-size: 12px;
+}
+
+
+.dropdown-toggle:not(.editable) {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.dropdown-list {
+    background: #caa7f9;
+    min-width: 260px;
+    max-width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px 14px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #8e44fd #caa7f9;
+}
+
+.dropdown-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dropdown-list::-webkit-scrollbar-track {
+    background: #caa7f9;
+    border-radius: 4px;
+}
+
+.dropdown-list::-webkit-scrollbar-thumb {
+    background-color: #8e44fd;
+    border-radius: 4px;
+    border: 2px solid #caa7f9;
+}
+
+.dropdown-item {
+    color: white;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    cursor: pointer;
+}
+
+.meeting-title-widget {
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 20px;
+}
+
+.meetings-section {
+    display: flex;
+    align-items: start;
+    margin-top: 20px;
+}
+
+.meetings-left {
+    flex: 1;
+}
+
+.meetings-grid-widget {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 10px;
+    margin-top: 5px;
+}
+
+.meeting-item-widget {
+    width: 230px;
+    height: 175px;
+    border-radius: 70px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Заголовок */
-.team-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-/* Информация о команде */
-.team-info {
-    width: 80%;
-    margin-bottom: 15px;
-}
-
-.team-label {
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-.team-input {
-    width: 100%;
-    background: #eee;
-    padding: 10px;
-    border-radius: 10px;
-}
-
-/* Сетка встреч */
-.meetings-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    margin-top: 20px;
-    width: 80%;
-}
-
-.meeting-item {
-    background: #8338EB;
+.meeting-item-widget.done {
+    background: #8B5CF6;
     color: white;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 15px;
+}
+
+.meeting-item-widget.planned {
+    background: #9CA3AF;
+    color: white;
+}
+
+.meeting-item-widget.add {
+    background: #9CA3AF;
+    color: white;
+    font-size: 24px;
+}
+
+.meeting-number-widget {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.meeting-date-widget {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.check-mark-widget {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 12px;
+}
+
+.pagination-widget {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    margin-left: 5px;
+}
+
+.dot-widget {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #D1D5DB;
+    cursor: pointer;
+}
+
+.dot-widget.active {
+    background: #8B5CF6;
+    width: 8px;
+    height: 8px;
+}
+
+.button-group-widget {
+    display: flex;
+    gap: 20px;
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+}
+
+.purple-button-widget {
+    background: #8B5CF6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
     border-radius: 20px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    min-width: 200px;
+    height: 49px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 40px;
+    bottom: 40px;
+}
+
+.purple-button-widget.editing {
+    cursor: pointer;
+    background: #7B52AB;
+}
+
+.purple-button-widget span {
+    display: inline-block;
     text-align: center;
+    width: 100%;
 }
 
-/* Дата встречи */
-.meeting-date {
-    font-size: 14px;
-    display: block;
-    margin-top: 5px;
-    opacity: 0.8;
+.purple-button-widget:disabled {
+    opacity: 0.7;
+    cursor: default;
 }
 
-/* Пагинация */
-.pagination {
+.red-button-container {
+    position: absolute;
+    right: 50px;
+    bottom: 33px;
+}
+
+.red-button-widget {
+    background: #EF4444;
+    color: white;
+    padding: 14px 32px;
+    font-size: 16px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.red-button-widget:hover {
+    background: #DC2626;
+}
+
+.stream-select {
+    width: 100%;
+    height: 49px;
+    padding: 0 15px;
+    border-radius: 20px;
+    border: none;
+    background: #8B5CF6;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+}
+
+.stream-select option {
+    background: #8B5CF6;
+    color: white;
+}
+
+.stream-attach-button-container {
+  position: absolute;
+  bottom: 33px;
+  left: 50px;
+  width: 300px;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    align-items: center;
+    z-index: 100;
 }
 
-.dot {
-    height: 10px;
-    width: 10px;
-    background-color: #bbb;
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #8e44fd;
     border-radius: 50%;
-    margin: 0 5px;
-    display: inline-block;
+    animation: spin 1s linear infinite;
 }
 
-.dot.active {
-    background-color: #8338EB;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* Кнопки */
-.button-group {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-    width: 80%;
-}
-
-.purple-button {
-    background: #8338EB;
-    color: white;
-    border: none;
+.error-message {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ffebee;
     padding: 10px 20px;
-    border-radius: 10px;
-    cursor: pointer;
+    border-radius: 4px;
+    color: #c62828;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-.red-button {
-    background: #e74c3c;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
-    cursor: pointer;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
 }
-
-.edit-button {
-    background: #3498db;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-  }

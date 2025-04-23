@@ -17,7 +17,7 @@ import TeamCard from "./accets/komand/team-card.js"
 import HomePage from "./accets/home/HomePage";
 import AfterLogin from "./accets/after-login/AfterLogin";
 import Logout from "./accets/logout/Logout";
-
+import TeamCardCreate from "./accets/create-teamcard/team-card-create.js";
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
 
@@ -43,7 +43,9 @@ function App() {
                 <Route path="/list-trackers" element={<TrackerList/>}/>
                 <Route path="/metcard" element={<MeetingCard/>}/>
                 <Route path="/team-card" element={<TeamCard/>}/>
-
+        <Route path="/teamcard/create" element={<TeamCardCreate />} />
+        <Route path="/teamcard/:id" element={<TeamCard />} />
+        <Route path="/meeting/new" element={<MeetingCard />} />
             </Routes>
         </Router>
     );
