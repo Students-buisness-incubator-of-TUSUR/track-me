@@ -13,4 +13,7 @@ import org.springframework.validation.annotation.Validated;
 public class AppProperties {
   @NotBlank
   private String afterLoginEndpoint;
+
+  @NotBlank
+  private String afterLogoutEndpoint;
 }

@@ -13,10 +13,8 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
-import org.springframework.web.cors.CorsConfiguration;
 
-import java.util.List;
-
+import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
@@ -36,19 +34,9 @@ public class OAuth2ClientConfiguration {
   SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
     http
         .csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .cors(cors -> cors.configurationSource(request -> {
-          var config = new CorsConfiguration();
-          config.setAllowedOrigins(List.of(
-              "http://127.0.0.1:3000",
-              "http://localhost:3000"
-          )); // или "*" для тестов
-          config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-          config.setAllowedHeaders(List.of("*"));
-          config.setAllowCredentials(true);
-          return config;
-        }))
         .authorizeExchange(exchange ->
-            exchange.anyExchange().authenticated())
+            exchange.pathMatchers(OPTIONS, "/**").permitAll()
+                .anyExchange().authenticated())
         .oauth2Login(oauth2Login ->
             oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler))
         .oauth2Client(withDefaults())
@@ -61,7 +49,7 @@ public class OAuth2ClientConfiguration {
   private void initializeHandlers() {
     var serverLogoutSuccessHandler =
         new OidcClientInitiatedServerLogoutSuccessHandler(this.clientRegistrationRepository);
-    serverLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}");
+    serverLogoutSuccessHandler.setPostLogoutRedirectUri(appProperties.getAfterLogoutEndpoint());
     this.logoutSuccessHandler = serverLogoutSuccessHandler;
 
     this.authenticationSuccessHandler = new RedirectServerAuthenticationSuccessHandler(

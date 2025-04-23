@@ -2,13 +2,29 @@ server:
   port: 8081
 
 app:
-  after-login-endpoint: ${FRONTEND_URL:http://127.0.0.1:3000/after-login}
+  after-login-endpoint: ${FRONTEND_LOGIN_URL:http://127.0.0.1:3000/after-login}
+  after-logout-endpoint: ${FRONTEND_LOGOUT_URL:http://127.0.0.1:3000}
 
 spring:
   application:
     name: track-me-gateway
   cloud:
     gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://127.0.0.1:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
       routes:
         - id: track-me-backend
           uri: http://localhost:8080
