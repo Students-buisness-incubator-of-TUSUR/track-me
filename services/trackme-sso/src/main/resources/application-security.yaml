@@ -7,3 +7,6 @@ spring:
         authorization-ttl: 720000ms
         authorization-consent-ttl: 720000ms
         registration-confirmation-endpoint: /client/registration-confirm
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9000

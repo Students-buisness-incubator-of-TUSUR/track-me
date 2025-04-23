@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class AuthorizedUser extends User implements OAuth2User {
+
   private UUID id;
 
   private String fullName;
@@ -28,6 +30,17 @@ public class AuthorizedUser extends User implements OAuth2User {
   private Boolean accountNonLocked;
 
   private Map<String, Object> oauthAttributes;
+
+  public AuthorizedUser(String username, String password) {
+    super(username,
+        password,
+        true,
+        true,
+        true,
+        true,
+        Collections.emptyList());
+  }
+
 
   public AuthorizedUser(String username,
                         String password,

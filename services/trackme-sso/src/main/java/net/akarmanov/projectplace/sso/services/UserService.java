@@ -43,4 +43,8 @@ public interface UserService {
    * Проверить существует ли пользователь с указанным email
    */
   boolean existByEmail(String email);
+
+  UserEntity findById(UUID id);
+
+  void save(UserEntity userEntity);
 }

@@ -19,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
@@ -43,7 +42,7 @@ import static net.akarmanov.projectplace.sso.config.security.SecurityConfigurati
 
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
-public class OAuth2AuthorizationServerConfig {
+public class OAuth2AuthorizationServerConfiguration {
 
   private final AuthorizationServerProperties authorizationServerProperties;
 
@@ -144,7 +143,8 @@ public class OAuth2AuthorizationServerConfig {
 
   @Bean
   public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-    return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+    return org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration.jwtDecoder(
+        jwkSource);
   }
 
   @Bean

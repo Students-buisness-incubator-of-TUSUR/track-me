@@ -14,8 +14,10 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
@@ -23,7 +25,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RequiredArgsConstructor
 public class GlobalExceptionControllerAdvice {
 
-  @ExceptionHandler({NoResultException.class, EmptyResultDataAccessException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ExceptionHandler({NoResultException.class, EmptyResultDataAccessException.class, UsernameNotFoundException.class})
   public ResponseEntity<ErrorResponseDto> resolveNoResult(HttpServletRequest request,
                                                           Exception exception) {
     logRequestException(request, exception);
@@ -38,6 +41,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler({EntityNotFoundException.class})
   public ResponseEntity<ErrorResponseDto> resolveEntityNotFound(HttpServletRequest request,
                                                                 Exception exception) {
@@ -53,6 +57,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.FORBIDDEN)
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<ErrorResponseDto> resolveAccessDeniedException(
       HttpServletRequest request,
@@ -70,6 +75,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler({ConstraintViolationException.class})
   public ResponseEntity<ErrorResponseDto> resolveConstraintViolation(
       HttpServletRequest request,
@@ -87,6 +93,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<ErrorResponseDto> resolveIllegalArgument(
       HttpServletRequest request,
@@ -104,6 +111,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponseDto> resolveMethodArgumentNotValid(
       HttpServletRequest request,
@@ -121,6 +129,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(RegistrationException.class)
   public ResponseEntity<ErrorResponseDto> resolveRegistrationException(
       HttpServletRequest request,
@@ -138,6 +147,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(ConfirmRegistrationException.class)
   public ResponseEntity<ErrorResponseDto> resolveConfirmRegistrationException(
       HttpServletRequest request,
@@ -155,6 +165,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(ServiceException.class)
   public ResponseEntity<ErrorResponseDto> resolveServiceException(
       HttpServletRequest request,
@@ -173,6 +184,7 @@ public class GlobalExceptionControllerAdvice {
     );
   }
 
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponseDto> resolveGeneralException(
       HttpServletRequest request,

@@ -1,9 +1,10 @@
-package net.akarmanov.projectplace.sso.controller;
+package net.akarmanov.projectplace.sso.controller.impl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.akarmanov.projectplace.sso.controller.RegistrationController;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import net.akarmanov.projectplace.sso.services.RegistrationService;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class RegistrationControllerImpl implements RegistrationController {
+public class DefaultRegistrationController implements RegistrationController {
   private final RegistrationService registrationService;
 
   @Override

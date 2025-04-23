@@ -9,13 +9,14 @@ import net.akarmanov.projectplace.sso.dto.AuthProvider;
 import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import net.akarmanov.projectplace.sso.exception.AuthException;
-import net.akarmanov.projectplace.sso.exception.RegistrationException;
 import net.akarmanov.projectplace.sso.mapper.AuthorizedUserMapper;
 import net.akarmanov.projectplace.sso.services.UserService;
 import net.akarmanov.projectplace.sso.type.AuthErrorCode;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -36,8 +37,9 @@ public class DefaultUserService implements UserService {
   @Override
   public UserEntity save(OAuth2User userDto, AuthProvider provider) {
     return switch (provider) {
-      case GITHUB -> this.saveUserFromGithab(userDto);
+      case GITHUB -> this.saveUserFromGithub(userDto);
       case GOOGLE -> this.saveUserFromGoogle(userDto);
+      case TELEGRAM -> null;
     };
   }
 
@@ -54,7 +56,7 @@ public class DefaultUserService implements UserService {
   /**
    * Метод описывающий создание/обновление UserEntity на основе OAuth2User полученного из провайдера Github
    */
-  private UserEntity saveUserFromGithab(OAuth2User userDto) {
+  private UserEntity saveUserFromGithub(OAuth2User userDto) {
     String email = userDto.getAttribute("email");           // пытаемся получить атрибут email
     UserEntity user = this.getEntityByEmail(email);
 
@@ -125,6 +127,7 @@ public class DefaultUserService implements UserService {
     user.setEmail(userDto.email());
     user.setUsername(userDto.username());
     user.setFullName(userDto.fullName());
+    user.setPhoneNumber(userDto.phoneNumber());
     user.setActive(false);
     user.getRoles().add(roleRepository.findByCode(userDto.role())
         .orElseThrow(() -> new AuthException(AuthErrorCode.ROLE_NOT_FOUND)));
@@ -143,7 +146,7 @@ public class DefaultUserService implements UserService {
   public UserEntity firstActivation(UUID userId, String password) {
     Optional<UserEntity> userEntityOptional = this.userRepository.findById(userId);
     if (userEntityOptional.isEmpty()) {
-      throw new RegistrationException("$user.not.found");
+      throw new AuthException(AuthErrorCode.USER_ACTIVATION_FAILED);
     }
     UserEntity userEntity = userEntityOptional.get();
     userEntity.setPasswordHash(passwordEncoder.encode(password));
@@ -167,5 +170,17 @@ public class DefaultUserService implements UserService {
   @Override
   public boolean existByEmail(String email) {
     return userRepository.existsByEmail(email);
+  }
+
+  @Override
+  public UserEntity findById(UUID id) {
+    return userRepository.findById(id)
+        .orElseThrow(() -> new UsernameNotFoundException(id.toString()));
+  }
+
+  @Override
+  public void save(UserEntity userEntity) {
+    Assert.notNull(userEntity, "UserEntity must not be null");
+    userRepository.save(userEntity);
   }
 }
