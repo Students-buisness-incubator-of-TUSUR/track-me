@@ -7,9 +7,11 @@ databaseChangeLog:
           not:
             columnExists:
               tableName: team_card
+              schemaName: ${db_schema}
               columnName: nti_market_id
       changes:
         - addColumn:
+            schemaName: ${db_schema}
             tableName: team_card
             columns:
               - column:
@@ -17,10 +19,11 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     foreignKeyName: fk_team_card_nti_market_id
-                    references: nti_market(id)
+                    references: ${db_schema}.nti_market(id)
                     nullable: false
       rollback:
         - dropColumn:
+            schemaName: ${db_schema}
             tableName: team_card
             columnName: nti_market_id
   - changeSet:
@@ -30,10 +33,12 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             columnExists:
+              schemaName: ${db_schema}
               tableName: team_card
               columnName: readiness_level
       changes:
         - addColumn:
+            schemaName: ${db_schema}
             tableName: team_card
             columns:
               - column:
@@ -43,5 +48,6 @@ databaseChangeLog:
                     nullable: false
       rollback:
         - dropColumn:
+            schemaName: ${db_schema}
             tableName: team_card
             columnName: readiness_level

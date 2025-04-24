@@ -6,7 +6,7 @@ databaseChangeLog:
       preConditions:
         - onFail: MARK_RAN
           sqlCheck:
-            sql: "SELECT COUNT(*) FROM nti_market"
+            sql: "SELECT COUNT(*) FROM ${db_schema}.nti_market"
             expectedResult: "0"
       changes:
         - sqlFile:

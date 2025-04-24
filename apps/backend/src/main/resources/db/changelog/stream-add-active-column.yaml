@@ -4,6 +4,7 @@ databaseChangeLog:
       author: akarmanov
       changes:
         - addColumn:
+            schemaName: ${db_schema}
             tableName: stream
             columns:
               - column:
@@ -15,10 +16,5 @@ databaseChangeLog:
       rollback:
         - dropColumn:
             columnName: active
+            schemaName: ${db_schema}
             tableName: stream
-  - changeSet:
-      id: remove-streams-users-table-1
-      author: akarmanov
-      changes:
-        - dropTable:
-            tableName: stream_user

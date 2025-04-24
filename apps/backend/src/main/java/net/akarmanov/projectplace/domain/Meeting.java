@@ -1,7 +1,6 @@
 package net.akarmanov.projectplace.domain;
 
 import jakarta.persistence.Basic;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +21,6 @@ import net.akarmanov.projectplace.models.MeetingStatus;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.OffsetDateTime;
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -64,11 +61,6 @@ public class Meeting {
   @JoinColumn(name = "team_id",
               nullable = false)
   private TeamCard teamCard;
-
-  @OneToMany(mappedBy = "meeting",
-             cascade = CascadeType.ALL,
-             fetch = FetchType.EAGER)
-  private Set<Task> meetingTasks;
 
   @Column(name = "tasks_current", length = 2048)
   private String tasksCurrentMeeting;

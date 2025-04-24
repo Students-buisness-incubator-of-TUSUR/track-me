@@ -1,68 +1,17 @@
 databaseChangeLog:
   - changeSet:
-      id: project-place-1
-      author: Arseniy Karmanov
-      preConditions:
-        - onFail: MARK_RAN
-          not:
-            - tableExists:
-                tableName: pp_user
-      changes:
-        - createTable:
-            tableName: pp_user
-            columns:
-              - column:
-                  name: id
-                  type: UUID
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: first_name
-                  type: VARCHAR(255)
-              - column:
-                  name: password
-                  type: VARCHAR(255)
-                  constraints:
-                    unique: true
-                    nullable: false
-              - column:
-                  name: last_name
-                  type: VARCHAR(255)
-              - column:
-                  name: middle_name
-                  type: VARCHAR(255)
-              - column:
-                  name: phone_number
-                  type: VARCHAR(32)
-                  constraints:
-                    unique: true
-              - column:
-                  name: telegram_id
-                  type: VARCHAR(32)
-                  constraints:
-                    unique: true
-                    nullable: false
-              - column:
-                  name: role
-                  type: VARCHAR(32)
-                  constraints:
-                    nullable: false
-        - addUniqueConstraint:
-            columnNames: telegram_id, phone_number
-            tableName: pp_user
-            constraintName: uq_users_telegram_phone
-  - changeSet:
       id: project-place-2
       author: Arseniy Karmanov
       preConditions:
         - onFail: MARK_RAN
           not:
             - tableExists:
+                schemaName: ${db_schema}
                 tableName: team_card
       changes:
         - createTable:
             tableName: team_card
+            schemaName: ${db_schema}
             columns:
               - column:
                   name: id
@@ -101,6 +50,7 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: meeting
+            schemaName: ${db_schema}
             columns:
               - column:
                   name: id
@@ -144,6 +94,8 @@ databaseChangeLog:
             referencedTableName: team_card
             referencedColumnNames: id
             constraintName: fk_meetings_team
+            baseTableSchemaName: ${db_schema}
+            referencedTableSchemaName: ${db_schema}
   - changeSet:
       id: project-place-4
       author: Arseniy Karmanov
@@ -155,6 +107,7 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: stream
+            schemaName: ${db_schema}
             columns:
               - column:
                   name: id
@@ -183,55 +136,6 @@ databaseChangeLog:
                   constraints:
                     nullable: true
   - changeSet:
-      id: project-place-5
-      author: Arseniy Karmanov
-      preConditions:
-        - onFail: MARK_RAN
-          not:
-            - tableExists:
-                tableName: task
-      changes:
-        - createTable:
-            tableName: task
-            columns:
-              - column:
-                  name: id
-                  type: UUID
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: meeting_id
-                  type: UUID
-                  constraints:
-                    nullable: false
-              - column:
-                  name: link
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: number
-                  type: INTEGER
-                  constraints:
-                    nullable: false
-              - column:
-                  name: description
-                  type: TEXT
-                  constraints:
-                    nullable: true
-              - column:
-                  name: status
-                  type: VARCHAR(32)
-                  constraints:
-                    nullable: false
-        - addForeignKeyConstraint:
-            baseTableName: task
-            baseColumnNames: meeting_id
-            referencedTableName: meeting
-            referencedColumnNames: id
-            constraintName: fk_tasks_meeting
-  - changeSet:
       id: project-place-6
       author: Arseniy Karmanov
       preConditions:
@@ -242,6 +146,7 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: stream_team_card
+            schemaName: ${db_schema}
             columns:
               - column:
                   name: stream_id
@@ -256,6 +161,7 @@ databaseChangeLog:
         - addPrimaryKey:
             columnNames: stream_id, team_id
             tableName: stream_team_card
+            schemaName: ${db_schema}
             constraintName: pk_streams_team_cards
         - addForeignKeyConstraint:
             baseTableName: stream_team_card
@@ -263,128 +169,16 @@ databaseChangeLog:
             referencedTableName: stream
             referencedColumnNames: id
             constraintName: fk_streams_team_cards_stream
+            baseTableSchemaName: ${db_schema}
+            referencedTableSchemaName: ${db_schema}
         - addForeignKeyConstraint:
             baseTableName: stream_team_card
             baseColumnNames: team_id
             referencedTableName: team_card
             referencedColumnNames: id
             constraintName: fk_streams_team_cards_team
-  - changeSet:
-      id: project-place-9
-      author: Arseniy Karmanov
-      preConditions:
-        - onFail: MARK_RAN
-          not:
-            - tableExists:
-                tableName: stream_user
-      changes:
-        - createTable:
-            tableName: stream_user
-            columns:
-              - column:
-                  name: stream_id
-                  type: UUID
-                  constraints:
-                    nullable: false
-              - column:
-                  name: user_id
-                  type: UUID
-                  constraints:
-                    nullable: false
-        - addPrimaryKey:
-            columnNames: stream_id, user_id
-            tableName: stream_user
-            constraintName: pk_streams_users
-        - addForeignKeyConstraint:
-            baseTableName: stream_user
-            baseColumnNames: stream_id
-            referencedTableName: stream
-            referencedColumnNames: id
-            constraintName: fk_streams_users_stream
-        - addForeignKeyConstraint:
-            baseTableName: stream_user
-            baseColumnNames: user_id
-            referencedTableName: pp_user
-            referencedColumnNames: id
-            constraintName: fk_streams_users_tracker
-  - changeSet:
-      id: project-place-8
-      author: akarmanov
-      preConditions:
-        - onFail: MARK_RAN
-          not:
-            - tableExists:
-                tableName: user_photo
-      changes:
-        - createTable:
-            tableName: user_photo
-            columns:
-              - column:
-                  name: id
-                  type: UUID
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: user_id
-                  type: UUID
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: file_name
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: photo
-                  type: BLOB
-                  constraints:
-                    nullable: false
-        - addForeignKeyConstraint:
-            baseTableName: user_photo
-            baseColumnNames: user_id
-            referencedTableName: pp_user
-            referencedColumnNames: id
-            constraintName: fk_user_photos_user
-  - changeSet:
-      id: project-place-10
-      author: akarmanov
-      preConditions:
-        - onFail: MARK_RAN
-          not:
-            - columnExists:
-                tableName: pp_user
-                columnName: enabled
-      changes:
-        - addColumn:
-            tableName: pp_user
-            columns:
-              - column:
-                  name: enabled
-                  type: BOOLEAN
-                  constraints:
-                    nullable: false
-                  defaultValueBoolean: false
-  - changeSet:
-      id: project-place-11
-      author: akarmanov
-      preConditions:
-        - onFail: MARK_RAN
-          not:
-            - columnExists:
-                tableName: pp_user
-                columnName: email
-      changes:
-        - addColumn:
-            tableName: pp_user
-            columns:
-              - column:
-                  name: email
-                  type: VARCHAR(255)
-                  constraints:
-                    unique: true
-                    nullable: false
+            baseTableSchemaName: ${db_schema}
+            referencedTableSchemaName: ${db_schema}
   - changeSet:
       id: project-place-12
       author: akarmanov
@@ -392,10 +186,12 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
+                schemaName: ${db_schema}
                 tableName: nti_market
       changes:
         - createTable:
             tableName: nti_market
+            schemaName: ${db_schema}
             columns:
               - column:
                   name: id
@@ -421,10 +217,12 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - tableExists:
+                schemaName: ${db_schema}
                 tableName: stream_nti_market
       changes:
         - createTable:
             tableName: stream_nti_market
+            schemaName: ${db_schema}
             columns:
               - column:
                   name: stream_id
@@ -438,73 +236,4 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
-  - changeSet:
-      id: project-place-14
-      author: akarmanov
-      changes:
-        - createTable:
-            tableName: password_reset_token
-            columns:
-              - column:
-                  name: id
-                  type: UUID
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: user_id
-                  type: UUID
-                  constraints:
-                    nullable: false
-              - column:
-                  name: token
-                  type: VARCHAR(255)
-                  constraints:
-                    unique: true
-                    nullable: false
-              - column:
-                  name: expiration_date
-                  type: TIMESTAMP
-                  constraints:
-                    nullable: false
-        - addForeignKeyConstraint:
-            baseTableName: password_reset_token
-            baseColumnNames: user_id
-            referencedTableName: pp_user
-            referencedColumnNames: id
-            constraintName: fk_password_reset_token_user
-
-  - changeSet:
-      id: project-place-15
-      author: akarmanov
-      changes:
-        - addColumn:
-            tableName: pp_user
-            columns:
-              - column:
-                  name: account_non_expired
-                  type: BOOLEAN
-                  constraints:
-                    nullable: false
-                  defaultValueBoolean: true
-              - column:
-                  name: credentials_non_expired
-                  type: BOOLEAN
-                  constraints:
-                    nullable: false
-                  defaultValueBoolean: true
-
-  - changeSet:
-      id: groups-initial
-      author: akarmanov
-      preConditions:
-        - onFail: MARK_RAN
-          not:
-            - tableExists:
-                tableName: groups
-      changes:
-        - sqlFile:
-            path: sql/initial-groups.sql
-            dbms: postgresql
-            relativeToChangelogFile: true
 

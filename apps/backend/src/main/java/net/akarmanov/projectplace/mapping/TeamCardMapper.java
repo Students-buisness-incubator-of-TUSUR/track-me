@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, NtiMarketMapper.class})
+@Mapper(componentModel = "spring", uses = {NtiMarketMapper.class})
 public interface TeamCardMapper {
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "streams", ignore = true)

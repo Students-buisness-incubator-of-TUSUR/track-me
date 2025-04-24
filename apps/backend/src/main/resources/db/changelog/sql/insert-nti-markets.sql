@@ -1,4 +1,4 @@
-INSERT INTO nti_market (id, name, display_name)
+INSERT INTO backend.nti_market (id, name, display_name)
 VALUES (gen_random_uuid(), 'AERO_NET', 'AeroNet'),
        (gen_random_uuid(), 'AUTO_NET', 'AutoNet'),
        (gen_random_uuid(), 'ECO_NET', 'EcoNet'),

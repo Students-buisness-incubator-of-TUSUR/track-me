@@ -6,8 +6,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           columnExists:
             tableName: stream
+            schemaName: ${db_schema}
             columnName: readiness_level
       changes:
         - dropColumn:
             tableName: stream
+            schemaName: ${db_schema}
             columnName: readiness_level

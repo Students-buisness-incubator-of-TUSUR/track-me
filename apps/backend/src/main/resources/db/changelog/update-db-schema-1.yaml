@@ -6,13 +6,16 @@ databaseChangeLog:
         - onFail: MARK_RAN
           or:
             - tableExists:
+                schemaName: ${db_schema}
                 tableName: stream
             - not:
                 - columnExists:
+                    schemaName: ${db_schema}
                     tableName: stream
                     columnName: teams_count
       changes:
         - dropColumn:
+            schemaName: ${db_schema}
             tableName: stream
             columnName: teams_count
   - changeSet:
@@ -22,10 +25,12 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - columnExists:
+                schemaName: ${db_schema}
                 tableName: stream
                 columnName: readiness_level
       changes:
         - addColumn:
+            schemaName: ${db_schema}
             tableName: stream
             columns:
               - column:
@@ -40,10 +45,12 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - columnExists:
+                schemaName: ${db_schema}
                 tableName: stream
                 columnName: nti_market
       changes:
         - addColumn:
+            schemaName: ${db_schema}
             tableName: stream
             columns:
               - column:
@@ -58,10 +65,12 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             - columnExists:
+                schemaName: ${db_schema}
                 tableName: team_card
                 columnName: enabled
       changes:
         - addColumn:
+            schemaName: ${db_schema}
             tableName: team_card
             columns:
               - column:

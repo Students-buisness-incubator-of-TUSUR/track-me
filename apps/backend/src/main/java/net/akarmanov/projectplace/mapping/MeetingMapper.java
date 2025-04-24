@@ -9,10 +9,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(
-    componentModel = "spring",
-    uses = {
-        TaskMapper.class,
-    })
+    componentModel = "spring")
 public interface
 MeetingMapper {
   @Mapping(target = "teamCard",
@@ -21,14 +18,10 @@ MeetingMapper {
            ignore = true)
   @Mapping(target = "screenshot",
            ignore = true)
-  @Mapping(target = "meetingTasks",
-           ignore = true)
   @Mapping(target = "id",
            ignore = true)
   Meeting mapToEntity(MeetingCreateDto meetingCreateDto);
 
-  @Mapping(target = "tasks",
-           source = "meetingTasks")
   @Mapping(target = "teamCardId",
            source = "teamCard.id")
   MeetingDto mapToDto(Meeting meeting);
@@ -39,8 +32,6 @@ MeetingMapper {
            ignore = true)
   @Mapping(target = "screenshot",
            ignore = true)
-  @Mapping(target = "meetingTasks",
-           ignore = true)
   @Mapping(target = "id",
            ignore = true)
   void updateEntity(@MappingTarget Meeting meeting, MeetingUpdateDto meetingCreateDto);
@@ -50,8 +41,6 @@ MeetingMapper {
   @Mapping(target = "startDate",
            ignore = true)
   @Mapping(target = "screenshot",
-           ignore = true)
-  @Mapping(target = "meetingTasks",
            ignore = true)
   @Mapping(target = "id",
            ignore = true)

@@ -6,10 +6,12 @@ databaseChangeLog:
         - onFail: MARK_RAN
           not:
             columnExists:
+              schemaName: ${db_schema}
               tableName: stream
               columnName: description
       changes:
         - addColumn:
+            schemaName: ${db_schema}
             tableName: stream
             columns:
               - column:

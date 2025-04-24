@@ -2,11 +2,7 @@ package net.akarmanov.projectplace.rest;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import net.akarmanov.projectplace.commons.filters.FilterFieldNotAllowedException;
 import net.akarmanov.projectplace.services.exceptions.PPNotFoundException;
-import net.akarmanov.projectplace.services.reset.ExpiredTokenException;
-import net.akarmanov.projectplace.services.reset.InvalidTokenException;
-import net.akarmanov.projectplace.services.user.UserRegistrationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,22 +87,6 @@ public class DefaultExceptionHandler {
     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(restError);
   }
 
-  // обработчик ошибок фильтрации сущностей JPA Specification
-  @ResponseBody
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler({
-      IllegalArgumentException.class,
-      FilterFieldNotAllowedException.class,
-      InvalidTokenException.class,
-      ExpiredTokenException.class})
-  public ResponseEntity<RestError> handleIllegalArgumentException(Exception ex) {
-    var restError = RestError.builder()
-        .code(HttpStatus.BAD_REQUEST.toString())
-        .message(ex.getMessage())
-        .build();
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(restError);
-  }
-
   @ResponseBody
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(DataIntegrityViolationException.class)
@@ -117,17 +97,5 @@ public class DefaultExceptionHandler {
         .message(ex.getMessage())
         .build();
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(restError);
-  }
-
-  @ResponseBody
-  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler(UserRegistrationException.class)
-  public ResponseEntity<RestError> handleException(Exception ex) {
-    log.error("Internal server error", ex);
-    var restError = RestError.builder()
-        .code(HttpStatus.INTERNAL_SERVER_ERROR.toString())
-        .message("Внутренняя ошибка сервера.")
-        .build();
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(restError);
   }
 }

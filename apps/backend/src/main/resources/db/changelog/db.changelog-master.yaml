@@ -1,4 +1,9 @@
 databaseChangeLog:
+  - property:
+      name: db_schema
+      value: backend
+  - include:
+      file: db/changelog/create-schema.sql
   - include:
       file: db/changelog/initial-schema.yaml
   - include:
@@ -10,8 +15,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/remove-nti-market-column.yaml
   - include:
-      file: db/changelog/users-add-fullname-column.yaml
-  - include:
       file: db/changelog/stream-add-image-column.yaml
   - include:
       file: db/changelog/team-card-add-nti-market-id-column.yaml
@@ -19,8 +22,6 @@ databaseChangeLog:
       file: db/changelog/stream-add-description-column.yaml
   - include:
       file: db/changelog/stream-remove-readiness-column.yaml
-  - include:
-      file: db/changelog/users-add-deleted-column.yaml
   - include:
       file: db/changelog/meeting-add-tasks-columns.yaml
   - include:

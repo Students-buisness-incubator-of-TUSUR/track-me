@@ -7,8 +7,10 @@ databaseChangeLog:
         - onFail: MARK_RAN
           columnExists:
             tableName: stream
+            schemaName: ${db_schema}
             columnName: nti_market
       changes:
         - dropColumn:
+            schemaName: ${db_schema}
             tableName: stream
             columnName: nti_market

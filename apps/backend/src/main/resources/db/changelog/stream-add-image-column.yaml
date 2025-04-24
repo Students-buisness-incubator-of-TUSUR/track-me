@@ -7,9 +7,11 @@ databaseChangeLog:
           not:
             columnExists:
               tableName: stream
+              schemaName: ${db_schema}
               columnName: image
       changes:
         - addColumn:
+            schemaName: ${db_schema}
             tableName: stream
             columns:
               - column:

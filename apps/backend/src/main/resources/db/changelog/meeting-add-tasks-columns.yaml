@@ -8,14 +8,17 @@ databaseChangeLog:
             - not:
                 columnExists:
                   tableName: meeting
+                  schemaName: ${db_schema}
                   columnName: tasks_current
             - not:
                 columnExists:
                   tableName: meeting
                   columnName: tasks_next
+                  schemaName: ${db_schema}
       changes:
         - addColumn:
             tableName: meeting
+            schemaName: ${db_schema}
             columns:
               - column:
                   name: tasks_current
