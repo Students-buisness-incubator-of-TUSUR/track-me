@@ -3,6 +3,9 @@ rootProject.name = 'trackme'
 include ':backend'
 project(':backend').projectDir = file('apps/backend')
 
+include ':frontend'
+project(':frontend').projectDir = file('apps/frontend')
+
 include ':trackme-gateway'
 project(':trackme-gateway').projectDir = file('apps/trackme-gateway')
 

@@ -1,5 +1,22 @@
 plugins {
     id 'war'
+    id 'java'
+    id 'org.springframework.boot'
+    id 'jacoco'
+    id 'io.spring.dependency-management'
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 configurations {
