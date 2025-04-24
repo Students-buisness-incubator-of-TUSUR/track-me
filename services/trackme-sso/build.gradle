@@ -34,7 +34,7 @@ dependencies {
 
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'org.springframework.boot:spring-boot-docker-compose'
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     runtimeOnly 'org.postgresql:postgresql'
 
     annotationProcessor 'org.projectlombok:lombok'
@@ -75,7 +75,7 @@ springBoot {
 node {
     version = '23.10.0'
     npmVersion = '10.9.2'
-    download = true
+    download = false
     nodeProjectDir = file("${projectDir}/frontend")
 }
 
