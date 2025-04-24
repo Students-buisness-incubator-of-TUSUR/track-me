@@ -1,6 +1,7 @@
-DROP TABLE IF EXISTS acl_entry CASCADE;
-DROP TABLE IF EXISTS acl_object_identity CASCADE;
-DROP TABLE IF EXISTS acl_class CASCADE;
-DROP TABLE IF EXISTS acl_sid CASCADE;
+DROP TABLE IF EXISTS backend.acl_entry CASCADE;
+DROP TABLE IF EXISTS backend.acl_object_identity CASCADE;
+DROP TABLE IF EXISTS backend.acl_class CASCADE;
+DROP TABLE IF EXISTS backend.acl_sid CASCADE;
 
-DELETE FROM nti_market;
+DELETE
+FROM backend.nti_market;
