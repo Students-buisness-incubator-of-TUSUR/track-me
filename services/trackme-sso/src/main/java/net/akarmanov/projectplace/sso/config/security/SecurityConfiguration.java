@@ -29,6 +29,7 @@ public class SecurityConfiguration {
       "/registration-success",
       "/static/**",
       "/client/**",
+      "/actuator/**",
       "/v3/api-docs",
       "/api/v1/registration/**",
       "/v3/api-docs/swagger-config"
