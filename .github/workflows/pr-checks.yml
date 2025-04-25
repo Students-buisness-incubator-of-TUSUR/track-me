@@ -107,12 +107,7 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('trackme-gateway/gradle/wrapper/gradle-wrapper.properties', 'trackme-gateway/build.gradle*') }}
       - name: Build, Test & Jacoco Gateway
-        run: ./gradlew :trackme-gateway:clean :trackme-gateway:build :trackme-gateway:jacocoTestReport
-      - name: Upload Gateway Jacoco Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: gateway-jacoco
-          path: apps/trackme-gateway/build/reports/jacoco/test/jacocoTestReport.xml
+        run: ./gradlew :trackme-gateway:clean :trackme-gateway:build
 
   trackme-sso-check:
     runs-on: ubuntu-latest
@@ -165,17 +160,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-jacoco
-          path: backend/build/reports/jacoco/test/
-      - name: Download Gateway Jacoco Report
-        uses: actions/download-artifact@v4
-        with:
-          name: gateway-jacoco
-          path: trackme-gateway/build/reports/jacoco/test/
+          path: apps/backend/build/reports/jacoco/test/
       - name: Download SSO Jacoco Report
         uses: actions/download-artifact@v4
         with:
           name: sso-jacoco
-          path: trackme-sso/build/reports/jacoco/test/
+          path: services/trackme-sso/build/reports/jacoco/test/
       - name: Download frontend coverage
         uses: actions/download-artifact@v4
         with:
@@ -194,5 +184,5 @@ jobs:
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
-            -Dsonar.coverage.jacoco.xmlReportPaths=backend/build/reports/jacoco/test/jacocoTestReport.xml,trackme-gateway/build/reports/jacoco/test/jacocoTestReport.xml,trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml \
+            -Dsonar.coverage.jacoco.xmlReportPaths=apps/backend/build/reports/jacoco/test/jacocoTestReport.xml,services/trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml \
             -Dsonar.javascript.lcov.reportPaths=apps/frontend/coverage/lcov.info
