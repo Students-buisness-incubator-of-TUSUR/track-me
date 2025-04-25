@@ -1,20 +1,15 @@
 package net.akarmanov.projectplace;
 
 import net.akarmanov.projectplace.domain.Stream;
-import net.akarmanov.projectplace.domain.User;
-import net.akarmanov.projectplace.models.UserRole;
 import net.akarmanov.projectplace.repos.StreamRepository;
-import net.akarmanov.projectplace.repos.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -28,50 +23,30 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
     properties = {
         "JWT_SECRET=12345678905675675674564564566756756756745645656"
     })
-@Sql(value = {"classpath:initial-data.sql"},
-     executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public abstract class BaseApplicationTest extends AbstractIntegrationTest {
 
-  public static final String USERNAME = "test_superadmin";
-
-  public static final String PASSWORD = "123456";
+  public static final String USER = "550e8400-e29b-41d4-a716-446655440000";
 
   @Autowired
   protected MockMvc mockMvc;
 
-  protected User user;
-
-  @Autowired
-  protected UserRepository userRepository;
-
   @Autowired
   protected StreamRepository streamRepository;
 
-  @Autowired
-  private PasswordEncoder passwordEncoder;
+  protected Stream stream;
 
   @BeforeEach
   void initUser() {
-    streamRepository.save(Stream.builder()
+    stream = streamRepository.save(Stream.builder()
         .name("stream 1")
         .startDate(LocalDate.now())
         .active(true)
         .endDate(LocalDate.now().plusDays(1))
         .build());
-    user = userRepository.save(User.builder()
-        .enabled(true)
-        .telegramId(USERNAME)
-        .email("test@test.test")
-        .password(passwordEncoder.encode(PASSWORD))
-        .role(UserRole.SUPER_ADMIN)
-        .build()
-    );
-
   }
 
   @AfterEach
   void deleteUser() {
-    userRepository.deleteAll();
-    streamRepository.deleteAll();
+    streamRepository.deleteAllInBatch();
   }
 }

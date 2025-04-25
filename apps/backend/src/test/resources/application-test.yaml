@@ -29,7 +29,8 @@ spring:
 
   liquibase:
     enabled: true
-    default-schema: public
+    default-schema: backend
+    liquibase-schema: backend
 
 app:
   acl:

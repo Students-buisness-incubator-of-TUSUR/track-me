@@ -2,6 +2,7 @@ package net.akarmanov.projectplace.rest;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import net.akarmanov.projectplace.commons.filters.FilterFieldNotAllowedException;
 import net.akarmanov.projectplace.services.exceptions.PPNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -61,6 +62,18 @@ public class DefaultExceptionHandler {
         .errors(errors)
         .build();
 
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(restError);
+  }
+
+  @ResponseBody
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(FilterFieldNotAllowedException.class)
+  public ResponseEntity<RestError> handleFilterFieldNotAllowedException(
+      FilterFieldNotAllowedException ex) {
+    var restError = RestError.builder()
+        .code(HttpStatus.BAD_REQUEST.toString())
+        .message(ex.getMessage())
+        .build();
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(restError);
   }
 

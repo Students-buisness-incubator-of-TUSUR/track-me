@@ -1,4 +1,6 @@
-create table acl_sid
+create schema if not exists backend;
+
+create table backend.acl_sid
 (
     id        bigserial    not null primary key,
     principal boolean      not null,
@@ -6,7 +8,7 @@ create table acl_sid
     constraint unique_uk_1 unique (sid, principal)
 );
 
-create table acl_class
+create table backend.acl_class
 (
     id            bigserial    not null primary key,
     class         varchar(100) not null,
@@ -28,7 +30,7 @@ create table backend.acl_object_identity
     constraint foreign_fk_3 foreign key (owner_sid) references backend.acl_sid (id)
 );
 
-create table acl_entry
+create table backend.acl_entry
 (
     id                  bigserial primary key,
     acl_object_identity bigint  not null,

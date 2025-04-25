@@ -12,7 +12,8 @@ public abstract class AbstractIntegrationTest {
   @Container
   protected static final PostgreSQLContainer<?> postgreSQLContainer =
       new PostgreSQLContainer<>("postgres:16-alpine")
-          .withReuse(true);
+          .withReuse(false)
+          .withInitScript("init-test-schema.sql");
 
   @DynamicPropertySource
   static void properties(org.springframework.test.context.DynamicPropertyRegistry registry) {
