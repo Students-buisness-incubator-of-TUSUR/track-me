@@ -18,7 +18,7 @@ function TrackerPage() {
     const [selectedStreams, setSelectedStreams] = useState([]);
     const [streams, setStreams] = useState([]);
     const [userRole, setUserRole] = useState(null);
-    const [userId, setUserId] = useState(null);
+    const [username, setusername] = useState(null);
 
     const backendHost = (process.env.REACT_APP_CLIENT_GATEWAY_URI || 'http://localhost:8080') + '/backend';
     // Состояния для отображения панели фильтров и групп чекбоксов
@@ -83,7 +83,7 @@ function TrackerPage() {
 
         try {
             setUserRole(user.roles[0]);
-            setUserId(user.id);
+            setusername(user.username);
         } catch (e) {
             console.error("Error decoding token:", e);
         }
@@ -97,11 +97,11 @@ function TrackerPage() {
                 type: "EQ",
                 value: localStorage.getItem("streamName")
             });
-        } else if (userRole === "TRACKER" && userId) {
+        } else if (userRole === "TRACKER" && username) {
             allFilters.push({
-                fieldName: "userId",
+                fieldName: "username",
                 type: "EQ",
-                value: userId
+                value: username
             });
         }
 
@@ -136,7 +136,7 @@ function TrackerPage() {
                 console.error("Error fetching cards:", err);
                 setError(`Ошибка при загрузке карточек: ${err.message}`);
             });
-    }, [userRole, userId, backendHost, user.roles, user.id]);
+    }, [userRole, username, backendHost, user.roles, user.username]);
 
     useEffect(() => {
         // Проверяем роль при загрузке компонента
@@ -485,7 +485,7 @@ function TrackerPage() {
                         <div
                             className="card"
                             key={card.id}
-                            onClick={() => navigate(`/teamcard/${card.id}?userId=${card.userId}`)}
+                            onClick={() => navigate(`/teamcard/${card.id}?username=${card.username}`)}
                             style={{cursor: "pointer"}}
                         >
                             <div className="card-image"/>
@@ -516,7 +516,7 @@ function TrackerPage() {
                                 className="edit-button"
                                 onClick={(e) => {
                                     e.stopPropagation(); // чтобы не срабатывал переход по карточке
-                                    navigate(`/teamcard/${card.id}?userId=${card.userId}&edit=true`);
+                                    navigate(`/teamcard/${card.id}?username=${card.username}&edit=true`);
                                 }}
                             >
                                 Редактировать

@@ -182,9 +182,9 @@ const TeamCard = () => {
 
             let url = `${backendHost}`;
 
-            // Добавляем userId в URL если выбран трекер
+            // Добавляем username в URL если выбран трекер
             if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN")) {
-                url += `/api/v1/admin/team-card?streamId=${formData.streamId}&userId=${selectedTracker?.id}`;
+                url += `/api/v1/admin/team-card?streamId=${formData.streamId}&username=${selectedTracker?.username}`;
             } else {
                 url += `/api/v1/team-card?streamId=${formData.streamId}`;
             }

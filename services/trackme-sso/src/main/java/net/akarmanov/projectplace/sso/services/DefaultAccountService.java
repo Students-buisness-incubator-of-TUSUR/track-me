@@ -8,8 +8,6 @@ import net.akarmanov.projectplace.sso.mappers.UserMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class DefaultAccountService implements AccountService {
@@ -19,14 +17,14 @@ public class DefaultAccountService implements AccountService {
   private final UserMapper userMapper;
 
   @Override
-  public UserDto getUser(UUID id) {
-    var userEntity = userService.findById(id);
+  public UserDto getUser(String username) {
+    var userEntity = userService.findByUsername(username);
     return userMapper.userEntityToUserDto(userEntity);
   }
 
   @Override
   public void updateUser(@Valid UserUpdateDto userDto, Authentication authentication) {
-    var userEntity = userService.findById(UUID.fromString(authentication.getName()));
+    var userEntity = userService.findByUsername(authentication.getName());
     userMapper.updateUserEntityFromUserDto(userDto, userEntity);
     userService.save(userEntity);
   }
@@ -34,7 +32,7 @@ public class DefaultAccountService implements AccountService {
   @Override
   public void changePassword(String newPassword,
                              String oldPassword, Authentication authentication) {
-    var userId = UUID.fromString(authentication.getName());
-    userService.changePassword(userId, newPassword, oldPassword);
+    var username = authentication.getName();
+    userService.changePassword(username, newPassword, oldPassword);
   }
 }

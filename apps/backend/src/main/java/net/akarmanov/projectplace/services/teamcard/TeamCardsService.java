@@ -18,17 +18,17 @@ public interface TeamCardsService {
 
   void deleteTeamCard(UUID id);
 
-  TeamCard createTeamCard(TeamCard teamCard, UUID userId);
+  TeamCard createTeamCard(TeamCard teamCard, String username);
 
-  TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCard, UUID streamId, UUID userId);
+  TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCard, UUID streamId, String username);
 
   Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable);
 
-  TeamCard getTeamCard(UUID id, UUID userId);
+  TeamCard getTeamCard(UUID id, String username);
 
-  void deleteTeamCard(UUID id, UUID userId);
+  void deleteTeamCard(UUID id, String username);
 
-  TeamCard createTeamCard(TeamCard teamCard, UUID streamId, UUID userId);
+  TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username);
 
   Integer getTeamCardCount(UUID streamId);
 }

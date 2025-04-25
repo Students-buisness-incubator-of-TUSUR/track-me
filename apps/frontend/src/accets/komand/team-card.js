@@ -12,7 +12,7 @@ const TeamCard = () => {
     const query = new URLSearchParams(location.search);
     const user = useSelector(state => state.user);
     const role = user.roles[0];
-    const userId = user.id;
+    const username = user.username;
 
     const [teamData, setTeamData] = useState({});
     const [editedData, setEditedData] = useState({});
@@ -85,7 +85,7 @@ const TeamCard = () => {
 
     useEffect(() => {
         const endpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
-            ? `${backendHost}/api/v1/admin/team-card?id=${id}&userId=${userId}`
+            ? `${backendHost}/api/v1/admin/team-card?id=${id}&username=${username}`
             : `${backendHost}/api/v1/team-card?id=${id}`;
 
         fetch(endpoint, {
@@ -102,7 +102,7 @@ const TeamCard = () => {
                 });
             })
             .catch(err => handleApiError(err, "загрузке карточки"));
-    }, [id, userId, role]);
+    }, [id, username, role]);
 
     useEffect(() => {
         if (role === "ADMIN" || role === "SUPER_ADMIN") {
@@ -252,7 +252,7 @@ const TeamCard = () => {
         params.append("teamCardId", id);
 
         if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            params.append("userId", editedData.userId || userId);
+            params.append("username", editedData.username || username);
             if (editedData.streamId) {
                 params.append("streamId", editedData.streamId);
             }
@@ -295,7 +295,7 @@ const TeamCard = () => {
 
         if (role === "ADMIN" || role === "SUPER_ADMIN") {
             params.append("teamCardId", id);
-            params.append("userId", teamData.user.id);
+            params.append("username", teamData.user.id);
         } else {
             params.append("teamCardId", id);
         }
@@ -357,8 +357,8 @@ const TeamCard = () => {
                                 <>
                                     <select
                                         className="team-input-widget"
-                                        name="userId"
-                                        value={editedData.userId || ""}
+                                        name="username"
+                                        value={editedData.username || ""}
                                         onChange={handleChange}
                                     >
                                         <option value="">Выберите трекера</option>
@@ -411,7 +411,7 @@ const TeamCard = () => {
                                     <div
                                         key={meeting.id}
                                         className={`meeting-item-widget ${meeting.status === 'DONE' ? 'done' : 'planned'}`}
-                                        onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&userId=${userId}`)}
+                                        onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
                                     >
                                         <span
                                             className="meeting-number-widget">{meeting.number || "-"}</span>
@@ -480,7 +480,7 @@ const TeamCard = () => {
                                     </div>
                                 )}
                                 <div className="meeting-item-widget add"
-                                     onClick={() => navigate(`/meeting/new?teamId=${id}&userId=${userId}`)}>+
+                                     onClick={() => navigate(`/meeting/new?teamId=${id}&username=${username}`)}>+
                                 </div>
                             </div>
 

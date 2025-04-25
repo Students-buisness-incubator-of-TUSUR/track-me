@@ -6,24 +6,22 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -42,7 +40,7 @@ import static net.akarmanov.projectplace.sso.config.security.SecurityConfigurati
 
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
-public class OAuth2AuthorizationServerConfiguration {
+public class OAuth2AuthorizationServerConfig {
 
   private final AuthorizationServerProperties authorizationServerProperties;
 
@@ -76,13 +74,6 @@ public class OAuth2AuthorizationServerConfiguration {
         if (authorization != null) {
           claims.put("authorization_id", authorization.getId());
         }
-        if (principal instanceof UsernamePasswordAuthenticationToken token) {
-          var user = (AuthorizedUser) token.getPrincipal();
-          claims.put("user_id", user.getId());
-          claims.put("email", user.getEmail());
-          claims.put("full_name", user.getFullName());
-          claims.put("username", user.getUsername());
-        }
       });
     };
   }
@@ -104,26 +95,7 @@ public class OAuth2AuthorizationServerConfiguration {
             new LoginUrlAuthenticationEntryPoint(LOGIN_PAGE)
         ))
         .with(authorizationServerConfigurer, configurer ->
-            configurer.oidc(oidc ->
-                oidc
-                    .userInfoEndpoint(userInfoEndpoint ->
-                        userInfoEndpoint
-                            .userInfoMapper(context -> {
-                              var principal = context.getAuthentication().getPrincipal();
-                              if (principal instanceof JwtAuthenticationToken jwtAuthToken) {
-                                var jwt = jwtAuthToken.getToken();
-                                var claims = jwt.getClaims();
-                                return OidcUserInfo.builder()
-                                    .claims(stringObjectMap ->
-                                        stringObjectMap.putAll(claims))
-                                    .subject(claims.get("sub").toString())
-                                    .email(claims.get("email").toString())
-                                    .build();
-                              }
-                              return null;
-                            })
-                    )
-            )
+            configurer.oidc(Customizer.withDefaults())
         );
     return http.build();
   }
@@ -143,8 +115,7 @@ public class OAuth2AuthorizationServerConfiguration {
 
   @Bean
   public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-    return org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration.jwtDecoder(
-        jwkSource);
+    return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
   }
 
   @Bean

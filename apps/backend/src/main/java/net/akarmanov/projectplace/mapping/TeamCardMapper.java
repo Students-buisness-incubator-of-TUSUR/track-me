@@ -13,7 +13,7 @@ public interface TeamCardMapper {
   @Mapping(target = "streams", ignore = true)
   TeamCard mapToEntity(TeamCardDto dto);
 
-  @Mapping(target = "userId", ignore = true)
+  @Mapping(target = "username", ignore = true)
   @Mapping(target = "ntiMarket", ignore = true)
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "streams", ignore = true)
@@ -24,11 +24,11 @@ public interface TeamCardMapper {
            expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
   TeamCard mapToEntity(TeamCardCreateOrUpdateDto dto);
 
-  @Mapping(target = "userId", source = "userId")
+  @Mapping(target = "username", source = "username")
   @Mapping(target = "readinessLevel", expression = "java( entity.getReadinessLevel().getValue() )")
   TeamCardDto mapToDto(TeamCard entity);
 
-  @Mapping(target = "userId", ignore = true)
+  @Mapping(target = "username", ignore = true)
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "ntiMarket", ignore = true)
   @Mapping(target = "streams", ignore = true)

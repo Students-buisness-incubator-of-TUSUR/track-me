@@ -54,8 +54,8 @@ function AdminList() {
             });
     }, [filters, backendHost]);
 
-    const confirmUser = (userId) => {
-        const url = `${backendHost}/api/v1/admin/users/confirm?userId=${userId}`;
+    const confirmUser = (username) => {
+        const url = `${backendHost}/api/v1/admin/users/confirm?username=${username}`;
 
         fetch(url, {
             method: "POST",
@@ -84,7 +84,7 @@ function AdminList() {
                 // Обновляем состояние: делаем пользователя активным
                 setTrackers((prevTrackers) =>
                     prevTrackers.map((tracker) =>
-                        tracker.id === userId ? {...tracker, enabled: true} : tracker
+                        tracker.username === username ? {...tracker, enabled: true} : tracker
                     )
                 );
             })
@@ -94,8 +94,8 @@ function AdminList() {
             });
     };
 
-    const deleteUser = (userId) => {
-        const url = `${backendHost}/api/v1/admin/users/delete?userId=${userId}`;
+    const deleteUser = (username) => {
+        const url = `${backendHost}/api/v1/admin/users/delete?username=${username}`;
 
         fetch(url, {
             method: "POST",
@@ -112,7 +112,7 @@ function AdminList() {
             })
             .then(() => {
                 // Убираем удалённого пользователя из списка
-                setTrackers((prevTrackers) => prevTrackers.filter((tracker) => tracker.id !== userId));
+                setTrackers((prevTrackers) => prevTrackers.filter((tracker) => tracker.username !== username));
             })
             .catch((err) => {
                 console.error("Ошибка при удалении пользователя:", err);
@@ -188,12 +188,12 @@ function AdminList() {
                                 tracker.enabled ? (
                                     <div
                                         className="tracker-item-true"
-                                        key={tracker.id || index}
-                                        onClick={() => setHoveredTracker(tracker.id)}
+                                        key={tracker.username || index}
+                                        onClick={() => setHoveredTracker(tracker.username)}
                                         onMouseLeave={() => setHoveredTracker(null)}
                                     >
                                         <div className="tracker-avatar">
-                                            {hoveredTracker === tracker.id && (
+                                            {hoveredTracker === tracker.username && (
                                                 <div className="tracker-edit-panel12">
                                                     {/* Кнопка с галочкой – закрывает меню */}
                                                     <button
@@ -219,7 +219,7 @@ function AdminList() {
                                                         className="cancel-button"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            deleteUser(tracker.id);
+                                                            deleteUser(tracker.username);
                                                         }}
                                                         onMouseEnter={() => setHoveredButton("cancel")}
                                                         onMouseLeave={() => setHoveredButton(null)}
@@ -248,16 +248,16 @@ function AdminList() {
                                 ) : (
                                     <div
                                         className="tracker-item-edit"
-                                        key={tracker.id || index}
-                                        onClick={() => setHoveredTracker(tracker.id)}
+                                        key={tracker.username || index}
+                                        onClick={() => setHoveredTracker(tracker.username)}
                                         onMouseLeave={() => setHoveredTracker(null)}
                                     >
                                         <div className="tracker-avatar">
-                                            {hoveredTracker === tracker.id && (
+                                            {hoveredTracker === tracker.username && (
                                                 <div className="tracker-edit-panel">
                                                     <button
                                                         className="confirm-button"
-                                                        onClick={() => confirmUser(tracker.id)}
+                                                        onClick={() => confirmUser(tracker.username)}
                                                         onMouseEnter={() => setHoveredButton("confirm")}
                                                         onMouseLeave={() => setHoveredButton(null)}
                                                     >
@@ -272,7 +272,7 @@ function AdminList() {
                                                     )}
                                                     <button
                                                         className="cancel-button"
-                                                        onClick={() => deleteUser(tracker.id)}
+                                                        onClick={() => deleteUser(tracker.username)}
                                                         onMouseEnter={() => setHoveredButton("cancel")}
                                                         onMouseLeave={() => setHoveredButton(null)}
                                                     >

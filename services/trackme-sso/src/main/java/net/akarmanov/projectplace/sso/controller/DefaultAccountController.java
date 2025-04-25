@@ -12,8 +12,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('SCOPE_profile')")
@@ -23,8 +21,7 @@ public class DefaultAccountController implements AccountController {
 
   @Override
   public ResponseEntity<UserDto> userInfo(Authentication authentication) {
-    var uuid = UUID.fromString(authentication.getName());
-    var user = accountService.getUser(uuid);
+    var user = accountService.getUser(authentication.getName());
     return ResponseEntity.ok(user);
   }
 

@@ -10,7 +10,7 @@ const MeetingCard = () => {
     const location = useLocation();
     const query = new URLSearchParams(location.search);
     const teamId = query.get("teamId");
-    const userId = query.get("userId");
+    const username = query.get("username");
 
     const isNewMeeting = meetingId === "new";
 
@@ -88,7 +88,7 @@ const MeetingCard = () => {
                 }
 
                 const newMeeting = await response.json();
-                navigate(`/meeting/${newMeeting.id}?teamId=${teamId}&userId=${userId}`);
+                navigate(`/meeting/${newMeeting.id}?teamId=${teamId}&username=${username}`);
             }
             // Для существующей встречи используем PATCH
             else if (meetingId) {  // Проверяем наличие meetingId

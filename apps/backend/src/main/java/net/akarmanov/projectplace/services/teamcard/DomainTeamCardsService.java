@@ -71,11 +71,11 @@ public class DomainTeamCardsService implements TeamCardsService {
   @Override
   @Transactional
   @PreAuthorize("hasRole('ADMIN')")
-  public TeamCard createTeamCard(TeamCard create, UUID userId) {
-    create.setUserId(userId);
+  public TeamCard createTeamCard(TeamCard create, String username) {
+    create.setUsername(username);
     create.setStatus(TeamCardStatus.OK);
     create = teamCardsRepository.save(create);
-    aclService.updateAcl(create, userId.toString());
+    aclService.updateAcl(create, username);
     return create;
   }
 
@@ -83,17 +83,16 @@ public class DomainTeamCardsService implements TeamCardsService {
   @PreAuthorize("hasRole('ADMIN')")
   public TeamCard updateTeamCard(UUID teamCardId,
                                  TeamCard teamCardDto,
-                                 UUID streamId,
-                                 UUID userId) {
-    var teamCard = get(teamCardId, userId);
+                                 UUID streamId, String username) {
+    var teamCard = get(teamCardId, username);
     updateTeamCard(teamCardDto, teamCard);
-    teamCard.setUserId(userId);
+    teamCard.setUsername(username);
     if (streamId != null) {
       var stream = streamService.getById(streamId);
       teamCard.addStream(stream);
     }
     teamCard = teamCardsRepository.save(teamCard);
-    aclService.updateAcl(teamCard, userId.toString());
+    aclService.updateAcl(teamCard, username);
     return teamCard;
   }
 
@@ -104,27 +103,27 @@ public class DomainTeamCardsService implements TeamCardsService {
 
   @Override
   @PreAuthorize("hasRole('ADMIN')")
-  public TeamCard getTeamCard(UUID id, UUID userId) {
-    return get(id, userId);
+  public TeamCard getTeamCard(UUID id, String username) {
+    return get(id, username);
   }
 
   @Override
   @PreAuthorize("hasRole('ADMIN')")
-  public void deleteTeamCard(UUID id, UUID userId) {
-    var teamCard = get(id, userId);
+  public void deleteTeamCard(UUID id, String username) {
+    var teamCard = get(id, username);
     aclService.deleteAcl(teamCard);
-    teamCardsRepository.deleteByIdAndUserId(id, userId);
+    teamCardsRepository.deleteByIdAndUsername(id, username);
   }
 
   @Override
   @Transactional
   @PreAuthorize("hasRole('ADMIN')")
-  public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, UUID userId) {
+  public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
     if (streamId != null) {
       var stream = streamService.getById(streamId);
       teamCard.addStream(stream);
     }
-    return createTeamCard(teamCard, userId);
+    return createTeamCard(teamCard, username);
   }
 
   @Override
@@ -132,9 +131,9 @@ public class DomainTeamCardsService implements TeamCardsService {
     return teamCardsRepository.countByStreamsIdIn(Collections.singletonList(streamId));
   }
 
-  private TeamCard get(UUID teamCardId, UUID userId) {
-    return teamCardsRepository.findByIdAndUserId(teamCardId, userId)
-        .orElseThrow(() -> new TeamCardNotFoundException(teamCardId, userId));
+  private TeamCard get(UUID teamCardId, String username) {
+    return teamCardsRepository.findByIdAndUsername(teamCardId, username)
+        .orElseThrow(() -> new TeamCardNotFoundException(teamCardId, username));
   }
 
   private void updateTeamCard(TeamCard source, TeamCard target) {

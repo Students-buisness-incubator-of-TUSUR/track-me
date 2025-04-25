@@ -11,7 +11,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import static net.akarmanov.projectplace.domain.spec.SpecificationUtils.getReadinessLevelFilter;
 
@@ -26,7 +25,7 @@ public class TeamCardSpecification implements Specification<TeamCard> {
       "ntiMarket.name",
       "description",
       "status",
-      "userId",
+      "username",
       READINESS_LEVEL_FIELD_NAME,
       STREAMS_YEAR_FIELD,
       "streams.name"
@@ -56,9 +55,9 @@ public class TeamCardSpecification implements Specification<TeamCard> {
     };
   }
 
-  public static Specification<TeamCard> userEquals(String userId) {
+  public static Specification<TeamCard> userEquals(String username) {
     return (root, query, criteriaBuilder) ->
-        criteriaBuilder.equal(root.get("userId"), UUID.fromString(userId));
+        criteriaBuilder.equal(root.get("username"), username);
   }
 
   public static TeamCardSpecification withFilters(List<Filter> filters) {

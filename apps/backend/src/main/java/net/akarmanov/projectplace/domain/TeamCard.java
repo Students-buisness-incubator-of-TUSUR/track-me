@@ -57,7 +57,7 @@ public class TeamCard {
   private TeamCardStatus status;
 
   @Column(nullable = false)
-  private UUID userId;
+  private String username;
 
   @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
   @JoinColumn(name = "nti_market_id", nullable = false)
@@ -84,19 +84,5 @@ public class TeamCard {
   public void addStream(Stream stream) {
     streams.clear();
     streams.add(stream);
-  }
-
-  public void addMeeting(Meeting meeting) {
-    teamMeetings.add(meeting);
-  }
-
-  public void removeMeeting(Meeting meeting) {
-    teamMeetings.remove(meeting);
-    meeting.setTeamCard(null);
-  }
-
-  public void removeStream(Stream stream) {
-    streams.remove(stream);
-    stream.getTeamCards().remove(this);
   }
 }

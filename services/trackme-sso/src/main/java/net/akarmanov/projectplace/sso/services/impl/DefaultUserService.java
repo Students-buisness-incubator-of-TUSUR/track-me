@@ -139,13 +139,13 @@ public class DefaultUserService implements UserService {
   /**
    * Активация пользователя
    *
-   * @param userId   уникальный идентификатор пользователя
+   * @param username уникальный идентификатор пользователя
    * @param password пароль пользователя
    */
   @Override
   @Transactional
-  public UserEntity firstActivation(UUID userId, String password) {
-    Optional<UserEntity> userEntityOptional = this.userRepository.findById(userId);
+  public UserEntity firstActivation(UUID username, String password) {
+    Optional<UserEntity> userEntityOptional = this.userRepository.findById(username);
     if (userEntityOptional.isEmpty()) {
       throw new AuthException(AuthErrorCode.USER_ACTIVATION_FAILED);
     }
@@ -174,24 +174,24 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
-  public UserEntity findById(UUID id) {
-    return userRepository.findById(id)
-        .orElseThrow(() -> new UsernameNotFoundException(id.toString()));
-  }
-
-  @Override
   public void save(UserEntity userEntity) {
     Assert.notNull(userEntity, "UserEntity must not be null");
     userRepository.save(userEntity);
   }
 
   @Override
-  public void changePassword(UUID userId, String newPassword, String oldPassword) {
-    var userEntity = findById(userId);
+  public void changePassword(String username, String newPassword, String oldPassword) {
+    var userEntity = findByUsername(username);
     if (!passwordEncoder.matches(oldPassword, userEntity.getPasswordHash())) {
       throw new WrongOldPasswordException("$password.wrong");
     }
     userEntity.setPasswordHash(passwordEncoder.encode(newPassword));
     save(userEntity);
+  }
+
+  @Override
+  public UserEntity findByUsername(String name) {
+    return userRepository.findByUsername(name)
+        .orElseThrow(() -> new UsernameNotFoundException(name));
   }
 }

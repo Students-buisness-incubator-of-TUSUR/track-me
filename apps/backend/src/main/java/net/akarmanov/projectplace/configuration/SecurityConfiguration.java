@@ -81,7 +81,6 @@ public class SecurityConfiguration {
 
     JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
     jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-    jwtConverter.setPrincipalClaimName("user_id");
     return jwtConverter;
   }
 }

@@ -11,7 +11,7 @@ public class TeamCardNotFoundException extends PPNotFoundException {
     super("Карточка команды с идентификатором " + teamCardId + " не найдена");
   }
 
-  public TeamCardNotFoundException(UUID teamCardId, UUID userId) {
-    super("Карточка команды с идентификатором " + teamCardId + " не найдена для пользователя с идентификатором " + userId);
+  public TeamCardNotFoundException(UUID teamCardId, String username) {
+    super("Карточка команды с идентификатором " + teamCardId + " не найдена для пользователя с идентификатором " + username);
   }
 }

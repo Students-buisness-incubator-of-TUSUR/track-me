@@ -9,9 +9,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TeamCardsRepository extends JpaRepository<TeamCard, UUID>, JpaSpecificationExecutor<TeamCard> {
-  Optional<TeamCard> findByIdAndUserId(UUID id, UUID userId);
+  Optional<TeamCard> findByIdAndUsername(UUID id, String username);
 
-  void deleteByIdAndUserId(UUID id, UUID userId);
+  void deleteByIdAndUsername(UUID id, String username);
 
   Integer countByStreamsIdIn(Collection<UUID> streams);
 }

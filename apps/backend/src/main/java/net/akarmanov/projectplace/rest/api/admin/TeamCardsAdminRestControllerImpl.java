@@ -30,12 +30,12 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   @Transactional
   public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateOrUpdateDto dto,
                                                     UUID streamId,
-                                                    UUID userId) {
+                                                    String username) {
     var teamCard = teamCardMapper.mapToEntity(dto);
     var ntiMarketId = dto.ntiMarketId();
 
     teamCard.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
-    teamCard = teamCardsService.createTeamCard(teamCard, streamId, userId);
+    teamCard = teamCardsService.createTeamCard(teamCard, streamId, username);
     var teamCardDto = teamCardMapper.mapToDto(teamCard);
     return ResponseEntity.ok(teamCardDto);
   }
@@ -43,14 +43,13 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   @Override
   @Transactional
   public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId,
-                                                    UUID userId,
-                                                    UUID streamId,
+                                                    String username, UUID streamId,
                                                     TeamCardCreateOrUpdateDto updateDto) {
     var teamCard = teamCardMapper.mapToEntity(updateDto);
     var ntiMarketId = updateDto.ntiMarketId();
 
     teamCard.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
-    teamCard = teamCardsService.updateTeamCard(teamCardId, teamCard, streamId, userId);
+    teamCard = teamCardsService.updateTeamCard(teamCardId, teamCard, streamId, username);
     var teamCardDto = teamCardMapper.mapToDto(teamCard);
     return ResponseEntity.ok(teamCardDto);
   }
@@ -65,14 +64,14 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   }
 
   @Override
-  public ResponseEntity<TeamCardDto> getTeamCard(UUID id, UUID userId) {
-    var teamCard = teamCardsService.getTeamCard(id, userId);
+  public ResponseEntity<TeamCardDto> getTeamCard(UUID id, String username) {
+    var teamCard = teamCardsService.getTeamCard(id, username);
     return ResponseEntity.ok(teamCardMapper.mapToDto(teamCard));
   }
 
   @Override
-  public ResponseEntity<Void> deleteTeamCard(UUID id, UUID userId) {
-    teamCardsService.deleteTeamCard(id, userId);
+  public ResponseEntity<Void> deleteTeamCard(UUID id, String username) {
+    teamCardsService.deleteTeamCard(id, username);
     return ResponseEntity.noContent().build();
   }
 }

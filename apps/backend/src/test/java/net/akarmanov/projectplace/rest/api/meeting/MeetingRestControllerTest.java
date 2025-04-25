@@ -12,7 +12,6 @@ import net.akarmanov.projectplace.repos.TeamCardsRepository;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -27,8 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Disabled
-@WithMockUser(BaseApplicationTest.USER)
+@WithMockUser(value = BaseApplicationTest.USER, roles = {"TRACKER"})
 class MeetingRestControllerTest extends BaseApplicationTest {
 
   @Autowired
@@ -53,6 +51,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
     teamCard = teamCardsService.createTeamCard(TeamCard.builder()
         .name("Test")
         .description("Test")
+        .username(BaseApplicationTest.USER)
         .ntiMarket(ntiMarketRepository.findAll().getFirst())
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());

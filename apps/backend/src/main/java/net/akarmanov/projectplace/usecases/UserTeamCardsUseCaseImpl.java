@@ -38,7 +38,7 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
   @Transactional
   public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard, UUID streamId,
                                     Authentication authentication) {
-    var userId = UUID.fromString(authentication.getName());
+    var username = authentication.getName();
     var ntiMarketId = teamCard.ntiMarketId();
 
     var stream = streamService.findActive(streamId);
@@ -46,7 +46,7 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
     var ntiMarket = ntiMarketService.getNtiMarket(ntiMarketId);
 
     teamCardEntity.setNtiMarket(ntiMarket);
-    teamCardEntity.setUserId(userId);
+    teamCardEntity.setUsername(username);
     teamCardEntity.addStream(stream);
     teamCardEntity.setStatus(TeamCardStatus.OK);
     var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);

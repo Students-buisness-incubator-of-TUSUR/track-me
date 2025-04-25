@@ -29,10 +29,10 @@ public interface UserService {
   /**
    * Активация пользователя
    *
-   * @param userId   уникальный идентификатор пользователя
+   * @param username   уникальный идентификатор пользователя
    * @param password пароль пользователя
    */
-  UserEntity firstActivation(UUID userId, String password);
+  UserEntity firstActivation(UUID username, String password);
 
   /**
    * Создать пользователя и сразу активировать
@@ -44,9 +44,9 @@ public interface UserService {
    */
   boolean existByEmail(String email);
 
-  UserEntity findById(UUID id);
-
   void save(UserEntity userEntity);
 
-  void changePassword(UUID userId, String newPassword, String oldPassword);
+  void changePassword(String username, String newPassword, String oldPassword);
+
+  UserEntity findByUsername(String name);
 }

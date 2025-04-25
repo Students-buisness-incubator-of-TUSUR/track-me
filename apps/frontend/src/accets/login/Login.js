@@ -54,9 +54,9 @@ const Login = () => {
                 // Декодируем токен, чтобы получить роль
                 const decodedToken = jwtDecode(data.accessToken);
                 const userRole = decodedToken.role; // Роль из токена
-                const userID = decodedToken.id;
+                const username = decodedToken.id;
                 console.log("Роль пользователя:", userRole);
-                console.log("ID пользователя:", userID);
+                console.log("ID пользователя:", username);
                 // Перенаправление в зависимости от роли
                 if (userRole === "SUPER_ADMIN") {
                     navigate("/streams");

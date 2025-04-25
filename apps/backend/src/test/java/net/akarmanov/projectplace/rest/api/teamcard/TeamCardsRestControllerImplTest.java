@@ -10,7 +10,6 @@ import net.akarmanov.projectplace.repos.TeamCardsRepository;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -26,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Disabled
 class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
   @Autowired
@@ -51,8 +49,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @Disabled
-  @WithMockUser(value = "test_tracker")
+  @WithMockUser(value = BaseApplicationTest.USER,
+                roles = "TRACKER")
   void createTeamCard_success() throws Exception {
     var stream = streamRepository.findAll().getFirst();
 
@@ -77,8 +75,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @Disabled
-  @WithMockUser("test_tracker")
+  @WithMockUser(value = BaseApplicationTest.USER,
+                roles = "TRACKER")
   void createTeamCard_validationError() throws Exception {
     mockMvc.perform(post("/api/v1/team-card")
             .contentType(MediaType.APPLICATION_JSON)
@@ -88,13 +86,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @Disabled
-  @WithMockUser("test_tracker")
+  @WithMockUser(value = BaseApplicationTest.USER,
+                roles = "TRACKER")
   void updateTeamCard_success() throws Exception {
     var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .ntiMarket(ntiMarket)
         .name("Team card1")
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
 
@@ -118,13 +117,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCard_success() throws Exception {
     var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
 
@@ -138,13 +138,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withoutFilters_success() throws Exception {
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card1 description")
         .build());
@@ -152,6 +153,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_2)
         .description("Team card2 description")
         .build());
@@ -169,7 +171,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_likeName_success() throws Exception {
     var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
@@ -177,6 +179,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .name("Team card1")
         .description("Team card1 description")
         .readinessLevel(ReadinessLevel.LEVEL_1)
+        .username(BaseApplicationTest.USER)
         .ntiMarket(ntiMarket)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
@@ -185,6 +188,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .readinessLevel(ReadinessLevel.LEVEL_2)
         .ntiMarket(ntiMarket)
         .description("Team card2 description")
+        .username(BaseApplicationTest.USER)
         .build());
 
     mockMvc.perform(post("/api/v1/team-cards")
@@ -212,7 +216,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_emptyResult() throws Exception {
     mockMvc.perform(post("/api/v1/team-cards")
@@ -234,7 +238,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_validationError() throws Exception {
     mockMvc.perform(post("/api/v1/team-cards")
@@ -245,7 +249,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_in_success() throws Exception {
     var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
@@ -253,12 +257,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .ntiMarket(ntiMarket)
         .name("Team card1")
         .readinessLevel(ReadinessLevel.LEVEL_1)
+        .username(BaseApplicationTest.USER)
         .description("Team card1 description")
         .build());
     var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card2 description")
         .build());
@@ -288,13 +294,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_join_success() throws Exception {
     var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
         .name("Team card1")
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card1 description")
         .build());
@@ -302,6 +309,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .status(TeamCardStatus.OK)
         .name("Team card2")
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .description("Team card2 description")
         .build());
@@ -313,13 +321,13 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 {
                   "filters": [
                     {
-                      "fieldName": "user.telegramId",
+                      "fieldName": "username",
                       "value": "%s",
                       "type": "EQ"
                     }
                   ]
                 }
-                """.formatted("test_tracker"))
+                """.formatted(BaseApplicationTest.USER))
         )
         .andDo(print())
         .andExpect(status().isOk())
@@ -331,7 +339,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withSomeFilters_success() throws Exception {
     var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
@@ -339,10 +347,12 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .name("Team card1")
         .description("Team card1 description")
         .readinessLevel(ReadinessLevel.LEVEL_1)
+        .username(BaseApplicationTest.USER)
         .ntiMarket(ntiMarket)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
+        .username(BaseApplicationTest.USER)
         .name("Team card2")
         .ntiMarket(ntiMarket)
         .readinessLevel(ReadinessLevel.LEVEL_2)
@@ -380,7 +390,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_withInvalidField() throws Exception {
     mockMvc.perform(post("/api/v1/team-cards")
@@ -401,7 +411,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_withNtiMarketId_success() throws Exception {
     teamCardsService.createTeamCard(TeamCard.builder()
@@ -409,6 +419,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .name("Team card1")
         .description("Team card1 description")
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
@@ -416,6 +427,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .name("Team card2")
         .description("Team card2 description")
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .build());
 
@@ -444,7 +456,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_withTelegranId_success() throws Exception {
     teamCardsService.createTeamCard(TeamCard.builder()
@@ -453,6 +465,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .description("Team card1 description")
         .readinessLevel(ReadinessLevel.LEVEL_1)
         .ntiMarket(ntiMarket)
+        .username(BaseApplicationTest.USER)
         .build());
     teamCardsService.createTeamCard(TeamCard.builder()
         .status(TeamCardStatus.OK)
@@ -460,6 +473,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         .description("Team card2 description")
         .ntiMarket(ntiMarket)
         .readinessLevel(ReadinessLevel.LEVEL_1)
+        .username(BaseApplicationTest.USER)
         .build());
 
     mockMvc.perform(post("/api/v1/team-cards")
@@ -468,8 +482,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 {
                   "filters": [
                     {
-                      "fieldName": "user.telegramId",
-                      "value": "test_tracker",
+                      "fieldName": "username",
+                      "value": "%s",
                       "type": "EQ"
                     },
                     {
@@ -479,14 +493,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                     }
                   ]
                 }
-                """))
+                """.formatted(BaseApplicationTest.USER)))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.page.totalElements", is(1)));
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_withStreamsName_success() throws Exception {
     var stream = streamRepository.findAll().getFirst();
@@ -534,7 +548,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCards_withFilters_withStreamsYear_success() throws Exception {
     var stream = streamRepository.findAll().getFirst();
@@ -577,7 +591,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void createTeamCard_withInactiveStream() throws Exception {
     var stream = streamRepository.findAll().getFirst();
@@ -600,7 +614,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
   }
 
   @Test
-  @WithMockUser(value = "test_tracker",
+  @WithMockUser(value = BaseApplicationTest.USER,
                 roles = "TRACKER")
   void getTeamCardCount_success() throws Exception {
     var stream = streamRepository.findAll().getFirst();
