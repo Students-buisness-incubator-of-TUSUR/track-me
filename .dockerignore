@@ -1,0 +1,57 @@
+# Ignore version control
+.git
+.gitignore
+.gitattributes
+
+# Ignore IDE/project files
+.idea
+*.iml
+*.ipr
+*.iws
+.vscode
+*.sw?
+
+# Ignore local build/local tool folders
+.gradle
+build
+out
+target
+bin
+tmp
+logs
+
+# Ignore node_modules and npm/yarn files (если есть фронтенд)
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+*.log
+
+# Ignore possible secrets/env/configs
+.env
+.env.*
+*.jks
+*.keystore
+*.pem
+*.crt
+*.key
+
+# Ignore Docker-specific files
+Dockerfile*
+.dockerignore
+
+# Ignore tests and docs if не нужны в образе
+test
+tests
+docs
+doc
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore coverage and report files
+coverage
+*.lcov
+jacoco.exec
+build/reports

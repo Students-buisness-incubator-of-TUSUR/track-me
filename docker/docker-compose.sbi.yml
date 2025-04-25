@@ -1,7 +1,7 @@
 services:
   backend:
     image: ghcr.io/akarmanov2022/track-me/backend
-    container_name: track-me-backend
+    container_name: trackme-backend
     platform: linux/amd64
     ports:
       - "8080:8080"

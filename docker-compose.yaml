@@ -1,24 +1,24 @@
 services:
   postgres:
     image: 'postgres:latest'
-    environment:
-      - 'POSTGRES_DB=project-place'
-      - 'POSTGRES_PASSWORD=project-place'
-      - 'POSTGRES_USER=project-place'
+    env_file:
+      - .env
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init_schemas.sql:/docker-entrypoint-initdb.d/init_schemas.sql
     networks:
-      - demo
+      - trackme-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U project-place -d project-place" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   redis:
     image: redis:latest
     container_name: track-me-redis
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_USER=${REDIS_USER}
-      - REDIS_USER_PASSWORD=${REDIS_USER_PASSWORD}
     ports:
       - "6380:6379"
     volumes:
@@ -42,40 +42,51 @@ services:
         echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
+    # Оставляем вашу healthcheck-строку (но с правильным синтаксисом CMD-SHELL, иначе переменная не подставится)
     healthcheck:
-      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      test: [ "CMD-SHELL", "redis-cli -a \"$REDIS_PASSWORD\" ping | grep PONG" ]
       interval: 30s
       timeout: 10s
       retries: 5
+    env_file:
+      - .env
     restart: unless-stopped
     tty: true
     stdin_open: true
     networks:
-      - demo
+      - trackme-net
 
-  backend:
-    container_name: track-me-backend
-    image: ghcr.io/akarmanov2022/track-me/backend:latest
+  trackme-backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=development
     platform: linux/amd64
     restart: always
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis
-    environment:
-      #      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project-place
-      SPRING_DATASOURCE_USERNAME: project-place
-      SPRING_DATASOURCE_PASSWORD: project-place
     ports:
       - '8080:8080'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - demo
+      - trackme-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-  sso:
-    container_name: track-me-sso
-    image: ghcr.io/akarmanov2022/track-me/sso:latest
+  trackme-sso:
+    build:
+      context: .
+      dockerfile: services/trackme-sso/Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=development
     platform: linux/amd64
     restart: always
     depends_on:
@@ -86,39 +97,61 @@ services:
     ports:
       - '9000:9000'
     networks:
-      - demo
+      - trackme-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-  client-gateway:
-    container_name: track-me-client-gateway
-    image: ghcr.io/akarmanov2022/track-me/client-gateway:latest
+  trackme-client-gateway:
+    build:
+      context: .
+      dockerfile: apps/trackme-gateway/Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=development
     platform: linux/amd64
     restart: always
     depends_on:
-      - backend
-      - sso
+      - trackme-backend
+      - trackme-sso
     env_file:
       - .env
+    networks:
+      - trackme-net
     ports:
       - '8081:8081'
-    networks:
-      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-  frontend:
-    container_name: track-me-frontend
-    image: ghcr.io/akarmanov2022/track-me/frontend:latest
+  trackme-frontend:
+    build:
+      context: apps/frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_ENV: ${REACT_APP_ENV}
     platform: linux/amd64
+    env_file:
+      - .env
     depends_on:
-      - backend
+      - trackme-client-gateway
     ports:
       - '3000:3000'
     networks:
-      - demo
+      - trackme-net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   postgres_data:
 
 networks:
-  demo:
-    driver: bridge
+  trackme-net:

@@ -1,30 +1,65 @@
 services:
   postgres:
     image: 'postgres:latest'
-    environment:
-      - 'POSTGRES_DB=project-place'
-      - 'POSTGRES_PASSWORD=project-place'
-      - 'POSTGRES_USER=project-place'
+    env_file:
+      - .env
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ../database/init_schemas.sql:/docker-entrypoint-initdb.d/init_schemas.sql
+    networks:
+      - demo
+
+  redis:
+    image: redis:latest
+    container_name: track-me-redis
+    env_file:
+      - ../.env.dev.redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./redisdata:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
     networks:
       - demo
 
   backend:
-    container_name: track-me-backend
+    container_name: trackme-backend
     image: ghcr.io/akarmanov2022/track-me/backend:latest
+    platform: linux/amd64
     restart: always
     env_file:
       - .env
     depends_on:
       - postgres
-    environment:
-      #      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project-place
-      SPRING_DATASOURCE_USERNAME: project-place
-      SPRING_DATASOURCE_PASSWORD: project-place
+      - redis
     ports:
       - '8080:8080'
     expose:
@@ -33,23 +68,77 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  sso:
+    container_name: track-me-sso
+    image: ghcr.io/akarmanov2022/track-me/sso:latest
+    platform: linux/amd64
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env
+    ports:
+      - '9000:9000'
+    expose:
+      - '9000'
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  client-gateway:
+    container_name: track-me-client-gateway
+    image: ghcr.io/akarmanov2022/track-me/client-gateway:latest
+    platform: linux/amd64
+    restart: always
+    depends_on:
+      - backend
+      - sso
+    env_file:
+      - .env
+    ports:
+      - '8081:8081'
+    expose:
+      - '8081'
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   frontend:
     container_name: track-me-frontend
     image: ghcr.io/akarmanov2022/track-me/frontend:latest
-    restart: always
+    platform: linux/amd64
     env_file:
-      - .env.local
+      - .env
     depends_on:
       - backend
     ports:
-      - '3001:3000'
+      - '3000:3000'
     expose:
-      - '3001'
+      - '3000'
     networks:
       - demo
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   postgres_data:
