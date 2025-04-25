@@ -21,25 +21,33 @@ on:
       - synchronize
       - reopened
 
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   trackme-backend-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # Best practice: enable full clone for Sonar analysis
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: gradle
       - name: Cache Gradle
         uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
+          key: ${{ runner.os }}-gradle-backend-${{ hashFiles('backend/gradle/wrapper/gradle-wrapper.properties', 'backend/build.gradle*') }}
       - name: Build, Test & Jacoco Backend
-        run: ./gradlew :backend:build
+        run: ./gradlew :backend:clean :backend:build
       - name: Upload Backend Jacoco Report
         uses: actions/upload-artifact@v4
         with:
@@ -48,40 +56,57 @@ jobs:
 
   trackme-frontend-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
+          cache: 'npm'
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+        working-directory: apps/frontend
+      - name: Lint frontend
+        run: npm run lint --if-present
         working-directory: apps/frontend
       - name: Build frontend
         run: npm run build
         working-directory: apps/frontend
       - name: Test frontend
-        run: npm run test
+        run: npm run test -- --ci --coverage --reporters=default
         working-directory: apps/frontend
+      - name: Upload frontend coverage
+        if: success() && hashFiles('apps/frontend/coverage/lcov.info') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: apps/frontend/coverage/lcov.info
 
   trackme-gateway-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: gradle
       - name: Cache Gradle
         uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
+          key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('trackme-gateway/gradle/wrapper/gradle-wrapper.properties', 'trackme-gateway/build.gradle*') }}
       - name: Build, Test & Jacoco Gateway
-        run: ./gradlew :trackme-gateway:build
+        run: ./gradlew :trackme-gateway:clean :trackme-gateway:build
       - name: Upload Gateway Jacoco Report
         uses: actions/upload-artifact@v4
         with:
@@ -90,22 +115,26 @@ jobs:
 
   trackme-sso-check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: gradle
       - name: Cache Gradle
         uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-sso-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
+          key: ${{ runner.os }}-gradle-sso-${{ hashFiles('trackme-sso/gradle/wrapper/gradle-wrapper.properties', 'trackme-sso/build.gradle*') }}
       - name: Build, Test & Jacoco SSO
-        run: ./gradlew :trackme-sso:build
+        run: ./gradlew :trackme-sso:clean :trackme-sso:build
       - name: Upload SSO Jacoco Report
         uses: actions/upload-artifact@v4
         with:
@@ -119,14 +148,18 @@ jobs:
       - trackme-frontend-check
       - trackme-gateway-check
       - trackme-sso-check
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Java for SonarQube
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
+
       - name: Download Backend Jacoco Report
         uses: actions/download-artifact@v4
         with:
@@ -142,14 +175,23 @@ jobs:
         with:
           name: sso-jacoco
           path: trackme-sso/build/reports/jacoco/test/
-      - name: SonarQube
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: apps/frontend/coverage/
+
+      - name: SonarCloud scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           ./gradlew sonar \
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-            -Dsonar.pullrequest.key=${{ github.event.number }} \
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
-            -Dsonar.coverage.jacoco.xmlReportPaths=backend/build/reports/jacoco/test/jacocoTestReport.xml,trackme-gateway/build/reports/jacoco/test/jacocoTestReport.xml,trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml
+            -Dsonar.coverage.jacoco.xmlReportPaths=backend/build/reports/jacoco/test/jacocoTestReport.xml,trackme-gateway/build/reports/jacoco/test/jacocoTestReport.xml,trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml \
+            -Dsonar.javascript.lcov.reportPaths=apps/frontend/coverage/lcov.info
