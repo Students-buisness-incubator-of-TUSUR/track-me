@@ -12,7 +12,7 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6380}
       username: ${REDIS_USER:trackme-redis}
-      password: ${REDIS_PASSWORD:trackme-redis}
+      password: ${REDIS_USER_PASSWORD:trackme-redis}
       lettuce:
         pool:
           max-active: 16
@@ -30,11 +30,13 @@ spring:
       leak-detection-threshold: 0
       pool-name: "HikariPool-track-me-sso"
       register-mbeans: true
+      schema: sso
   liquibase:
     enabled: true
     change-log: classpath:db.changelog.yaml
     contexts: dev prod
     default-schema: sso
+    liquibase-schema: sso
 
 ---
 spring:

@@ -18,7 +18,7 @@ CREATE TABLE sso.roles
 );
 
 -- changeset akarmanov:roles-2
-CREATE TABLE user_roles
+CREATE TABLE sso.user_roles
 (
     user_id uuid NOT NULL,
     role_id uuid NOT NULL,
