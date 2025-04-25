@@ -151,3 +151,111 @@ input[type="datetime-local"] {
     font-size: 16px;
     font-family: inherit;
 }
+
+
+@media (max-width: 767px) {
+    .unique-meeting-container {
+        padding: 10px;
+    }
+
+    .unique-meeting-card {
+        width: 100%;
+        border-radius: 30px;
+        padding: 20px;
+    }
+
+    .unique-close-button {
+        top: 10px;
+        right: 60px;
+        font-size: 20px;
+    }
+
+    .unique-edit-button {
+        top: 10px;
+        right: 10px;
+        padding: 6px 15px;
+        font-size: 12px;
+        border-radius: 50px;
+    }
+
+    .unique-meeting-number {
+        font-size: 18px;
+        padding: 6px 20px;
+        margin-bottom: 15px;
+    }
+
+    .unique-label {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .unique-meeting-info {
+        margin-bottom: 15px;
+    }
+
+    .unique-task,
+    .unique-textarea {
+        min-height: 60px;
+        padding: 10px;
+        border-radius: 15px;
+    }
+
+    .unique-textarea {
+        min-height: 80px;
+    }
+
+    .unique-input {
+        height: 35px;
+        padding: 0 10px;
+    }
+
+    .unique-link {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    input[type="datetime-local"] {
+        padding: 6px 10px;
+        font-size: 12px;
+        width: 100%;
+    }
+
+    .unique-dropdown {
+        width: 100%;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+/* Для очень маленьких экранов (до 360px) */
+@media (max-width: 360px) {
+    .unique-meeting-card {
+        border-radius: 25px;
+        padding: 15px;
+    }
+
+    .unique-close-button {
+        right: 50px;
+        font-size: 18px;
+    }
+
+    .unique-edit-button {
+        padding: 5px 12px;
+        font-size: 11px;
+    }
+
+    .unique-meeting-number {
+        font-size: 16px;
+        padding: 5px 15px;
+    }
+
+    .unique-label {
+        font-size: 14px;
+    }
+
+    .unique-task,
+    .unique-textarea {
+        min-height: 50px;
+        font-size: 12px;
+    }
+}
