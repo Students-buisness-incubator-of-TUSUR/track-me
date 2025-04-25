@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env
+      - ../.env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - backend_data:/usr/src/app
@@ -18,7 +18,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env.local
+      - ../.env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - frontend_data:/usr/src/app

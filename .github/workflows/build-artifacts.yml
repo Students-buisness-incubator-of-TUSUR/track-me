@@ -139,23 +139,20 @@ jobs:
             echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
             echo "DB_URL=${{ secrets.DB_URL }}" >> .env
-            echo "REDIS_USER=${{ secrets.REDIS_USER }}" >> .env
-            echo "REDIS_USER_PASSWORD=${{ secrets.REDIS_USER_PASSWORD }}" >> .env
-            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
-            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
-            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
             echo "TRACKME_CLIENT_ID=${{ secrets.TRACKME_CLIENT_ID }}" >> .env
             echo "TRACKME_CLIENT_SECRET=${{ secrets.TRACKME_CLIENT_SECRET }}" >> .env
             echo "SSO_URI=${{ secrets.API_V1_BASE_URL }}/sso" >> .env
             echo "AFTER_LOGOUT_URI=${{ secrets.FRONTEND_URI }}" >> .env
             echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
+            echo "NODE_ENV=development" >> .env
+            echo "REACT_APP_ENV=dev" >> .env
 
             # Скачать новые версии image'ей
-            docker compose -f docker-compose.dev.yml pull
+            docker compose -f docker/docker-compose.dev.yml pull
 
             # Остановить текущие контейнеры и поднять новые
-            docker compose -f docker-compose.dev.yml down
-            docker compose -f docker-compose.dev.yml up -d
+            docker compose -f docker/docker-compose.dev.yml down
+            docker compose -f docker/docker-compose.dev.yml up -d
 
       - name: Restart Nginx
         uses: appleboy/ssh-action@master
