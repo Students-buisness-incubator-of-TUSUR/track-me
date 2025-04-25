@@ -2,8 +2,8 @@ server:
   port: 8081
 
 app:
-  after-login-endpoint: ${FRONTEND_LOGIN_URL:http://127.0.0.1:3000/after-login}
-  after-logout-endpoint: ${FRONTEND_LOGOUT_URL:http://127.0.0.1:3000}
+  after-login-endpoint: ${FRONTEND_AFTER_LOGIN_URL:http://127.0.0.1:8081}
+  after-logout-endpoint: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
 
 spring:
   application:
@@ -14,8 +14,8 @@ spring:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - "http://localhost:3000"
-              - "http://127.0.0.1:3000"
+              - http://127.0.0.1:8081
+              - ${FRONTEND_URI:http://localhost:3000}
             allowedMethods:
               - GET
               - POST
@@ -26,15 +26,15 @@ spring:
               - "*"
             allowCredentials: true
       routes:
-        - id: track-me-backend
-          uri: http://localhost:8080
+        - id: trackme-backend
+          uri: ${BACKEND_URI:http://localhost:8080}
           predicates:
             - Path=/backend/**
           filters:
             - TokenRelay
             - StripPrefix=1
-        - id: track-me-sso
-          uri: http://localhost:9000
+        - id: trackme-sso
+          uri: ${SSO_URI:http://localhost:9000}
           predicates:
             - Path=/sso/**
           filters:
@@ -45,8 +45,8 @@ spring:
       client:
         registration:
           track-me-client:
-            client-id: track-me-client
-            client-secret: password
+            client-id: ${TRACKME_CLIENT_ID:track-me-client}
+            client-secret: ${TRACKME_CLIENT_SECRET:password}
             provider: track-me-client
             client-name: TrackMe SSO
             client-authentication-method: client_secret_basic
@@ -54,11 +54,11 @@ spring:
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             scope: openid, profile
           github:
-            client-id: ${GITHUB_CLIENT_ID:Ov23li9LSVY7JkqnAVdR}
-            client-secret: e4836cdd4fe5e48481903637b3f53c9a60f7e5b8
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
         provider:
           track-me-client:
-            issuer-uri: http://localhost:9000
+            issuer-uri: ${SSO_URI:http://localhost:9000}
 logging:
   level:
     org.springframework.security: trace
@@ -72,10 +72,10 @@ springdoc:
     try-it-out-enabled: true
     urls:
       - name: TrackMe SSO
-        url: http://127.0.0.1:8081/sso/v3/api-docs
+        url: ${GATEWAY_URI:http://127.0.0.1:8081}/sso/v3/api-docs
       - name: TrackMe Backend
         display-name: TrackMe Backend
-        url: http://127.0.0.1:8081/backend/v3/api-docs
+        url: ${GATEWAY_URI:http://127.0.0.1:8081}/backend/v3/api-docs
     with-credentials: true
     use-root-path: true
     csrf:

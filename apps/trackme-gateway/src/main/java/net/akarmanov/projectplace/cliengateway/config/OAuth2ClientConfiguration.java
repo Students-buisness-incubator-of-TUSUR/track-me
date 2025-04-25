@@ -36,6 +36,7 @@ public class OAuth2ClientConfiguration {
         .csrf(ServerHttpSecurity.CsrfSpec::disable)
         .authorizeExchange(exchange ->
             exchange.pathMatchers(OPTIONS, "/**").permitAll()
+                .pathMatchers("/actuator/**").permitAll()
                 .anyExchange().authenticated())
         .oauth2Login(oauth2Login ->
             oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler))
