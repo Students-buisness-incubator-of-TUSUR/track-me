@@ -45,7 +45,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/backend:latest
             ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
+          #            ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -71,7 +71,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/gateway:latest
             ghcr.io/${{ github.repository }}/gateway:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/gateway:${{ github.ref_name }}
+          #            ghcr.io/${{ github.repository }}/gateway:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -97,7 +97,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/sso:latest
             ghcr.io/${{ github.repository }}/sso:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/sso:${{ github.ref_name }}
+          #            ghcr.io/${{ github.repository }}/sso:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -123,7 +123,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/frontend:latest
             ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
+          #            ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
