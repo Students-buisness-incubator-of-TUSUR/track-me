@@ -9,8 +9,7 @@ public class MeetingSpecification {
   public static Specification<Meeting> userEquals(String userId) {
     return (root, query, criteriaBuilder) -> {
       var teamCardJoin = root.join("teamCard");
-      var userJoin = teamCardJoin.join("user");
-      return criteriaBuilder.equal(userJoin.get("telegramId"), userId);
+      return criteriaBuilder.equal(teamCardJoin.get("userId"), userId);
     };
   }
 

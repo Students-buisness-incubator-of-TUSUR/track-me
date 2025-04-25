@@ -26,7 +26,7 @@ public class TeamCardSpecification implements Specification<TeamCard> {
       "ntiMarket.name",
       "description",
       "status",
-      "user.telegramId",
+      "userId",
       READINESS_LEVEL_FIELD_NAME,
       STREAMS_YEAR_FIELD,
       "streams.name"
@@ -57,10 +57,8 @@ public class TeamCardSpecification implements Specification<TeamCard> {
   }
 
   public static Specification<TeamCard> userEquals(String userId) {
-    return (root, query, criteriaBuilder) -> {
-      var userJoin = root.join("user");
-      return criteriaBuilder.equal(userJoin.get("id"), UUID.fromString(userId));
-    };
+    return (root, query, criteriaBuilder) ->
+        criteriaBuilder.equal(root.get("userId"), UUID.fromString(userId));
   }
 
   public static TeamCardSpecification withFilters(List<Filter> filters) {
