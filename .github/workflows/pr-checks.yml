@@ -38,8 +38,13 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
-      - name: Build & Test Backend
+      - name: Build, Test & Jacoco Backend
         run: ./gradlew :backend:build
+      - name: Upload Backend Jacoco Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jacoco
+          path: backend/build/reports/jacoco/test/jacocoTestReport.xml
 
   trackme-frontend-check:
     runs-on: ubuntu-latest
@@ -75,8 +80,13 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
-      - name: Build & Test Gateway
+      - name: Build, Test & Jacoco Gateway
         run: ./gradlew :trackme-gateway:build
+      - name: Upload Gateway Jacoco Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateway-jacoco
+          path: trackme-gateway/build/reports/jacoco/test/jacocoTestReport.xml
 
   trackme-sso-check:
     runs-on: ubuntu-latest
@@ -94,8 +104,13 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-sso-${{ hashFiles('**/gradle-wrapper.properties', '**/build.gradle') }}
-      - name: Build & Test SSO
+      - name: Build, Test & Jacoco SSO
         run: ./gradlew :trackme-sso:build
+      - name: Upload SSO Jacoco Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sso-jacoco
+          path: trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml
 
   sonarqube-check:
     runs-on: ubuntu-latest
@@ -112,6 +127,21 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - name: Download Backend Jacoco Report
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jacoco
+          path: backend/build/reports/jacoco/test/
+      - name: Download Gateway Jacoco Report
+        uses: actions/download-artifact@v4
+        with:
+          name: gateway-jacoco
+          path: trackme-gateway/build/reports/jacoco/test/
+      - name: Download SSO Jacoco Report
+        uses: actions/download-artifact@v4
+        with:
+          name: sso-jacoco
+          path: trackme-sso/build/reports/jacoco/test/
       - name: SonarQube
         run: |
           ./gradlew sonar \
@@ -121,4 +151,5 @@ jobs:
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
             -Dsonar.pullrequest.key=${{ github.event.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }}
+            -Dsonar.pullrequest.base=${{ github.base_ref }} \
+            -Dsonar.coverage.jacoco.xmlReportPaths=backend/build/reports/jacoco/test/jacocoTestReport.xml,trackme-gateway/build/reports/jacoco/test/jacocoTestReport.xml,trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml
