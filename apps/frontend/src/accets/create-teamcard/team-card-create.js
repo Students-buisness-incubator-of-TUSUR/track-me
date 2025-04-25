@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom";
 import "./team-card-create.css";
 import penIcon from "./pen.png";
 
-const backendHost = process.env.REACT_APP_BACKEND_HOST + '/backend';
+const backendHost = process.env.REACT_APP_CLIENT_GATEWAY_URI + '/backend';
 
 const TeamCard = () => {
     const navigate = useNavigate();

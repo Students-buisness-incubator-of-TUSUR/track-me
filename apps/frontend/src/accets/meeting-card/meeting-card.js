@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./meeting-card.css";
 
-const backendHost = process.env.REACT_APP_BACKEND_HOST + '/backend';
+const backendHost = process.env.REACT_APP_CLIENT_GATEWAY_URI + '/backend';
 
 const MeetingCard = () => {
     const {meetingId} = useParams();

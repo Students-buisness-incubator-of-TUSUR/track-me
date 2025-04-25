@@ -2,24 +2,24 @@ import React from "react";
 import "./HomePage.css";
 
 const HomePage = () => {
-    const ssoLoginUrl = process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080";
+    const clientGatewayUri = process.env.REACT_APP_CLIENT_GATEWAY_URI || "http://localhost:8080";
 
     const handleSSOLogin = () => {
 
-        window.location.href = `${ssoLoginUrl}/oauth2/authorization/track-me-client`;
+        window.location.href = `${clientGatewayUri}/oauth2/authorization/track-me-client`;
     };
 
 
     const handleGithubLogin = () => {
-        window.location.href = `${ssoLoginUrl}/oauth2/authorization/github`;
+        alert("в разработке");
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = `${ssoLoginUrl}/oauth2/authorization/google`;
+        alert("в разработке");
     };
 
     const handleTelegramLogin = () => {
-        window.location.href = `${ssoLoginUrl}/oauth2/authorization/telegram`;
+        alert("в разработке");
     };
 
     return (
@@ -29,13 +29,13 @@ const HomePage = () => {
                 <p className="home-description">Управляйте своими потоками и командами с
                     легкостью.</p>
                 <div className="home-provider-buttons">
-                    <button className="home-provider-button" onClick={handleGoogleLogin}>
+                    <button className="home-provider-button" onClick={handleGoogleLogin} disabled>
                         <img src="/icons/google-logo.svg" alt="Google"/>
                     </button>
-                    <button className="home-provider-button" onClick={handleTelegramLogin}>
+                    <button className="home-provider-button" onClick={handleTelegramLogin} disabled>
                         <img src="/icons/telegram-logo.svg" alt="Telegram"/>
                     </button>
-                    <button className="home-provider-button" onClick={handleGithubLogin}>
+                    <button className="home-provider-button" onClick={handleGithubLogin} disabled>
                         <img src="/icons/github-logo.svg" alt="GitHub"/>
                     </button>
                 </div>

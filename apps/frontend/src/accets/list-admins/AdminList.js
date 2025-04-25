@@ -18,7 +18,7 @@ function AdminList() {
 
     // Если фильтры не изменяются, мемоизируем их
     const filters = useMemo(() => [], []);
-    const backendHost = (process.env.REACT_APP_BACKEND_HOST || "http://localhost:8080") + '/backend';
+    const backendHost = (process.env.REACT_APP_CLIENT_GATEWAY_URI || "http://localhost:8080") + '/backend';
 
     useEffect(() => {
         fetch(`${backendHost}/api/v1/admin/users/administrators?page=0&size=10`, {
