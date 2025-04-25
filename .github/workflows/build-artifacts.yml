@@ -11,7 +11,9 @@ on:
   push:
     tags:
       - 'v*.*.*'
-    branches: [ develop ]
+    branches:
+      - develop
+      - bugfix/**
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
