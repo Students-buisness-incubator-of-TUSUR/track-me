@@ -47,12 +47,12 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-backend-${{ hashFiles('backend/gradle/wrapper/gradle-wrapper.properties', 'backend/build.gradle*') }}
       - name: Build, Test & Jacoco Backend
-        run: ./gradlew :backend:clean :backend:build
+        run: ./gradlew :backend:clean :backend:build :backend:jacocoTestReport
       - name: Upload Backend Jacoco Report
         uses: actions/upload-artifact@v4
         with:
           name: backend-jacoco
-          path: backend/build/reports/jacoco/test/jacocoTestReport.xml
+          path: apps/backend/build/reports/jacoco/test/jacocoTestReport.xml
 
   trackme-frontend-check:
     runs-on: ubuntu-latest
@@ -107,12 +107,12 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-gateway-${{ hashFiles('trackme-gateway/gradle/wrapper/gradle-wrapper.properties', 'trackme-gateway/build.gradle*') }}
       - name: Build, Test & Jacoco Gateway
-        run: ./gradlew :trackme-gateway:clean :trackme-gateway:build
+        run: ./gradlew :trackme-gateway:clean :trackme-gateway:build :trackme-gateway:jacocoTestReport
       - name: Upload Gateway Jacoco Report
         uses: actions/upload-artifact@v4
         with:
           name: gateway-jacoco
-          path: trackme-gateway/build/reports/jacoco/test/jacocoTestReport.xml
+          path: apps/trackme-gateway/build/reports/jacoco/test/jacocoTestReport.xml
 
   trackme-sso-check:
     runs-on: ubuntu-latest
@@ -135,12 +135,12 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-sso-${{ hashFiles('trackme-sso/gradle/wrapper/gradle-wrapper.properties', 'trackme-sso/build.gradle*') }}
       - name: Build, Test & Jacoco SSO
-        run: ./gradlew :trackme-sso:clean :trackme-sso:build
+        run: ./gradlew :trackme-sso:clean :trackme-sso:build :trackme-sso:jacocoTestReport
       - name: Upload SSO Jacoco Report
         uses: actions/upload-artifact@v4
         with:
           name: sso-jacoco
-          path: trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml
+          path: services/trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml
 
   sonarqube-check:
     runs-on: ubuntu-latest
