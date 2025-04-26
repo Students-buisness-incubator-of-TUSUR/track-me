@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0    # Best practice: enable full clone for Sonar analysis
+          fetch-depth: 0
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
@@ -73,6 +73,9 @@ jobs:
       - name: Lint frontend
         run: npm run lint --if-present
         working-directory: apps/frontend
+      - name: Lint frontend with report
+        run: npm run lint --if-present -- -f json -o eslint-report.json
+        working-directory: apps/frontend
       - name: Build frontend
         run: npm run build
         working-directory: apps/frontend
@@ -85,6 +88,12 @@ jobs:
         with:
           name: frontend-coverage
           path: apps/frontend/coverage/lcov.info
+      - name: Upload frontend eslint report
+        if: success() && hashFiles('apps/frontend/eslint-report.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-eslint
+          path: apps/frontend/eslint-report.json
 
   trackme-gateway-check:
     runs-on: ubuntu-latest
@@ -171,12 +180,17 @@ jobs:
         with:
           name: frontend-coverage
           path: apps/frontend/coverage/
-
+      - name: Download frontend eslint report
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-eslint
+          path: apps/frontend/
       - name: Show coverage files
         run: |
           ls -l apps/backend/build/reports/jacoco/test/
           ls -l services/trackme-sso/build/reports/jacoco/test/
           ls -l apps/frontend/coverage/
+          ls -l apps/frontend/
 
       - name: Run SonarCloud scan
         env:
@@ -186,6 +200,7 @@ jobs:
           JACOCO_PATH1="$GITHUB_WORKSPACE/apps/backend/build/reports/jacoco/test/jacocoTestReport.xml"
           JACOCO_PATH2="$GITHUB_WORKSPACE/services/trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml"
           FRONTEND_LCOV="$GITHUB_WORKSPACE/apps/frontend/coverage/lcov.info"
+          ESLINT_REPORT="$GITHUB_WORKSPACE/apps/frontend/eslint-report.json"
           ./gradlew sonar \
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
@@ -195,4 +210,5 @@ jobs:
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
             -Dsonar.coverage.jacoco.xmlReportPaths="$JACOCO_PATH1,$JACOCO_PATH2" \
-            -Dsonar.javascript.lcov.reportPaths="$FRONTEND_LCOV"
+            -Dsonar.javascript.lcov.reportPaths="$FRONTEND_LCOV" \
+            -Dsonar.eslint.reportPaths="$ESLINT_REPORT"

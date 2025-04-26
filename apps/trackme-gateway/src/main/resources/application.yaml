@@ -2,7 +2,7 @@ server:
   port: 8081
 
 app:
-  after-login-endpoint: ${FRONTEND_AFTER_LOGIN_URL:http://127.0.0.1:8081}
+  after-login-endpoint: ${AFTER_LOGIN_URL:http://127.0.0.1:8081}
   after-logout-endpoint: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
 
 spring:

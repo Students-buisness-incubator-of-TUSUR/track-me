@@ -207,6 +207,7 @@ jobs:
             echo "MAIL_SUBJECT=${{ secrets.MAIL_SUBJECT }}" >> .env
             echo "SSO_URI=${{ secrets.API_V1_BASE_URL }}/sso" >> .env
             echo "AFTER_LOGOUT_URI=https://трекер.демо-стенд.рф" >> .env
+            echo "AFTER_LOGIN_URL=https://трекер.демо-стенд.рф/after-login" >> .env
             echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
             cat .env.dev.redis | tr -d '\r' >> .env
             echo "" >> .env
