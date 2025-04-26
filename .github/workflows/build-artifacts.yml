@@ -20,7 +20,32 @@ on:
       - 'docs/**'
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      gateway: ${{ steps.filter.outputs.gateway }}
+      sso: ${{ steps.filter.outputs.sso }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Filter changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'apps/backend/**'
+            gateway:
+              - 'apps/trackme-gateway/**'
+            sso:
+              - 'services/trackme-sso/**'
+            frontend:
+              - 'apps/frontend/**'
+
   trackme-backend-build-push:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +76,8 @@ jobs:
           cache-to: type=gha,mode=max
 
   trackme-client-build-push:
+    needs: changes
+    if: needs.changes.outputs.gateway == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -78,6 +105,8 @@ jobs:
           cache-to: type=gha,mode=max
 
   trackme-sso-build-push:
+    needs: changes
+    if: needs.changes.outputs.sso == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -105,6 +134,8 @@ jobs:
           cache-to: type=gha,mode=max
 
   trackme-frontend-build-push:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
