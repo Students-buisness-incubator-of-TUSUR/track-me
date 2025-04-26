@@ -169,7 +169,9 @@ jobs:
             echo "AFTER_LOGOUT_URI=${{ secrets.FRONTEND_URI }}" >> .env
             echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
             cat .env.dev.redis | tr -d '\r' >> .env
-            cat .env.dev.database | tr -d '\r' >> .env  
+            echo "" >> .env
+            cat .env.dev.database | tr -d '\r' >> .env
+            echo "" >> .env
             cat .env.dev.sso | tr -d '\r' >> .env
 
             # Скачать новые версии image'ей
@@ -177,7 +179,7 @@ jobs:
 
             # Остановить текущие контейнеры и поднять новые
             docker compose -f docker-compose.dev.yml down
-            docker compose -f docker-compose.dev.yml up -d
+            docker compose -f docker-compose.dev.yml up -d 
 
       - name: Restart Nginx
         uses: appleboy/ssh-action@master
@@ -186,5 +188,17 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
+            until curl -sf http://localhost:8080/actuator/health; do
+            echo "Waiting for backend..."
+            sleep 5
+            done
+            until curl -sf http://localhost:9000/actuator/health; do
+            echo "Waiting for sso..."
+            sleep 5
+            done
+            until curl -sf http://localhost:3001/actuator/health; do
+            echo "Waiting for frontend..."
+            sleep 5
+            done
             cd /home/vmv94/gateway/
             make restart

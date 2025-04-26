@@ -28,6 +28,7 @@ public class SecurityConfiguration {
       LOGIN_PAGE,
       "/registration-success",
       "/sso/static/**",
+      "/static/**",
       "/client/**",
       "/actuator/**",
       "/v3/api-docs",
