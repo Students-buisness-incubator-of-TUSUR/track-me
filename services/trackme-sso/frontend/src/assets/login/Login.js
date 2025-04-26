@@ -23,7 +23,7 @@ const Login = () => {
                 <form
                     className="login-form"
                     method="POST"
-                    action="/client/login"
+                    action="/sso/client/login"
                     autoComplete="username">
                     <input
                         type="text"
@@ -53,10 +53,10 @@ const Login = () => {
                     <p className="error-message">{errorMessage}</p>
                 )}
                 <div className="login-links">
-                    <a href="/client/registration" className="login-link">
+                    <a href="/sso/client/registration" className="login-link">
                         Регистрация
                     </a>
-                    <a href="/client/reset-password" className="login-link">
+                    <a href="/sso/client/reset-password" className="login-link">
                         Забыли пароль?
                     </a>
                 </div>
