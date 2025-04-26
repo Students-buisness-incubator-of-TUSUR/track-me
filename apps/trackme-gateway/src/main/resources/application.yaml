@@ -27,14 +27,14 @@ spring:
             allowCredentials: true
       routes:
         - id: trackme-backend
-          uri: ${BACKEND_URI:http://localhost:8080}
+          uri: http://track-me-backend:8080
           predicates:
             - Path=/backend/**
           filters:
             - TokenRelay
             - StripPrefix=1
         - id: trackme-sso
-          uri: ${SSO_URI:http://localhost:9000}
+          uri: http://track-me-sso:9000
           predicates:
             - Path=/sso/**
           filters:
@@ -72,10 +72,10 @@ springdoc:
     try-it-out-enabled: true
     urls:
       - name: TrackMe SSO
-        url: ${GATEWAY_URI:http://127.0.0.1:8081}/sso/v3/api-docs
+        url: http://track-me-sso:9000/v3/api-docs
       - name: TrackMe Backend
         display-name: TrackMe Backend
-        url: ${GATEWAY_URI:http://127.0.0.1:8081}/backend/v3/api-docs
+        url: http://track-me-backend:8080/v3/api-docs
     with-credentials: true
     use-root-path: true
     csrf:
