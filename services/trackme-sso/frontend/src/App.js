@@ -9,10 +9,10 @@ function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/client/login" element={<Login/>}/>
-                <Route path="/client/registration" element={<Register/>}/>
-                <Route path="/client/registration-success" element={<RegistrationSuccess/>}/>
-                <Route path="/client/registration-confirm" element={<ConfirmRegistration/>}/>
+                <Route path="/sso/client/login" element={<Login/>}/>
+                <Route path="/sso/client/registration" element={<Register/>}/>
+                <Route path="/sso/client/registration-success" element={<RegistrationSuccess/>}/>
+                <Route path="/sso/client/registration-confirm" element={<ConfirmRegistration/>}/>
             </Routes>
         </Router>
     );
