@@ -170,6 +170,15 @@ jobs:
       - trackme-client-build-push
       - trackme-sso-build-push
       - trackme-frontend-build-push
+    if: |
+      always() &&
+      (
+        needs.trackme-backend-build-push.result == 'success' ||
+        needs.trackme-client-build-push.result == 'success' ||
+        needs.trackme-sso-build-push.result == 'success' ||
+        needs.trackme-frontend-build-push.result == 'success'
+      )
+
     runs-on: ubuntu-latest
     steps:
       - name: Set Environment Variables and Deploy via SSH
