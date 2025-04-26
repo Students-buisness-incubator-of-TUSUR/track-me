@@ -197,7 +197,7 @@ jobs:
             rm -f .env
 
             echo "REACT_APP_CLIENT_GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
-            echo "FRONTEND_URI=https://трекер.демо-стенд.рф" >> .env
+            echo "FRONTEND_URI=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai" >> .env
             echo "BACKEND_URI=${{ secrets.API_V1_BASE_URL }}" >> .env
             echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
             echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
@@ -206,8 +206,8 @@ jobs:
             echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
             echo "MAIL_SUBJECT=${{ secrets.MAIL_SUBJECT }}" >> .env
             echo "SSO_URI=${{ secrets.API_V1_BASE_URL }}/sso" >> .env
-            echo "AFTER_LOGOUT_URI=https://трекер.демо-стенд.рф" >> .env
-            echo "AFTER_LOGIN_URL=https://трекер.демо-стенд.рф/after-login" >> .env
+            echo "AFTER_LOGOUT_URI=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai" >> .env
+            echo "AFTER_LOGIN_URL=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai/after-login" >> .env
             echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
             cat .env.dev.redis | tr -d '\r' >> .env
             echo "" >> .env

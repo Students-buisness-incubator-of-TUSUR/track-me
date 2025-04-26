@@ -81,5 +81,6 @@ springdoc:
     use-root-path: true
     csrf:
       enabled: true
+    path: /api/
   api-docs:
     enabled: true
