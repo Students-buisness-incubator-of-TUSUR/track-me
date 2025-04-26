@@ -62,6 +62,7 @@ spring:
 logging:
   level:
     org.springframework.security: trace
+    org.springframework.cloud.gateway: debug
 
 springdoc:
   swagger-ui:
