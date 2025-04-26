@@ -79,7 +79,7 @@ springBoot {
 node {
     version = '23.10.0'
     npmVersion = '10.9.2'
-    download = true
+    download = false
     nodeProjectDir = file("${projectDir}/frontend")
 }
 
@@ -92,6 +92,9 @@ tasks.register('buildReact', NpmTask) {
     args = ['run', 'build']
     workingDir = file("${projectDir}/frontend")
     dependsOn installReact
+    environment = [
+            'PUBLIC_URL': '/sso'
+    ]
 }
 
 // Копируем ассеты

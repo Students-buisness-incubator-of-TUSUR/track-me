@@ -7,7 +7,7 @@ RUN apk add --no-cache nodejs npm
 WORKDIR /app
 
 # Сначала копируем только файлы, изменение которых встречается реже.
-COPY build.gradle settings.gradle /app/
+COPY prod.build.gradle settings.gradle /app/
 COPY gradle /app/gradle
 COPY services/trackme-sso /app/services/trackme-sso
 
@@ -16,7 +16,7 @@ COPY services/trackme-sso /app/services/trackme-sso
 COPY . /app
 
 # Собираем JAR только нужного модуля
-RUN gradle :trackme-sso:clean :trackme-sso:bootJar
+RUN gradle --init-scrip prod.build.gradle :trackme-sso:clean :trackme-sso:bootJar
 
 # 2. Этап запуска
 FROM eclipse-temurin:21-jre-alpine

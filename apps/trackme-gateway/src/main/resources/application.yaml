@@ -78,9 +78,8 @@ springdoc:
         display-name: TrackMe Backend
         url: ${GATEWAY_URI:http://127.0.0.1:8081}/backend/v3/api-docs
     with-credentials: true
-    use-root-path: true
     csrf:
       enabled: true
-    path: /api/
+    use-root-path: true
   api-docs:
     enabled: true
