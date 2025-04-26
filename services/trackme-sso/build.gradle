@@ -92,6 +92,10 @@ tasks.register('buildReact', NpmTask) {
     args = ['run', 'build']
     workingDir = file("${projectDir}/frontend")
     dependsOn installReact
+    environment = [
+            'PUBLIC_URL': '/sso'
+    ]
+
 }
 
 // Копируем ассеты
