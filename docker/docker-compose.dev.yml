@@ -2,12 +2,12 @@ services:
   postgres:
     image: 'postgres:latest'
     env_file:
-      - ../.env
+      - .env
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../database/init_schemas.sql:/docker-entrypoint-initdb.d/init_schemas.sql
+      - ./database/init_schemas.sql:/docker-entrypoint-initdb.d/init_schemas.sql
     networks:
       - demo
 
@@ -17,7 +17,7 @@ services:
     env_file:
       - .env.dev.redis
     ports:
-      - "6380:6379"
+      - "${REDIS_PORT}:6379"
     volumes:
       - ./redisdata:/data
     deploy:
@@ -30,13 +30,14 @@ services:
           memory: 256M
     command: >
       sh -c '
+        cat .env.dev.redis >> .env
         mkdir -p /usr/local/etc/redis &&
         echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
-        echo "requirepass $REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+        echo "requirepass ${REDIS_PASSWORD}" >> /usr/local/etc/redis/redis.conf &&
         echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
         echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
         echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
-        echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        echo "user ${REDIS_USER} on >${REDIS_USER_PASSWORD} ~* +@all" >> /usr/local/etc/redis/users.acl &&
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
     healthcheck:
@@ -56,7 +57,8 @@ services:
     platform: linux/amd64
     restart: always
     env_file:
-      - ../.env
+      - .env
+      - .env.dev.redis
     depends_on:
       - postgres
       - redis
@@ -83,7 +85,8 @@ services:
       - postgres
       - redis
     env_file:
-      - ../.env
+      - .env
+      - .env.dev.redis
     ports:
       - '9000:9000'
     expose:
@@ -98,14 +101,15 @@ services:
 
   client-gateway:
     container_name: track-me-client-gateway
-    image: ghcr.io/akarmanov2022/track-me/client-gateway:latest
+    image: ghcr.io/akarmanov2022/track-me/gateway:latest
     platform: linux/amd64
     restart: always
     depends_on:
       - backend
       - sso
     env_file:
-      - ../.env
+      - .env
+      - .env.dev.redis
     ports:
       - '8081:8081'
     expose:
@@ -123,11 +127,12 @@ services:
     image: ghcr.io/akarmanov2022/track-me/frontend:latest
     platform: linux/amd64
     env_file:
-      - ../.env
+      - .env
+      - .env.dev.redis
     depends_on:
       - backend
     ports:
-      - '3000:3000'
+      - '3001:3000'
     expose:
       - '3000'
     networks:

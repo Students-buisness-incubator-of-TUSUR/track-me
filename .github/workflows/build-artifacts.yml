@@ -154,12 +154,12 @@ jobs:
             cd /home/${{ secrets.SSH_USERNAME }}/track-me
 
             # Создать .env файл с переменными окружения
-            rm -f .env .env.local
+            rm -f .env
 
             echo "REACT_APP_CLIENT_GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
             echo "GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> .env
             echo "GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}" >> .env
-            echo "FRONTEND_URI=${{ secrets.FRONTEND_URI }}" >> .env
+            echo "FRONTEND_URI=https://трекер.демо-стенд.рф" >> .env
             echo "BACKEND_URI=${{ secrets.API_V1_BASE_URL }}" >> .env
             echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
             echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
@@ -167,16 +167,12 @@ jobs:
             echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
             echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
             echo "MAIL_SUBJECT=${{ secrets.MAIL_SUBJECT }}" >> .env
-            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "DB_URL=${{ secrets.DB_URL }}" >> .env
-            echo "TRACKME_CLIENT_ID=${{ secrets.TRACKME_CLIENT_ID }}" >> .env
-            echo "TRACKME_CLIENT_SECRET=${{ secrets.TRACKME_CLIENT_SECRET }}" >> .env
             echo "SSO_URI=${{ secrets.API_V1_BASE_URL }}/sso" >> .env
             echo "AFTER_LOGOUT_URI=${{ secrets.FRONTEND_URI }}" >> .env
             echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
-            echo "NODE_ENV=development" >> .env
-            echo "REACT_APP_ENV=dev" >> .env
+            cat .env.dev.redis >> .env
+            cat .env.dev.database >> .env
+            cat .env.dev.sso >> .env
 
             # Скачать новые версии image'ей
             docker compose -f docker/docker-compose.dev.yml pull
