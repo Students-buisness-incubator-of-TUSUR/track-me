@@ -13,7 +13,6 @@ on:
       - 'v*.*.*'
     branches:
       - develop
-      - bugfix/**
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
