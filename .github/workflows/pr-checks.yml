@@ -172,6 +172,12 @@ jobs:
           name: frontend-coverage
           path: apps/frontend/coverage/
 
+      - name: Show coverage files
+        run: |
+          ls -l apps/backend/build/reports/jacoco/test/
+          ls -l services/trackme-sso/build/reports/jacoco/test/
+          ls -l apps/frontend/coverage/
+
       - name: SonarCloud scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

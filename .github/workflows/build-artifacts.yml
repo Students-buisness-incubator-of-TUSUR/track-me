@@ -40,7 +40,8 @@ jobs:
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v5
         with:
-          context: apps/backend
+          context: .
+          file: apps/backend/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/backend:latest
@@ -66,7 +67,8 @@ jobs:
       - name: Build and Push trackme-client Image
         uses: docker/build-push-action@v5
         with:
-          context: apps/trackme-gateway
+          context: .
+          file: apps/trackme-gateway/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/gateway:latest
@@ -92,7 +94,8 @@ jobs:
       - name: Build and Push trackme-sso Image
         uses: docker/build-push-action@v5
         with:
-          context: services/trackme-sso
+          context: .
+          file: services/trackme-sso/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/sso:latest
@@ -120,6 +123,9 @@ jobs:
         with:
           context: apps/frontend
           push: true
+          secret-envs: |
+            NODE_ENV=development
+            REACT_APP_ENV=stage
           tags: |
             ghcr.io/${{ github.repository }}/frontend:latest
             ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
@@ -150,7 +156,7 @@ jobs:
             # Создать .env файл с переменными окружения
             rm -f .env .env.local
 
-            echo "REACT_APP_CLIENT_GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}" >> .env
+            echo "REACT_APP_CLIENT_GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
             echo "GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> .env
             echo "GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}" >> .env
             echo "FRONTEND_URI=${{ secrets.FRONTEND_URI }}" >> .env

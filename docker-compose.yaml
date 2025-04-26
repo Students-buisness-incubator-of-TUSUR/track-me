@@ -136,8 +136,8 @@ services:
     platform: linux/amd64
     env_file:
       - .env
-    depends_on:
-      - trackme-client-gateway
+    #    depends_on:
+    #      - trackme-client-gateway
     ports:
       - '3000:3000'
     networks:
