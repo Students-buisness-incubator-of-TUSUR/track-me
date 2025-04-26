@@ -157,8 +157,6 @@ jobs:
             rm -f .env
 
             echo "REACT_APP_CLIENT_GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
-            echo "GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> .env
-            echo "GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}" >> .env
             echo "FRONTEND_URI=https://трекер.демо-стенд.рф" >> .env
             echo "BACKEND_URI=${{ secrets.API_V1_BASE_URL }}" >> .env
             echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
@@ -170,16 +168,16 @@ jobs:
             echo "SSO_URI=${{ secrets.API_V1_BASE_URL }}/sso" >> .env
             echo "AFTER_LOGOUT_URI=${{ secrets.FRONTEND_URI }}" >> .env
             echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
-            cat .env.dev.redis >> .env
-            cat .env.dev.database >> .env
-            cat .env.dev.sso >> .env
+            cat .env.dev.redis | tr -d '\r' >> .env
+            cat .env.dev.database | tr -d '\r' >> .env  
+            cat .env.dev.sso | tr -d '\r' >> .env
 
             # Скачать новые версии image'ей
-            docker compose -f docker/docker-compose.dev.yml pull
+            docker compose -f docker-compose.dev.yml pull
 
             # Остановить текущие контейнеры и поднять новые
-            docker compose -f docker/docker-compose.dev.yml down
-            docker compose -f docker/docker-compose.dev.yml up -d
+            docker compose -f docker-compose.dev.yml down
+            docker compose -f docker-compose.dev.yml up -d
 
       - name: Restart Nginx
         uses: appleboy/ssh-action@master

@@ -27,7 +27,7 @@ public class SecurityConfiguration {
   static final String[] PERMIT_ALL_PATTERNS = {
       LOGIN_PAGE,
       "/registration-success",
-      "/static/**",
+      "/sso/static/**",
       "/client/**",
       "/actuator/**",
       "/v3/api-docs",
