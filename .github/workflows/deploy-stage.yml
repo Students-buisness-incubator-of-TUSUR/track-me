@@ -2,7 +2,7 @@ name: Deploy to Stage
 on:
   workflow_dispatch:
     inputs:
-      tag:
+      image_tag:
         required: true
         description: 'Docker Image Tag to deploy'
         default: 'latest'
@@ -13,6 +13,19 @@ on:
     types:
       - completed
 jobs:
+  choose-image-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
+    steps:
+      - name: Set tag depending on trigger
+        id: set-image-tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "image_tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "image_tag=latest" >> $GITHUB_OUTPUT
+          fi
   set-env:
     runs-on: ubuntu-latest
     steps:
@@ -54,7 +67,7 @@ jobs:
             cat .env.dev.sso | tr -d '\r' >> .env
 
   deploy:
-    needs: set-env
+    needs: [ set-env, choose-image-tag ]
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Stage
@@ -69,11 +82,13 @@ jobs:
             # Перейти в рабочую директорию проекта
             cd /home/${{ secrets.SSH_USERNAME }}/track-me
             
+            TAG='${{ needs.choose-image-tag.outputs.image_tag }}'
+            
             # Скачать новые версии image'ей
-            docker pull ghcr.io/${{ github.repository }}/backend:${{ github.event.inputs.tag }}
-            docker pull ghcr.io/${{ github.repository }}/gateway:${{ github.event.inputs.tag }}
-            docker pull ghcr.io/${{ github.repository }}/sso:${{ github.event.inputs.tag }}
-            docker pull ghcr.io/${{ github.repository }}/frontend:${{ github.event.inputs.tag }}
+            docker pull ghcr.io/${{ github.repository }}/backend:$TAG
+            docker pull ghcr.io/${{ github.repository }}/gateway:$TAG
+            docker pull ghcr.io/${{ github.repository }}/sso:$TAG
+            docker pull ghcr.io/${{ github.repository }}/frontend:$TAG
             
             # Остановить текущие контейнеры и поднять новые
             docker compose -f docker-compose.dev.yml down
@@ -123,17 +138,5 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            until curl -sf http://localhost:8080/actuator/health; do
-            echo "Waiting for backend..."
-            sleep 5
-            done
-            until curl -sf http://localhost:9000/actuator/health; do
-            echo "Waiting for sso..."
-            sleep 5
-            done
-            until curl -sf http://localhost:3001/actuator/health; do
-            echo "Waiting for frontend..."
-            sleep 5
-            done
             cd /home/vmv94/gateway/
             make restart

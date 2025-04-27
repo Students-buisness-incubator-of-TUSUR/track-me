@@ -49,4 +49,8 @@ public interface UserService {
   void changePassword(String username, String newPassword, String oldPassword);
 
   UserEntity findByUsername(String name);
+
+  void enableUser(String username);
+
+  void disableUser(String username);
 }

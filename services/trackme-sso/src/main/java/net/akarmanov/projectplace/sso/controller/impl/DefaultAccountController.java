@@ -1,20 +1,19 @@
-package net.akarmanov.projectplace.sso.controller;
+package net.akarmanov.projectplace.sso.controller.impl;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.sso.controller.AccountController;
 import net.akarmanov.projectplace.sso.dto.UserDto;
 import net.akarmanov.projectplace.sso.dto.UserUpdateDto;
 import net.akarmanov.projectplace.sso.services.AccountService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('SCOPE_profile')")
 public class DefaultAccountController implements AccountController {
 
   private final AccountService accountService;

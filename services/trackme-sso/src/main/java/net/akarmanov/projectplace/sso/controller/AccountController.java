@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Validated
-@Tag(name = "API для управления пользователями")
+@Tag(name = "API для управления данными пользователя")
 @RequestMapping("/api/v1/account")
 public interface AccountController {
 

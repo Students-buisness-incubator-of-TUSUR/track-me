@@ -194,4 +194,22 @@ public class DefaultUserService implements UserService {
     return userRepository.findByUsername(name)
         .orElseThrow(() -> new UsernameNotFoundException(name));
   }
+
+  @Override
+  @Transactional
+  public void enableUser(String username) {
+    changeActivity(username, true);
+  }
+
+  @Override
+  @Transactional
+  public void disableUser(String username) {
+    changeActivity(username, false);
+  }
+
+  private void changeActivity(String username, boolean active) {
+    var userEntity = findByUsername(username);
+    userEntity.setActive(active);
+    save(userEntity);
+  }
 }

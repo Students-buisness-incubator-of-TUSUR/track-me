@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -20,7 +19,7 @@ class DefaultAccountControllerTest extends AbstractIntegrationTest {
   private MockMvc mockMvc;
 
   @Test
-  @WithUserDetails("superadmin")
+  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
   void getUserInfo_success() throws Exception {
     mockMvc.perform(get("/api/v1/account/info"))
         .andDo(print())
@@ -38,7 +37,7 @@ class DefaultAccountControllerTest extends AbstractIntegrationTest {
   }
 
   @Test
-  @WithMockUser(username = "user", authorities = "SCOPE_profile")
+  @WithMockUser(username = "user", roles = "TRACKER")
   void getUserInfo_notFound() throws Exception {
     mockMvc.perform(get("/api/v1/account/info"))
         .andDo(print())
@@ -46,7 +45,7 @@ class DefaultAccountControllerTest extends AbstractIntegrationTest {
   }
 
   @Test
-  @WithUserDetails("superadmin")
+  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
   void changePassword_success() throws Exception {
     mockMvc.perform(post(
             "/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=superadmin")
@@ -56,7 +55,7 @@ class DefaultAccountControllerTest extends AbstractIntegrationTest {
   }
 
   @Test
-  @WithUserDetails("superadmin")
+  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
   void changePassword_invalidOldPassword() throws Exception {
     mockMvc.perform(post("/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=wrong")
             .with(csrf()))
