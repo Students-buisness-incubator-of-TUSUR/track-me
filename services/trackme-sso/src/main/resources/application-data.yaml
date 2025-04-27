@@ -53,3 +53,23 @@ spring:
       on-profile: development
   liquibase:
     contexts: prod, dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  liquibase:
+    liquibase-schema: sso
+    default-schema: sso
+    contexts: prod, dev
+  datasource:
+    hikari:
+      schema: sso
+  data:
+    redis:
+      database: 1
+      host: localhost
+      port: 6379
+      username:
+      password:

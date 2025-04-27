@@ -16,7 +16,7 @@ COPY services/trackme-sso /app/services/trackme-sso
 COPY . /app
 
 # Собираем JAR только нужного модуля
-RUN gradle --init-script services/trackme-sso/prod.build.gradle :trackme-sso:clean :trackme-sso:bootJar
+RUN gradle :trackme-sso:clean :trackme-sso:bootJar -Pprod
 
 # 2. Этап запуска
 FROM eclipse-temurin:21-jre-alpine

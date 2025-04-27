@@ -35,6 +35,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-core:5.11.0'
     testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+    testImplementation 'org.springframework.security:spring-security-test'
 
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -79,7 +80,7 @@ springBoot {
 node {
     version = '23.10.0'
     npmVersion = '10.9.2'
-    download = true
+    download = !project.hasProperty('prod')
     nodeProjectDir = file("${projectDir}/frontend")
 }
 
@@ -92,6 +93,11 @@ tasks.register('buildReact', NpmTask) {
     args = ['run', 'build']
     workingDir = file("${projectDir}/frontend")
     dependsOn installReact
+    if (project.hasProperty('prod')) {
+        environment = [
+                'PUBLIC_URL': '/sso'
+        ]
+    }
 }
 
 // Копируем ассеты
