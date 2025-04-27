@@ -21,6 +21,7 @@ function TrackerPage() {
     const [username, setusername] = useState(null);
 
     const backendHost = (process.env.REACT_APP_CLIENT_GATEWAY_URI || 'http://localhost:8080') + '/backend';
+    const logoutHost = (process.env.REACT_APP_CLIENT_GATEWAY_URI || 'http://localhost:8080') + '/logout';
     // Состояния для отображения панели фильтров и групп чекбоксов
     const [isVisible, setIsVisible] = useState(false);
     const [showCheckboxesStream, setShowCheckboxesStream] = useState(false); // Для "Все потоки"
@@ -285,6 +286,9 @@ function TrackerPage() {
                     </div>
 
                     <div className="Stream-buttons">
+                        <Link to={logoutHost}>
+                            <button className="Stream-butt">Выход</button>
+                        </Link>
                         <Link to="/profile" className="Stream-pic"></Link>
                     </div>
                 </div>

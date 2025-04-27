@@ -349,10 +349,10 @@ export default function Stream() {
                             <button className="Stream-butt">Трекеры</button>
                         </Link>
                         <button className="Stream-butt">Все команды</button>
-                        <Link to="/profile" className="Stream-pic"></Link>
                         <Link to={logoutHost}>
                             <button className="Stream-butt">Выход</button>
                         </Link>
+                        <Link to="/profile" className="Stream-pic"></Link>
                     </div>
                 </div>
                 <div className="Stream-header-bottom-cont">
