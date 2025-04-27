@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Slf4j
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class SecurityConfiguration {
       "/client/**",
       "/actuator/**",
       "/v3/api-docs",
+      "/api/csrf",
       "/api/v1/registration/**",
       "/v3/api-docs/swagger-config"
   };
@@ -52,7 +55,7 @@ public class SecurityConfiguration {
         .userDetailsService(userDetailService)
         .passwordEncoder(passwordEncoder);
 
-    http.csrf(AbstractHttpConfigurer::disable);
+    http.csrf(withDefaults());
     http.cors(AbstractHttpConfigurer::disable);
 
     http.exceptionHandling(configurer ->

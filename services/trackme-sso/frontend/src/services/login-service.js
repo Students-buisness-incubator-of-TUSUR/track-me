@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "../csrf-axios-interceptor";
 
 export class LoginAPI {
     __LOGIN_URL = "/client/login";

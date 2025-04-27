@@ -3,6 +3,7 @@ import "./Register.css";
 import LoginAPI from "../../services/login-service";
 
 const Register = () => {
+    const basePath = process.env.REACT_APP_BASE_PATH || "";
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
@@ -17,7 +18,7 @@ const Register = () => {
         LoginAPI.register(userData)
             .then((response) => {
                 if (response.status === 200) {
-                    window.location = "/sso/client/registration-success";
+                    window.location = `${basePath}/client/registration-success`;
                 } else {
                     throw new Error("Registration failed");
                 }

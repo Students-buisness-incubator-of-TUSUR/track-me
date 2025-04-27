@@ -18,9 +18,12 @@ public class OAuth2ResourceServerConfiguration {
   @Order
   public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
     http
-        .securityMatcher("/api/v1/**")
+        .securityMatcher("/api/**")
         .authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/api/v1/**").hasRole("TRACKER")
+            .requestMatchers("/api/v1/account/**").hasRole("TRACKER")
+            .requestMatchers("/api/v1/users/**").hasRole("TRACKER")
+            .requestMatchers("/api/v1/registration/**").permitAll()
+            .requestMatchers("/api/csrf").permitAll()
             .anyRequest().authenticated()
         )
         .oauth2ResourceServer(oauth2 -> oauth2

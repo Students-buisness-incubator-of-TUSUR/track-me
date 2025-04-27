@@ -3,10 +3,24 @@ import {useLocation} from "react-router-dom";
 import "./Login.css";
 
 const Login = () => {
+    const basePath = process.env.REACT_APP_BASE_PATH || "";
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const location = useLocation();
+
+    const [csrfToken, setCsrfToken] = useState("");
+    const [csrfParameterName, setCsrfParameterName] = useState("_csrf");
+
+    useEffect(() => {
+        fetch('/api/csrf', {credentials: 'same-origin'})
+            .then(r => r.json())
+            .then(data => {
+                setCsrfToken(data.token);
+                setCsrfParameterName(data.parameterName);
+            });
+    }, []);
+
 
     useEffect(() => {
         // Проверка: если пришли на страницу с query ?error или error в state - выводим ошибку
@@ -23,7 +37,7 @@ const Login = () => {
                 <form
                     className="login-form"
                     method="POST"
-                    action="/sso/client/login"
+                    action={`${basePath}/client/login`}
                     autoComplete="username">
                     <input
                         type="text"
@@ -45,6 +59,7 @@ const Login = () => {
                         required
                         autoComplete="current-password"
                     />
+                    <input type="hidden" name={csrfParameterName} value={csrfToken}/>
                     <button type="submit" className="login-button">
                         Войти
                     </button>
@@ -53,10 +68,10 @@ const Login = () => {
                     <p className="error-message">{errorMessage}</p>
                 )}
                 <div className="login-links">
-                    <a href="/sso/client/registration" className="login-link">
+                    <a href={`${basePath}/client/registration`} className="login-link">
                         Регистрация
                     </a>
-                    <a href="/sso/client/reset-password" className="login-link">
+                    <a href={`${basePath}/client/recovery`} className="login-link">
                         Забыли пароль?
                     </a>
                 </div>
