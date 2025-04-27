@@ -1,4 +1,4 @@
-name: Build, Push, and Deploy
+name: Build and Push Docker Images
 
 permissions:
   contents: read
@@ -9,10 +9,8 @@ permissions:
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
-    branches:
-      - develop
+    branches: [ develop, master ]
+    tags: [ 'v*.*.*' ]
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
@@ -44,7 +42,7 @@ jobs:
 
   trackme-backend-build-push:
     needs: changes
-    if: needs.changes.outputs.backend == 'true'
+    if: needs.changes.outputs.backend == 'true' || github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,7 +74,7 @@ jobs:
 
   trackme-client-build-push:
     needs: changes
-    if: needs.changes.outputs.gateway == 'true'
+    if: needs.changes.outputs.gateway == 'true' || github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -105,7 +103,7 @@ jobs:
 
   trackme-sso-build-push:
     needs: changes
-    if: needs.changes.outputs.sso == 'true'
+    if: needs.changes.outputs.sso == 'true' || github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -134,7 +132,7 @@ jobs:
 
   trackme-frontend-build-push:
     needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    if: needs.changes.outputs.frontend == 'true' || github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -163,82 +161,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  set-env-and-deploy:
-    needs:
-      - trackme-backend-build-push
-      - trackme-client-build-push
-      - trackme-sso-build-push
-      - trackme-frontend-build-push
-    if: |
-      always() &&
-      (
-        needs.trackme-backend-build-push.result == 'success' ||
-        needs.trackme-client-build-push.result == 'success' ||
-        needs.trackme-sso-build-push.result == 'success' ||
-        needs.trackme-frontend-build-push.result == 'success'
-      )
-
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set Environment Variables and Deploy via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            set -e
-
-            # Перейти в рабочую директорию проекта
-            cd /home/${{ secrets.SSH_USERNAME }}/track-me
-
-            # Создать .env файл с переменными окружения
-            rm -f .env
-
-            echo "REACT_APP_CLIENT_GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
-            echo "FRONTEND_URI=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai" >> .env
-            echo "BACKEND_URI=${{ secrets.API_V1_BASE_URL }}" >> .env
-            echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
-            echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
-            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
-            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
-            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
-            echo "MAIL_SUBJECT=${{ secrets.MAIL_SUBJECT }}" >> .env
-            echo "SSO_URI=${{ secrets.API_V1_BASE_URL }}/sso" >> .env
-            echo "AFTER_LOGOUT_URI=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai" >> .env
-            echo "AFTER_LOGIN_URL=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai/after-login" >> .env
-            echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
-            cat .env.dev.redis | tr -d '\r' >> .env
-            echo "" >> .env
-            cat .env.dev.database | tr -d '\r' >> .env
-            echo "" >> .env
-            cat .env.dev.sso | tr -d '\r' >> .env
-
-            # Скачать новые версии image'ей
-            docker compose -f docker-compose.dev.yml pull
-
-            # Остановить текущие контейнеры и поднять новые
-            docker compose -f docker-compose.dev.yml down
-            docker compose -f docker-compose.dev.yml up -d 
-
-      - name: Restart Nginx
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          script: |
-            until curl -sf http://localhost:8080/actuator/health; do
-            echo "Waiting for backend..."
-            sleep 5
-            done
-            until curl -sf http://localhost:9000/actuator/health; do
-            echo "Waiting for sso..."
-            sleep 5
-            done
-            until curl -sf http://localhost:3001/actuator/health; do
-            echo "Waiting for frontend..."
-            sleep 5
-            done
-            cd /home/vmv94/gateway/
-            make restart

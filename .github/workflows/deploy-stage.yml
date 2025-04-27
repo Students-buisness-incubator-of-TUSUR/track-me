@@ -1,0 +1,139 @@
+name: Deploy to Stage
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        required: true
+        description: 'Docker Image Tag to deploy'
+        default: 'latest'
+  workflow_run:
+    workflows:
+      - 'Build and Push Docker Images'
+    types:
+      - completed
+jobs:
+  set-env:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print SHA
+        run: echo "Deploying commit ${{ github.event.workflow_run.head_sha }}"
+
+      - name: Set Environment Variables
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            set -e
+            
+            # Перейти в рабочую директорию проекта
+            cd /home/${{ secrets.SSH_USERNAME }}/track-me
+            
+            # Создать .env файл с переменными окружения
+            rm -f .env
+            
+            echo "REACT_APP_CLIENT_GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
+            echo "FRONTEND_URI=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai" >> .env
+            echo "BACKEND_URI=${{ secrets.API_V1_BASE_URL }}" >> .env
+            echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
+            echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
+            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
+            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
+            echo "MAIL_SUBJECT=${{ secrets.MAIL_SUBJECT }}" >> .env
+            echo "SSO_URI=${{ secrets.API_V1_BASE_URL }}/sso" >> .env
+            echo "AFTER_LOGOUT_URI=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai" >> .env
+            echo "AFTER_LOGIN_URL=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai/after-login" >> .env
+            echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
+            cat .env.dev.redis | tr -d '\r' >> .env
+            echo "" >> .env
+            cat .env.dev.database | tr -d '\r' >> .env
+            echo "" >> .env
+            cat .env.dev.sso | tr -d '\r' >> .env
+
+  deploy:
+    needs: set-env
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Stage
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            set -e
+            
+            # Перейти в рабочую директорию проекта
+            cd /home/${{ secrets.SSH_USERNAME }}/track-me
+            
+            # Скачать новые версии image'ей
+            docker pull ghcr.io/${{ github.repository }}/backend:${{ github.event.inputs.image_tag }}
+            docker pull ghcr.io/${{ github.repository }}/gateway:${{ github.event.inputs.image_tag }}
+            docker pull ghcr.io/${{ github.repository }}/sso:${{ github.event.inputs.image_tag }}
+            docker pull ghcr.io/${{ github.repository }}/frontend:${{ github.event.inputs.image_tag }}
+            
+            # Остановить текущие контейнеры и поднять новые
+            docker compose -f docker-compose.dev.yml down
+            docker compose -f docker-compose.dev.yml up -d
+            
+            # Удалить старые образы
+            docker image prune -f
+  
+
+  healthcheck-services:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Healthcheck
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            set -e
+            
+            # Проверить доступность сервисов
+            until curl -sf http://localhost:8080/actuator/health; do
+              echo "Waiting for backend..."
+              sleep 5
+            done
+            
+            until curl -sf http://localhost:9000/actuator/health; do
+              echo "Waiting for sso..."
+              sleep 5
+            done
+            
+            until curl -sf http://localhost:3001/actuator/health; do
+              echo "Waiting for frontend..."
+              sleep 5
+            done
+
+  restart-nginx:
+    needs: healthcheck-services
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart Nginx
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            until curl -sf http://localhost:8080/actuator/health; do
+            echo "Waiting for backend..."
+            sleep 5
+            done
+            until curl -sf http://localhost:9000/actuator/health; do
+            echo "Waiting for sso..."
+            sleep 5
+            done
+            until curl -sf http://localhost:3001/actuator/health; do
+            echo "Waiting for frontend..."
+            sleep 5
+            done
+            cd /home/vmv94/gateway/
+            make restart
