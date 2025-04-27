@@ -146,18 +146,9 @@ function TrackerPage() {
         // Загружаем карточки без фильтров при первом рендере
         fetchCards([]);
 
-        // Запрос текущего потока
-        const token = localStorage.getItem("accessToken");
-        if (!token) {
-            setError("Отсутствует токен авторизации. Пожалуйста, выполните вход.");
-            return;
-        }
-
         fetch(`${backendHost}/api/v1/streams/nti-markets`, {
             method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            credentials: "include"
         })
             .then((response) => {
                 if (!response.ok) {
