@@ -83,3 +83,25 @@ springdoc:
     use-root-path: true
   api-docs:
     enabled: true
+
+---
+spring:
+  profiles:
+    active: development
+  cloud:
+    gateway:
+      routes:
+        - id: trackme-backend
+          uri: http://localhost:8080
+          predicates:
+            - Path=/backend/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
+        - id: trackme-sso
+          uri: http://localhost:9000
+          predicates:
+            - Path=/sso/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
