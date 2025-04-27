@@ -2,10 +2,11 @@ name: Deploy to Stage
 on:
   workflow_dispatch:
     inputs:
-      image_tag:
+      tag:
         required: true
         description: 'Docker Image Tag to deploy'
         default: 'latest'
+        type: string
   workflow_run:
     workflows:
       - 'Build and Push Docker Images'
@@ -13,7 +14,6 @@ on:
       - completed
 jobs:
   set-env:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Print SHA
@@ -70,10 +70,10 @@ jobs:
             cd /home/${{ secrets.SSH_USERNAME }}/track-me
             
             # Скачать новые версии image'ей
-            docker pull ghcr.io/${{ github.repository }}/backend:${{ github.event.inputs.image_tag }}
-            docker pull ghcr.io/${{ github.repository }}/gateway:${{ github.event.inputs.image_tag }}
-            docker pull ghcr.io/${{ github.repository }}/sso:${{ github.event.inputs.image_tag }}
-            docker pull ghcr.io/${{ github.repository }}/frontend:${{ github.event.inputs.image_tag }}
+            docker pull ghcr.io/${{ github.repository }}/backend:${{ github.event.inputs.tag }}
+            docker pull ghcr.io/${{ github.repository }}/gateway:${{ github.event.inputs.tag }}
+            docker pull ghcr.io/${{ github.repository }}/sso:${{ github.event.inputs.tag }}
+            docker pull ghcr.io/${{ github.repository }}/frontend:${{ github.event.inputs.tag }}
             
             # Остановить текущие контейнеры и поднять новые
             docker compose -f docker-compose.dev.yml down
