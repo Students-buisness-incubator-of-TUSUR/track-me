@@ -95,7 +95,8 @@ tasks.register('buildReact', NpmTask) {
     dependsOn installReact
     if (project.hasProperty('prod')) {
         environment = [
-                'PUBLIC_URL': '/sso'
+                'PUBLIC_URL'         : '/sso',
+                'REACT_APP_BASE_PATH': '/sso'
         ]
     }
 }
