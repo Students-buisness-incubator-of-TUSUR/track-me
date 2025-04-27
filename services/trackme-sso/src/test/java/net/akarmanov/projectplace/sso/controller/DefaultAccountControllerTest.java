@@ -8,7 +8,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,8 +48,9 @@ class DefaultAccountControllerTest extends AbstractIntegrationTest {
   @Test
   @WithUserDetails("superadmin")
   void changePassword_success() throws Exception {
-    mockMvc.perform(get(
-            "/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=superadmin"))
+    mockMvc.perform(post(
+            "/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=superadmin")
+            .with(csrf()))
         .andDo(print())
         .andExpect(status().isOk());
   }
@@ -55,7 +58,8 @@ class DefaultAccountControllerTest extends AbstractIntegrationTest {
   @Test
   @WithUserDetails("superadmin")
   void changePassword_invalidOldPassword() throws Exception {
-    mockMvc.perform(get("/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=wrong"))
+    mockMvc.perform(post("/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=wrong")
+            .with(csrf()))
         .andDo(print())
         .andExpect(status().isBadRequest());
   }
