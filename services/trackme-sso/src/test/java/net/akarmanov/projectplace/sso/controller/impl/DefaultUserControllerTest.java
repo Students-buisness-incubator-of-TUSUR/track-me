@@ -182,7 +182,7 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
   @Test
   @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
   void findAllAdmins_success() throws Exception {
-    mockMvc.perform(get("/api/v1/users/administrators")
+    mockMvc.perform(post("/api/v1/users/administrators")
             .contentType("application/json")
             .content("""
                 {"filters": []}

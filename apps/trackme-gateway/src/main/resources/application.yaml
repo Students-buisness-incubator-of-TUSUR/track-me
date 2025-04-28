@@ -14,7 +14,6 @@ spring:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - http://127.0.0.1:8081
               - ${FRONTEND_URI:http://localhost:3000}
             allowedMethods:
               - GET
@@ -105,3 +104,19 @@ spring:
           filters:
             - TokenRelay
             - StripPrefix=1
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - ${FRONTEND_URI:http://localhost:3000}
+              - http://127.0.0.1:8081
+              - http://127.0.0.1:3000
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true

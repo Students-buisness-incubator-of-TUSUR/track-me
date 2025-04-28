@@ -36,12 +36,14 @@ public interface UserController {
 
   @PostMapping(path = "/trackers", produces = "application/json",
                consumes = "application/json")
+  @Operation(summary = "Получить список трекеров")
   ResponseEntity<PagedModel<UserDto>> getTrackers(@RequestBody @Valid FilterRequest filterRequest,
                                                   @PageableDefault(sort = "username")
                                                   @ParameterObject Pageable pageable);
 
-  @GetMapping(path = "/administrators", produces = "application/json",
-              consumes = "application/json")
+  @PostMapping(path = "/administrators", produces = "application/json",
+               consumes = "application/json")
+  @Operation(summary = "Получить список администраторов")
   ResponseEntity<PagedModel<UserDto>> getAdmins(@RequestBody @Valid FilterRequest filterRequest,
                                                 @PageableDefault(sort = "username")
                                                 @ParameterObject Pageable pageable);
