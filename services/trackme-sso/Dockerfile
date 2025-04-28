@@ -21,12 +21,19 @@ RUN gradle :trackme-sso:clean :trackme-sso:bootJar -Pprod
 # 2. Этап запуска
 FROM eclipse-temurin:21-jre-alpine
 
-
 WORKDIR /app
 
-RUN apk add --no-cache curl
-# Копируем собранный jar-файл из build-образа
+RUN apk add --no-cache curl \
+    && addgroup --system --gid 1001 appgroup \
+    && adduser --system --uid 1001 --ingroup appgroup --home /app appuser
+
+# Копируем собранный jar-файл из build-образа, делаем владельцем appuser
 COPY --from=builder /app/services/trackme-sso/build/libs/trackme-sso-*.jar app.jar
+RUN chown appuser:appgroup /app/app.jar
 
 EXPOSE 8080
+
+# Переключаемся на некорневого пользователя
+USER appuser
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

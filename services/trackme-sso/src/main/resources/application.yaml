@@ -34,7 +34,7 @@ logging:
 springdoc:
   swagger-ui:
     enabled: false
-  paths-to-exclude: /client/**
+  paths-to-exclude: /client/**, /api/csrf
 
 app:
   swagger:
