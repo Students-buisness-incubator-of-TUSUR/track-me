@@ -27,11 +27,6 @@ spring:
       - application-data.yaml
       - application-security.yaml
 
-logging:
-  level:
-    org.springframework.security: trace
-    org.thymeleaf: trace
-
 springdoc:
   swagger-ui:
     enabled: false
