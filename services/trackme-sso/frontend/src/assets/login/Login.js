@@ -13,13 +13,13 @@ const Login = () => {
     const [csrfParameterName, setCsrfParameterName] = useState("_csrf");
 
     useEffect(() => {
-        fetch('/api/csrf', {credentials: 'same-origin'})
+        fetch(`${basePath}/api/csrf`, {credentials: 'same-origin'})
             .then(r => r.json())
             .then(data => {
                 setCsrfToken(data.token);
                 setCsrfParameterName(data.parameterName);
             });
-    }, []);
+    }, [basePath]);
 
 
     useEffect(() => {
