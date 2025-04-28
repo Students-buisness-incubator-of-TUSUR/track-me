@@ -1,6 +1,7 @@
 import axios from "../csrf-axios-interceptor";
 
 export class LoginAPI {
+    basePath = process.env.REACT_APP_BASE_PATH || "";
     __LOGIN_URL = "/client/login";
     __LOCATION_HEADER = process.env.REACT_APP_SSO_LOCATION_HEADER;
 
@@ -19,7 +20,7 @@ export class LoginAPI {
     }
 
     register(userData) {
-        return axios.post("/api/v1/registration/init", userData, {
+        return axios.post(`${(this.basePath)}/api/v1/registration/init`, userData, {
             withCredentials: true
         });
     }

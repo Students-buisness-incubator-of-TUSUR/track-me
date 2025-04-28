@@ -60,6 +60,7 @@ jobs:
             echo "AFTER_LOGOUT_URI=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai" >> .env
             echo "AFTER_LOGIN_URL=https://xn--e1aaowdh.xn----gtbbcb4bjf2ak.xn--p1ai/after-login" >> .env
             echo "GATEWAY_URI=${{ secrets.API_V1_BASE_URL }}/api" >> .env
+            echo "MAIL_SUBJECT=TrackMe" >> .env
             cat .env.dev.redis | tr -d '\r' >> .env
             echo "" >> .env
             cat .env.dev.database | tr -d '\r' >> .env

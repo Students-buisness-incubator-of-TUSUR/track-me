@@ -44,7 +44,7 @@ public class DefaultMailService implements MailService {
       var content = generateEmailContent(email, token);
       helper.setTo(email);
       helper.setFrom(appProperties.getMail().getFrom());
-      helper.setSubject("[" + appProperties.getMail().getSubject() + "] Сброс пароля");
+      helper.setSubject("[" + appProperties.getMail().getSubject() + "] Подтверждение регистрации");
       helper.setText(content, true);
       mailSender.send(message);
       log.info("Email успешно отправлен на адрес: {}", email);
