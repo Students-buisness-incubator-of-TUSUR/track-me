@@ -2,17 +2,23 @@ package net.akarmanov.projectplace.sso.services.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
+import net.akarmanov.projectplace.sso.dao.entity.RoleEntity;
 import net.akarmanov.projectplace.sso.dao.entity.UserEntity;
 import net.akarmanov.projectplace.sso.dao.repository.RoleRepository;
 import net.akarmanov.projectplace.sso.dao.repository.UserRepository;
 import net.akarmanov.projectplace.sso.dto.AuthProvider;
 import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
+import net.akarmanov.projectplace.sso.dto.UserDto;
 import net.akarmanov.projectplace.sso.exception.AuthException;
 import net.akarmanov.projectplace.sso.exception.WrongOldPasswordException;
 import net.akarmanov.projectplace.sso.mapper.AuthorizedUserMapper;
+import net.akarmanov.projectplace.sso.mappers.UserMapper;
 import net.akarmanov.projectplace.sso.services.UserService;
 import net.akarmanov.projectplace.sso.type.AuthErrorCode;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -21,6 +27,9 @@ import org.springframework.util.Assert;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import static net.akarmanov.projectplace.sso.dao.UserSpecification.byRole;
+import static net.akarmanov.projectplace.sso.dao.UserSpecification.withFilters;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +40,8 @@ public class DefaultUserService implements UserService {
   private final RoleRepository roleRepository;
 
   private final PasswordEncoder passwordEncoder;
+
+  private final UserMapper userMapper;
 
   /**
    * Создание или обновление пользователя используя сервис-провайдер
@@ -205,6 +216,40 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void disableUser(String username) {
     changeActivity(username, false);
+  }
+
+  @Override
+  public UserDto getUserInfo(String username) {
+    var userEntity = findByUsername(username);
+    return UserDto.builder()
+        .username(userEntity.getUsername())
+        .email(userEntity.getEmail())
+        .fullName(userEntity.getFullName())
+        .phoneNumber(userEntity.getPhoneNumber())
+        .avatarUrl(userEntity.getAvatarUrl())
+        .enabled(userEntity.getActive())
+        .roles(userEntity.getRoles().stream()
+            .map(RoleEntity::getCode)
+            .toList())
+        .build();
+  }
+
+  @Override
+  public Page<UserDto> getTrackers(FilterRequest filterRequest, Pageable pageable) {
+    var filters = filterRequest.filters();
+    var trackers = userRepository.findAll(
+        withFilters(filters).and(byRole("TRACKER")),
+        pageable);
+    return trackers.map(userMapper::userEntityToUserDto);
+  }
+
+  @Override
+  public Page<UserDto> getAdmins(FilterRequest filterRequest, Pageable pageable) {
+    var filters = filterRequest.filters();
+    var admins = userRepository.findAll(
+        withFilters(filters).and(byRole("ADMIN")),
+        pageable);
+    return admins.map(userMapper::userEntityToUserDto);
   }
 
   private void changeActivity(String username, boolean active) {

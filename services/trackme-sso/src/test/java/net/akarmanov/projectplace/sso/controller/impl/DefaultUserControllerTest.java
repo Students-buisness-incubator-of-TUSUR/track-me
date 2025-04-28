@@ -14,8 +14,10 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class DefaultUserControllerTest extends AbstractIntegrationTest {
@@ -107,6 +109,88 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
             .param("username", "tracker")
             .with(csrf()))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+  void getUserInfo_success() throws Exception {
+    mockMvc.perform(get("/api/v1/users/{username}/info", "tracker"))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Content-Type", "application/json"))
+        .andExpect(jsonPath("$.username").value("tracker"));
+  }
+
+  @Test
+  @WithMockUser(username = "tracker", roles = "TRACKER")
+  void getUserInfo_notSuperAdmin() throws Exception {
+    mockMvc.perform(get("/api/v1/users/{username}/info", "tracker"))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+  void findAllTrackers_success() throws Exception {
+    mockMvc.perform(post("/api/v1/users/trackers")
+            .contentType("application/json")
+            .content("""
+                {"filters": []}
+                """)
+            .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Content-Type", "application/json"))
+        .andExpect(jsonPath("$.content[0].username").value("tracker"));
+  }
+
+  @Test
+  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+  void findAllTrackers_withFilters_success() throws Exception {
+    mockMvc.perform(post("/api/v1/users/trackers")
+            .contentType("application/json")
+            .content("""
+                {"filters": [{"fieldName": "username", "type": "EQ", "value": "tracker"}]}
+                """)
+            .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Content-Type", "application/json"))
+        .andExpect(jsonPath("$.content[0].username").value("tracker"));
+  }
+
+  @Test
+  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+  void findAllTrackers_withFilters_badRequest() throws Exception {
+    mockMvc.perform(post("/api/v1/users/trackers")
+            .contentType("application/json")
+            .content("""
+                {"filters": [{"fieldName": "username123", "type": "EQ", "value": "notfound"}]}
+                """)
+            .with(csrf()))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(username = "tracker", roles = "TRACKER")
+  void findAllTrackers_notSuperAdmin() throws Exception {
+    mockMvc.perform(post("/api/v1/users/trackers")
+            .contentType("application/json")
+            .content("""
+                {"filters": []}
+                """)
+            .with(csrf()))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+  void findAllAdmins_success() throws Exception {
+    mockMvc.perform(get("/api/v1/users/administrators")
+            .contentType("application/json")
+            .content("""
+                {"filters": []}
+                """)
+            .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Content-Type", "application/json"))
+        .andExpect(jsonPath("$.content[0].username").value("admin"));
   }
 
 }

@@ -2,9 +2,19 @@ package net.akarmanov.projectplace.sso.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
+import net.akarmanov.projectplace.sso.dto.UserDto;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -19,4 +29,20 @@ public interface UserController {
   @PostMapping("/disable")
   @Operation(summary = "Отключить пользователя")
   ResponseEntity<Void> disableUser(@RequestParam String username);
+
+  @GetMapping(path = "/{username}/info", produces = "application/json")
+  @Operation(summary = "Получить информацию о пользователе")
+  ResponseEntity<UserDto> getUserInfo(@PathVariable String username);
+
+  @PostMapping(path = "/trackers", produces = "application/json",
+               consumes = "application/json")
+  ResponseEntity<PagedModel<UserDto>> getTrackers(@RequestBody @Valid FilterRequest filterRequest,
+                                                  @PageableDefault(sort = "username")
+                                                  @ParameterObject Pageable pageable);
+
+  @GetMapping(path = "/administrators", produces = "application/json",
+              consumes = "application/json")
+  ResponseEntity<PagedModel<UserDto>> getAdmins(@RequestBody @Valid FilterRequest filterRequest,
+                                                @PageableDefault(sort = "username")
+                                                @ParameterObject Pageable pageable);
 }

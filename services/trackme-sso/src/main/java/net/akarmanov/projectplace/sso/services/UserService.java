@@ -1,9 +1,13 @@
 package net.akarmanov.projectplace.sso.services;
 
+import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.sso.dao.entity.UserEntity;
 import net.akarmanov.projectplace.sso.dto.AuthProvider;
 import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
+import net.akarmanov.projectplace.sso.dto.UserDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.UUID;
@@ -53,4 +57,10 @@ public interface UserService {
   void enableUser(String username);
 
   void disableUser(String username);
+
+  UserDto getUserInfo(String username);
+
+  Page<UserDto> getTrackers(FilterRequest filterRequest, Pageable pageable);
+
+  Page<UserDto> getAdmins(FilterRequest filterRequest, Pageable pageable);
 }

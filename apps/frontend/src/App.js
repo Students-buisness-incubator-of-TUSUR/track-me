@@ -3,13 +3,10 @@ import './App.css';
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Stream from "./accets/stream-page/stream-page.js";
 import TrackerPage from "./accets/teamcard/TrackerPage.js";
-import Register from "./accets/register/Registration.js";
 import ProfilePage from "./accets/profile/ProfilePage.js"; // <-- наш компонент
-import LoginRecovery from "./accets/login-recovery/login-recovery.js";
 import CreateStream from "./accets/create-stream-page/create-stream-page.js";
 import TrackerList from "./accets/list-trackers/TrackerList.js";
 import AdminList from "./accets/list-admins/AdminList.js"
-import LoginRecovery2 from "./accets/login-recovery-2/login-recovery.js";
 import EditStream from "./accets/redo-stream-page/redo-stream-page.js"
 import MeetingCard from "./accets/meeting-card/meeting-card.js";
 import MeetingCard2 from "./accets/team-card-2/meeting-card-team.js";
@@ -30,13 +27,13 @@ function App() {
                 <Route path="/streams" element={<Stream/>}/>
                 <Route path="/create-stream" element={<CreateStream/>}/>
                 <Route path="/edit-stream/:id" element={<EditStream/>}/>
-                <Route path="/register" element={<Register/>}/>
+                {/*<Route path="/register" element={<Register/>}/>*/}
                 <Route path="/admin" element={<AdminPage/>}/>
                 <Route path="/superadmin" element={<SuperAdminPage/>}/>
                 <Route path="/team-cards" element={<TrackerPage/>}/>
                 <Route path="/team-cards-PR" element={<MeetingCard2/>}/>
-                <Route path="/recovery" element={<LoginRecovery/>}/>
-                <Route path="/reset-password" element={<LoginRecovery2/>}/>
+                {/*<Route path="/recovery" element={<LoginRecovery/>}/>*/}
+                {/*<Route path="/reset-password" element={<LoginRecovery2/>}/>*/}
                 <Route path="/profile" element={<ProfilePage/>}/>
                 <Route path="/list-admins" element={<AdminList/>}/>
                 <Route path="/list-trackers" element={<TrackerList/>}/>

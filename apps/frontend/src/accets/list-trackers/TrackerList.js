@@ -18,10 +18,10 @@ function TrackerList() {
 
     // Если фильтры не изменяются, мемоизируем их
     const filters = useMemo(() => [], []);
-    const backendHost = (process.env.REACT_APP_CLIENT_GATEWAY_URI || "http://localhost:8080") + '/backend';
+    const ssoServiceUri = (process.env.REACT_APP_CLIENT_GATEWAY_URI || "http://localhost:8080") + '/sso';
 
     useEffect(() => {
-        fetch(`${backendHost}/api/v1/admin/users/trackers?page=0&size=10`, {
+        fetch(`${ssoServiceUri}/api/v1/users/trackers?page=0&size=10`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -52,10 +52,10 @@ function TrackerList() {
             .catch((err) => {
                 console.error("Ошибка при загрузке трекеров:", err);
             });
-    }, [filters, backendHost]);
+    }, [filters, ssoServiceUri]);
 
     const confirmUser = (username) => {
-        const url = `${backendHost}/api/v1/admin/users/confirm?username=${username}`;
+        const url = `${ssoServiceUri}/api/v1/users/enabled?username=${username}`;
 
         fetch(url, {
             method: "POST",
@@ -95,7 +95,7 @@ function TrackerList() {
     };
 
     const deleteUser = (username) => {
-        const url = `${backendHost}/api/v1/admin/users/delete?username=${username}`;
+        const url = `${ssoServiceUri}/api/v1/users/delete?username=${username}`;
 
         fetch(url, {
             method: "POST",

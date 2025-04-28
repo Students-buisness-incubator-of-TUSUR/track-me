@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.akarmanov.projectplace.commons.filters.FilterFieldNotAllowedException;
 import net.akarmanov.projectplace.sso.dto.ErrorResponseDto;
 import net.akarmanov.projectplace.sso.exception.ConfirmRegistrationException;
 import net.akarmanov.projectplace.sso.exception.RegistrationException;
@@ -176,6 +177,24 @@ public class GlobalExceptionControllerAdvice {
     return new ResponseEntity<>(
         ErrorResponseDto.builder()
             .error("registration.exception")
+            .message(exception.getMessage())
+            .status(HttpStatus.BAD_REQUEST.value())
+            .timestamp(System.currentTimeMillis())
+            .build(),
+        HttpStatus.BAD_REQUEST
+    );
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(value = FilterFieldNotAllowedException.class, produces = "application/json")
+  public ResponseEntity<ErrorResponseDto> resolveFilterFieldNotAllowedException(
+      HttpServletRequest request,
+      FilterFieldNotAllowedException exception
+  ) {
+    logRequestException(request, exception);
+    return new ResponseEntity<>(
+        ErrorResponseDto.builder()
+            .error("filter.field.not.allowed.exception")
             .message(exception.getMessage())
             .status(HttpStatus.BAD_REQUEST.value())
             .timestamp(System.currentTimeMillis())
