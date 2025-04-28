@@ -6,7 +6,7 @@ spring:
         issuer-url: ${SSO_URI:http://localhost:9000}
         authorization-ttl: 720000ms
         authorization-consent-ttl: 720000ms
-        registration-confirmation-endpoint: /client/registration-confirm
+        registration-confirmation-endpoint: /sso/client/registration-confirm
         client:
           track-me-client:
             registration:
@@ -32,3 +32,13 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: development
+  security:
+    oauth2:
+      authorizationserver:
+        registration-confirmation-endpoint: /client/registration-confirm
