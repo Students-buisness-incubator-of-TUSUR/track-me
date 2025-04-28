@@ -21,8 +21,8 @@ const fetchCsrfToken = async () => {
 axios.interceptors.request.use(async config => {
     // Для "опасных" методов только
     if (["post", "put", "patch", "delete"].includes(config.method)) {
-        const {csrfToken, csrfHeaderName} = await fetchCsrfToken();
-        config.headers['X-CSRF-TOKEN'] = csrfToken;
+        const {csrfToken} = await fetchCsrfToken();
+        config.headers[csrfHeaderName] = csrfToken;
     }
     return config;
 }, error => Promise.reject(error));
