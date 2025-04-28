@@ -85,8 +85,9 @@ springdoc:
 
 ---
 spring:
-  profiles:
-    active: development
+  config:
+    activate:
+      on-profile: development
   cloud:
     gateway:
       routes:
