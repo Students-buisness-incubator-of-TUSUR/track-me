@@ -206,6 +206,9 @@ jobs:
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
+            -Dsonar.language=java,js
+            -Dsonar.exclusions=**/node_modules/**,**/target/**,**/build/**
+            -Dsonar.sources=apps/backend/src/main/java,apps/backend/src/main/resources,apps/frontend/src,services/trackme-sso/src/main/java,services/trackme-sso/src/main/resources
             -Dsonar.coverage.jacoco.xmlReportPaths="$JACOCO_PATH1,$JACOCO_PATH2" \
             -Dsonar.javascript.lcov.reportPaths="$FRONTEND_LCOV" \
             -Dsonar.eslint.reportPaths="$ESLINT_REPORT"
