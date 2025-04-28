@@ -20,7 +20,7 @@ import static java.util.concurrent.CompletableFuture.runAsync;
 @RequiredArgsConstructor
 public class DefaultMailService implements MailService {
 
-  public static final String CONFIRMATION_HTML = "email-confirmation.html";
+  public static final String CONFIRMATION_HTML = "email-confirmation";
 
   private final JavaMailSender mailSender;
 

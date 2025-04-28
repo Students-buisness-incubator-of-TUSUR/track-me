@@ -30,6 +30,7 @@ spring:
 logging:
   level:
     org.springframework.security: trace
+    org.thymeleaf: trace
 
 springdoc:
   swagger-ui:
