@@ -6,7 +6,7 @@ spring:
         issuer-url: ${SSO_URI:http://localhost:9000}
         authorization-ttl: 720000ms
         authorization-consent-ttl: 720000ms
-        registration-confirmation-endpoint: /sso/client/registration-confirm
+        registration-confirmation-endpoint: /client/registration-confirm
         client:
           track-me-client:
             registration:
@@ -27,18 +27,8 @@ spring:
                 - ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
                 - http://localhost:8081
               redirect-uris:
-                - ${GATEWAY_URI:http://127.0.0.1:8081}/login/oauth2/code/track-me-client
+                - ${BACKEND_URI:http://127.0.0.1:8081}/login/oauth2/code/track-me-client
                 - http://localhost:8081/sso/login/oauth2/code/track-me-client
       resourceserver:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}
-
----
-spring:
-  config:
-    activate:
-      on-profile: development
-  security:
-    oauth2:
-      authorizationserver:
-        registration-confirmation-endpoint: /client/registration-confirm

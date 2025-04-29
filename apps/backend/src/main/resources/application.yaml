@@ -73,7 +73,7 @@ app:
   acl:
     sid-identity-query: "select currval(pg_get_serial_sequence('acl_sid', 'id'))"
     class-identity-query: "select currval(pg_get_serial_sequence('acl_class', 'id'))"
-  api-url: ${GATEWAY_URI:http://127.0.0.1:8081}/backend
+  api-url: ${BACKEND_URI:http://127.0.0.1:8081}/backend
   app-url: ${FRONTEND_URI:http://127.0.0.1:3000}
 
 ---

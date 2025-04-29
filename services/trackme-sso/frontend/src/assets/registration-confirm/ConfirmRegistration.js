@@ -31,7 +31,7 @@ const ConfirmRegistration = () => {
     }, [searchParams]);
 
     const handleGoToLogin = () => {
-        navigate("/sso/client/login");
+        navigate("/client/login");
     };
 
     return (

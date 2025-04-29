@@ -92,12 +92,6 @@ tasks.register('buildReact', NpmTask) {
     args = ['run', 'build']
     workingDir = file("${projectDir}/frontend")
     dependsOn installReact
-    if (project.hasProperty('prod')) {
-        environment = [
-                'PUBLIC_URL'         : '/sso',
-                'REACT_APP_BASE_PATH': '/sso'
-        ]
-    }
 }
 
 // Копируем ассеты
