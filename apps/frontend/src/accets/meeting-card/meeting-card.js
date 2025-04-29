@@ -1,11 +1,12 @@
-import React, {useEffect, useState} from "react";
-import {useLocation, useNavigate, useParams} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./meeting-card.css";
+import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 
 const backendHost = process.env.REACT_APP_CLIENT_GATEWAY_URI + '/backend';
 
 const MeetingCard = () => {
-    const {meetingId} = useParams();
+    const { meetingId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
     const query = new URLSearchParams(location.search);
@@ -21,11 +22,10 @@ const MeetingCard = () => {
         link: "",
         tasksCurrentMeeting: "",
         tasksNextMeeting: "",
-        status: "OK"
+        status: "OK",
     });
     const [isEditing, setIsEditing] = useState(isNewMeeting);
 
-    // Загружаем данные существующей встречи
     useEffect(() => {
         if (!isNewMeeting && meetingId) {
             fetch(`${backendHost}/api/v1/meetings/${meetingId}?teamCardId=${teamId}`, {
@@ -48,16 +48,13 @@ const MeetingCard = () => {
     }, [meetingId, teamId, isNewMeeting]);
 
     const handleChange = (e) => {
-        const {name, value} = e.target;
-        setMeetingData(prev => ({...prev, [name]: value}));
+        const { name, value } = e.target;
+        setMeetingData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSave = async () => {
         try {
-            // Проверяем, что у нас есть teamId
-            if (!teamId) {
-                throw new Error("Отсутствует идентификатор команды");
-            }
+            if (!teamId) throw new Error("Отсутствует идентификатор команды");
 
             const meetingPayload = {
                 link: meetingData.link || "",
@@ -67,54 +64,29 @@ const MeetingCard = () => {
                 tasksNextMeeting: meetingData.tasksNextMeeting || ""
             };
 
-            // Для новой встречи используем POST
             if (isNewMeeting) {
                 const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${teamId}`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     credentials: 'include',
-                    body: JSON.stringify({
-                        ...meetingPayload,
-                        startDate: meetingData.startDate
-                    }),
+                    body: JSON.stringify({ ...meetingPayload, startDate: meetingData.startDate }),
                 });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("Response error:", errorText);
-                    throw new Error("Ошибка при создании встречи");
-                }
+                if (!response.ok) throw new Error("Ошибка при создании встречи");
 
                 const newMeeting = await response.json();
                 navigate(`/meeting/${newMeeting.id}?teamId=${teamId}&username=${username}`);
-            }
-            // Для существующей встречи используем PATCH
-            else if (meetingId) {  // Проверяем наличие meetingId
-                const response = await fetch(
-                    `${backendHost}/api/v1/meetings/${meetingId}?teamCardId=${teamId}`,
-                    {
-                        method: "PATCH",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify(meetingPayload)
-                    }
-                );
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("Response error:", errorText);
-                    throw new Error("Ошибка при обновлении встречи");
-                }
+            } else if (meetingId) {
+                const response = await fetch(`${backendHost}/api/v1/meetings/${meetingId}?teamCardId=${teamId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: 'include',
+                    body: JSON.stringify(meetingPayload),
+                });
+                if (!response.ok) throw new Error("Ошибка при обновлении встречи");
 
                 const updatedMeeting = await response.json();
                 setMeetingData(updatedMeeting);
                 setIsEditing(false);
-            } else {
-                throw new Error("Некорректный идентификатор встречи");
             }
         } catch (error) {
             console.error("Ошибка при сохранении:", error);
@@ -125,7 +97,7 @@ const MeetingCard = () => {
     return (
         <div className="unique-meeting-container">
             <div className="unique-meeting-card">
-                <button className="unique-close-button" onClick={() => navigate(-1)}>×</button>
+                <button className="unique-close-button" onClick={() => navigate(-1)}><img src={closeIcon} alt="Закрыть" className="close-icon" /></button>
                 <button
                     onClick={isEditing ? handleSave : () => setIsEditing(true)}
                     className="unique-edit-button"
@@ -136,29 +108,34 @@ const MeetingCard = () => {
                 {error && <div className="error-message">{error}</div>}
 
                 <div className="unique-meeting-info">
-          <span className="unique-meeting-number">
-            {isNewMeeting ? "Новая встреча" : `Встреча ${meetingData.number}`}
-          </span>
+                    <span className="unique-meeting-number">
+                        {isNewMeeting ? "Новая встреча" : `Встреча ${meetingData.number}`}
+                    </span>
                 </div>
 
-                <div className="unique-meeting-info">
-                    <span className="unique-label">Дата встречи:</span>
+                {/* Дата */}
+                <div className="unique-meeting-info-row unique-date-row">
+                    <span className="unique-label">Дата:</span>
                     {isEditing ? (
                         <input
                             type="datetime-local"
                             name="startDate"
                             value={meetingData.startDate ? new Date(meetingData.startDate).toISOString().slice(0, 16) : ''}
                             onChange={handleChange}
+                            className="unique-input-date"
                         />
                     ) : (
                         <span className="unique-meeting-date">
-              {meetingData.startDate ? new Date(meetingData.startDate).toLocaleString('ru-RU') : 'Не указана'}
-            </span>
+                            {meetingData.startDate
+                                ? new Date(meetingData.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+                                : 'Не указана'}
+                        </span>
                     )}
                 </div>
 
-                <div className="unique-meeting-info">
-                    <span className="unique-label">Задачи текущей встречи:</span>
+                {/* Задачи текущей встречи */}
+                <div className="unique-meeting-info-row">
+                    <span className="unique-label">Задачи к следующей встрече:</span>
                     {isEditing ? (
                         <textarea
                             name="tasksCurrentMeeting"
@@ -167,13 +144,13 @@ const MeetingCard = () => {
                             className="unique-textarea"
                         />
                     ) : (
-                        <div
-                            className="unique-task">{meetingData.tasksCurrentMeeting || "Не указаны"}</div>
+                        <div className="unique-task">{meetingData.tasksCurrentMeeting || "Не указаны"}</div>
                     )}
                 </div>
 
-                <div className="unique-meeting-info">
-                    <span className="unique-label">Задачи к следующей встрече:</span>
+                {/* Задачи к следующей встрече */}
+                <div className="unique-meeting-info-row">
+                    <span className="unique-label">Выполнили задачи прошлой встречи или нет, общая информация по команде:</span>
                     {isEditing ? (
                         <textarea
                             name="tasksNextMeeting"
@@ -182,33 +159,13 @@ const MeetingCard = () => {
                             className="unique-textarea"
                         />
                     ) : (
-                        <div
-                            className="unique-task">{meetingData.tasksNextMeeting || "Не указаны"}</div>
+                        <div className="unique-task">{meetingData.tasksNextMeeting || "Не указаны"}</div>
                     )}
                 </div>
 
-                <div className="unique-meeting-info">
-                    <span className="unique-label">Ссылка на встречу:</span>
-                    {isEditing ? (
-                        <input
-                            type="text"
-                            name="link"
-                            value={meetingData.link || ''}
-                            onChange={handleChange}
-                            className="unique-input"
-                        />
-                    ) : meetingData.link ? (
-                        <a href={meetingData.link} target="_blank" rel="noopener noreferrer"
-                           className="unique-link">
-                            Присоединиться к встрече
-                        </a>
-                    ) : (
-                        <div className="unique-link">Ссылка не указана</div>
-                    )}
-                </div>
-
-                <div className="unique-meeting-info">
-                    <span className="unique-label">Статус встречи:</span>
+                {/* Статус встречи */}
+                <div className="unique-meeting-info-row">
+                    <span className="unique-label">Текущий статус команды:</span>
                     {isEditing ? (
                         <select
                             name="status"
@@ -226,6 +183,32 @@ const MeetingCard = () => {
                             {meetingData.status === "PROBLEMS" && "Есть проблемы"}
                             {meetingData.status === "MAJOR_PROBLEMS" && "Есть большие проблемы"}
                         </div>
+                    )}
+                </div>
+
+                {/* Скриншот встречи */}
+                <div className="unique-meeting-info-row">
+                    <span className="unique-label">Скриншот встречи:</span>
+                    <div className="unique-screenshot-placeholder" />
+                </div>
+
+                {/* Ссылка на встречу */}
+                <div className="unique-meeting-info-row">
+                    <span className="unique-label">Запись встречи:</span>
+                    {isEditing ? (
+                        <input
+                            type="text"
+                            name="link"
+                            value={meetingData.link || ''}
+                            onChange={handleChange}
+                            className="unique-input"
+                        />
+                    ) : meetingData.link ? (
+                        <a href={meetingData.link} target="_blank" rel="noopener noreferrer" className="unique-link">
+                            Перейти к записи
+                        </a>
+                    ) : (
+                        <div className="unique-link">Ссылка не указана</div>
                     )}
                 </div>
             </div>

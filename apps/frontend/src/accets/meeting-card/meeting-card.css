@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400&family=Mulish:wght@300;400&display=swap');
+
+
 .unique-meeting-container {
     display: flex;
     justify-content: center;
@@ -8,57 +11,55 @@
 }
 
 .unique-meeting-card {
-    width: 1200px;
-    min-height: 800px;
+    width: 1600px;
+    min-height: 900px;
     border-radius: 70px;
     background: #c19bf5;
-    font-family: Arial, sans-serif;
+    font-family: 'Montserrat', sans-serif;
+     line-height: 100%;    /* или просто 1 */
+  letter-spacing: 0;
+ 
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     position: relative;
-    padding: 40px;
+    padding: 60px 80px;
 }
 
 .unique-close-button {
     position: absolute;
-    top: 20px;
-    right: 100px;
-    background: transparent;
+    top: 40px;
+    right: 50px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: #8338EB;
     border: none;
-    color: #ffffff;
-    font-size: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-}
+  }
 
 .unique-edit-button {
     background: #8338EB;
     color: white;
     border: none;
-    padding: 10px 30px;
+    width: 166px;
+    height: 40px;
+    font-family: 'Montserrat', sans-serif;
+    line-height: 100%;    /* или просто 1 */
+    letter-spacing: 0;
     border-radius: 70px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
-    transition: 0.3s ease;
+   
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 40px;
+    right: 140px;
 }
 
-.unique-done-button {
-    background: #22c55e;
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 70px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 700;
-    transition: 0.3s ease;
-    margin-top: 20px;
-}
-
-.unique-edit-button:hover,
-.unique-done-button:hover {
+.unique-edit-button:hover {
     opacity: 0.9;
     transform: scale(1.05);
 }
@@ -75,79 +76,154 @@
     display: inline-block;
     background: #8338EB;
     color: white;
-    padding: 10px 40px;
+    font-family: 'Montserrat', sans-serif;
+     line-height: 100%;    /* или просто 1 */
+  letter-spacing: 0;
+    padding: 10px 150px;
+    margin: 0 0 40px 0;
     border-radius: 70px;
-    font-size: 28px;
-    font-weight: 600;
-    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: 400;
     text-align: center;
 }
 
-.unique-meeting-info {
-    margin-bottom: 25px;
+.unique-meeting-info-row {
+    display: flex;
+    align-items: flex-start; /* ВЫРОВНЯТЬ ПО ВЕРХУ */
+    margin-bottom: 30px;
 }
 
 .unique-label {
-    display: block;
+    flex: 0 0 400px;
     color: #ffffff;
-    font-size: 20px;
-    margin-bottom: 10px;
-    font-weight: 500;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 100%;    /* или просто 1 */
+  letter-spacing: 0;
+    margin-top: 10px;
+}
+
+.unique-meeting-date,
+.unique-textarea,
+.unique-task,
+.unique-input,
+.unique-dropdown,
+.unique-link {
+    flex: 1 1 auto;      /* сохраняем гибкость */
+     max-width: 800px; 
+     font-family: 'Montserrat', sans-serif;
+     line-height: 100%;    /* или просто 1 */
+  letter-spacing: 0;
 }
 
 .unique-meeting-date {
     display: inline-block;
     background: #8338EB;
     color: white;
-    padding: 10px 20px;
+    padding: 10px 50px;
     border-radius: 70px;
-    font-size: 16px;
+    font-size: 24px;
+    font-weight: 300;  
+    flex: 0;
+    font-family: inherit;
+    text-align: center;
+}
+
+.unique-textarea {
+    background: white;
+    min-height: 100px;
+    padding: 20px 30px;
+    border: none;
+    border-radius: 70px;
+    font-size: 20px;
+    resize: vertical;
+    font-family: inherit;
+    width: 100%;
 }
 
 .unique-task {
     background: white;
-    padding: 20px;
-    border-radius: 20px;
     min-height: 100px;
+    padding: 20px 70px;
+    border-radius: 70px;
+    font-size: 20px;
     width: 100%;
-    box-sizing: border-box;
-}
-
-.unique-textarea {
-    width: 100%;
-    min-height: 100px;
-    border-radius: 20px;
-    padding: 15px;
-    border: none;
-    resize: vertical;
-    font-family: inherit;
-    box-sizing: border-box;
 }
 
 .unique-input {
-    width: 100%;
-    height: 40px;
-    border-radius: 20px;
-    padding: 0 15px;
+    background: white;
+    height: 50px;
+    padding: 20px 70px;
     border: none;
-    box-sizing: border-box;
+    border-radius: 70px;
+    font-size: 20px;
+    font-family: inherit;
+    width: 100%;
+}
+
+.unique-dropdown {
+    background: white;
+    height: 50px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 30px;
+    font-size: 18px;
+    font-family: inherit;
+    width: 100%;
 }
 
 .unique-link {
-    display: inline-block;
     background: white;
-    padding: 10px 20px;
+    padding: 20px 70px;
     border-radius: 70px;
-    color: #8338EB;
+    color: black;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 300;
+    font-size: 20px;
+    width: 100%;
 }
 
-input[type="datetime-local"] {
-    background: white;
-    border: none;
-    padding: 10px 15px;
+.unique-status {
+    display: inline-block;
+    padding: 10px 100px;
     border-radius: 70px;
     font-size: 16px;
-    font-family: inherit;
+    font-weight: bold;
+    text-align: center;
 }
+
+.unique-status.ok {
+    background-color: #0DB862;
+    color: white;
+}
+
+.unique-status.problems {
+    background-color: #DBD76C;
+    color: black;
+}
+
+.unique-status.major_problems {
+    background-color: #D34F4F;
+    color: white;
+}
+
+.unique-screenshot-placeholder {
+    background: #d1d5db;
+    border-radius: 30px;
+    width: 432px;
+    height: 236px;
+
+}
+
+/* для строки с датой — убираем лишний флекс-бейс и задаём маленький gap */
+.unique-date-row {
+    gap: 40px;              /* расстояние между «Дата:» и самой капсулой */
+  }
+.unique-date-row .unique-label {
+    flex: 0 0 auto;         /* лейбл по контенту, без жёсткого 400px */
+  }
+.unique-date-row .unique-meeting-date {
+    margin-left: 0;         /* убираем любой отступ, если был */
+  }
+  
