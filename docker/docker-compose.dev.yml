@@ -1,21 +1,8 @@
 services:
-  postgres:
-    image: 'postgres:latest'
-    env_file:
-      - .env
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/init_schemas.sql:/docker-entrypoint-initdb.d/init_schemas.sql
-    networks:
-      - demo
-
   redis:
     image: redis:latest
-    container_name: track-me-redis
     env_file:
-      - .env.dev.redis
+      - .env
     ports:
       - "${REDIS_PORT}:6379"
     volumes:
@@ -51,21 +38,16 @@ services:
     networks:
       - demo
 
-  backend:
-    container_name: trackme-backend
+  trackme-backend:
     image: ghcr.io/akarmanov2022/track-me/backend:latest
     platform: linux/amd64
     restart: always
     env_file:
       - .env
-      - .env.dev.redis
     depends_on:
-      - postgres
       - redis
     ports:
       - '8080:8080'
-    expose:
-      - '8080'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -76,21 +58,16 @@ services:
       timeout: 10s
       retries: 5
 
-  sso:
-    container_name: track-me-sso
+  trackme-sso:
     image: ghcr.io/akarmanov2022/track-me/sso:latest
     platform: linux/amd64
     restart: always
     depends_on:
-      - postgres
       - redis
     env_file:
       - .env
-      - .env.dev.redis
     ports:
       - '9000:9000'
-    expose:
-      - '9000'
     networks:
       - demo
     healthcheck:
@@ -99,8 +76,7 @@ services:
       timeout: 10s
       retries: 5
 
-  client-gateway:
-    container_name: track-me-client-gateway
+  trackme-client-gateway:
     image: ghcr.io/akarmanov2022/track-me/gateway:latest
     platform: linux/amd64
     restart: always
@@ -112,8 +88,6 @@ services:
       - .env.dev.redis
     ports:
       - '8081:8081'
-    expose:
-      - '8081'
     networks:
       - demo
     healthcheck:
@@ -122,8 +96,7 @@ services:
       timeout: 10s
       retries: 5
 
-  frontend:
-    container_name: track-me-frontend
+  trackme-frontend:
     image: ghcr.io/akarmanov2022/track-me/frontend:latest
     platform: linux/amd64
     env_file:
@@ -132,9 +105,7 @@ services:
     depends_on:
       - backend
     ports:
-      - '3001:3000'
-    expose:
-      - '3000'
+      - '3000:3000'
     networks:
       - demo
     volumes:
@@ -144,9 +115,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-volumes:
-  postgres_data:
 
 networks:
   demo:
