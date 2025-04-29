@@ -1,5 +1,5 @@
 services:
-  postgres:
+  trackme-postgres:
     image: 'postgres:latest'
     env_file:
       - .env
@@ -16,9 +16,8 @@ services:
       timeout: 10s
       retries: 5
 
-  redis:
+  trackme-redis:
     image: redis:latest
-    container_name: track-me-redis
     ports:
       - "6380:6379"
     volumes:
@@ -56,6 +55,17 @@ services:
     networks:
       - trackme-net
 
+  trackme-nginx:
+    image: nginx:latest
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    networks:
+      - trackme-net
+
   trackme-backend:
     build:
       context: .
@@ -67,8 +77,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
-      - redis
+      - trackme-postgres
+      - trackme-redis
     ports:
       - '8080:8080'
     volumes:
@@ -85,21 +95,19 @@ services:
     build:
       context: .
       dockerfile: services/trackme-sso/Dockerfile
-    environment:
-      - SPRING_PROFILES_ACTIVE=development
     platform: linux/amd64
     restart: always
     depends_on:
-      - postgres
-      - redis
+      - trackme-postgres
+      - trackme-redis
     env_file:
       - .env
     ports:
-      - '9000:9000'
+      - '9000:8080'
     networks:
       - trackme-net
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -108,21 +116,20 @@ services:
     build:
       context: .
       dockerfile: apps/trackme-gateway/Dockerfile
-    environment:
-      - SPRING_PROFILES_ACTIVE=development
     platform: linux/amd64
     restart: always
     depends_on:
       - trackme-backend
       - trackme-sso
+      - trackme-nginx
     env_file:
       - .env
     networks:
       - trackme-net
     ports:
-      - '8081:8081'
+      - '8081:8080'
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -131,13 +138,9 @@ services:
     build:
       context: apps/frontend
       dockerfile: Dockerfile
-      args:
-        REACT_APP_ENV: ${REACT_APP_ENV}
     platform: linux/amd64
     env_file:
       - .env
-    #    depends_on:
-    #      - trackme-client-gateway
     ports:
       - '3000:3000'
     networks:
@@ -155,3 +158,4 @@ volumes:
 
 networks:
   trackme-net:
+    external: true

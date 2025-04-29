@@ -1,4 +1,4 @@
-name: Deploy to Stage
+name: Deploy to DEV
 on:
   workflow_dispatch:
     inputs:
@@ -70,7 +70,7 @@ jobs:
     needs: [ set-env, choose-image-tag ]
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Stage
+      - name: Deploy to DEV
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
