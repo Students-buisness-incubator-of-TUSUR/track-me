@@ -42,7 +42,7 @@ jobs:
             set -e
             
             # Перейти в рабочую директорию проекта
-            cd /home/${{ secrets.SBI_SSH_USERNAME }}/track-me
+            cd /home/${{ secrets.SBI_SSH_USERNAME }}/track-me-dev
             
             # Создать .env файл с переменными окружения
             rm -f .env
@@ -122,7 +122,7 @@ jobs:
               sleep 5
             done
             
-            until curl -sf http://localhost:3001/actuator/health; do
+            until curl -sf http://localhost:3000/actuator/health; do
               echo "Waiting for frontend..."
               sleep 5
             done
@@ -138,5 +138,4 @@ jobs:
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
-            cd /home/vmv94/gateway/
-            make restart
+            sudo systemctl reload nginx
