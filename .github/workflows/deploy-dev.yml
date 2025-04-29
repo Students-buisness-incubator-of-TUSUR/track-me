@@ -53,6 +53,7 @@ jobs:
             echo "SSO_URI=${{ secrets.DEV_SSO_URI }}" >> .env
             
             echo "BACKEND_URI=${{ secrets.DEV_BACKEND_URI }}" >> .env
+            echo "REACT_APP_BACKEND_URI=${{ secrets.DEV_BACKEND_URI }}" >> .env
             echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
             echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
             echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env

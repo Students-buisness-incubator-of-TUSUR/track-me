@@ -20,8 +20,8 @@ function TrackerPage() {
     const [userRole, setUserRole] = useState(null);
     const [username, setusername] = useState(null);
 
-    const backendHost = (process.env.BACKEND_URI || 'http://localhost:8080') + '/backend';
-    const logoutHost = (process.env.BACKEND_URI || 'http://localhost:8080') + '/logout';
+    const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
+    const logoutHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/logout';
     // Состояния для отображения панели фильтров и групп чекбоксов
     const [isVisible, setIsVisible] = useState(false);
     const [showCheckboxesStream, setShowCheckboxesStream] = useState(false); // Для "Все потоки"

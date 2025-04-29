@@ -2,7 +2,7 @@ import React from "react";
 import "./HomePage.css";
 
 const HomePage = () => {
-    const clientGatewayUri = process.env.BACKEND_URI || "http://localhost:8080";
+    const clientGatewayUri = process.env.REACT_APP_BACKEND_URI || "http://localhost:8080";
 
     const handleSSOLogin = () => {
 

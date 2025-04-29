@@ -14,7 +14,7 @@ export default function CreateStream() {
     const [selectedCheckboxes, setSelectedCheckboxes] = useState([]);
     const [image, setImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
-    const backendHost = (process.env.BACKEND_URI || 'http://localhost:8080') + '/backend';
+    const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
     const checkboxesRef = useRef(null);
 
     // Фетчим данные для чекбоксов рынков как на stream-page.js (без проверки токена)

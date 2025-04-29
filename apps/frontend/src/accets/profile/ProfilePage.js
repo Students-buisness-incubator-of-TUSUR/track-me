@@ -12,7 +12,7 @@ function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userPhoto, setUserPhoto] = useState(null);
-    const ssoHost = (process.env.BACKEND_URI || 'http://localhost:8080');
+    const ssoHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080');
 
     // Флаг редактирования
     const [isEditing, setIsEditing] = useState(false);

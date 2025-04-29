@@ -15,7 +15,7 @@ export default function EditStream() {
     const [selectedCheckboxes, setSelectedCheckboxes] = useState([]); // Выбранные рынки НТИ
     const [image, setImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
-    const backendHost = (process.env.BACKEND_URI || 'http://localhost:8081') + '/backend';
+    const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8081') + '/backend';
     const checkboxesRef = useRef(null);
     // Функция для загрузки изображения потока
     const fetchStreamImage = useCallback(async (streamId) => {

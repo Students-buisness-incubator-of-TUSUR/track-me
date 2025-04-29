@@ -3,7 +3,7 @@ import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./team-card.css";
 import {useSelector} from "react-redux";
 
-const backendHost = (process.env.BACKEND_URI || "https://localhost:8080") + '/backend';
+const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 
 const TeamCard = () => {
     const navigate = useNavigate();
