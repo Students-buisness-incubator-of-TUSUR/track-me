@@ -23,14 +23,14 @@ spring:
             allowCredentials: true
       routes:
         - id: trackme-backend
-          uri: http://track-me-backend:8080
+          uri: http://trackme-backend:8080
           predicates:
             - Path=/backend/**
           filters:
             - TokenRelay
             - StripPrefix=1
         - id: trackme-sso
-          uri: http://track-me-sso:9000
+          uri: http://trackme-sso:9000
           predicates:
             - Path=/sso/**
           filters:
