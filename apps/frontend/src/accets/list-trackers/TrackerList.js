@@ -18,7 +18,7 @@ function TrackerList() {
 
     // Если фильтры не изменяются, мемоизируем их
     const filters = useMemo(() => [], []);
-    const ssoServiceUri = (process.env.REACT_APP_CLIENT_GATEWAY_URI || "http://localhost:8080") + '/sso';
+    const ssoServiceUri = (process.env.BACKEND_URI || "http://localhost:8080");
 
     useEffect(() => {
         fetch(`${ssoServiceUri}/api/v1/users/trackers?page=0&size=10`, {

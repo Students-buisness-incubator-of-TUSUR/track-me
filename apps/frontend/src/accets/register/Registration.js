@@ -14,7 +14,7 @@ const Registration = () => {
     });
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewPhoto, setPreviewPhoto] = useState(null);
-    const backendHost = (process.env.REACT_APP_CLIENT_GATEWAY_URI || 'http://localhost:8080') + '/backend';
+    const backendHost = (process.env.BACKEND_URI || 'http://localhost:8080') + '/backend';
 
     const handleChange = (e) => {
         setForm({...form, [e.target.name]: e.target.value});

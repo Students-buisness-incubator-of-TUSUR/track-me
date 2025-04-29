@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./meeting-card.css";
 import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 
-const backendHost = process.env.REACT_APP_CLIENT_GATEWAY_URI + '/backend';
+const backendHost = process.env.BACKEND_URI + '/backend';
 
 const MeetingCard = () => {
     const { meetingId } = useParams();

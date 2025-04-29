@@ -8,7 +8,7 @@ const LoginRecovery = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const navigate = useNavigate();
 
-    const backendHost = (process.env.REACT_APP_CLIENT_GATEWAY_URI || "http://localhost:8080") + '/backend';
+    const backendHost = (process.env.BACKEND_URI || "http://localhost:8080") + '/backend';
 
     const handleSubmit = async (e) => {
         e.preventDefault();

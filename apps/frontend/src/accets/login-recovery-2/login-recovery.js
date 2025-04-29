@@ -16,7 +16,7 @@ const LoginRecovery2 = () => {
     const queryParams = new URLSearchParams(search);
     const token = queryParams.get("token");
 
-    const backendHost = (process.env.REACT_APP_CLIENT_GATEWAY_URI || "http://localhost:8080") + '/backend';
+    const backendHost = (process.env.BACKEND_URI || "http://localhost:8080") + '/backend';
 
     const handleSubmit = async (e) => {
         e.preventDefault();

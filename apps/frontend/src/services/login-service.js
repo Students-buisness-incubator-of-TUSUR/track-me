@@ -3,7 +3,7 @@ import {setUser} from "../store/userSlice";
 import {useDispatch} from "react-redux";
 
 function LoginService() {
-    const backendUrl = process.env.REACT_APP_CLIENT_GATEWAY_URI || "http://localhost:8081";
+    const backendUrl = process.env.BACKEND_URI || "http://localhost:8081";
     const userinfoUrl = `${backendUrl}/sso/api/v1/account/info`;
     const logoutUrl = `${backendUrl}/logout`;
     const dispatch = useDispatch();

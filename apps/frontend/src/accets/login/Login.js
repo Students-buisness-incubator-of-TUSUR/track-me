@@ -12,7 +12,7 @@ const Login = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate(); // Используем хук для навигации
-    const backendHost = process.env.REACT_APP_CLIENT_GATEWAY_URI || 'http://localhost:8080';
+    const backendHost = process.env.BACKEND_URI || 'http://localhost:8080';
 
     const handleSubmit = async (e) => {
         e.preventDefault();
