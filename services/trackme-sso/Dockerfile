@@ -10,7 +10,7 @@ COPY services/trackme-sso /app/services/trackme-sso
 
 COPY . /app
 
-RUN --mount=type=cache,target=/root/.gradle gradle trackme-sso:build -Pprod
+RUN --mount=type=cache,target=/root/.gradle gradle trackme-sso:bootJar -Pprod
 
 FROM eclipse-temurin:21-jre-alpine
 
