@@ -2,7 +2,6 @@ package net.akarmanov.projectplace.cliengateway.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import net.akarmanov.projectplace.cliengateway.config.handler.DynamicRedirectServerAuthenticationSuccessHandler;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +14,7 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 
@@ -72,7 +72,7 @@ public class OAuth2ClientConfiguration {
     serverLogoutSuccessHandler.setPostLogoutRedirectUri(appProperties.getAfterLogoutUri());
     this.logoutSuccessHandler = serverLogoutSuccessHandler;
 
-    this.authenticationSuccessHandler = new DynamicRedirectServerAuthenticationSuccessHandler(
+    this.authenticationSuccessHandler = new RedirectServerAuthenticationSuccessHandler(
         appProperties.getAfterLoginUrl()
     );
   }
