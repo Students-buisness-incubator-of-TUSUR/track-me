@@ -146,7 +146,6 @@ spring:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - http://host.docker.internal:3000
               - http://localhost:3000
             allowedMethods:
               - GET
@@ -177,3 +176,23 @@ spring:
           track-me-client:
             issuer-uri: http://host.docker.internal:9000
             authorization-uri: http://localhost:9000/oauth2/authorize
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    doc-expansion: none
+    operationsSorter: method
+    tagsSorter: alpha
+    try-it-out-enabled: true
+    urls:
+      - name: TrackMe SSO
+        url: http://127.0.0.1:8081/sso/v3/api-docs
+      - name: TrackMe Backend
+        display-name: TrackMe Backend
+        url: http://127.0.0.1:8081/backend/v3/api-docs
+    with-credentials: true
+    csrf:
+      enabled: true
+    use-root-path: true
+  api-docs:
+    enabled: true

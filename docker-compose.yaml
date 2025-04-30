@@ -113,8 +113,9 @@ services:
       - trackme-backend
       - trackme-sso
     environment:
-      - CORS_ORIGINS=http://localhost:3000,${FRONTEND_URI},${BACKEND_URI}
       - SPRING_PROFILES_ACTIVE=docker-local
+      - SERVER_SERVLET_SESSION_COOKIE_SAME_SITE=None
+      - SERVER_SERVLET_SESSION_COOKIE_SECURE=true
     env_file:
       - .env
     networks:
