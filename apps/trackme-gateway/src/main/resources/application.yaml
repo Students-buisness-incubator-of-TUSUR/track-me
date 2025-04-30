@@ -1,6 +1,6 @@
 app:
-  after-login-endpoint: ${AFTER_LOGIN_URL:http://127.0.0.1:8081}
-  after-logout-endpoint: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
+  after-login-url: ${AFTER_LOGIN_URL:/after-login}
+  after-logout-uri: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
 
 spring:
   application:
@@ -10,8 +10,7 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins:
-              - ${FRONTEND_URI:http://localhost:3000}
+            allowedOrigins: ${CORS_ORIGINS:http://localhost:3000}
             allowedMethods:
               - GET
               - POST

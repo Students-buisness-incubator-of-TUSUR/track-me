@@ -12,8 +12,8 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
   @NotBlank
-  private String afterLoginEndpoint;
+  private String afterLoginUrl;
 
   @NotBlank
-  private String afterLogoutEndpoint;
+  private String afterLogoutUri;
 }
