@@ -114,8 +114,9 @@ services:
       - trackme-sso
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
-      - SERVER_SERVLET_SESSION_COOKIE_SAME_SITE=None
-      - SERVER_SERVLET_SESSION_COOKIE_SECURE=true
+      - SERVER_REACTIVE_SESSION_COOKIE_SECURE=true
+      - SERVER_REACTIVE_SESSION_COOKIE_SAME_SITE=None
+
     env_file:
       - .env
     networks:
