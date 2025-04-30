@@ -9,6 +9,8 @@ spring:
         registration-confirmation-endpoint: /client/registration-confirm
         client:
           track-me-client:
+            token:
+              access-token-time-to-live: 15m
             registration:
               client-name: TrackMe SSO
               authorization-grant-types:
