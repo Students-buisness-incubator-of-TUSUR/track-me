@@ -28,9 +28,48 @@ spring:
               post-logout-redirect-uris:
                 - ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
                 - http://localhost:8081
+                - http://localhost:3000
               redirect-uris:
                 - ${BACKEND_URI:http://127.0.0.1:8081}/login/oauth2/code/track-me-client
-                - http://localhost:8081/sso/login/oauth2/code/track-me-client
       resourceserver:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker-local
+  security:
+    oauth2:
+      authorizationserver:
+        issuer-url: http://host.docker.internal:9000
+        authorization-ttl: 720000ms
+        authorization-consent-ttl: 720000ms
+        registration-confirmation-endpoint: /client/registration-confirm
+        client:
+          track-me-client:
+            token:
+              access-token-time-to-live: 15m
+            registration:
+              client-name: TrackMe SSO
+              authorization-grant-types:
+                - authorization_code
+                - client_credentials
+                - refresh_token
+              client-id: ${TRACKME_CLIENT_ID:track-me-client}
+              client-secret: $2a$10$VE.rmtbcmzTk3K4y0d2WBemfO32I71vE3HbSVogX199gNxh9oW8tq
+              scopes:
+                - openid
+                - profile
+              client-authentication-methods:
+                - client_secret_basic
+                - client_secret_post
+              post-logout-redirect-uris:
+                - http://127.0.0.1:8081
+                - http://localhost:3000
+              redirect-uris:
+                - http://127.0.0.1:8081/login/oauth2/code/track-me-client
+      resourceserver:
+        jwt:
+          issuer-uri: http://host.docker.internal:9000
