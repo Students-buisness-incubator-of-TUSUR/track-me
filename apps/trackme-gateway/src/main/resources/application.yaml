@@ -176,10 +176,6 @@ spring:
           track-me-client:
             issuer-uri: http://host.docker.internal:9000
             authorization-uri: http://localhost:9000/oauth2/authorize
-      authorizationserver:
-        endpoint:
-          oidc:
-            logout-uri: http://localhost:9000/connect/logout
 
 springdoc:
   swagger-ui:
