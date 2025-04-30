@@ -30,6 +30,7 @@ public class SwaggerConfiguration {
     return new OpenAPI()
         .info(new Info()
             .title(buildProperties.getName())
+            .description("Основной API проекта TrackMe")
             .version(buildProperties.getVersion()))
         .servers(List.of(new Server()
             .url(appProperties.getApiUrl())));
