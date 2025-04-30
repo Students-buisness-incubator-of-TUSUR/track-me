@@ -1,5 +1,8 @@
+server:
+  port: 8081
+
 app:
-  after-login-url: ${AFTER_LOGIN_URL:/after-login}
+  after-login-url: ${AFTER_LOGIN_URL:http://127.0.0.1:8081}
   after-logout-uri: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
 
 spring:
@@ -117,5 +120,60 @@ spring:
             allowedHeaders:
               - "*"
             allowCredentials: true
-server:
-  port: 8081
+---
+spring:
+  config:
+    activate:
+      on-profile: docker-local
+  cloud:
+    gateway:
+      routes:
+        - id: trackme-backend
+          uri: http://host.docker.internal:8080
+          predicates:
+            - Path=/backend/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
+        - id: trackme-sso
+          uri: http://host.docker.internal:9000
+          predicates:
+            - Path=/sso/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - http://host.docker.internal:3000
+              - http://localhost:3000
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+  security:
+    oauth2:
+      client:
+        registration:
+          track-me-client:
+            client-id: ${TRACKME_CLIENT_ID:track-me-client}
+            client-secret: ${TRACKME_CLIENT_SECRET:password}
+            provider: track-me-client
+            client-name: TrackMe SSO
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: openid, profile
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+        provider:
+          track-me-client:
+            issuer-uri: http://host.docker.internal:9000
+            authorization-uri: http://localhost:9000/oauth2/authorize

@@ -10,7 +10,7 @@ spring:
       client-type: lettuce
       database: 0
       host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6380}
+      port: ${REDIS_PORT:6379}
       username: ${REDIS_USER:trackme-redis}
       password: ${REDIS_USER_PASSWORD:trackme-redis}
       lettuce:
@@ -50,7 +50,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: development
+      on-profile: development,docker-local
   liquibase:
     contexts: prod, dev
 

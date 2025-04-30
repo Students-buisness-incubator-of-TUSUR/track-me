@@ -21,7 +21,7 @@ spring:
       client-type: lettuce
       database: 0
       host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6380}
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_USER_PASSWORD:trackme-redis-pass}
       username: ${REDIS_USER:trackme-redis}
       lettuce:
@@ -78,8 +78,9 @@ app:
 
 ---
 spring:
-  profiles:
-    active: development
+  config:
+    activate:
+      on-profile: docker-local, development
   liquibase:
     contexts: dev prod
 logging:
@@ -88,11 +89,23 @@ logging:
 
 ---
 spring:
-  profiles:
-    active: production
+  config:
+    activate:
+      on-profile: production
   liquibase:
     contexts: prod
 
 logging:
   level:
     root: info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker-local
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://host.docker.internal:9000
