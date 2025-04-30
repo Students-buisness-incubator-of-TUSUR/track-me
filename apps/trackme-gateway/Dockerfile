@@ -1,30 +1,27 @@
-# 1. Этап сборки
+# ----------- Build stage -----------
 FROM gradle:8-jdk21-alpine AS builder
 
 WORKDIR /app
 
-# Сначала копируем только файлы, изменение которых встречается реже.
-COPY build.gradle settings.gradle /app/
-COPY gradle /app/gradle
+COPY build.gradle settings.gradle gradle /app/
 COPY apps/trackme-gateway /app/apps/trackme-gateway
 
-# Затем копируем весь исходный код проекта (для layer cache)
+RUN gradle :trackme-gateway:dependencies --no-daemon
+
 COPY . /app
 
-# Собираем JAR только нужного модуля
-RUN gradle :trackme-gateway:clean :trackme-gateway:bootJar
+RUN gradle :trackme-gateway:clean :trackme-gateway:bootJar --no-daemon
 
-# 2. Этап запуска
+# ----------- Runtime stage -----------
 FROM eclipse-temurin:21-jre-alpine
-
 
 WORKDIR /app
 
-RUN apk add --no-cache curl
+# Create a non-root user and use it
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 
-COPY docker-compose.yaml /app
-
-# Копируем собранный jar-файл из build-образа
+# Copy JAR file from builder
 COPY --from=builder /app/apps/trackme-gateway/build/libs/trackme-gateway-*.jar app.jar
 
 EXPOSE 8080
