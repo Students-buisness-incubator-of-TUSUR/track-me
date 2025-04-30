@@ -21,7 +21,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@SpringBootTest(
+    classes = {TokenRefreshWebFilter.class},
+    properties = {
+        "spring.main.web-application-type=none",
+        "spring.main.allow-bean-definition-overriding=true"
+    })
 class TokenRefreshWebFilterTest {
 
   @Autowired
