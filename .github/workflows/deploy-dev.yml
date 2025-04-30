@@ -48,6 +48,7 @@ jobs:
             rm -f .env
             
             echo "FRONTEND_URI=${{ secrets.DEV_FRONTEND_URI }}" >> .env
+            echo "CORS_ORIGINS=${{ secrets.DEV_FRONTEND_URI }},http://localhost:3000" >> .env
             echo "AFTER_LOGOUT_URI=${{ secrets.DEV_FRONTEND_URI }}" >> .env
             echo "AFTER_LOGIN_URL=${{ secrets.DEV_FRONTEND_URI }}/after-login" >> .env
             echo "SSO_URI=${{ secrets.DEV_SSO_URI }}" >> .env
