@@ -4,12 +4,17 @@ RUN apk add --no-cache nodejs npm
 
 WORKDIR /app
 
+# 1. Сначала только файлы зависимостей для кеша Gradle:
 COPY build.gradle settings.gradle /app/
 COPY gradle /app/gradle
+
+# 2. Прогреваeм зависимости Gradle (минимально изменяется)
+RUN --mount=type=cache,target=/root/.gradle gradle dependencies
+
+# 3. Копируем исходники приложения
 COPY services/trackme-sso /app/services/trackme-sso
 
-COPY . /app
-
+# 4. Собираем проект
 RUN --mount=type=cache,target=/root/.gradle gradle trackme-sso:bootJar -Pprod
 
 FROM eclipse-temurin:21-jre-alpine
