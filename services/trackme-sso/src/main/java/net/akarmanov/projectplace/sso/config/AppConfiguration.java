@@ -34,17 +34,6 @@ public class AppConfiguration {
     Components components = new Components();
     List<SecurityRequirement> securityRequirements = new ArrayList<>();
 
-    // добавляем возможность указывать Authorization header
-    if (Boolean.TRUE.equals(swaggerProperties.getAuthTypes().getAuthHeaderEnabled())) {
-      String securitySchemeName = "Authorization header";
-      components.addSecuritySchemes(securitySchemeName,
-          new SecurityScheme()
-              .type(SecurityScheme.Type.HTTP)
-              .scheme("bearer")
-      );
-      securityRequirements.add(new SecurityRequirement().addList(securitySchemeName));
-    }
-
     // Добавим возможность OAuth2 Authorization code flow
     if (Boolean.TRUE.equals(swaggerProperties.getAuthTypes().getAuthorizationCodeEnabled())) {
       String securitySchemeName = "Authorization code flow";
