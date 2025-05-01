@@ -2,11 +2,7 @@ spring:
   security:
     oauth2:
       authorizationserver:
-        multiple-issuers-allowed: true
-        issuer-url: ${SSO_URI:http://localhost:9000}
-        authorization-ttl: 720000ms
-        authorization-consent-ttl: 720000ms
-        registration-confirmation-endpoint: /client/registration-confirm
+        issuer: ${SSO_URI:http://localhost:9000}
         client:
           track-me-client:
             token:
@@ -44,7 +40,7 @@ spring:
   security:
     oauth2:
       authorizationserver:
-        issuer-url: http://host.docker.internal:9000
+        issuer: http://host.docker.internal:9000
       resourceserver:
         jwt:
           issuer-uri: http://host.docker.internal:9000

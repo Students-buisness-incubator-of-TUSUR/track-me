@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.sso.components.RegistrationStore;
 import net.akarmanov.projectplace.sso.components.RegistrationTokenStore;
 import net.akarmanov.projectplace.sso.config.AppProperties;
-import net.akarmanov.projectplace.sso.config.security.AuthorizationServerProperties;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import net.akarmanov.projectplace.sso.dto.RegistrationToken;
 import net.akarmanov.projectplace.sso.exception.ConfirmRegistrationException;
@@ -15,6 +14,7 @@ import net.akarmanov.projectplace.sso.exception.InformationException;
 import net.akarmanov.projectplace.sso.services.EmailService;
 import net.akarmanov.projectplace.sso.services.RegistrationService;
 import net.akarmanov.projectplace.sso.services.UserService;
+import org.springframework.boot.autoconfigure.security.oauth2.server.servlet.OAuth2AuthorizationServerProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -35,7 +35,7 @@ public class DefaultRegistrationService implements RegistrationService {
 
   private final AppProperties appProperties;
 
-  private final AuthorizationServerProperties authorizationServerProperties;
+  private final OAuth2AuthorizationServerProperties authorizationServerProperties;
 
 
   @Override
@@ -86,8 +86,7 @@ public class DefaultRegistrationService implements RegistrationService {
   }
 
   private String getConfirmationLink(String token) {
-    var httpUrl = authorizationServerProperties.getIssuerUrl()
-                  + authorizationServerProperties.getRegistrationConfirmationEndpoint();
+    var httpUrl = authorizationServerProperties.getIssuer() + "/client/registration-confirm";
     return UriComponentsBuilder.fromUriString(httpUrl, UriComponentsBuilder.ParserType.WHAT_WG)
         .queryParam("token", token)
         .build().toUriString();
