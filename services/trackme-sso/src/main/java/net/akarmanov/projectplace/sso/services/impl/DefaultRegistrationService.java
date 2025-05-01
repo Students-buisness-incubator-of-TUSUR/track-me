@@ -6,14 +6,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.sso.components.RegistrationStore;
 import net.akarmanov.projectplace.sso.components.RegistrationTokenStore;
+import net.akarmanov.projectplace.sso.config.AppProperties;
+import net.akarmanov.projectplace.sso.config.security.AuthorizationServerProperties;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import net.akarmanov.projectplace.sso.dto.RegistrationToken;
 import net.akarmanov.projectplace.sso.exception.ConfirmRegistrationException;
 import net.akarmanov.projectplace.sso.exception.InformationException;
-import net.akarmanov.projectplace.sso.services.MailService;
+import net.akarmanov.projectplace.sso.services.EmailService;
 import net.akarmanov.projectplace.sso.services.RegistrationService;
 import net.akarmanov.projectplace.sso.services.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -22,11 +27,15 @@ public class DefaultRegistrationService implements RegistrationService {
 
   private final UserService userService;
 
+  private final EmailService emailService;
+
   private final RegistrationStore registrationStore;
 
   private final RegistrationTokenStore tokenStore;
 
-  private final MailService mailService;
+  private final AppProperties appProperties;
+
+  private final AuthorizationServerProperties authorizationServerProperties;
 
 
   @Override
@@ -36,16 +45,28 @@ public class DefaultRegistrationService implements RegistrationService {
     }
 
     RegistrationToken registrationToken = tokenStore.generateToken(response);
+    var sessionId = registrationToken.sessionId();
+    var token = registrationToken.token();
+
     try {
-      registrationStore.save(requestDto, registrationToken.sessionId());
+      registrationStore.save(requestDto, sessionId);
     } catch (Exception e) {
       throw InformationException.builder("$happened.unexpected.error").build();
     }
 
-    log.info("Registration token = {}. SessionId = {}",
-        registrationToken.token(),
-        registrationToken.sessionId());
-    mailService.sendRegistrationConfirmationEmail(requestDto.email(), registrationToken.token());
+    log.info("Registration token = {}. SessionId = {}", token, sessionId);
+
+    emailService.sendMail(
+        requestDto.email(),
+        appProperties.getMail().getFrom(),
+        "[" + appProperties.getMail().getSubject() + "] Подтверждение регистрации",
+        "email-confirmation.html",
+        Map.of(
+            "email", requestDto.email(),
+            "token", token,
+            "appName", appProperties.getMail().getSubject(),
+            "supportEmail", appProperties.getMail().getFrom(),
+            "confirmationLink", getConfirmationLink(token)));
   }
 
   @Override
@@ -60,6 +81,15 @@ public class DefaultRegistrationService implements RegistrationService {
     }
 
     registrationStore.take(sessionId)
-        .ifPresent(userService::saveUser);
+        .ifPresentOrElse(userService::saveUser,
+            () -> log.error("Registration token not found for sessionId: {}", sessionId));
+  }
+
+  private String getConfirmationLink(String token) {
+    var httpUrl = authorizationServerProperties.getIssuerUrl()
+                  + authorizationServerProperties.getRegistrationConfirmationEndpoint();
+    return UriComponentsBuilder.fromUriString(httpUrl, UriComponentsBuilder.ParserType.WHAT_WG)
+        .queryParam("token", token)
+        .build().toUriString();
   }
 }
