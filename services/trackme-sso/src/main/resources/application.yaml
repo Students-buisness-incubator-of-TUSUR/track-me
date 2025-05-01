@@ -56,3 +56,11 @@ registration-store:
   cookie-name: trackme-sso-temporary-session
   cookie-domain: localhost
   cookie-max-age: 10m
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker-local
+app:
+  api-url: http://127.0.0.1:8081/sso

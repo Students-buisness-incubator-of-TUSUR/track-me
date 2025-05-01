@@ -109,3 +109,6 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://host.docker.internal:9000
+
+app:
+  api-url: http://localhost:8081/backend

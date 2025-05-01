@@ -146,7 +146,6 @@ spring:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - http://host.docker.internal:3000
               - http://localhost:3000
             allowedMethods:
               - GET
