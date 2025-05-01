@@ -6,7 +6,7 @@ const HomePage = () => {
 
     const handleSSOLogin = () => {
 
-        window.location.href = `${clientGatewayUri}/oauth2/authorization/track-me-client`;
+        window.location.href = `${clientGatewayUri}/oauth2/authorization/track-me-client?redirect_uri=${encodeURIComponent(window.location.origin + '/after-login')}`;
     };
 
 

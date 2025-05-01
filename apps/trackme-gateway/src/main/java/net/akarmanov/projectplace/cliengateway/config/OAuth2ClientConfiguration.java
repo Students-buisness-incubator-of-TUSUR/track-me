@@ -72,8 +72,24 @@ public class OAuth2ClientConfiguration {
     serverLogoutSuccessHandler.setPostLogoutRedirectUri(appProperties.getAfterLogoutUri());
     this.logoutSuccessHandler = serverLogoutSuccessHandler;
 
-    this.authenticationSuccessHandler = new RedirectServerAuthenticationSuccessHandler(
-        appProperties.getAfterLoginUrl()
-    );
+    this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
+      var exchange = webFilterExchange.getExchange();
+
+      // Получаем redirect_uri из параметров
+      String redirectUri = exchange.getRequest().getQueryParams().getFirst("redirect_uri");
+      if (redirectUri != null && isValidRedirectUri(redirectUri)) {
+        return new RedirectServerAuthenticationSuccessHandler(redirectUri)
+            .onAuthenticationSuccess(webFilterExchange, authentication);
+      }
+      // Фолбэк на старое поведение
+      return new RedirectServerAuthenticationSuccessHandler(appProperties.getAfterLoginUrl())
+          .onAuthenticationSuccess(webFilterExchange, authentication);
+    };
+  }
+
+  private boolean isValidRedirectUri(String redirectUri) {
+    return appProperties.getAllowedOrigins().stream()
+        .anyMatch(redirectUri::startsWith);
+
   }
 }
