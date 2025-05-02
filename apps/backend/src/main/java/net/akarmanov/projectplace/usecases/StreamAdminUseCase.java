@@ -9,7 +9,7 @@ import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamUpdateDto;
 import net.akarmanov.projectplace.services.nti.NtiMarketService;
-import net.akarmanov.projectplace.services.stream.StreamService;
+import net.akarmanov.projectplace.services.stream.MutableStreamService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ public class StreamAdminUseCase {
 
   private final StreamMapper streamMapper;
 
-  private final StreamService streamService;
+  private final MutableStreamService streamService;
 
   private final NtiMarketService ntiMarketService;
 

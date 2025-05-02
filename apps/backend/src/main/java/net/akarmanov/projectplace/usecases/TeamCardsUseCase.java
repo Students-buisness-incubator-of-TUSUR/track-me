@@ -8,7 +8,7 @@ import net.akarmanov.projectplace.models.TeamCardStatus;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import net.akarmanov.projectplace.services.nti.NtiMarketService;
-import net.akarmanov.projectplace.services.stream.StreamService;
+import net.akarmanov.projectplace.services.stream.MutableStreamService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +28,7 @@ public class TeamCardsUseCase {
 
   private final TeamCardsService teamCardsService;
 
-  private final StreamService streamService;
+  private final MutableStreamService streamService;
 
   private final TeamCardMapper teamCardMapper;
 
