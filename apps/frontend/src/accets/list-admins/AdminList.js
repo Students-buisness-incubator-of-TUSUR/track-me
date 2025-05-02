@@ -18,7 +18,7 @@ function AdminList() {
 
     // Если фильтры не изменяются, мемоизируем их
     const filters = useMemo(() => [], []);
-    const ssoServiceUri = (process.env.SSO_URI || "http://localhost:8080");
+    const ssoServiceUri = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + '/sso'
 
     useEffect(() => {
         fetch(`${ssoServiceUri}/api/v1/users/administrators?page=0&size=10`, {
