@@ -1,5 +1,6 @@
 package net.akarmanov.projectplace.services.stream;
 
+import jakarta.transaction.Transactional;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.repos.StreamRepository;
@@ -11,8 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 @Service
+@Transactional
 @PreAuthorize("hasRole('ADMIN')")
-public class MutableDefaultStreamService extends DefaultStreamService implements MutableStreamService {
+public class MutableDefaultStreamService extends AbstractStreamService implements MutableStreamService {
 
   public MutableDefaultStreamService(StreamRepository streamRepository,
                                      NtiMarketRepository ntiMarketRepository) {

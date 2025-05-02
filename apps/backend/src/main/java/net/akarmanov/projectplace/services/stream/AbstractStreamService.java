@@ -1,6 +1,5 @@
 package net.akarmanov.projectplace.services.stream;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.domain.NTIMarket;
 import net.akarmanov.projectplace.domain.Stream;
@@ -10,7 +9,6 @@ import net.akarmanov.projectplace.services.exceptions.StreamNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,10 +17,9 @@ import static net.akarmanov.projectplace.domain.spec.StreamSpecification.byActiv
 import static net.akarmanov.projectplace.domain.spec.StreamSpecification.byId;
 import static org.springframework.data.jpa.domain.Specification.where;
 
-@Service
-@Transactional
+
 @RequiredArgsConstructor
-public class DefaultStreamService implements StreamService {
+public abstract class AbstractStreamService implements StreamService {
 
   protected final StreamRepository streamRepository;
 

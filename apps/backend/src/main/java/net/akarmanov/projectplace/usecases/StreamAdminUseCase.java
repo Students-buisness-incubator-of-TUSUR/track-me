@@ -2,7 +2,9 @@ package net.akarmanov.projectplace.usecases;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.commons.filters.FilterRequest;
+import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.domain.spec.StreamSpecification;
 import net.akarmanov.projectplace.mapping.StreamMapper;
 import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
@@ -16,49 +18,83 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class StreamAdminUseCase {
 
-  private final StreamMapper streamMapper;
+    private static final String STREAM_NOT_FOUND_MESSAGE = "Stream not found: ";
 
-  private final MutableStreamService streamService;
+    private final StreamMapper streamMapper;
+    private final MutableStreamService streamService;
+    private final NtiMarketService ntiMarketService;
 
-  private final NtiMarketService ntiMarketService;
+    private static void validateStreamEntityFound(UUID streamId, Stream streamEntity) {
+        if (streamEntity == null) {
+            String errorMessage = STREAM_NOT_FOUND_MESSAGE + streamId;
+            log.warn(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
 
-  @Transactional
-  public StreamDto createStream(StreamCreateDto streamCreateDto) {
-    var ntiMarketIds = streamCreateDto.ntiMarketIds();
-    var stream = streamMapper.mapFromDto(streamCreateDto);
-    stream.addNtiMarkets(ntiMarketService.getNtiMarkets(ntiMarketIds));
-    stream = streamService.create(stream);
-    return streamMapper.mapToDto(stream);
-  }
+    /**
+     * Создать новый поток.
+     */
+    @Transactional
+    public StreamDto createStream(StreamCreateDto streamCreateDto) {
+        var streamEntity = streamMapper.mapFromDto(streamCreateDto);
+        var ntiMarkets = ntiMarketService.getNtiMarkets(streamCreateDto.ntiMarketIds());
+        streamEntity.addNtiMarkets(ntiMarkets);
 
-  @Transactional
-  public StreamDto updateStream(UUID streamId, StreamUpdateDto stream) {
-    var ntiMarketIds = stream.ntiMarketIds();
-    var oldStream = streamService.getById(streamId);
-    streamMapper.updateFromDto(stream, oldStream);
-    oldStream.updateNtiMarkets(ntiMarketService.getNtiMarkets(ntiMarketIds));
-    oldStream = streamService.save(oldStream);
-    return streamMapper.mapToDto(oldStream);
-  }
+        var savedStream = streamService.create(streamEntity);
 
-  public void deleteStream(UUID streamId) {
-    streamService.delete(streamId);
-  }
+        log.info("Stream created: {}", savedStream.getId());
+        return streamMapper.mapToDto(savedStream);
+    }
 
-  public Page<StreamDto> findAllStreams(FilterRequest filterRequest, Pageable pageable) {
-    var filters = filterRequest.filters();
-    var specification = StreamSpecification.withFilters(filters);
-    return streamService.findAll(specification, pageable)
-        .map(streamMapper::mapToDto);
-  }
+    /**
+     * Обновить существующий поток.
+     */
+    @Transactional
+    public StreamDto updateStream(UUID streamId, StreamUpdateDto updateDto) {
+        var streamEntity = streamService.getById(streamId);
+        validateStreamEntityFound(streamId, streamEntity);
 
-  public StreamDto getById(UUID streamId) {
-    var stream = streamService.getById(streamId);
-    return streamMapper.mapToDto(stream);
-  }
+        streamMapper.updateFromDto(updateDto, streamEntity);
 
+        var ntiMarkets = ntiMarketService.getNtiMarkets(updateDto.ntiMarketIds());
+        streamEntity.updateNtiMarkets(ntiMarkets);
+
+        var savedStream = streamService.save(streamEntity);
+
+        log.info("Stream updated: {}", streamId);
+        return streamMapper.mapToDto(savedStream);
+    }
+
+    /**
+     * Удалить поток.
+     */
+    public void deleteStream(UUID streamId) {
+        streamService.delete(streamId);
+        log.info("Stream deleted: {}", streamId);
+    }
+
+    /**
+     * Получить потоки по фильтру с пагинацией.
+     */
+    public Page<StreamDto> findAllStreams(FilterRequest filterRequest, Pageable pageable) {
+        var filters = filterRequest.filters();
+        var specification = StreamSpecification.withFilters(filters);
+        var page = streamService.findAll(specification, pageable);
+        return page.map(streamMapper::mapToDto);
+    }
+
+    /**
+     * Получить поток по идентификатору.
+     */
+    public StreamDto getById(UUID streamId) {
+        var streamEntity = streamService.getById(streamId);
+        validateStreamEntityFound(streamId, streamEntity);
+        return streamMapper.mapToDto(streamEntity);
+    }
 }

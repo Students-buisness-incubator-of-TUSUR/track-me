@@ -35,24 +35,24 @@ public class TeamCardsUseCase {
   private final NtiMarketService ntiMarketService;
 
   @Transactional
-  public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard, UUID streamId,
+  public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCardDto, UUID streamId,
                                     Authentication authentication) {
     var username = authentication.getName();
-    var ntiMarketId = teamCard.ntiMarketId();
+    var ntiMarketId = teamCardDto.ntiMarketId();
 
     var stream = streamService.findActive(streamId);
-    var teamCardEntity = teamCardMapper.mapToEntity(teamCard);
+    var teamCardEntity = teamCardMapper.mapToEntity(teamCardDto);
     var ntiMarket = ntiMarketService.getNtiMarket(ntiMarketId);
 
     teamCardEntity.setNtiMarket(ntiMarket);
     teamCardEntity.setUsername(username);
     teamCardEntity.addStream(stream);
     teamCardEntity.setStatus(TeamCardStatus.OK);
+
     var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);
-    stream.addTeamCard(createdTeamCard);
-    streamService.save(stream);
     return teamCardMapper.mapToDto(createdTeamCard);
   }
+
 
   public TeamCardDto updateTeamCard(UUID teamCardId, TeamCardCreateOrUpdateDto createOrUpdateDto) {
     var ntMarketId = createOrUpdateDto.ntiMarketId();
