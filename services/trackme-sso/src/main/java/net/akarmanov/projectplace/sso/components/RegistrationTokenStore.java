@@ -10,5 +10,4 @@ public interface RegistrationTokenStore {
 
   boolean isTokenValid(String token, HttpServletRequest request);
 
-  String getSessionId(HttpServletRequest request);
 }

@@ -1,5 +1,5 @@
 package net.akarmanov.projectplace.sso.dto;
 
 public record RegistrationToken(
-    String sessionId, String token) {
+        String tokenHash, String token) {
 }
