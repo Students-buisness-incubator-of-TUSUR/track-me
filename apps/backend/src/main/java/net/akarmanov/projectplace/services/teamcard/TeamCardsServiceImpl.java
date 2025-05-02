@@ -20,7 +20,7 @@ import java.util.UUID;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class DomainTeamCardsService implements TeamCardsService {
+public class TeamCardsServiceImpl implements TeamCardsService {
 
   private final TeamCardsRepository teamCardsRepository;
 

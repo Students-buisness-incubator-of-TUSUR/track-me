@@ -24,7 +24,7 @@ import static net.akarmanov.projectplace.domain.spec.TeamCardSpecification.withF
 
 @Component
 @RequiredArgsConstructor
-public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
+public class TeamCardsUseCase {
 
   private final TeamCardsService teamCardsService;
 
@@ -34,7 +34,6 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
 
   private final NtiMarketService ntiMarketService;
 
-  @Override
   @Transactional
   public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCard, UUID streamId,
                                     Authentication authentication) {
@@ -55,7 +54,6 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
     return teamCardMapper.mapToDto(createdTeamCard);
   }
 
-  @Override
   public TeamCardDto updateTeamCard(UUID teamCardId, TeamCardCreateOrUpdateDto createOrUpdateDto) {
     var ntMarketId = createOrUpdateDto.ntiMarketId();
     var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
@@ -64,7 +62,6 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
     return teamCardMapper.mapToDto(updatedTeamCard);
   }
 
-  @Override
   public Page<TeamCardDto> getTeamCards(List<Filter> filters,
                                         Authentication authentication,
                                         Pageable pageable) {
@@ -74,19 +71,16 @@ public class UserTeamCardsUseCaseImpl implements UserTeamCardsUseCase {
     return page.map(teamCardMapper::mapToDto);
   }
 
-  @Override
   @PreAuthorize("hasPermission(#teamCardId, 'net.akarmanov.projectplace.domain.TeamCard', 'READ')")
   public TeamCardDto getTeamCard(UUID teamCardId) {
     var teamCard = teamCardsService.getTeamCard(teamCardId);
     return teamCardMapper.mapToDto(teamCard);
   }
 
-  @Override
   public void deleteTeamCard(UUID id) {
     teamCardsService.deleteTeamCard(id);
   }
 
-  @Override
   public Integer getTeamCardCount(UUID streamId) {
     return teamCardsService.getTeamCardCount(streamId);
   }

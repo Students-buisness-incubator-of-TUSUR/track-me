@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
-import net.akarmanov.projectplace.usecases.UserTeamCardsUseCase;
+import net.akarmanov.projectplace.usecases.TeamCardsUseCase;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
@@ -17,19 +17,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamCardsRestControllerImpl implements TeamCardsRestController {
 
-  private final UserTeamCardsUseCase userTeamCardsUseCase;
+  private final TeamCardsUseCase teamCardsUseCase;
 
   @Override
   public ResponseEntity<TeamCardDto> createTeamCard(UUID streamId, TeamCardCreateOrUpdateDto dto,
                                                     Authentication authentication) {
-    var createTeamCardDto = userTeamCardsUseCase.createTeamCard(dto, streamId, authentication);
+    var createTeamCardDto = teamCardsUseCase.createTeamCard(dto, streamId, authentication);
     return ResponseEntity.ok(createTeamCardDto);
   }
 
   @Override
   public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId,
                                                     TeamCardCreateOrUpdateDto dto) {
-    var updatedTeamCard = userTeamCardsUseCase.updateTeamCard(teamCardId, dto);
+    var updatedTeamCard = teamCardsUseCase.updateTeamCard(teamCardId, dto);
     return ResponseEntity.ok(updatedTeamCard);
   }
 
@@ -37,25 +37,25 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
   public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(FilterRequest filterRequest,
                                                               Pageable pageable,
                                                               Authentication authentication) {
-    var page = userTeamCardsUseCase.getTeamCards(filterRequest.filters(), authentication, pageable);
+    var page = teamCardsUseCase.getTeamCards(filterRequest.filters(), authentication, pageable);
     return ResponseEntity.ok(new PagedModel<>(page));
   }
 
   @Override
   public ResponseEntity<TeamCardDto> getTeamCard(UUID id) {
-    var teamCardDto = userTeamCardsUseCase.getTeamCard(id);
+    var teamCardDto = teamCardsUseCase.getTeamCard(id);
     return ResponseEntity.ok(teamCardDto);
   }
 
   @Override
   public ResponseEntity<Integer> getTeamCardCount(UUID streamId) {
-    var count = userTeamCardsUseCase.getTeamCardCount(streamId);
+    var count = teamCardsUseCase.getTeamCardCount(streamId);
     return ResponseEntity.ok(count);
   }
 
   @Override
   public ResponseEntity<Void> deleteTeamCard(UUID id) {
-    userTeamCardsUseCase.deleteTeamCard(id);
+    teamCardsUseCase.deleteTeamCard(id);
     return ResponseEntity.noContent().build();
   }
 }
