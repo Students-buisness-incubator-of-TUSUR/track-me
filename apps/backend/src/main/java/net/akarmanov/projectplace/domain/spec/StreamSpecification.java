@@ -9,6 +9,7 @@ import net.akarmanov.projectplace.commons.filters.FilterFieldNotAllowedException
 import net.akarmanov.projectplace.domain.Stream;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -40,9 +41,22 @@ public class StreamSpecification implements Specification<Stream> {
     return new StreamSpecification(filters);
   }
 
-  public static Specification<Stream> byActive() {
-    return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("active"), true);
+  public static Specification<Stream> currentlyActive() {
+    return (root, query, builder) -> {
+      var today = LocalDate.now();
+      return builder.and(
+              builder.or(
+                      builder.isNull(root.get("startDate")),
+                      builder.lessThanOrEqualTo(root.get("startDate"), today)
+              ),
+              builder.or(
+                      builder.isNull(root.get("endDate")),
+                      builder.greaterThanOrEqualTo(root.get("endDate"), today)
+              )
+      );
+    };
   }
+
 
   public static Specification<Stream> byId(UUID id) {
     return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);

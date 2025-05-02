@@ -4,11 +4,7 @@ import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.rest.api.dto.StreamCreateDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamDto;
 import net.akarmanov.projectplace.rest.api.dto.StreamUpdateDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValueCheckStrategy;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 import java.util.List;
 
@@ -18,27 +14,28 @@ import java.util.List;
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface StreamMapper {
 
-  @Mapping(target = "imageBytes", ignore = true)
-  @Mapping(target = "teamCards", ignore = true)
-  Stream mapFromDto(StreamDto dto);
+    @Mapping(target = "imageBytes", ignore = true)
+    @Mapping(target = "teamCards", ignore = true)
+    Stream mapFromDto(StreamDto dto);
 
-  StreamDto mapToDto(Stream entity);
+    @Mapping(target = "active", expression = "java( entity.isActive() )")
+    StreamDto mapToDto(Stream entity);
 
-  List<Stream> mapFromDto(List<StreamDto> dtos);
+    List<Stream> mapFromDto(List<StreamDto> dtos);
 
-  List<StreamDto> mapToDto(List<Stream> entities);
+    List<StreamDto> mapToDto(List<Stream> entities);
 
-  @Mapping(target = "ntiMarkets", ignore = true)
-  @Mapping(target = "imageBytes", ignore = true)
-  @Mapping(target = "teamCards", ignore = true)
-  @Mapping(target = "startDate", ignore = true)
-  @Mapping(target = "id", ignore = true)
-  void updateFromDto(StreamUpdateDto dto, @MappingTarget Stream entity);
+    @Mapping(target = "ntiMarkets", ignore = true)
+    @Mapping(target = "imageBytes", ignore = true)
+    @Mapping(target = "teamCards", ignore = true)
+    @Mapping(target = "startDate", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    void updateFromDto(StreamUpdateDto dto, @MappingTarget Stream entity);
 
-  @Mapping(target = "active", ignore = true)
-  @Mapping(target = "ntiMarkets", ignore = true)
-  @Mapping(target = "imageBytes", ignore = true)
-  @Mapping(target = "teamCards", ignore = true)
-  @Mapping(target = "id", ignore = true)
-  Stream mapFromDto(StreamCreateDto dto);
+
+    @Mapping(target = "ntiMarkets", ignore = true)
+    @Mapping(target = "imageBytes", ignore = true)
+    @Mapping(target = "teamCards", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    Stream mapFromDto(StreamCreateDto dto);
 }

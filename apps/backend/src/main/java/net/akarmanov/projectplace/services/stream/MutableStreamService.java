@@ -12,6 +12,5 @@ public interface MutableStreamService extends StreamService {
 
   Stream save(Stream stream);
 
-
   void addImage(UUID streamId, MultipartFile file);
 }

@@ -40,7 +40,6 @@ public abstract class BaseApplicationTest extends AbstractIntegrationTest {
     stream = streamRepository.save(Stream.builder()
         .name("stream 1")
         .startDate(LocalDate.now())
-        .active(true)
         .endDate(LocalDate.now().plusDays(1))
         .build());
   }
