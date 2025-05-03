@@ -55,7 +55,7 @@ function TrackerList() {
     }, [filters, ssoServiceUri]);
 
     const confirmUser = (username) => {
-        const url = `${ssoServiceUri}/api/v1/users/enabled?username=${username}`;
+        const url = `${ssoServiceUri}/api/v1/users/enable?username=${username}`;
 
         fetch(url, {
             method: "POST",

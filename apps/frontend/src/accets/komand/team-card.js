@@ -10,7 +10,7 @@ const TeamCard = () => {
     const {id} = useParams();
     const location = useLocation();
     const query = new URLSearchParams(location.search);
-    const user = useSelector(state => state.user);
+    const user = useSelector(state => state.user.user);
     const role = user.roles[0];
     const username = user.username;
 
