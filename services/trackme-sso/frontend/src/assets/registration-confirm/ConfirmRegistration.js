@@ -22,7 +22,7 @@ const ConfirmRegistration = () => {
             {withCredentials: true}   // <--- добавлено!
         ).then(() => {
             setStatus("success");
-            setMessage("Ваш аккаунт успешно подтвержден! Теперь вы можете войти.");
+            setMessage("Ваш аккаунт успешно зарегистрирован. Ожидайте подтверждения администрацией.");
         }).catch((error) => {
             setStatus("error");
             const msg = error.response?.data?.message || "Ошибка подтверждения регистрации. Попробуйте позже.";

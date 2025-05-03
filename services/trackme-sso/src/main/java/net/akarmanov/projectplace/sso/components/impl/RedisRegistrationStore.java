@@ -14,7 +14,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RedisRegistrationStore implements RegistrationStore {
 
-  private static final String SESSION_ID_TO_REG_DATA = "registration_store:session_id_to_reg_data:";
+  public static final String SESSION_ID_TO_REG_DATA = "registration_store:session_id_to_reg_data:";
 
   private final Duration expireAfter;
 

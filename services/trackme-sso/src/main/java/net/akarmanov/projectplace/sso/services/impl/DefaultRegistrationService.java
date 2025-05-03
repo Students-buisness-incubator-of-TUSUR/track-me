@@ -43,7 +43,7 @@ public class DefaultRegistrationService implements RegistrationService {
       throw InformationException.builder("$account.already.exist").build();
     }
 
-    RegistrationToken registrationToken = tokenStore.generateToken(response);
+    RegistrationToken registrationToken = tokenStore.generateToken();
     var tokenHash = registrationToken.tokenHash();
     var token = registrationToken.token();
 
@@ -69,7 +69,7 @@ public class DefaultRegistrationService implements RegistrationService {
 
   @Override
   public void confirm(String token, HttpServletRequest request) {
-    if (tokenStore.isTokenValid(token, request)) {
+    if (!tokenStore.isTokenValid(token)) {
       throw InformationException.builder("$happened.unexpected.error").build();
     }
     registrationStore.take(token)

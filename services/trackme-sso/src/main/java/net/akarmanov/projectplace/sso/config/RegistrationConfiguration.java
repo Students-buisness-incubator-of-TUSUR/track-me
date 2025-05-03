@@ -33,8 +33,7 @@ public class RegistrationConfiguration {
       StringRedisTemplate stringRedisTemplate) {
     return new RedisRegistrationTokenStore(
         stringRedisTemplate,
-        stringRedisTemplate.opsForValue(),
-            registrationStoreProperties.getCookieMaxAge()
+            stringRedisTemplate.opsForValue()
     );
   }
 }

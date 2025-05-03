@@ -5,8 +5,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
 
+@Builder
 @Schema(description = "DTO запроса на регистрацию пользователя")
 public record RegistrationRequestDto(
     @Schema(description = "Имя пользователя", example = "johndoe")
