@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.Year;
 
 import static org.hamcrest.Matchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -636,5 +637,69 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", is(1)));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER,
+            roles = "TRACKER")
+    void getTeamCard_forbidden() throws Exception {
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team card1")
+                .ntiMarket(ntiMarket)
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .build());
+
+        mockMvc.perform(get("/api/v1/team-card")
+                        .param("id", teamCard.getId().toString())
+                        .with(user("otherUser").roles("TRACKER")))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createTeamCardForOtherUser_success() throws Exception {
+        var stream = streamRepository.findAll().getFirst();
+
+        mockMvc.perform(post("/api/v1/admin/team-card")
+                        .param("streamId", stream.getId().toString())
+                        .param("username", "otherUser")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Test",
+                                  "description": "Test description",
+                                  "ntiMarketId": "%s",
+                                  "readinessLevel": "0-2"
+                                }
+                                """.formatted(ntiMarket.getId()))
+                        .with(user(BaseApplicationTest.USER).roles("SUPER_ADMIN")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.name", is("Test")))
+                .andExpect(jsonPath("$.description", is("Test description")))
+                .andExpect(jsonPath("$.readinessLevel", is("0-2")))
+                .andExpect(jsonPath("$.status", is(TeamCardStatus.OK.name())));
+
+        mockMvc.perform(post("/api/v1/team-cards")
+                        .param("id", "Test")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "filters": [
+                                    {
+                                      "fieldName": "username",
+                                      "value": "otherUser",
+                                      "type": "EQ"
+                                    }
+                                  ]
+                                }
+                                """)
+                        .with(user("otherUser").roles("TRACKER")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name", is("Test")));
     }
 }
