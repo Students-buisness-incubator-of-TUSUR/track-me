@@ -5,6 +5,9 @@ app:
   after-login-url: ${AFTER_LOGIN_URL:http://127.0.0.1:8081}
   after-logout-uri: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
   allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+  session-cookie:
+    same-site: ${SESSION_COOKIE_SAME_SITE:Lax}
+    secure: ${SESSION_COOKIE_SECURE:true}
 
 spring:
   application:
@@ -169,7 +172,7 @@ spring:
             client-name: TrackMe SSO
             client-authentication-method: client_secret_basic
             authorization-grant-type: authorization_code
-            redirect-uri: "http://localhost:8081/login/oauth2/code/{registrationId}"
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             scope: openid, profile
           github:
             client-id: ${GITHUB_CLIENT_ID}
@@ -178,3 +181,23 @@ spring:
           track-me-client:
             issuer-uri: http://host.docker.internal:9000
             authorization-uri: http://localhost:9000/oauth2/authorize
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    doc-expansion: none
+    operationsSorter: method
+    tagsSorter: alpha
+    try-it-out-enabled: true
+    urls:
+      - name: TrackMe SSO
+        url: http://127.0.0.1:8081/sso/v3/api-docs
+      - name: TrackMe Backend
+        display-name: TrackMe Backend
+        url: http://127.0.0.1:8081/backend/v3/api-docs
+    with-credentials: true
+    csrf:
+      enabled: true
+    use-root-path: true
+  api-docs:
+    enabled: true
