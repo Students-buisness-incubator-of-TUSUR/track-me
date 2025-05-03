@@ -17,9 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 import java.util.UUID;
 
-import static net.akarmanov.projectplace.domain.spec.MeetingSpecification.meetingIdEquals;
-import static net.akarmanov.projectplace.domain.spec.MeetingSpecification.teamCardIdEquals;
-import static net.akarmanov.projectplace.domain.spec.MeetingSpecification.userEquals;
+import static net.akarmanov.projectplace.domain.spec.MeetingSpecification.*;
 import static org.springframework.data.jpa.domain.Specification.where;
 
 @Service
@@ -37,7 +35,8 @@ public class MeetingServiceImpl implements MeetingService {
     createMeeting.setTeamCard(teamCard);
     createMeeting.setStatus(MeetingStatus.OK);
     var save = meetingRepository.save(createMeeting);
-    aclService.createAclWithParent(save, teamCard);
+    var username = SecurityContextHolder.getContext().getAuthentication().getName();
+    aclService.createAclForUserWithParent(save, username, teamCard);
     return save;
   }
 

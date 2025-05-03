@@ -3,14 +3,11 @@ package net.akarmanov.projectplace.services.acl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.akarmanov.projectplace.domain.TeamCard;
 import org.springframework.security.acls.domain.BasePermission;
+import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.MutableAclService;
-import org.springframework.security.acls.model.NotFoundException;
-import org.springframework.security.acls.model.Permission;
+import org.springframework.security.acls.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,60 +17,105 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class AclService {
-  private final MutableAclService mutableAclService;
+    private static final List<Permission> FULL_PERMISSIONS = List.of(
+            BasePermission.READ,
+            BasePermission.WRITE,
+            BasePermission.DELETE,
+            BasePermission.ADMINISTRATION
+    );
+    private static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
-  public MutableAcl createAcl(Object identity) {
-    return createAcl(identity, List.of(
-        BasePermission.READ,
-        BasePermission.WRITE,
-        BasePermission.DELETE));
-  }
+    private final MutableAclService mutableAclService;
 
-  public MutableAcl createAcl(Object identity,
-                              List<? extends Permission> permissions) {
-    var objectIdentity = new ObjectIdentityImpl(identity);
-    var acl = mutableAclService.createAcl(objectIdentity);
-    return addPermissions(acl, permissions);
-  }
-
-  public MutableAcl addPermissions(MutableAcl acl,
-                                   List<? extends Permission> permissions) {
-    var owner = acl.getOwner();
-    for (var permission : permissions) {
-      acl.insertAce(acl.getEntries().size(), permission, owner, true);
-      log.debug("Добавлено разрешение {} для SID {}", permission, owner);
+    public MutableAcl createAclForUser(Object identity, String ownerUsername) {
+        log.info("Создание ACL для пользователя '{}' и объекта '{}'", ownerUsername, identity);
+        return createAcl(identity, ownerUsername, ownerUsername, null);
     }
-    return mutableAclService.updateAcl(acl);
-  }
 
-  public void createAclWithParent(Object identity, Object parent) {
-    var parentIdentity = new ObjectIdentityImpl(parent);
-    log.debug("Создание ACL для {} с родителем {}", identity, parent);
-    var acl = createAcl(identity);
-    acl.setParent(mutableAclService.readAclById(parentIdentity));
-    acl.setEntriesInheriting(true);
-    mutableAclService.updateAcl(acl);
-  }
-
-  public void deleteAcl(TeamCard teamCard) {
-    var objectIdentity = new ObjectIdentityImpl(teamCard);
-    mutableAclService.deleteAcl(objectIdentity, true);
-    log.debug("Удален ACL для {}", objectIdentity);
-  }
-
-  public void updateAcl(Object identity, String principle) {
-    log.debug("Обновление ACL для {} с SID {}", identity, principle);
-    var objectIdentity = new ObjectIdentityImpl(identity);
-    var sid = new PrincipalSid(principle);
-    MutableAcl acl;
-    try {
-      acl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
-    } catch (NotFoundException e) {
-      log.debug("ACL не найден, создается новый");
-      acl = mutableAclService.createAcl(objectIdentity);
+    public MutableAcl createAclForUser(Object identity, String ownerUsername, String creatorUsername) {
+        log.info("Создание ACL для пользователя '{}' (создатель: '{}') и объекта '{}'", ownerUsername, creatorUsername, identity);
+        return createAcl(identity, ownerUsername, creatorUsername, null);
     }
-    acl.setOwner(sid);
-    mutableAclService.updateAcl(acl);
-    log.debug("Обновлен ACL для {} с SID {}", identity, principle);
-  }
+
+    public MutableAcl createAclForUserWithParent(Object identity, String ownerUsername, String creatorUsername, Object parent) {
+        log.info("Создание ACL для пользователя '{}' (создатель: '{}'), объекта '{}' с родителем '{}'", ownerUsername, creatorUsername, identity, parent);
+        return createAcl(identity, ownerUsername, creatorUsername, parent);
+    }
+
+    public void assignOwner(Object identity, String newOwnerUsername) {
+        log.info("Назначение нового владельца '{}' для объекта '{}'", newOwnerUsername, identity);
+        ObjectIdentity objectIdentity = new ObjectIdentityImpl(identity);
+        MutableAcl acl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
+
+        acl.setOwner(new PrincipalSid(newOwnerUsername));
+        addPermissionsToUser(acl, newOwnerUsername, FULL_PERMISSIONS);
+        mutableAclService.updateAcl(acl);
+        log.info("Владелец '{}' успешно назначен для '{}' и права обновлены.", newOwnerUsername, identity);
+    }
+
+    public void addPermissionsToUser(MutableAcl acl, String username, List<? extends Permission> permissions) {
+        log.debug("Добавление разрешений {} пользователю '{}' для ACL '{}'", permissions, username, acl.getObjectIdentity());
+        addPermissions(acl, new PrincipalSid(username), permissions);
+    }
+
+    public void addPermissionsToRole(MutableAcl acl, String role, List<? extends Permission> permissions) {
+        log.debug("Добавление разрешений {} роли '{}' для ACL '{}'", permissions, role, acl.getObjectIdentity());
+        addPermissions(acl, new GrantedAuthoritySid(role), permissions);
+    }
+
+    public void deleteAcl(Object identity) {
+        log.info("Удаление ACL для объекта '{}'", identity);
+        ObjectIdentity objectIdentity = new ObjectIdentityImpl(identity);
+        mutableAclService.deleteAcl(objectIdentity, true);
+        log.info("ACL для объекта '{}' успешно удалён.", identity);
+    }
+
+    /*
+     * Внутренние методы
+     */
+    private MutableAcl createAcl(Object identity, String ownerUsername, String creatorUsername, Object parent) {
+        log.debug("Внутреннее создание ACL для '{}', owner='{}', creator='{}', parent='{}'", identity, ownerUsername, creatorUsername, parent);
+        ObjectIdentity objectIdentity = new ObjectIdentityImpl(identity);
+        MutableAcl acl = mutableAclService.createAcl(objectIdentity);
+
+        if (parent != null) {
+            log.debug("Установка родителя для ACL '{}' на '{}'", identity, parent);
+            ObjectIdentity parentIdentity = new ObjectIdentityImpl(parent);
+            acl.setParent(mutableAclService.readAclById(parentIdentity));
+        }
+
+        acl.setOwner(new PrincipalSid(ownerUsername));
+        addPermissionsToUser(acl, ownerUsername, FULL_PERMISSIONS);
+
+        if (!ownerUsername.equals(creatorUsername)) {
+            addPermissionsToUser(acl, creatorUsername, FULL_PERMISSIONS);
+        }
+
+        grantFullAccessToDefaultRoles(acl);
+
+        MutableAcl updatedAcl = mutableAclService.updateAcl(acl);
+        log.info("ACL для '{}' успешно создан/обновлён", identity);
+        return updatedAcl;
+    }
+
+    private void grantFullAccessToDefaultRoles(MutableAcl acl) {
+        log.debug("Назначение полных разрешений по-умолчанию ролям '{}' и '{}'", ROLE_SUPER_ADMIN, ROLE_ADMIN);
+        addPermissionsToRole(acl, ROLE_SUPER_ADMIN, FULL_PERMISSIONS);
+        addPermissionsToRole(acl, ROLE_ADMIN, FULL_PERMISSIONS);
+    }
+
+    private void addPermissions(MutableAcl acl, Sid sid, List<? extends Permission> permissions) {
+        for (Permission permission : permissions) {
+            log.trace("Вставка разрешения '{}' для SID '{}' в ACL '{}'", permission, sid, acl.getObjectIdentity());
+            acl.insertAce(acl.getEntries().size(), permission, sid, true);
+        }
+        mutableAclService.updateAcl(acl);
+        log.debug("ACL '{}' обновлён с новыми разрешениями для SID '{}'", acl.getObjectIdentity(), sid);
+    }
+
+    public void createAclForUserWithParent(Object identity, String username, Object parent) {
+        log.info("Создание ACL для пользователя '{}' с родителем '{}'", username, parent);
+        createAcl(identity, username, username, parent);
+    }
 }

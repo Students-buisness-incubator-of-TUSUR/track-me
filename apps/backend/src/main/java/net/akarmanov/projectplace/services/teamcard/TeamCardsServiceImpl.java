@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -22,135 +23,133 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamCardsServiceImpl implements TeamCardsService {
 
-  private final TeamCardsRepository teamCardsRepository;
+    private final TeamCardsRepository teamCardsRepository;
 
-  private final StreamService streamService;
+    private final StreamService streamService;
 
-  private final AclService aclService;
+    private final AclService aclService;
 
-  @Override
-  public TeamCard createTeamCard(TeamCard createTeamCard) {
-    createTeamCard.setStatus(TeamCardStatus.OK);
-    createTeamCard = teamCardsRepository.save(createTeamCard);
-    aclService.createAcl(createTeamCard);
-    return createTeamCard;
-  }
-
-  @Override
-  @PreAuthorize("hasPermission(#teamCardId, 'net.akarmanov.projectplace.domain.TeamCard', 'WRITE')")
-  public TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCardDto) {
-    var teamCard = get(teamCardId);
-    updateTeamCard(teamCardDto, teamCard);
-    teamCard = teamCardsRepository.save(teamCard);
-    return teamCardsRepository.save(teamCard);
-  }
-
-  private TeamCard get(UUID teamCardId) {
-    return teamCardsRepository.findById(teamCardId)
-        .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
-  }
-
-  @Override
-  public Page<TeamCard> getTeamCards(Specification<TeamCard> specification,
-                                     Pageable pageable) {
-    return teamCardsRepository.findAll(specification, pageable);
-  }
-
-  @Override
-  public TeamCard getTeamCard(UUID id) {
-    return teamCardsRepository.findById(id)
-        .orElseThrow(() -> new TeamCardNotFoundException(id));
-  }
-
-  @Override
-  @PreAuthorize("hasPermission(#id, 'net.akarmanov.projectplace.domain.TeamCard', 'DELETE')")
-  public void deleteTeamCard(UUID id) {
-    teamCardsRepository.deleteById(id);
-  }
-
-  @Override
-  @Transactional
-  @PreAuthorize("hasRole('ADMIN')")
-  public TeamCard createTeamCard(TeamCard create, String username) {
-    create.setUsername(username);
-    create.setStatus(TeamCardStatus.OK);
-    create = teamCardsRepository.save(create);
-    aclService.updateAcl(create, username);
-    return create;
-  }
-
-  @Override
-  @PreAuthorize("hasRole('ADMIN')")
-  public TeamCard updateTeamCard(UUID teamCardId,
-                                 TeamCard teamCardDto,
-                                 UUID streamId, String username) {
-    var teamCard = get(teamCardId, username);
-    updateTeamCard(teamCardDto, teamCard);
-    teamCard.setUsername(username);
-    if (streamId != null) {
-      var stream = streamService.getById(streamId);
-      teamCard.addStream(stream);
+    @Override
+    public TeamCard createTeamCard(TeamCard createTeamCard) {
+        createTeamCard.setStatus(TeamCardStatus.OK);
+        createTeamCard = teamCardsRepository.save(createTeamCard);
+        var username = SecurityContextHolder.getContext().getAuthentication().getName();
+        aclService.createAclForUser(createTeamCard, username);
+        return createTeamCard;
     }
-    teamCard = teamCardsRepository.save(teamCard);
-    aclService.updateAcl(teamCard, username);
-    return teamCard;
-  }
 
-  @Override
-  public Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable) {
-    return teamCardsRepository.findAll(specification, pageable);
-  }
-
-  @Override
-  @PreAuthorize("hasRole('ADMIN')")
-  public TeamCard getTeamCard(UUID id, String username) {
-    return get(id, username);
-  }
-
-  @Override
-  @PreAuthorize("hasRole('ADMIN')")
-  public void deleteTeamCard(UUID id, String username) {
-    var teamCard = get(id, username);
-    aclService.deleteAcl(teamCard);
-    teamCardsRepository.deleteByIdAndUsername(id, username);
-  }
-
-  @Override
-  @Transactional
-  @PreAuthorize("hasRole('ADMIN')")
-  public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
-    if (streamId != null) {
-      var stream = streamService.getById(streamId);
-      teamCard.addStream(stream);
+    @Override
+    @PreAuthorize("hasPermission(#teamCardId, 'net.akarmanov.projectplace.domain.TeamCard', 'WRITE')")
+    public TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCardDto) {
+        var teamCard = get(teamCardId);
+        updateTeamCard(teamCardDto, teamCard);
+        return teamCardsRepository.save(teamCard);
     }
-    return createTeamCard(teamCard, username);
-  }
 
-  @Override
-  public Integer getTeamCardCount(UUID streamId) {
-    return teamCardsRepository.countByStreamsIdIn(Collections.singletonList(streamId));
-  }
+    private TeamCard get(UUID teamCardId) {
+        return teamCardsRepository.findById(teamCardId)
+                .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
+    }
 
-  private TeamCard get(UUID teamCardId, String username) {
-    return teamCardsRepository.findByIdAndUsername(teamCardId, username)
-        .orElseThrow(() -> new TeamCardNotFoundException(teamCardId, username));
-  }
+    @Override
+    public Page<TeamCard> getTeamCards(Specification<TeamCard> specification,
+                                       Pageable pageable) {
+        return teamCardsRepository.findAll(specification, pageable);
+    }
 
-  private void updateTeamCard(TeamCard source, TeamCard target) {
-    if (source.getName() != null) {
-      target.setName(source.getName());
+    @Override
+    public TeamCard getTeamCard(UUID id) {
+        return teamCardsRepository.findById(id)
+                .orElseThrow(() -> new TeamCardNotFoundException(id));
     }
-    if (source.getDescription() != null) {
-      target.setDescription(source.getDescription());
+
+    @Override
+    @PreAuthorize("hasPermission(#id, 'net.akarmanov.projectplace.domain.TeamCard', 'DELETE')")
+    public void deleteTeamCard(UUID id) {
+        teamCardsRepository.deleteById(id);
     }
-    if (source.getStatus() != null) {
-      target.setStatus(source.getStatus());
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public TeamCard createTeamCard(TeamCard create, String username) {
+        create.setUsername(username);
+        create.setStatus(TeamCardStatus.OK);
+        create = teamCardsRepository.save(create);
+        aclService.createAclForUser(create, username, SecurityContextHolder.getContext().getAuthentication().getName());
+        return create;
     }
-    if (source.getNtiMarket() != null) {
-      target.setNtiMarket(source.getNtiMarket());
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public TeamCard updateTeamCard(UUID teamCardId,
+                                   TeamCard teamCardDto,
+                                   UUID streamId, String username) {
+        var teamCard = get(teamCardId, username);
+        updateTeamCard(teamCardDto, teamCard);
+        teamCard.setUsername(username);
+        if (streamId != null) {
+            var stream = streamService.getById(streamId);
+            teamCard.addStream(stream);
+        }
+        return teamCardsRepository.save(teamCard);
     }
-    if (source.getReadinessLevel() != null) {
-      target.setReadinessLevel(source.getReadinessLevel());
+
+    @Override
+    public Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable) {
+        return teamCardsRepository.findAll(specification, pageable);
     }
-  }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public TeamCard getTeamCard(UUID id, String username) {
+        return get(id, username);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteTeamCard(UUID id, String username) {
+        var teamCard = get(id, username);
+        aclService.deleteAcl(teamCard);
+        teamCardsRepository.deleteByIdAndUsername(id, username);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
+        if (streamId != null) {
+            var stream = streamService.getById(streamId);
+            teamCard.addStream(stream);
+        }
+        return createTeamCard(teamCard, username);
+    }
+
+    @Override
+    public Integer getTeamCardCount(UUID streamId) {
+        return teamCardsRepository.countByStreamsIdIn(Collections.singletonList(streamId));
+    }
+
+    private TeamCard get(UUID teamCardId, String username) {
+        return teamCardsRepository.findByIdAndUsername(teamCardId, username)
+                .orElseThrow(() -> new TeamCardNotFoundException(teamCardId, username));
+    }
+
+    private void updateTeamCard(TeamCard source, TeamCard target) {
+        if (source.getName() != null) {
+            target.setName(source.getName());
+        }
+        if (source.getDescription() != null) {
+            target.setDescription(source.getDescription());
+        }
+        if (source.getStatus() != null) {
+            target.setStatus(source.getStatus());
+        }
+        if (source.getNtiMarket() != null) {
+            target.setNtiMarket(source.getNtiMarket());
+        }
+        if (source.getReadinessLevel() != null) {
+            target.setReadinessLevel(source.getReadinessLevel());
+        }
+    }
 }
