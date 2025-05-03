@@ -28,30 +28,19 @@ public class AclService {
 
     private final MutableAclService mutableAclService;
 
-    public MutableAcl createAclForUser(Object identity, String ownerUsername) {
+    public void createAclForUser(Object identity, String ownerUsername) {
         log.info("Создание ACL для пользователя '{}' и объекта '{}'", ownerUsername, identity);
-        return createAcl(identity, ownerUsername, ownerUsername, null);
+        createAcl(identity, ownerUsername, ownerUsername, null);
     }
 
-    public MutableAcl createAclForUser(Object identity, String ownerUsername, String creatorUsername) {
+    public void createAclForUser(Object identity, String ownerUsername, String creatorUsername) {
         log.info("Создание ACL для пользователя '{}' (создатель: '{}') и объекта '{}'", ownerUsername, creatorUsername, identity);
-        return createAcl(identity, ownerUsername, creatorUsername, null);
+        createAcl(identity, ownerUsername, creatorUsername, null);
     }
 
-    public MutableAcl createAclForUserWithParent(Object identity, String ownerUsername, String creatorUsername, Object parent) {
+    public void createAclForUserWithParent(Object identity, String ownerUsername, String creatorUsername, Object parent) {
         log.info("Создание ACL для пользователя '{}' (создатель: '{}'), объекта '{}' с родителем '{}'", ownerUsername, creatorUsername, identity, parent);
-        return createAcl(identity, ownerUsername, creatorUsername, parent);
-    }
-
-    public void assignOwner(Object identity, String newOwnerUsername) {
-        log.info("Назначение нового владельца '{}' для объекта '{}'", newOwnerUsername, identity);
-        ObjectIdentity objectIdentity = new ObjectIdentityImpl(identity);
-        MutableAcl acl = (MutableAcl) mutableAclService.readAclById(objectIdentity);
-
-        acl.setOwner(new PrincipalSid(newOwnerUsername));
-        addPermissionsToUser(acl, newOwnerUsername, FULL_PERMISSIONS);
-        mutableAclService.updateAcl(acl);
-        log.info("Владелец '{}' успешно назначен для '{}' и права обновлены.", newOwnerUsername, identity);
+        createAcl(identity, ownerUsername, creatorUsername, parent);
     }
 
     public void addPermissionsToUser(MutableAcl acl, String username, List<? extends Permission> permissions) {
@@ -74,7 +63,7 @@ public class AclService {
     /*
      * Внутренние методы
      */
-    private MutableAcl createAcl(Object identity, String ownerUsername, String creatorUsername, Object parent) {
+    private void createAcl(Object identity, String ownerUsername, String creatorUsername, Object parent) {
         log.debug("Внутреннее создание ACL для '{}', owner='{}', creator='{}', parent='{}'", identity, ownerUsername, creatorUsername, parent);
         ObjectIdentity objectIdentity = new ObjectIdentityImpl(identity);
         MutableAcl acl = mutableAclService.createAcl(objectIdentity);
@@ -94,9 +83,8 @@ public class AclService {
 
         grantFullAccessToDefaultRoles(acl);
 
-        MutableAcl updatedAcl = mutableAclService.updateAcl(acl);
+        mutableAclService.updateAcl(acl);
         log.info("ACL для '{}' успешно создан/обновлён", identity);
-        return updatedAcl;
     }
 
     private void grantFullAccessToDefaultRoles(MutableAcl acl) {
@@ -116,6 +104,6 @@ public class AclService {
 
     public void createAclForUserWithParent(Object identity, String username, Object parent) {
         log.info("Создание ACL для пользователя '{}' с родителем '{}'", username, parent);
-        createAcl(identity, username, username, parent);
+        createAclForUserWithParent(identity, username, username, parent);
     }
 }

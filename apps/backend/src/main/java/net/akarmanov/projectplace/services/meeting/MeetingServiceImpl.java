@@ -85,6 +85,7 @@ public class MeetingServiceImpl implements MeetingService {
     var meeting = meetingRepository.findOne(where(meetingIdEquals(meetingId)))
         .orElseThrow(() -> new MeetingNotFoundException(meetingId));
     meetingRepository.delete(meeting);
+    aclService.deleteAcl(meeting);
   }
 
   @Override
