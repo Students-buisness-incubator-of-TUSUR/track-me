@@ -94,6 +94,9 @@ jobs:
         working-directory: apps/frontend
       - name: Install sonar-scanner
         run: npm install -g sonar-scanner
+      - name: Run tests and generate coverage
+        run: npm run test:coverage
+        working-directory: apps/frontend
       - name: Run sonar-scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -106,4 +109,5 @@ jobs:
           -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
           -Dsonar.pullrequest.branch=${{ github.head_ref }}
           -Dsonar.pullrequest.base=${{ github.base_ref }}
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
         working-directory: apps/frontend
