@@ -491,3 +491,162 @@ select.team-input-widget option {
         transform: translate(-50%, 0);
     }
 }
+
+@media (max-width: 768px) {
+    .team-card-widget-container {
+        padding: 20px;
+        min-width: 90%;
+        margin: 20px auto;
+        border-radius: 30px;
+    }
+
+    .team-title-widget {
+        font-size: 18px;
+        top: 25px;
+        left: 25px;
+    }
+
+    .edit-button-widget {
+        padding: 6px 15px;
+        font-size: 16px;
+        top: 25px;
+        right: 80px;
+    }
+
+    .close-button-widget {
+        top: 25px;
+        right: 25px;
+    }
+
+    .team-card-content {
+        flex-direction: column;
+        margin-top: 60px;
+        height: auto;
+    }
+
+    .left-column {
+        width: 60%;
+        padding-right: 0;
+        margin-top: 15px;
+        gap: 20px;
+    }
+
+    .right-panel {
+        position: static;
+        width: 25%;
+        margin: 30px 0 0 0; /* Центрирование всей панели */
+        padding: 15px; /* Внутренние отступы */
+        margin-left: 55px;
+    }
+
+    .team-label-widget {
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .team-input-widget {
+        height: 36px;
+        font-size: 14px;
+        padding: 0 40px 0 15px;
+    }
+
+    textarea.team-input-widget {
+        min-height: 70px;
+    }
+
+    .dropdown-toggle {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+
+    .dropdown-list {
+        padding: 15px;
+        gap: 8px 12px;
+    }
+
+    .meetings-grid-widget {
+        gap: 10px;
+    }
+
+    .meeting-number-widget {
+        font-size: 20px;
+    }
+
+    .button-group-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        justify-content: space-between;
+    }
+
+    .purple-button-widget {
+        position: static;
+        min-width: 120px;
+        height: 420px;
+        font-size: 14px;
+        padding: 8px 15px;
+        margin: 0;
+    }
+
+    .red-button-widget {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+    .stream-attach-button-container {
+        position: relative;
+        width: 100%;
+        left: auto;
+        bottom: auto;
+        margin-top: 20px;
+    }
+
+    .inputs-container {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stream-attach-button-container {
+        width: 100%; /* На мобильных занимает всю ширину */
+        max-width: 200px; 
+      }
+    
+    .meetings-grid-widget {
+        display: grid; /* Грид-раскладка */
+        grid-template-columns: repeat(2, 1fr); /* 2 колонки */
+        gap: 10px; /* Расстояние между карточками */
+        margin-bottom: 8px; /* Отступ снизу */
+    }
+    
+    .meeting-item-widget {
+        width: 110%; /* На всю ширину колонки */
+        height: 120px; /* Фиксированная высота */
+        border-radius: 50px; /* Скругление углов */
+        padding: 10px; /* Внутренние отступы */
+    }
+    
+    .red-button-widget {
+        min-width: 120px;
+        height: 42px;
+        padding: 8px 15px;
+        margin: 20px;
+    }
+    
+    .inputs-container {
+        gap: 10px; /* Расстояние между элементами */
+    }
+
+    .team-input-widget {
+        height: 42px;
+    }
+
+    .team-info-widget,
+    .dropdown-block,
+    .stream-attach-button-container,
+    .red-button-container {
+        margin-bottom: 20px;
+        }
+}
+
