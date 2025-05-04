@@ -272,14 +272,15 @@ function TrackerPage() {
             <header className="Stream-header">
                 <div className="Stream-header-cont">
                     <div className="Stream-header-cont-cont">
-                        <h1 className="Stream-title11">
+                        <div className='Stream-header-logo'/>
+                        <h1 className="Stream-title">
                             {(userRole === "ADMIN" || userRole === "SUPER_ADMIN")
                                 ? (streamName ? streamName : "Название потока не получено")
-                                : "Track-me"
+                                : "TrackMe"
                             }
                         </h1>
                         {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
-                            <h1 className="Stream-title11">
+                            <h1 className="Stream-title">
                                 {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate : "Название потока не получено"}
                             </h1>
                         )}
