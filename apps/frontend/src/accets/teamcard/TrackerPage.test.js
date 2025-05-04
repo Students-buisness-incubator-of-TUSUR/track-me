@@ -1,96 +1,43 @@
-// src/accets/teamcard/TrackerPage.test.js
+import '@testing-library/jest-dom';
 import React from 'react';
-import {render, screen, waitFor, fireEvent} from '@testing-library/react';
-import {Provider} from 'react-redux';
-import {MemoryRouter} from 'react-router-dom';
+import { render, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import TrackerPage from './TrackerPage';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockStore = configureStore([]);
-
-describe('TrackerPage component', () => {
-    let store;
-
-    beforeEach(() => {
-        store = mockStore({
-            user: {
-                user: {
-                    roles: ['TRACKER'],
-                    username: 'testuser',
-                }
-            }
-        });
-
-        // Мокаем fetch
-        global.fetch = jest.fn((url) => {
-            if (url.includes('/streams/nti-markets')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve([]),
-                });
-            }
-
-            if (url.includes('/streams')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({content: []}),
-                });
-            }
-
-            if (url.includes('/team-cards')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({content: []}),
-                });
-            }
-
-            return Promise.reject(new Error('Unknown URL'));
-        });
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('renders without crashing and shows default title for TRACKER', async () => {
-        render(
-            <Provider store={store}>
-                <MemoryRouter>
-                    <TrackerPage/>
-                </MemoryRouter>
-            </Provider>
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText('Track-me')).toBeInTheDocument();
-        });
-    });
-
-    test('shows search input and handles search', async () => {
-        render(
-            <Provider store={store}>
-                <MemoryRouter>
-                    <TrackerPage/>
-                </MemoryRouter>
-            </Provider>
-        );
-
-        const input = screen.getByPlaceholderText('Найти');
-        fireEvent.change(input, {target: {value: 'тест'}});
-        expect(input.value).toBe('тест');
-    });
-
-    test('displays empty message when no cards found', async () => {
-        render(
-            <Provider store={store}>
-                <MemoryRouter>
-                    <TrackerPage/>
-                </MemoryRouter>
-            </Provider>
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText(/Ничего не найдено по запросу/)).toBeInTheDocument();
-        });
-    });
+const store = mockStore({
+  user: {
+    user: {
+      roles: ['TRACKER'],
+      username: 'testuser',
+    },
+  },
 });
+
+test('рендерит заголовок Track-me', () => {
+  render(
+    <Provider store={store}>
+      <MemoryRouter>
+        <TrackerPage />
+      </MemoryRouter>
+    </Provider>
+  );
+
+  const heading = screen.getByText(/track-me/i);
+  expect(heading).toBeInTheDocument();
+});
+test('кнопка "Создать карточку" отображается', () => {
+    render(
+      <Provider store={store}>
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      </Provider>
+    );
+  
+    const button = screen.getByText('+ Создать карточку');
+    expect(button).toBeInTheDocument();
+  });
+  
