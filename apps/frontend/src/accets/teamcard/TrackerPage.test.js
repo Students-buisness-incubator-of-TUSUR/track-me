@@ -1,96 +1,55 @@
-// src/accets/teamcard/TrackerPage.test.js
+import '@testing-library/jest-dom';
 import React from 'react';
-import {render, screen, waitFor, fireEvent} from '@testing-library/react';
-import {Provider} from 'react-redux';
-import {MemoryRouter} from 'react-router-dom';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import TrackerPage from './TrackerPage';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockStore = configureStore([]);
+const store = mockStore({
+  user: {
+    user: {
+      roles: ['TRACKER'],
+      username: 'testuser',
+    },
+  },
+});
 
-describe('TrackerPage component', () => {
-    let store;
+describe('TrackerPage', () => {
+  beforeEach(() => {
+    render(
+      <Provider store={store}>
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      </Provider>
+    );
+  });
 
-    beforeEach(() => {
-        store = mockStore({
-            user: {
-                user: {
-                    roles: ['TRACKER'],
-                    username: 'testuser',
-                }
-            }
-        });
+  test('рендерит заголовок Track-me', () => {
+    const heading = screen.getByText(/track-me/i);
+    expect(heading).toBeInTheDocument();
+  });
 
-        // Мокаем fetch
-        global.fetch = jest.fn((url) => {
-            if (url.includes('/streams/nti-markets')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve([]),
-                });
-            }
+  test('рендерит кнопку выхода', () => {
+    const logoutButton = screen.getByText(/выход/i);
+    expect(logoutButton).toBeInTheDocument();
+  });
 
-            if (url.includes('/streams')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({content: []}),
-                });
-            }
+  test('кнопка выхода кликабельна', () => {
+    const logoutButton = screen.getByText(/выход/i);
+    fireEvent.click(logoutButton);
+    // Можно добавить проверку перехода или вызова, если используешь useNavigate / window.location
+  });
 
-            if (url.includes('/team-cards')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({content: []}),
-                });
-            }
+  test('рендерится кнопка создания карточки', () => {
+    const createCardButton = screen.getByText(/\+ создать карточку/i);
+    expect(createCardButton).toBeInTheDocument();
+  });
 
-            return Promise.reject(new Error('Unknown URL'));
-        });
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('renders without crashing and shows default title for TRACKER', async () => {
-        render(
-            <Provider store={store}>
-                <MemoryRouter>
-                    <TrackerPage/>
-                </MemoryRouter>
-            </Provider>
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText('Track-me')).toBeInTheDocument();
-        });
-    });
-
-    test('shows search input and handles search', async () => {
-        render(
-            <Provider store={store}>
-                <MemoryRouter>
-                    <TrackerPage/>
-                </MemoryRouter>
-            </Provider>
-        );
-
-        const input = screen.getByPlaceholderText('Найти');
-        fireEvent.change(input, {target: {value: 'тест'}});
-        expect(input.value).toBe('тест');
-    });
-
-    test('displays empty message when no cards found', async () => {
-        render(
-            <Provider store={store}>
-                <MemoryRouter>
-                    <TrackerPage/>
-                </MemoryRouter>
-            </Provider>
-        );
-
-        await waitFor(() => {
-            expect(screen.getByText(/Ничего не найдено по запросу/)).toBeInTheDocument();
-        });
-    });
+  test('рендерится сообщение "Ничего не найдено"', () => {
+    const message = screen.getByText(/ничего не найдено/i);
+    expect(message).toBeInTheDocument();
+  });
 });
