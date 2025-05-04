@@ -72,6 +72,15 @@ function TrackerPage() {
                 : [...prev, streamName]
         );
     };
+    useEffect(() => {
+        if (user?.user?.roles?.length && user?.user?.username) {
+            const role = user.user.roles[0];
+            const uname = user.user.username;
+            setUserRole(role);
+            setusername(uname);
+        }
+    }, [user]);
+    
 
     // Данные для чекбоксов "год"
     const checkboxesData = Array.from({length: numberOfCheckboxes1}, (_, index) => ({
@@ -81,54 +90,42 @@ function TrackerPage() {
 
     // Функция для запроса карточек с заданными фильтрами
     const fetchCards = useCallback((filters = []) => {
-
-        try {
-            setUserRole(user.roles[0]);
-            setusername(user.username);
-        } catch (e) {
-            console.error("Error decoding token:", e);
-        }
-
+        if (!userRole || !username) return;
+    
         const allFilters = [...filters];
-
-        // Для админа добавляем фильтр по потоку, для трекера - по его ID
+    
         if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
             allFilters.push({
                 fieldName: "streams.name",
                 type: "EQ",
-                value: localStorage.getItem("streamName")
+                value: localStorage.getItem("streamName"),
             });
-        } else if (userRole === "TRACKER" && username) {
+        } else if (userRole === "TRACKER") {
             allFilters.push({
                 fieldName: "username",
                 type: "EQ",
-                value: username
+                value: username,
             });
         }
-
+    
         const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
             ? `${backendHost}/api/v1/admin/team-cards`
             : `${backendHost}/api/v1/team-cards`;
-
-        console.log("Using role:", userRole);
-        console.log("Using filters:", allFilters);
-
+    
         fetch(`${endpoint}?page=0&size=150`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             credentials: "include",
-            body: JSON.stringify({filters: allFilters}),
+            body: JSON.stringify({ filters: allFilters }),
         })
             .then((response) => {
-                console.log("Response status:", response.status); // Проверяем статус ответа
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.json();
             })
             .then((data) => {
-                console.log("Response data:", data); // Смотрим что приходит
-                if (data && data.content) {
+                if (data?.content) {
                     setCards(data.content);
                     setVisibleCardsStart(0);
                 }
@@ -137,7 +134,14 @@ function TrackerPage() {
                 console.error("Error fetching cards:", err);
                 setError(`Ошибка при загрузке карточек: ${err.message}`);
             });
-    }, [userRole, username, backendHost, user.roles, user.username]);
+    }, [userRole, username, backendHost]);
+    
+    useEffect(() => {
+        if (userRole && username) {
+            fetchCards([]);
+        }
+    }, [userRole, username, fetchCards]);
+    
 
     useEffect(() => {
         // Проверяем роль при загрузке компонента
@@ -272,15 +276,14 @@ function TrackerPage() {
             <header className="Stream-header">
                 <div className="Stream-header-cont">
                     <div className="Stream-header-cont-cont">
-                        <div className='Stream-header-logo'/>
-                        <h1 className="Stream-title">
+                        <h1 className="Stream-title11">
                             {(userRole === "ADMIN" || userRole === "SUPER_ADMIN")
                                 ? (streamName ? streamName : "Название потока не получено")
-                                : "TrackMe"
+                                : "Track-me"
                             }
                         </h1>
                         {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
-                            <h1 className="Stream-title">
+                            <h1 className="Stream-title11">
                                 {streamName ? "Сроки акселератора: " + streamSDate + " -- " + streamEDate : "Название потока не получено"}
                             </h1>
                         )}

@@ -1,27 +1,23 @@
-/* Общий контейнер, чтобы карточка была по центру экрана */
-.team-card-container {
+.teamcard2-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 150vh; /* или height: 100vh; если нужно на всю высоту */
-    background-color: #f5f5f5; /* светлый фон для контраста */
+    min-height: 150vh;
+    background-color: #f5f5f5;
     margin: 0;
     padding: 0;
 }
 
-/* Основная "карточка" */
-.team-card {
+.teamcard2-card {
     position: relative;
     background-color: #ffffff;
     width: 1100px;
     border-radius: 70px;
-
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     font-family: Arial, sans-serif;
 }
 
-/* Кнопка "Редактировать" в правом верхнем углу */
-.edit-button {
+.teamcard2-edit-button {
     position: absolute;
     top: 20px;
     right: 20px;
@@ -36,36 +32,34 @@
     transition: 0.3s ease;
 }
 
-.edit-button:hover {
+.teamcard2-edit-button:hover {
     background-color: #6a4298;
     transform: scale(1.05);
 }
 
-/* Шапка карточки: трекер + название команды */
-.team-header {
+.teamcard2-header {
     display: flex;
     flex-wrap: wrap;
     gap: 40px;
     margin-bottom: 30px;
 }
 
-/* Стили для полей трекера и команды */
-.tracker-field,
-.teamname-field {
+.teamcard2-tracker-field,
+.teamcard2-teamname-field {
     display: flex;
     flex-direction: column;
 }
 
-.tracker-label,
-.teamname-label {
+.teamcard2-tracker-label,
+.teamcard2-teamname-label {
     font-weight: bold;
     font-size: 16px;
     margin-bottom: 8px;
     color: #333;
 }
 
-.tracker-input,
-.teamname-input {
+.teamcard2-tracker-input,
+.teamcard2-teamname-input {
     border: 2px solid #ccc;
     border-radius: 10px;
     padding: 10px;
@@ -73,8 +67,7 @@
     width: 250px;
 }
 
-/* Сетка кружочков */
-.meetings-grid {
+.teamcard2-meetings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
     gap: 20px;
@@ -82,8 +75,7 @@
     margin-bottom: 30px;
 }
 
-/* Каждый кружок */
-.meeting-circle {
+.teamcard2-meeting-circle {
     position: relative;
     width: 70px;
     height: 70px;
@@ -99,45 +91,39 @@
     cursor: default;
 }
 
-.meeting-circle:hover {
+.teamcard2-meeting-circle:hover {
     transform: scale(1.05);
 }
 
-/* Номер встречи */
-.meeting-number {
+.teamcard2-meeting-number {
     font-size: 20px;
     line-height: 1;
 }
 
-/* Дата под номером */
-.meeting-date {
+.teamcard2-meeting-date {
     font-size: 14px;
     line-height: 1;
     margin-top: 2px;
 }
 
-/* Галочка для завершённых встреч */
-.checkmark {
+.teamcard2-checkmark {
     position: absolute;
     top: 5px;
     right: 8px;
     font-size: 16px;
 }
 
-/* Модификатор completed (можно менять цвет) */
-.meeting-circle.completed {
+.teamcard2-meeting-circle.completed {
     background-color: #7b52ab;
 }
 
-/* Нижняя часть карточки с двумя кнопками */
-.team-footer {
+.teamcard2-footer {
     display: flex;
     gap: 20px;
 }
 
-/* Кнопки "Название потока" и "Деактивировать" */
-.stream-button,
-.deactivate-button {
+.teamcard2-stream-button,
+.teamcard2-deactivate-button {
     background-color: #7b52ab;
     color: #ffffff;
     border: none;
@@ -149,8 +135,8 @@
     transition: 0.3s ease;
 }
 
-.stream-button:hover,
-.deactivate-button:hover {
+.teamcard2-stream-button:hover,
+.teamcard2-deactivate-button:hover {
     background-color: #6a4298;
     transform: scale(1.05);
 }
