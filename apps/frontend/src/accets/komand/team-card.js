@@ -369,7 +369,7 @@ const TeamCard = () => {
                                         ))}
                                     </select>
                                     <img src={require("./pen.png")} alt="edit"
-                                         className="edit-icon"/>
+                                         className="edit-icon12345"/>
                                 </>
                             ) : (
                                 <>
@@ -398,7 +398,7 @@ const TeamCard = () => {
                                 placeholder="Карточка команды"
                             />
                             {isEditing && (
-                                <img src={require("./pen.png")} alt="edit" className="edit-icon"/>
+                                <img src={require("./pen.png")} alt="edit" className="edit-icon12345"/>
                             )}
                         </div>
                     </div>

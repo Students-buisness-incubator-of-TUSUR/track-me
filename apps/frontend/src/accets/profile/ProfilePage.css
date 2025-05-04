@@ -12,6 +12,16 @@
     align-items: center;
 }
 
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #ffffff;
+    font-family: 'Montserrat', monospace;
+    font-weight: 200; /* Добавляем шрифт ко всему контейнеру */
+}
+
 .profile-header {
     width: 100%;
     display: flex;

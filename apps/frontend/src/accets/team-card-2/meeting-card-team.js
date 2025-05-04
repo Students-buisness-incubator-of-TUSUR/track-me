@@ -23,56 +23,35 @@ const MeetingCard2 = () => {
     ];
 
     return (
-        <div className="team-card-container">
-            <div className="team-card">
-                {/* Кнопка "Редактировать" в правом верхнем углу */}
-                <button className="edit-button">Редактировать</button>
-
-                {/* Блок с данными о трекере и названии команды */}
-                <div className="team-header">
-                    <div className="tracker-field">
-                        <label className="tracker-label">Трекер:</label>
-                        <input
-                            className="tracker-input"
-                            type="text"
-                            value={trackerName}
-                            readOnly
-                        />
-                    </div>
-                    <div className="teamname-field">
-                        <label className="teamname-label">Название команды:</label>
-                        <input
-                            className="teamname-input"
-                            type="text"
-                            value={teamName}
-                            readOnly
-                        />
-                    </div>
-                </div>
-
-                {/* Сетка кружочков со встречами */}
-                <div className="meetings-grid">
-                    {meetings.map((meeting) => (
-                        <div
-                            key={meeting.number}
-                            className={`meeting-circle ${
-                                meeting.completed ? "completed" : ""
-                            }`}
-                        >
-                            <span className="meeting-number">{meeting.number}</span>
-                            <span className="meeting-date">{meeting.date}</span>
-                            {meeting.completed && <span className="checkmark">✓</span>}
-                        </div>
-                    ))}
-                </div>
-
-                {/* Нижние кнопки */}
-                <div className="team-footer">
-                    <button className="stream-button">Название потока</button>
-                    <button className="deactivate-button">Деактивировать</button>
-                </div>
+        <div className="teamcard2-container">
+    <div className="teamcard2-card">
+        <button className="teamcard2-edit-button">Редактировать</button>
+        <div className="teamcard2-header">
+            <div className="teamcard2-tracker-field">
+                <label className="teamcard2-tracker-label">Трекер:</label>
+                <input className="teamcard2-tracker-input" value={trackerName} readOnly />
+            </div>
+            <div className="teamcard2-teamname-field">
+                <label className="teamcard2-teamname-label">Название команды:</label>
+                <input className="teamcard2-teamname-input" value={teamName} readOnly />
             </div>
         </div>
+        <div className="teamcard2-meetings-grid">
+            {meetings.map((m) => (
+                <div key={m.number} className={`teamcard2-meeting-circle ${m.completed ? "completed" : ""}`}>
+                    <span className="teamcard2-meeting-number">{m.number}</span>
+                    <span className="teamcard2-meeting-date">{m.date}</span>
+                    {m.completed && <span className="teamcard2-checkmark">✓</span>}
+                </div>
+            ))}
+        </div>
+        <div className="teamcard2-footer">
+            <button className="teamcard2-stream-button">Название потока</button>
+            <button className="teamcard2-deactivate-button">Деактивировать</button>
+        </div>
+    </div>
+</div>
+
     );
 };
 export default MeetingCard2;
