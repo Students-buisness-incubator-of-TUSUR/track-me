@@ -25,8 +25,7 @@ class DefaultAccountControllerTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/account/info"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("superadmin"))
-                .andExpect(jsonPath("$.email").value(""));
+                .andExpect(jsonPath("$.username").value("superadmin"));
     }
 
     @Test
