@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.commons.filters.FilterFieldNotAllowedException;
 import net.akarmanov.projectplace.sso.dto.ErrorResponseDto;
-import net.akarmanov.projectplace.sso.exception.ConfirmRegistrationException;
-import net.akarmanov.projectplace.sso.exception.RegistrationException;
 import net.akarmanov.projectplace.sso.exception.ServiceException;
 import net.akarmanov.projectplace.sso.exception.WrongOldPasswordException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -141,42 +139,6 @@ public class GlobalExceptionControllerAdvice {
     return new ResponseEntity<>(
         ErrorResponseDto.builder()
             .error("method.argument.not.valid.exception")
-            .message(exception.getMessage())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .timestamp(System.currentTimeMillis())
-            .build(),
-        HttpStatus.BAD_REQUEST
-    );
-  }
-
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(value = RegistrationException.class, produces = "application/json")
-  public ResponseEntity<ErrorResponseDto> resolveRegistrationException(
-      HttpServletRequest request,
-      RegistrationException exception
-  ) {
-    logRequestException(request, exception);
-    return new ResponseEntity<>(
-        ErrorResponseDto.builder()
-            .error("registration.exception")
-            .message(exception.getMessage())
-            .status(HttpStatus.BAD_REQUEST.value())
-            .timestamp(System.currentTimeMillis())
-            .build(),
-        HttpStatus.BAD_REQUEST
-    );
-  }
-
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(value = ConfirmRegistrationException.class, produces = "application/json")
-  public ResponseEntity<ErrorResponseDto> resolveConfirmRegistrationException(
-      HttpServletRequest request,
-      ConfirmRegistrationException exception) {
-    logRequestException(request, exception);
-
-    return new ResponseEntity<>(
-        ErrorResponseDto.builder()
-            .error("registration.exception")
             .message(exception.getMessage())
             .status(HttpStatus.BAD_REQUEST.value())
             .timestamp(System.currentTimeMillis())

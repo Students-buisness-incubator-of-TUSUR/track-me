@@ -38,7 +38,7 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
     private StringRedisTemplate stringRedisTemplate;
 
     @Test
-    void testRegistration_success() throws Exception {
+    void testRegistrationInit_success() throws Exception {
         // Stub createMimeMessage to return a non-null instance
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -78,5 +78,4 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
                 .as("Ожидается, что появился новый ключ в Redis после регистрации")
                 .hasSizeGreaterThanOrEqualTo(1);
     }
-
 }

@@ -3,6 +3,7 @@ package net.akarmanov.projectplace.sso.controller;
 import net.akarmanov.projectplace.sso.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,51 +16,76 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class DefaultAccountControllerTest extends AbstractIntegrationTest {
-  @Autowired
-  private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void getUserInfo_success() throws Exception {
-    mockMvc.perform(get("/api/v1/account/info"))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.username").value("superadmin"))
-        .andExpect(jsonPath("$.email").value(""));
-  }
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void getUserInfo_success() throws Exception {
+        mockMvc.perform(get("/api/v1/account/info"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("superadmin"))
+                .andExpect(jsonPath("$.email").value(""));
+    }
 
-  @Test
-  @WithAnonymousUser
-  void getUserInfo_unauthorized() throws Exception {
-    mockMvc.perform(get("/api/v1/account/info"))
-        .andDo(print())
-        .andExpect(status().isUnauthorized());
-  }
+    @Test
+    @WithAnonymousUser
+    void getUserInfo_unauthorized() throws Exception {
+        mockMvc.perform(get("/api/v1/account/info"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
 
-  @Test
-  @WithMockUser(username = "user", roles = "TRACKER")
-  void getUserInfo_notFound() throws Exception {
-    mockMvc.perform(get("/api/v1/account/info"))
-        .andDo(print())
-        .andExpect(status().isNotFound());
-  }
+    @Test
+    @WithMockUser(username = "user", roles = "TRACKER")
+    void getUserInfo_notFound() throws Exception {
+        mockMvc.perform(get("/api/v1/account/info"))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void changePassword_success() throws Exception {
-    mockMvc.perform(post(
-            "/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=superadmin")
-            .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isOk());
-  }
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void changePassword_success() throws Exception {
+        mockMvc.perform(post(
+                        "/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=superadmin")
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void changePassword_invalidOldPassword() throws Exception {
-    mockMvc.perform(post("/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=wrong")
-            .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isBadRequest());
-  }
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void changePassword_invalidOldPassword() throws Exception {
+        mockMvc.perform(post("/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=wrong")
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void updateUserInfo_success() throws Exception {
+        mockMvc.perform(post("/api/v1/account/update")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "username": "superadmin",
+                                  "email": "test@test.test",
+                                  "fullName": "Test Testov",
+                                  "phoneNumber": "+79999999999",
+                                  "avatarUrl": "https://example.com/avatar.jpg"
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/account/info"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("superadmin"))
+                .andExpect(jsonPath("$.email").value("test@test.test"));
+    }
 }
