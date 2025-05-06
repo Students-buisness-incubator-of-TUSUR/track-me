@@ -238,6 +238,31 @@ export default function CreateStream() {
                             />
                         </div>
                     </div>
+                    <div className="Stream-bb Stream-header-chosefrom-buttw">
+                        <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
+                            <div className="Stream-header-chosefrom-butt-cont"
+                                 onClick={handleShowCheckboxes2}>
+                                <b className="Stream-header-chosefrom-butt-label">Рынок</b>
+                                <div className="Stream-header-chosefrom-butt-pic"></div>
+                            </div>
+                            {showCheckboxes2 && (
+                                <div className="Stream-header-checkboxes">
+                                    {checkboxesData2.map((item, index) => (
+                                        <div key={item.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedCheckboxes.includes(item.id)}
+                                                onChange={() => handleCheckboxChange(item.id)}
+                                            />
+                                            <label className="Stream-header-checkbox-label" htmlFor={`checkbox-${item.id}`}>
+                                            {item.displayName || item.name}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     {error && <p className="create-stream-error-message">{error}</p>}
                 </div>
                 <div className="create-stream-cont-right">
@@ -261,29 +286,6 @@ export default function CreateStream() {
                             onClick={handleCreateButtonClick}>
                         Создать
                     </button>
-                </div>
-            </div>
-            <div className="Stream-b Stream-header-chosefrom-buttw">
-                <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
-                    <div className="Stream-header-chosefrom-butt-cont"
-                         onClick={handleShowCheckboxes2}>
-                        <span>Выбрать рынки (макс. 3)</span>
-                    </div>
-                    {showCheckboxes2 && (
-                        <div className="Stream-header-chosefrom-menu">
-                            {checkboxesData2.map((item) => (
-                                <label key={item.id}
-                                       className="Stream-header-chosefrom-checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedCheckboxes.includes(item.id)}
-                                        onChange={() => handleCheckboxChange(item.id)}
-                                    />
-                                    <span>{item.displayName || item.name}</span>
-                                </label>
-                            ))}
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

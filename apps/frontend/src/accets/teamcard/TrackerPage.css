@@ -69,9 +69,9 @@
     border-radius: 57px;
     background-color: #D9D9D9;
     margin-left: 20px;
-}
-
-.status-completed {
+  }
+  
+  .status {
     position: absolute;
     bottom: 30px; /* увеличено значение, чтобы блок поднялся вверх */
     left: 60px;
@@ -161,5 +161,5 @@
     align-items: center;
     justify-content: center;
     margin-right: 20px;
-    border-radius: 70px;
-}
+    border-radius: 70px !important;
+  }

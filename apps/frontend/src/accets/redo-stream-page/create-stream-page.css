@@ -9,18 +9,17 @@
     flex-direction: column;
     background-color: rgba(68, 68, 68, 1);
 }
-
-.create-stream-cont {
-
-    justify-content: space-between;
-    align-self: center;
-    display: flex;
-    flex-direction: row;
-    width: 1542px;
-    height: 612px;
-    border-radius: 70px;
-    background-color: white;
-    padding-bottom: 30px;
+.create-stream-cont{
+  position: relative;
+  justify-content: space-between;
+  align-self: center;
+  display: flex;
+  flex-direction: row;
+  width: 1542px;
+  height: 612px;
+  border-radius: 70px;
+  background-color: white;
+  padding-bottom: 30px;
 }
 
 .create-stream-cont-left,
@@ -172,22 +171,23 @@
 #image-upload {
     display: none; /* Скрываем input */
 }
-
-.Stream-header-chosefrom-buttw {
-    display: flex;
-    flex-direction: column;
-    margin-right: 39px;
-    width: 268px;
-    height: min-content;
-    border-radius: 31px;
-    background-color: #CDAFF7;
-    opacity: 100;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    font-size: 13px;
-    border: none;
-    justify-content: space-between;
-    box-sizing: border-box;
-}
+.Stream-header-chosefrom-buttw
+{    
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  margin-right: 39px;
+  width: 268px;
+  bottom: 5%; 
+  height: min-content;
+  border-radius: 31px;
+  background-color: #CDAFF7;
+  opacity: 100;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  border: none;
+  justify-content: space-between;
+  box-sizing: border-box;}
 
 @media (max-width: 1280px) {
     .create-stream-cont {

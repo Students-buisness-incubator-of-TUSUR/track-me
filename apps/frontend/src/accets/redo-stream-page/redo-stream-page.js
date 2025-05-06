@@ -220,92 +220,88 @@ export default function EditStream() {
         }
     };
 
-    return (
-        <div className="create-stream">
-            <div className="create-stream-cont">
-                <div className="create-stream-cont-left">
-                    <label className="create-stream-title">Редактирование потока</label>
-                    <div className="create-stream-row">
-                        <div className="create-stream-col">
-                            <h1 className='create-stream-h1'>Название потока:</h1>
-                            <h1 className='create-stream-h1'>Дата начала:</h1>
-                            <h1 className='create-stream-h1'>Дата конца:</h1>
-                        </div>
-                        <div className="create-stream-col">
-                            <input
-                                className='create-stream-input'
-                                placeholder='Текст названия'
-                                value={name}
-                                onChange={handleNameChange}
-                            />
-                            <input
-                                className='create-stream-input-date'
-                                placeholder='__.__.____'
-                                value={startDate}
-                                onChange={handleStartDateChange}
-                            />
-                            <input
-                                className='create-stream-input-date'
-                                placeholder='__.__.____'
-                                value={endDate}
-                                onChange={handleEndDateChange}
-                            />
-                        </div>
-                    </div>
-                    <div className="Stream-bb Stream-header-chosefrom-buttw">
-                        <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
-                            <div className="Stream-header-chosefrom-butt-cont"
-                                 onClick={handleShowCheckboxes2}>
-                                <b className="Stream-header-chosefrom-butt-label">Рынок</b>
-                                <div className="Stream-header-chosefrom-butt-pic"></div>
-                            </div>
-                            {showCheckboxes2 && (
-                                <div className="Stream-header-checkboxes">
-                                    {checkboxesData2.map((formattedData, index) => (
-                                        <div key={formattedData.id}
-                                             className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
-                                            <input
-                                                type="checkbox"
-                                                className="custom-checkbox"
-                                                id={formattedData.id}
-                                                checked={selectedCheckboxes.includes(formattedData.id)}
-                                                onChange={() => handleCheckboxChange(formattedData.id)}
-                                                disabled={selectedCheckboxes.length >= 3 && !selectedCheckboxes.includes(formattedData.id)}
-                                            />
-                                            <label
-                                                className='Stream-header-checkbox-label'>{formattedData.name}</label>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                    </div>
-                    {error && <p className="create-stream-error-message">{error}</p>}
-                </div>
-                <div className="create-stream-cont-right">
-                    <div className="create-stream-input-pic"
-                         onClick={() => document.getElementById('image-upload').click()}>
-                        {image ? (
-                            <img src={image} alt="Uploaded"
-                                 className="create-stream-uploaded-image"/>
-                        ) : (
-                            <div className="create-stream-input-pic-placeholder"></div>
-                        )}
-                        <input
-                            type="file"
-                            id="image-upload"
-                            accept="image/*"
-                            style={{display: 'none'}}
-                            onChange={handleImageUpload}
-                        />
-                    </div>
-                    <button className='create-stream-input-button'
-                            onClick={handleUpdateButtonClick}>
-                        Обновить
-                    </button>
-                </div>
+  return (
+    <div className="create-stream">
+      <div className="create-stream-cont">
+        <div className="create-stream-cont-left">
+          <label className="create-stream-title">Редактирование потока</label>
+          <div className="create-stream-row">
+            <div className="create-stream-col">
+              <h1 className='create-stream-h1'>Название потока:</h1>
+              <h1 className='create-stream-h1'>Дата начала:</h1>
+              <h1 className='create-stream-h1'>Дата конца:</h1>
             </div>
+            <div className="create-stream-col">
+              <input
+                className='create-stream-input'
+                placeholder='Текст названия'
+                value={name}
+                onChange={handleNameChange}
+              />
+              <input
+                className='create-stream-input-date'
+                placeholder='__.__.____'
+                value={startDate}
+                onChange={handleStartDateChange}
+              />
+              <input
+                className='create-stream-input-date'
+                placeholder='__.__.____'
+                value={endDate}
+                onChange={handleEndDateChange}
+              />
+            </div>
+          
+         
+
+          </div>
+          <div className="Stream-bb Stream-header-chosefrom-buttw">
+        <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
+          <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes2}>
+            <b className="Stream-header-chosefrom-butt-label">Рынок</b>
+            <div className="Stream-header-chosefrom-butt-pic"></div>
+          </div>
+          {showCheckboxes2 && (
+            <div className="Stream-header-checkboxes">
+              {checkboxesData2.map((formattedData, index) => (
+                <div key={formattedData.id} className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}>
+                  <input
+                    type="checkbox"
+                    className="custom-checkbox"
+                    id={formattedData.id}
+                    checked={selectedCheckboxes.includes(formattedData.id)}
+                    onChange={() => handleCheckboxChange(formattedData.id)}
+                    disabled={selectedCheckboxes.length >= 3 && !selectedCheckboxes.includes(formattedData.id)}
+                  />
+                  <label className='Stream-header-checkbox-label'>{formattedData.name}</label>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        </div>
+          {error && <p className="create-stream-error-message">{error}</p>}
+        </div>
+        <div className="create-stream-cont-right">
+          <div className="create-stream-input-pic" onClick={() => document.getElementById('image-upload').click()}>
+            {image ? (
+              <img src={image} alt="Uploaded" className="create-stream-uploaded-image" />
+            ) : (
+              <div className="create-stream-input-pic-placeholder"></div>
+            )}
+            <input
+              type="file"
+              id="image-upload"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageUpload}
+            />
+          </div>
+          <button className='create-stream-input-button' onClick={handleUpdateButtonClick}>
+            Обновить
+          </button>
+        </div>
+      </div>
 
         </div>
     );

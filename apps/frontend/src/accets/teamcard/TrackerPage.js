@@ -476,60 +476,63 @@ function TrackerPage() {
                 )}
             </header>
 
-            <div className="cards-wrapper">
-                {error ? (
-                    <p className="error-message">{error}</p>
-                ) : filteredCards.length > 0 ? (
-                    visibleCards.map((card) => (
-                        <div
-                            className="card"
-                            key={card.id}
-                            onClick={() => navigate(`/teamcard/${card.id}?username=${card.username}`)}
-                            style={{cursor: "pointer"}}
-                        >
-                            <div className="card-image"/>
-                            <span className="status-completed">Завершено</span>
-
-                            <div className="card-content">
-                                <div className="text-container project-title">
-                                    <h3>{card.name}</h3>
-                                </div>
-                                <div className="text-container project-description">
-                                    <p>{card.description}</p>
-                                </div>
-                                <div className="under-cont">
-                                    <div className="text-container project-markets">
-                                        <p>Рынки
-                                            НТИ: {card.ntiMarket ? card.ntiMarket.displayName : "Неизвестен"}</p>
-                                    </div>
-                                    <div className="text-container project-trl">
-                                        <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
-                                    </div>
-                                    <div className="text-container project-flow">
-                                        <p>Поток: {streamName || "Неизвестен"}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                className="edit-button"
-                                onClick={(e) => {
-                                    e.stopPropagation(); // чтобы не срабатывал переход по карточке
-                                    navigate(`/teamcard/${card.id}?username=${card.username}&edit=true`);
-                                }}
-                            >
-                                Редактировать
-                            </button>
-                        </div>
-                    ))
-                ) : (
-                    <p>
-                        {searchQuery
-                            ? "Ничего не найдено по запросу"
-                            : "Ничего не найдено по запросу"}
+      <div className="cards-wrapper">
+        {error ? (
+          <p className="error-message">{error}</p>
+        ) : filteredCards.length > 0 ? (
+          visibleCards.map((card) => (
+            <div
+              className="card"
+              key={card.id}
+              onClick={() => navigate(`/teamcard/${card.id}?userId=${card.userId}`)}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="card-image" />
+              <span className="status">
+                {card.enabled ? "Активно" : "Завершено"}
+              </span>
+          
+              <div className="card-content">
+                <div className="text-container project-title">
+                  <h3>{card.name}</h3>
+                </div>
+                <div className="text-container project-description">
+                  <p>{card.description}</p>
+                </div>
+                <div className="under-cont">
+                  <div className="text-container project-markets">
+                    <p>Рынки НТИ: {card.ntiMarket ? card.ntiMarket.displayName : "Неизвестен"}</p>
+                  </div>
+                  <div className="text-container project-trl">
+                    <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
+                  </div>
+                  <div className="text-container project-flow">
+                    <p>Поток: {streamName || "Неизвестен"}
+                    {streamName ? ": " + streamSDate + " -- " + streamEDate : "Название потока не получено"}
                     </p>
-                )}
+                  </div>
+                </div>
+              </div>
+          
+              <button
+                className="edit-button"
+                onClick={(e) => {
+                  e.stopPropagation(); // чтобы не срабатывал переход по карточке
+                  navigate(`/teamcard/${card.id}?userId=${card.userId}&edit=true`);
+                }}
+              >
+                Редактировать
+              </button>
             </div>
+          ))
+        ) : (
+          <p>
+            {searchQuery
+              ? "Ничего не найдено по запросу"
+              : "Ничего не найдено по запросу"}
+          </p>
+        )}
+      </div>
 
             {filteredCards.length > 0 && (
                 <footer className="Stream-footer">
