@@ -36,9 +36,8 @@ function TrackerPage() {
     let today = new Date();
     let year = today.getFullYear();
     const navigate = useNavigate();
-    // const numberOfCheckboxes = 9;
     const numberOfCheckboxes1 = year - 2015;
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.user.user);
 
     // Данные для TRL – используем реальные диапазоны
     const trlRanges = [
