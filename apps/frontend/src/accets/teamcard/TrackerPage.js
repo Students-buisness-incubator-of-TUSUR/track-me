@@ -508,7 +508,7 @@ function TrackerPage() {
                   </div>
                   <div className="text-container project-flow">
                     <p>Поток: {streamName || "Неизвестен"}
-                    {streamName ? ": " + streamSDate + " -- " + streamEDate : "Название потока не получено"}
+                    {streamName ? ": " + streamSDate + " - " + streamEDate : "Название потока не получено"}
                     </p>
                   </div>
                 </div>
