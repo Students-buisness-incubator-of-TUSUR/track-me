@@ -19,8 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -128,5 +127,61 @@ class MeetingRestControllerTest extends BaseApplicationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = {"SUPER_ADMIN"})
+    void getMeetings_success_superAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/meetings")
+                        .param("teamCardId", teamCard.getId().toString()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+    }
+
+    @Test
+    void updateMeeting_success() throws Exception {
+        var meetingUpdateDto = MeetingUpdateDto.builder()
+                .link("https://example.com/meeting")
+                .number("12345")
+                .status(MeetingStatus.MANY_ISSUES)
+                .build();
+
+        var teamCardId = teamCard.getId().toString();
+        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+        mockMvc.perform(patch("/api/v1/meetings/" + meetingId)
+                        .param("teamCardId", teamCardId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(meetingUpdateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.id").value(meetingId))
+                .andExpect(jsonPath("$.link").value("https://example.com/meeting"))
+                .andExpect(jsonPath("$.number").value("12345"));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = {"SUPER_ADMIN"})
+    void updateMeeting_bySuperAdmin_success() throws Exception {
+        var meetingUpdateDto = MeetingUpdateDto.builder()
+                .link("https://example.com/meeting")
+                .number("123456")
+                .status(MeetingStatus.OK)
+                .build();
+
+        var teamCardId = teamCard.getId().toString();
+        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+        mockMvc.perform(patch("/api/v1/meetings/" + meetingId)
+                        .param("teamCardId", teamCardId)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(meetingUpdateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.id").value(meetingId))
+                .andExpect(jsonPath("$.link").value("https://example.com/meeting"))
+                .andExpect(jsonPath("$.number").value("123456"));
     }
 }
