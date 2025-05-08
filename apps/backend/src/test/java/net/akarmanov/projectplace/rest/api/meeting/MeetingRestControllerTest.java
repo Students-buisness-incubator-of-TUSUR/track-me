@@ -22,109 +22,111 @@ import java.util.List;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WithMockUser(value = BaseApplicationTest.USER, roles = {"TRACKER"})
 class MeetingRestControllerTest extends BaseApplicationTest {
 
-  @Autowired
-  private TeamCardsService teamCardsService;
+    @Autowired
+    private TeamCardsService teamCardsService;
 
-  @Autowired
-  private TeamCardsRepository teamCardsRepository;
+    @Autowired
+    private TeamCardsRepository teamCardsRepository;
 
-  @Autowired
-  private MeetingRepository meetingRepository;
+    @Autowired
+    private MeetingRepository meetingRepository;
 
-  @Autowired
-  private NtiMarketRepository ntiMarketRepository;
+    @Autowired
+    private NtiMarketRepository ntiMarketRepository;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-  private TeamCard teamCard;
+    private TeamCard teamCard;
 
-  @BeforeEach
-  void setUp() {
-    teamCard = teamCardsService.createTeamCard(TeamCard.builder()
-        .name("Test")
-        .description("Test")
-        .username(BaseApplicationTest.USER)
-        .ntiMarket(ntiMarketRepository.findAll().getFirst())
-        .readinessLevel(ReadinessLevel.LEVEL_1)
-        .build());
+    @BeforeEach
+    void setUp() {
+        teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .name("Test")
+                .description("Test")
+                .username(BaseApplicationTest.USER)
+                .ntiMarket(ntiMarketRepository.findAll().getFirst())
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .build());
 
-    meetingRepository.saveAll(List.of(
-        Meeting.builder()
-            .link("https://example.com/meeting")
-            .number("12343")
-            .startDate(OffsetDateTime.now().plusDays(1))
-            .teamCard(teamCard)
-            .status(MeetingStatus.OK)
-            .build(),
-        Meeting.builder()
-            .link("https://example.com/meeting")
-            .number("12345")
-            .startDate(OffsetDateTime.now().plusDays(1))
-            .teamCard(teamCard)
-            .status(MeetingStatus.OK)
-            .build()
-    ));
-  }
+        meetingRepository.saveAll(List.of(
+                Meeting.builder()
+                        .link("https://example.com/meeting")
+                        .number("12343")
+                        .startDate(OffsetDateTime.now().plusDays(1))
+                        .teamCard(teamCard)
+                        .status(MeetingStatus.OK)
+                        .tasksCurrentMeeting("tasksCurrentMeeting")
+                        .tasksNextMeeting("tasksNextMeeting")
+                        .build(),
+                Meeting.builder()
+                        .link("https://example.com/meeting")
+                        .number("12345")
+                        .startDate(OffsetDateTime.now().plusDays(1))
+                        .teamCard(teamCard)
+                        .status(MeetingStatus.OK)
+                        .tasksCurrentMeeting("tasksCurrentMeeting")
+                        .tasksNextMeeting("tasksNextMeeting")
+                        .build()
+        ));
+    }
 
-  @AfterEach
-  void tearDown() {
-    meetingRepository.deleteAll();
-    teamCardsRepository.deleteAll();
-  }
+    @AfterEach
+    void tearDown() {
+        meetingRepository.deleteAll();
+        teamCardsRepository.deleteAll();
+    }
 
-  @Test
-  void createMeeting_success() throws Exception {
+    @Test
+    void createMeeting_success() throws Exception {
 
-    var meetingCreateDto = MeetingCreateDto.builder()
-        .link("https://example.com/meeting")
-        .number("12345")
-        .startDate(OffsetDateTime.now().plusDays(1))
-        .build();
+        var meetingCreateDto = MeetingCreateDto.builder()
+                .link("https://example.com/meeting")
+                .number("12345")
+                .startDate(OffsetDateTime.now().plusDays(1))
+                .build();
 
-    mockMvc.perform(post("/api/v1/meetings")
-            .param("teamCardId", teamCard.getId().toString())
-            .contentType("application/json")
-            .content(objectMapper.writeValueAsString(meetingCreateDto)))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(content().contentType("application/json"))
-        .andExpect(jsonPath("$.id").isNotEmpty())
-        .andExpect(jsonPath("$.teamCardId").value(teamCard.getId().toString()));
-  }
+        mockMvc.perform(post("/api/v1/meetings")
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(meetingCreateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.id").isNotEmpty())
+                .andExpect(jsonPath("$.teamCardId").value(teamCard.getId().toString()));
+    }
 
-  @Test
-  void createMeeting_teamCardNotFound() throws Exception {
+    @Test
+    void createMeeting_teamCardNotFound() throws Exception {
 
-    var meetingCreateDto = MeetingCreateDto.builder()
-        .link("https://example.com/meeting")
-        .number("12345")
-        .startDate(OffsetDateTime.now().plusDays(1))
-        .build();
+        var meetingCreateDto = MeetingCreateDto.builder()
+                .link("https://example.com/meeting")
+                .number("12345")
+                .startDate(OffsetDateTime.now().plusDays(1))
+                .build();
 
-    mockMvc.perform(post("/api/v1/meetings")
-            .param("teamCardId", "00000000-0000-0000-0000-000000000000")
-            .contentType("application/json")
-            .content(objectMapper.writeValueAsString(meetingCreateDto)))
-        .andDo(print())
-        .andExpect(status().isNotFound())
-        .andExpect(content().contentType("application/json"));
-  }
+        mockMvc.perform(post("/api/v1/meetings")
+                        .param("teamCardId", "00000000-0000-0000-0000-000000000000")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(meetingCreateDto)))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json"));
+    }
 
-  @Test
-  void getMeetings_success() throws Exception {
-    mockMvc.perform(get("/api/v1/meetings")
-            .param("teamCardId", teamCard.getId().toString()))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(content().contentType("application/json"))
-        .andExpect(jsonPath("$.content").isArray());
-  }
+    @Test
+    void getMeetings_success() throws Exception {
+        mockMvc.perform(get("/api/v1/meetings")
+                        .param("teamCardId", teamCard.getId().toString()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.content").isArray());
+    }
 }
