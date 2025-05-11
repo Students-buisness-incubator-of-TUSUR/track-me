@@ -72,9 +72,9 @@ function TrackerPage() {
         );
     };
     useEffect(() => {
-        if (user?.user?.roles?.length && user?.user?.username) {
-            const role = user.user.roles[0];
-            const uname = user.user.username;
+        if (user?.roles?.length && user?.username) {
+            const role = user.roles[0];
+            const uname = user.username;
             setUserRole(role);
             setusername(uname);
         }
