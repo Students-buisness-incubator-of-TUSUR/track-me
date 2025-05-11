@@ -3,7 +3,6 @@ package net.akarmanov.projectplace.services.meeting;
 import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.domain.Meeting;
 import net.akarmanov.projectplace.domain.TeamCard;
-import net.akarmanov.projectplace.models.MeetingStatus;
 import net.akarmanov.projectplace.repos.MeetingRepository;
 import net.akarmanov.projectplace.services.acl.AclService;
 import net.akarmanov.projectplace.services.exceptions.MeetingNotFoundException;
@@ -33,7 +32,6 @@ public class MeetingServiceImpl implements MeetingService {
   @PreAuthorize("hasPermission(#teamCard, 'READ')")
   public Meeting createMeeting(TeamCard teamCard, Meeting createMeeting) {
     createMeeting.setTeamCard(teamCard);
-    createMeeting.setStatus(MeetingStatus.OK);
     var save = meetingRepository.save(createMeeting);
     var username = SecurityContextHolder.getContext().getAuthentication().getName();
     aclService.createAclForUserWithParent(save, username, teamCard);
@@ -88,10 +86,4 @@ public class MeetingServiceImpl implements MeetingService {
     aclService.deleteAcl(meeting);
   }
 
-  @Override
-  @PreAuthorize("hasPermission(#meetingId, 'net.akarmanov.projectplace.domain.Meeting', 'READ')")
-  public Meeting getById(UUID meetingId) {
-    return meetingRepository.findById(meetingId)
-        .orElseThrow(() -> new MeetingNotFoundException(meetingId));
-  }
 }

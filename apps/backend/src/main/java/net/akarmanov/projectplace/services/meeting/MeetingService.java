@@ -16,5 +16,4 @@ public interface MeetingService {
 
   void deleteMeeting(UUID meetingId);
 
-  Meeting getById(UUID targetId);
 }
