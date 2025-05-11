@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.sso.dto.UserDto;
 import net.akarmanov.projectplace.sso.dto.UserUpdateDto;
-import net.akarmanov.projectplace.sso.mappers.UserMapper;
+import net.akarmanov.projectplace.sso.mapper.UserMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 

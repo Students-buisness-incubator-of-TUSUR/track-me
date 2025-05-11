@@ -1,0 +1,43 @@
+@startuml
+actor User
+participant "trackme-frontend" as Frontend
+participant "trackme-client-gateway" as Gateway
+participant "trackme-sso" as SSO
+participant "trackme-backend" as Backend
+participant "Redis"
+
+== Запрос защищенного ресурса ==
+User -> Frontend : Открывает\n/streams
+Frontend -> Gateway : HTTP POST\n/streams (без SESSIONID)
+Gateway -> User : 302 Redirect → /oauth2/authorize
+
+== Редирект на сервер авторизации ==
+User -> SSO : GET /oauth2/authorize?client_id=...&redirect_uri=...
+
+SSO -> User : Отображение формы логина
+User -> SSO : Вводит логина и пароля и нажимает "Войти"
+SSO -> Redis : Сохранение authorizationId
+Redis --> SSO : OK
+
+SSO -> User : 302 Redirect → /login/oauth2/code/trackme-client?code=abc123&state=xyz
+
+== Клиент обменивает код на токен ==
+User -> Gateway : GET /login/oauth2/code/trackme-client?code=abc123
+Gateway -> SSO : POST /oauth2/token\n?code=...
+SSO -> Redis : Проверка authorizationId
+Redis --> SSO : OK
+SSO --> Gateway : 200 OK { access_token: ...,\nrefresh_token: ...,\nid_token: ..., ... }
+
+Gateway -> Gateway : Привязка токенов\nк SESSIONID
+Gateway -> User : 302 Redirect → /streams + Set-Cookie: SESSIONID
+
+== Повторный запрос к ресурсу ==
+User -> Frontend : Открывает\n/streams
+Frontend -> Gateway : POST /streams\n(с SESSIONID)
+Gateway -> Gateway : Получение access token из сессии
+Gateway -> Backend : POST /api/v1/streams (Authorization: Bearer ...)
+Backend -> Gateway : Ответ с данными
+Gateway -> Frontend : 200 OK
+Frontend -> User : Отображение данных
+
+@enduml

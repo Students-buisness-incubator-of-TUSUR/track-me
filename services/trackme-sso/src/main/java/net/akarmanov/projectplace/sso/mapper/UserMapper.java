@@ -1,15 +1,10 @@
-package net.akarmanov.projectplace.sso.mappers;
+package net.akarmanov.projectplace.sso.mapper;
 
 import net.akarmanov.projectplace.sso.dao.entity.RoleEntity;
 import net.akarmanov.projectplace.sso.dao.entity.UserEntity;
 import net.akarmanov.projectplace.sso.dto.UserDto;
 import net.akarmanov.projectplace.sso.dto.UserUpdateDto;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
-import org.mapstruct.NullValueCheckStrategy;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 import java.util.List;
 import java.util.Set;
