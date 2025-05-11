@@ -30,7 +30,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasPermission(#teamCard, 'READ')")
+    @PreAuthorize("hasPermission(#teamCard, 'READ') or hasRole('ADMIN')")
     public Meeting createMeeting(TeamCard teamCard, Meeting createMeeting) {
         createMeeting.setTeamCard(teamCard);
         var save = meetingRepository.save(createMeeting);
@@ -48,7 +48,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasPermission(#teamCardId, 'net.akarmanov.projectplace.domain.TeamCard', 'READ')")
+    @PreAuthorize("hasPermission(#teamCardId, 'net.akarmanov.projectplace.domain.TeamCard', 'READ') or hasRole('ADMIN')")
     public Meeting updateMeeting(UUID meetingId, UUID teamCardId, Meeting updateMeeting) {
         var meeting = meetingRepository.findOne(where(teamCardIdEquals(teamCardId))
                         .and(meetingIdEquals(meetingId)))
@@ -77,7 +77,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasPermission(#meetingId, 'net.akarmanov.projectplace.domain.Meeting', 'DELETE')")
+    @PreAuthorize("hasPermission(#meetingId, 'net.akarmanov.projectplace.domain.Meeting', 'DELETE') or hasRole('ADMIN')")
     public void deleteMeeting(UUID meetingId) {
         var meeting = meetingRepository.findOne(where(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
@@ -85,10 +85,4 @@ public class MeetingServiceImpl implements MeetingService {
         aclService.deleteAcl(meeting);
     }
 
-    @Override
-    @PreAuthorize("hasPermission(#meetingId, 'net.akarmanov.projectplace.domain.Meeting', 'READ')")
-    public Meeting getById(UUID meetingId) {
-        return meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
-    }
 }
