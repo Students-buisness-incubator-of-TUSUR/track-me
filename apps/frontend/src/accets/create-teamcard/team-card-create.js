@@ -220,7 +220,7 @@ const TeamCard = () => {
                 <div className="create-card-info">
                     <span className="create-card-label">Трекер:</span>
                     <div className="create-input-wrapper">
-                        {currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN") ? (
+                        {/* {currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN") ? ( */}
                             <div className="tracker-select-container">
                                 <input
                                     className="create-input"
@@ -246,14 +246,14 @@ const TeamCard = () => {
                                 <img src={penIcon} alt="edit" className="create-edit-icon"
                                      onClick={() => setShowTrackers(!showTrackers)}/>
                             </div>
-                        ) : (
+                        {/* ) : (
                             <input
                                 className="create-input"
                                 name="tracker"
                                 value={formData.tracker}
                                 readOnly
                             />
-                        )}
+                        )} */}
                     </div>
                 </div>
 
@@ -267,12 +267,10 @@ const TeamCard = () => {
                             onChange={handleChange}
                             placeholder="Введите название команды"
                         />
-                        <img src={penIcon} alt="edit" className="create-edit-icon"/>
+                        {/* <img src={penIcon} alt="edit" className="create-edit-icon"/> */}
                     </div>
                 </div>
-            </div>
 
-            <div className="create-right-panel">
                 <div className="create-dropdown-block">
                     <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
                         {selectedMarket ? selectedMarket.displayName : "Рынок НТИ"}
@@ -310,29 +308,57 @@ const TeamCard = () => {
                         </div>
                     )}
                 </div>
-            </div>
 
-            <div className="stream-attach-button-container">
                 <div className="create-dropdown-block">
-                    <div className="create-dropdown-toggle"
-                         onClick={() => setShowStreams(!showStreams)}>
-                        {streams.find(s => s.id === formData.streamId)?.name || "Привязать к потоку"}
+                    <div className="create-dropdown-toggle" onClick={() => setShowStreams(!showStreams)}>
+                        {selectedTRL ? selectedTRL.label : "Все потоки"}
                     </div>
                     {showStreams && (
-                        <div className="create-checkbox-list">
-                            {streams.map((stream) => (
-                                <div
-                                    key={stream.id}
-                                    className="create-checkbox-item"
-                                    onClick={() => handleStreamSelect(stream.id)}
-                                >
-                                    {stream.name}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                            <div className="create-checkbox-list">
+                                {streams.map((stream) => (
+                                    <div
+                                        key={stream.id}
+                                        className="create-checkbox-item"
+                                        onClick={() => handleStreamSelect(stream.id)}
+                                    >
+                                        {stream.name}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                </div>
+
+                <div className="create-team-description">
+                    <span className="create-team-description-label">Описание:</span>
+                    <div className="create-team-description-wrapper">
+                        <textarea
+                            className="create-description-input"
+                            name="description"
+                            placeholder="Введите описание карточки команды"
+                        />
+                    </div>
                 </div>
             </div>
+
+            <div className="create-right-panel">
+                <div className="create-meetings-block">
+                    <div className="create-meetings-exist">
+                        <div className="create-meeting">
+                            <span class="meeting-date">25.04</span>
+                            <span class="meeting-title">Встреча 1</span> 
+                        </div>
+                        <div className="create-meeting">   
+                        </div>
+                    </div>
+                    <button
+                        className="create-meeting-add"
+                    >
+                        Запланировать   
+                    </button>
+                </div>
+            </div>
+
+            
 
             {error && (
                 <div className="error-message" style={{whiteSpace: 'pre-line'}}>

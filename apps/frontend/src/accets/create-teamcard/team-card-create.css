@@ -9,10 +9,10 @@ body {
 
 .create-card-container {
     position: relative;
-    max-width: 1900px;
+    width: 1719px;
     min-width: 80vh;
     min-height: 80vh;
-    max-height: 1000px;
+    max-height: 908px;
     margin: 40px auto;
     padding: 40px;
     background: #fff;
@@ -34,16 +34,18 @@ body {
 
 .create-card-left {
     width: 50%;
-    margin-top: 40px;
     padding-right: 20px;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 15px;
+    padding-left: 119px;
+    padding-top: 72px;
 }
 
 .create-card-info {
     display: flex;
-    flex-direction: column;
+    width: fit-content;
+    gap: 20px;
 }
 
 .create-card-label {
@@ -51,7 +53,8 @@ body {
     color: #333;
     margin-bottom: 10px;
     font-size: 24px;
-    font-weight: 500;
+    font-weight: 400;
+    white-space: nowrap;
 }
 
 .create-input-wrapper {
@@ -61,21 +64,29 @@ body {
 }
 
 .create-input {
-    width: 100%;
     height: 40px;
     padding: 0 48px 0 20px;
     border: none;
-    background: #a169f7;
-    border-radius: 20px;
+    background: #8338EB;
+    border-radius: 30px;
     color: #fff;
-    font-size: 16px;
-    line-height: 40px;
-    box-sizing: border-box;
-    max-width: 600px;
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 30px;
+    width: 400px;
+    min-width: 150px;
 }
 
+input:focus {
+    outline: none;
+  }
+
 .create-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: #ffffff;
+}
+
+.create-input:focus::placeholder {
+    color: #ffffff80;
 }
 
 .create-edit-icon {
@@ -89,21 +100,8 @@ body {
     z-index: 2;
 }
 
-.create-meetings-block {
-    width: 120px;
-    height: 120px;
-    background: #aaa;
-    color: white;
-    font-size: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 28px;
-    font-weight: bold;
-}
-
 .create-dropdown-block {
-    width: 100%;
+    width: 343px;
     position: relative;
     border-radius: 24px;
     overflow: hidden;
@@ -138,14 +136,6 @@ body {
     cursor: not-allowed;
 }
 
-.create-dropdown-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1;
-}
 
 .create-checkbox-list {
     background: #caa7f9;
@@ -159,24 +149,6 @@ body {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     max-height: 300px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #8e44fd #caa7f9;
-}
-
-.create-checkbox-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.create-checkbox-list::-webkit-scrollbar-track {
-    background: #caa7f9;
-    border-radius: 4px;
-}
-
-.create-checkbox-list::-webkit-scrollbar-thumb {
-    background-color: #8e44fd;
-    border-radius: 4px;
-    border: 2px solid #caa7f9;
 }
 
 .create-stream-list,
@@ -184,14 +156,92 @@ body {
     color: white;
 }
 
-.create-right-panel {
-    width: 300px;
-    position: absolute;
-    right: 80px;
-    top: 120px;
+.create-team-description {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 13px;
+}
+
+
+
+.create-team-description-label {
+    display: block;
+    color: #333;
+    font-size: 24px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.create-description-input {
+    width: 739px;
+    height: 238px;
+    padding: 29px 68px 29px 41px;
+    border-radius: 70px;
+    font-size: 24px;
+    font-weight: 300;
+    border: 3px solid #8338EB;
+    resize: none;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.create-description-input:focus {
+    outline: none;
+}
+
+.create-right-panel {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    padding-top: 72px;
+}
+
+.create-meetings-block {
+    width: 604px;
+    height: 523px;
+    border-radius: 35px;
+    border: 3px solid #8338EB;
+    padding: 35px 66px 35px 30px;
+}
+
+.create-meetings-exist {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.create-meeting {
+    width: 604px;
+    height: 58px;
+    border-radius: 70px;
+    background: #8338EB;
+    display: flex;
+    position: relative;
+}
+
+.meeting-date {
+    position: absolute;
+    left: 30px; /* Фиксированный отступ от края */
+    width: 60px; /* Ширина блока с датой */
+    color: #666;
+}
+  
+.meeting-title {
+    flex: 1;
+    text-align: center; /* Выравнивание текста по центру */
+    padding-left: 90px; /* Компенсируем ширину даты + отступ */
+    padding-right: 30px; /* Симметричный отступ справа */
+}
+
+.create-meeting-add {
+    width: 604px;
+    height: 58px;
+    border-radius: 70px;
+    color:#ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    background: #878685;
+    margin-top: 15px;
 }
 
 .create-checkbox-label {
