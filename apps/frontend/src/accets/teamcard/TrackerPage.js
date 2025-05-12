@@ -19,6 +19,8 @@ function TrackerPage() {
     const [streams, setStreams] = useState([]);
     const [userRole, setUserRole] = useState(null);
     const [username, setusername] = useState(null);
+    const [selectedYears, setSelectedYears] = useState([]);
+
 
     const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
     const logoutHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/logout';
@@ -36,8 +38,9 @@ function TrackerPage() {
     let today = new Date();
     let year = today.getFullYear();
     const navigate = useNavigate();
+    // const numberOfCheckboxes = 9;
     const numberOfCheckboxes1 = year - 2015;
-    const user = useSelector((state) => state.user.user);
+    const user = useSelector((state) => state.user);
 
     // Данные для TRL – используем реальные диапазоны
     const trlRanges = [
@@ -55,6 +58,7 @@ function TrackerPage() {
                 : [...prev, trlValue] // Добавляем, если не выбран
         );
     };
+    
 
     const handleNtiMarketChange = (market) => {
         setSelectedNtiMarkets((prev) =>
@@ -71,6 +75,29 @@ function TrackerPage() {
                 : [...prev, streamName]
         );
     };
+    const handleYearChange = (year) => {
+        setSelectedYears((prev) =>
+            prev.includes(year)
+                ? prev.filter((y) => y !== year)
+                : [...prev, year]
+        );
+    };
+    
+    // В начале компонента TrackerPage
+useEffect(() => {
+    // Проверяем данные пользователя в localStorage при загрузке
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        setUserRole(userData.roles[0]);
+        setusername(userData.username);
+    } else if (user?.user) {
+        // Сохраняем данные пользователя в localStorage
+        localStorage.setItem('user', JSON.stringify(user.user));
+        setUserRole(user.user.roles[0]);
+        setusername(user.user.username);
+    }
+}, [user]);
     useEffect(() => {
         if (user?.roles?.length && user?.username) {
             const role = user.roles[0];
@@ -254,6 +281,14 @@ function TrackerPage() {
                 values: selectedStreams,
             });
         }
+        if (selectedYears.length > 0) {
+            filters.push({
+                fieldName: "streams.year", // имя поля уточни при необходимости
+                type: "EQ",
+                values: selectedYears,
+            });
+        }
+        
 
         console.log("Applying filters:", filters);
         fetchCards(filters);
@@ -268,6 +303,8 @@ function TrackerPage() {
         // Сбросить другие фильтры, если они будут добавлены
         fetchCards([]);
         setIsVisible(false);
+        setSelectedYears([]);
+
     };
 
     return (
@@ -335,7 +372,7 @@ function TrackerPage() {
                                 <button className="Stream-header-chose-butt">
                                     TRL [{selectedTrl.length}]
                                 </button>
-                                <button className="Stream-header-chose-butt">Год [0]</button>
+                                <button className="Stream-header-chose-butt">Год [{selectedYears.length}]</button>
                             </div>
                             {/* Нижний ряд – группы чекбоксов */}
                             <div className="Stream-header-chosefrom-cont">
@@ -447,19 +484,21 @@ function TrackerPage() {
                                     {showCheckboxes && (
                                         <div className="Stream-header-checkboxes">
                                             {checkboxesData.map((checkbox, index) => (
-                                                <div
-                                                    key={checkbox.id}
-                                                    className={`Stream-header-checkbox ${
-                                                        index < 5 ? "first-row" : "second-row"
-                                                    }`}
-                                                >
-                                                    <input type="checkbox" id={checkbox.id}/>
-                                                    <label class="Stream-header-checkbox-label"
-                                                           htmlFor={checkbox.id}>
-                                                        {checkbox.label}
-                                                    </label>
-                                                </div>
-                                            ))}
+    <div
+        key={checkbox.id}
+        className={`Stream-header-checkbox ${index < 5 ? "first-row" : "second-row"}`}
+    >
+        <input
+            type="checkbox"
+            id={checkbox.id}
+            checked={selectedYears.includes(parseInt(checkbox.label))}
+            onChange={() => handleYearChange(parseInt(checkbox.label))}
+        />
+        <label className="Stream-header-checkbox-label" htmlFor={checkbox.id}>
+            {checkbox.label}
+        </label>
+    </div>
+))}
                                         </div>
                                     )}
                                 </div>
@@ -477,63 +516,63 @@ function TrackerPage() {
                 )}
             </header>
 
-      <div className="cards-wrapper">
-        {error ? (
-          <p className="error-message">{error}</p>
-        ) : filteredCards.length > 0 ? (
-          visibleCards.map((card) => (
-            <div
-              className="card"
-              key={card.id}
-              onClick={() => navigate(`/teamcard/${card.id}?userId=${card.userId}`)}
-              style={{ cursor: "pointer" }}
-            >
-              <div className="card-image" />
-              <span className="status">
-                {card.enabled ? "Активно" : "Завершено"}
-              </span>
-          
-              <div className="card-content">
-                <div className="text-container project-title">
-                  <h3>{card.name}</h3>
-                </div>
-                <div className="text-container project-description">
-                  <p>{card.description}</p>
-                </div>
-                <div className="under-cont">
-                  <div className="text-container project-markets">
-                    <p>Рынки НТИ: {card.ntiMarket ? card.ntiMarket.displayName : "Неизвестен"}</p>
-                  </div>
-                  <div className="text-container project-trl">
-                    <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
-                  </div>
-                  <div className="text-container project-flow">
-                    <p>Поток: {streamName || "Неизвестен"}
-                    {streamName ? ": " + streamSDate + " - " + streamEDate : "Название потока не получено"}
+            <div className="cards-wrapper">
+                {error ? (
+                    <p className="error-message">{error}</p>
+                ) : filteredCards.length > 0 ? (
+                    visibleCards.map((card) => (
+                        <div
+                            className="card"
+                            key={card.id}
+                            onClick={() => navigate(`/teamcard/${card.id}?userId=${card.userId}`)}
+                            style={{cursor: "pointer"}}
+                        >
+                            <div className="card-image"/>
+                            <span className="status">
+                                {card.enabled ? "Активно" : "Завершено"}
+                            </span>
+
+                            <div className="card-content">
+                                <div className="text-container project-title">
+                                    <h3>{card.name}</h3>
+                                </div>
+                                <div className="text-container project-description">
+                                    <p>{card.description}</p>
+                                </div>
+                                <div className="under-cont">
+                                    <div className="text-container project-markets">
+                                        <p>Рынки НТИ: {card.ntiMarket ? card.ntiMarket.displayName : "Неизвестен"}</p>
+                                    </div>
+                                    <div className="text-container project-trl">
+                                        <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
+                                    </div>
+                                    <div className="text-container project-flow">
+                                        <p>Поток: {streamName || "Неизвестен"}
+                                        {streamName ? ": " + streamSDate + " - " + streamEDate : "Название потока не получено"}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                className="edit-button"
+                                onClick={(e) => {
+                                    e.stopPropagation(); // чтобы не срабатывал переход по карточке
+                                    navigate(`/teamcard/${card.id}?userId=${card.userId}&edit=true`);
+                                }}
+                            >
+                                Редактировать
+                            </button>
+                        </div>
+                    ))
+                ) : (
+                    <p>
+                        {searchQuery
+                            ? "Ничего не найдено по запросу"
+                            : "Ничего не найдено по запросу"}
                     </p>
-                  </div>
-                </div>
-              </div>
-          
-              <button
-                className="edit-button"
-                onClick={(e) => {
-                  e.stopPropagation(); // чтобы не срабатывал переход по карточке
-                  navigate(`/teamcard/${card.id}?userId=${card.userId}&edit=true`);
-                }}
-              >
-                Редактировать
-              </button>
+                )}
             </div>
-          ))
-        ) : (
-          <p>
-            {searchQuery
-              ? "Ничего не найдено по запросу"
-              : "Ничего не найдено по запросу"}
-          </p>
-        )}
-      </div>
 
             {filteredCards.length > 0 && (
                 <footer className="Stream-footer">

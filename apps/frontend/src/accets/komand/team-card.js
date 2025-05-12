@@ -10,9 +10,13 @@ const TeamCard = () => {
     const {id} = useParams();
     const location = useLocation();
     const query = new URLSearchParams(location.search);
-    const user = useSelector(state => state.user.user);
-    const role = user.roles[0];
-    const username = user.username;
+    
+    const [role, setRole] = useState(null);
+const [username, setUsername] = useState(null);
+const reduxUser = useSelector(state => state.user?.user);
+
+
+
 
     const [teamData, setTeamData] = useState({});
     const [editedData, setEditedData] = useState({});
@@ -48,6 +52,18 @@ const TeamCard = () => {
         {id: 3, label: "6-8"},
         {id: 4, label: "9-10"},
     ], []);
+    useEffect(() => {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            const parsed = JSON.parse(savedUser);
+            setRole(parsed.roles?.[0] || null);
+            setUsername(parsed.username || null);
+        } else if (reduxUser) {
+            localStorage.setItem('user', JSON.stringify(reduxUser));
+            setRole(reduxUser.roles?.[0] || null);
+            setUsername(reduxUser.username || null);
+        }
+    }, [reduxUser]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -83,7 +99,9 @@ const TeamCard = () => {
         loadMeetings();
     }, [id, currentPage]);
 
-    useEffect(() => {
+     useEffect(() => {
+        if (!role || !username) return; // Wait until user data is loaded
+        
         const endpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
             ? `${backendHost}/api/v1/admin/team-card?id=${id}&username=${username}`
             : `${backendHost}/api/v1/team-card?id=${id}`;
@@ -322,7 +340,7 @@ const TeamCard = () => {
 
     return (
         <div className="team-card-widget-container">
-            <button className="close-button-widget" onClick={() => navigate(-1)}>×</button>
+            <button className="close-button-widget" onClick={() => navigate(`/team-cards`)}>×</button>
 
             <button
                 className="edit-button-widget"
@@ -412,6 +430,7 @@ const TeamCard = () => {
                                         key={meeting.id}
                                         className={`meeting-item-widget ${meeting.status === 'DONE' ? 'done' : 'planned'}`}
                                         onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
+
                                     >
                                         <span
                                             className="meeting-number-widget">{meeting.number || "-"}</span>
@@ -480,8 +499,8 @@ const TeamCard = () => {
                                     </div>
                                 )}
                                 <div className="meeting-item-widget add"
-                                     onClick={() => navigate(`/meeting/new?teamId=${id}&username=${username}`)}>+
-                                </div>
+     onClick={() => navigate(`/meeting-create/${id}?username=${username}`)}>+
+</div>
                             </div>
 
                             {totalPages > 1 && (

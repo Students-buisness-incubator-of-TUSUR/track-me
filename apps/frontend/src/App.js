@@ -14,7 +14,7 @@ import TeamCard from "./accets/komand/team-card.js"
 import HomePage from "./accets/home/HomePage";
 import AfterLogin from "./accets/after-login/AfterLogin";
 import TeamCardCreate from "./accets/create-teamcard/team-card-create.js";
-
+import MeetingCreate from "./accets/meeting-card/MeetingCreate.js";
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
 
@@ -22,6 +22,7 @@ function App() {
     return (
         <Router>
             <Routes>
+                <Route path="/meeting-create/:teamId" element={<MeetingCreate />} />
                 <Route path="/" element={<HomePage/>}/>
                 <Route path="/after-login" element={<AfterLogin/>}/>
                 <Route path="/streams" element={<Stream/>}/>
@@ -42,6 +43,8 @@ function App() {
                 <Route path="/teamcard/create" element={<TeamCardCreate/>}/>
                 <Route path="/teamcard/:id" element={<TeamCard/>}/>
                 <Route path="/meeting/new" element={<MeetingCard/>}/>
+                <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+
             </Routes>
         </Router>
     );

@@ -11,8 +11,8 @@
 }
 
 .unique-meeting-card {
-    width: 1600px;
-    min-height: 500px;
+    width: 1400px;
+    min-height: 300px;
     border-radius: 70px;
     background: #c19bf5;
     font-family: 'Montserrat', sans-serif;
@@ -39,7 +39,70 @@
     justify-content: center;
     cursor: pointer;
   }
-
+  .status-dropdown-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin-top: 10px;
+    font-family: 'Montserrat', sans-serif;
+    z-index: 10;
+  }
+  
+  .status-selected {
+    background: white;
+    border-radius: 70px;
+    width: 40%;
+    padding: 15px 25px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px rgba(131, 56, 235, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .status-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 47%;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .status-option {
+    padding: 15px 25px;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+  }
+  
+  .status-option.ok {
+    background-color: #0DB862;
+   
+  }
+  
+  .status-option.problems {
+    background-color: #DBD76C;
+    
+    
+  }
+  
+  .status-option.major-problems {
+    background-color: #D34F4F;
+    
+  }
+  
+  .status-option:hover {
+    filter: brightness(1.1);
+  }
+  
+  .dropdown-arrow {
+    margin-left: 10px;
+  }
+  
 .unique-edit-button {
     background: #8338EB;
     color: white;
@@ -117,6 +180,7 @@
   letter-spacing: 0;
 }
 
+
 .unique-meeting-date {
     display: inline-block;
     background: #8338EB;
@@ -144,11 +208,14 @@
 
 .unique-task {
     background: white;
-    min-height: 100px;
-    padding: 20px 70px;
+    min-height: 45px;
+    padding: 20px 30px;
     border-radius: 70px;
     font-size: 20px;
     width: 100%;
+    display: block;
+    word-break: break-all;
+    white-space: normal;
 }
 
 .unique-input {
@@ -160,6 +227,10 @@
     font-size: 20px;
     font-family: inherit;
     width: 100%;
+}
+.edit-icon23{
+  margin-top: 20px;
+  margin-left: 25px;
 }
 
 .unique-dropdown {
@@ -175,13 +246,16 @@
 
 .unique-link {
     background: white;
-    padding: 20px 70px;
+    padding: 20px 30px;
     border-radius: 70px;
     color: black;
     text-decoration: none;
     font-weight: 300;
     font-size: 20px;
     width: 100%;
+    display: block;
+    word-break: break-all;
+    white-space: normal;
 }
 
 .unique-status {
@@ -189,7 +263,7 @@
     padding: 10px 100px;
     border-radius: 70px;
     font-size: 16px;
-    font-weight: bold;
+    
     text-align: center;
 }
 
@@ -198,12 +272,12 @@
     color: white;
 }
 
-.unique-status.problems {
+.unique-status.with_issues {
     background-color: #DBD76C;
-    color: black;
+    color: white;
 }
 
-.unique-status.major_problems {
+.unique-status.many_issues {
     background-color: #D34F4F;
     color: white;
 }
@@ -415,3 +489,100 @@
       }
     
   }
+  /* Обновленные стили для полей в режиме редактирования */
+.unique-textarea,
+.unique-input {
+    background: white;
+    min-height: 45px; /* Уменьшаем высоту текстовых полей */
+    padding: 15px 30px; /* Уменьшаем отступы */
+    border: none;
+    border-radius: 70px;
+    font-size: 20px;
+    resize: none; /* Отключаем изменение размера */
+    font-family: inherit;
+    width: 100%;
+    box-shadow: none;
+    outline: none;
+}
+
+/* Специальные стили для текстовых областей */
+.unique-textarea {
+     
+    line-height: 1.4; /* Улучшаем читаемость текста */
+}
+
+/* Стили для выпадающего списка */
+.unique-dropdown {
+    background: white;
+    height: 45px; /* Уменьшаем высоту */
+    padding: 0 30px; /* Увеличиваем отступы по бокам */
+    border: none;
+    border-radius: 70px;
+    font-size: 20px;
+    font-family: inherit;
+    width: 100%;
+    appearance: none; /* Убираем стандартный вид */
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 20px center;
+    background-size: 20px;
+}
+
+/* Стили для иконки редактирования */
+.edit-icon2434 {
+    margin-left: 15px;
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+/* Убираем стандартные стили фокуса */
+.unique-textarea:focus,
+.unique-input:focus,
+.unique-dropdown:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(131, 56, 235, 0.3);
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .unique-textarea,
+    .unique-input,
+    .unique-dropdown {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+    
+    .unique-textarea {
+        min-height: 80px;
+    }
+    
+    .unique-dropdown {
+        height: 40px;
+        background-position: right 15px center;
+    }
+    
+    .edit-icon {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .unique-textarea,
+    .unique-input,
+    .unique-dropdown {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+    
+    .unique-textarea {
+        min-height: 70px;
+    }
+    
+    .unique-dropdown {
+        height: 38px;
+    }
+}

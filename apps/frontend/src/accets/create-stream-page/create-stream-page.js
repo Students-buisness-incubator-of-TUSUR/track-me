@@ -238,7 +238,7 @@ export default function CreateStream() {
                             />
                         </div>
                     </div>
-                    <div className="Stream-bb Stream-header-chosefrom-buttw">
+                    <div className="Stream-bb Stream-header-chosefrom-buttw2323131">
                         <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
                             <div className="Stream-header-chosefrom-butt-cont"
                                  onClick={handleShowCheckboxes2}>
