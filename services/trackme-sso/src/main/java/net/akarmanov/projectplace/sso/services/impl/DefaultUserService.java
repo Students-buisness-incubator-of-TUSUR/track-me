@@ -14,7 +14,7 @@ import net.akarmanov.projectplace.sso.dto.UserDto;
 import net.akarmanov.projectplace.sso.exception.AuthException;
 import net.akarmanov.projectplace.sso.exception.WrongOldPasswordException;
 import net.akarmanov.projectplace.sso.mapper.AuthorizedUserMapper;
-import net.akarmanov.projectplace.sso.mappers.UserMapper;
+import net.akarmanov.projectplace.sso.mapper.UserMapper;
 import net.akarmanov.projectplace.sso.services.UserService;
 import net.akarmanov.projectplace.sso.type.AuthErrorCode;
 import org.springframework.data.domain.Page;

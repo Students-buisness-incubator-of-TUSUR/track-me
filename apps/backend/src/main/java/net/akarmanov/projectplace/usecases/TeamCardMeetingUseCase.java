@@ -31,7 +31,7 @@ public class TeamCardMeetingUseCase {
   }
 
   public Page<MeetingDto> getMeetings(UUID teamCardId, Pageable pageable) {
-    var meetings = meetingService.getMeetingsForCurrentUser(teamCardId, pageable);
+    var meetings = meetingService.getMeetings(teamCardId, pageable);
     return meetings.map(meetingMapper::mapToDto);
   }
 

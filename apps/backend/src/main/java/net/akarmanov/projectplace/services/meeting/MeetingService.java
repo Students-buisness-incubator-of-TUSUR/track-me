@@ -10,11 +10,10 @@ import java.util.UUID;
 public interface MeetingService {
   Meeting createMeeting(TeamCard teamCard, Meeting createMeeting);
 
-  Page<Meeting> getMeetingsForCurrentUser(UUID teamCardId, Pageable pageable);
+  Page<Meeting> getMeetings(UUID teamCardId, Pageable pageable);
 
   Meeting updateMeeting(UUID meetingId, UUID teamCardId, Meeting createMeeting);
 
   void deleteMeeting(UUID meetingId);
 
-  Meeting getById(UUID targetId);
 }
