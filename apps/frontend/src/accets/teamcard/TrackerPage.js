@@ -194,10 +194,61 @@ useEffect(() => {
                 console.error(error);
             });
     }, [navigate, backendHost, fetchCards]);
+    useEffect(() => {
+    if (!userRole) return;
+
+    fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ filters: [] }),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Ошибка при загрузке потоков");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            const list = data?.content ?? [];
+
+            const streamsWithNames = list.map((stream) => ({
+                id: stream.id,
+                name: stream.name,
+                startDate: stream.startDate,
+                endDate: stream.endDate,
+            }));
+            setStreams(streamsWithNames);
+
+            if (userRole === "TRACKER" && streamsWithNames.length > 0) {
+                const firstStream = streamsWithNames[0];
+                localStorage.setItem("streamName", firstStream.name);
+                localStorage.setItem("streamId", firstStream.id);
+                localStorage.setItem("streamSDate", firstStream.startDate);
+                localStorage.setItem("streamEDate", firstStream.endDate);
+
+                setStreamName(firstStream.name);
+                setStreamId(firstStream.id);
+                setStreamSDate(firstStream.startDate);
+                setStreamEDate(firstStream.endDate);
+            } else {
+                setStreamName(localStorage.getItem("streamName"));
+                setStreamId(localStorage.getItem("streamId"));
+                setStreamSDate(localStorage.getItem("streamSDate"));
+                setStreamEDate(localStorage.getItem("streamEDate"));
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+}, [backendHost, userRole]);
+
 
     useEffect(() => {
 
-        fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
+        fetch(`${backendHost}/api/v1/admin/streams?page=0&size=150`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -306,6 +357,16 @@ useEffect(() => {
         setSelectedYears([]);
 
     };
+    const handleLogout = async () => {
+    // 1. Удаление данных из localStorage
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("streamName");
+    localStorage.removeItem("streamId");
+    localStorage.removeItem("streamSDate");
+    localStorage.removeItem("streamEDate");
+    
+    }
 
     return (
         <div className="tracker-container">
@@ -315,12 +376,12 @@ useEffect(() => {
                     <h1 className="Stream-title">TrackMe</h1>
                     <div className="Stream-header-cont-cont">
                         <h1 className="Stream-title11">
-                            {(userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+                            {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER")
                                 ? (streamName ? streamName : "Название потока не получено")
                                 : ""
                             }
                         </h1>
-                        {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
+                        {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER") && (
                             <h1 className="Stream-title11">
                                 {streamName ? ": Сроки акселератора: " + streamSDate + " - " + streamEDate : "Название потока не получено"}
                             </h1>
@@ -329,7 +390,7 @@ useEffect(() => {
 
                     <div className="Stream-buttons">
                         <Link to={logoutHost}>
-                            <button className="Stream-butt">Выход</button>
+                            <button className="Stream-butt" onClick={handleLogout}>Выход</button>
                         </Link>
                         <Link to="/profile" className="Stream-pic"></Link>
                     </div>
