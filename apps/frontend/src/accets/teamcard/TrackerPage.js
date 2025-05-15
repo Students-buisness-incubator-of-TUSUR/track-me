@@ -322,7 +322,7 @@ useEffect(() => {
                         </h1>
                         {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
                             <h1 className="Stream-title11">
-                                {streamName ? "Сроки акселератора: " + streamSDate + " - " + streamEDate : "Название потока не получено"}
+                                {streamName ? ": Сроки акселератора: " + streamSDate + " - " + streamEDate : "Название потока не получено"}
                             </h1>
                         )}
                     </div>

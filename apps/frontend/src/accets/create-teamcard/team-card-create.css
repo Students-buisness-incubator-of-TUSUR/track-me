@@ -165,7 +165,7 @@ input:focus {
     width: 100%;
 }
 
-/* .create-stream-list, */
+.create-stream-list,
 .create-checkbox-list {
     color: white;
 }
@@ -181,6 +181,30 @@ input:focus {
 .create-team-description-label {
     display: flex;
     gap: 20px;
+    color: #333;
+    font-size: 24px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.create-description-input {
+    width: 739px;
+    height: 238px;
+    padding: 29px 68px 29px 41px;
+    border-radius: 70px;
+    font-size: 24px;
+    font-weight: 300;
+    border: 3px solid #8338EB;
+    resize: none;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+
+
+
+.create-team-description-label {
+    display: block;
     color: #333;
     font-size: 24px;
     font-weight: 400;
