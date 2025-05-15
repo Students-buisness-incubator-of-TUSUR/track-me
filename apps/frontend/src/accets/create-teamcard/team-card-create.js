@@ -243,8 +243,6 @@ const TeamCard = () => {
                                         ))}
                                     </div>
                                 )}
-                                <img src={penIcon} alt="edit" className="create-edit-icon"
-                                     onClick={() => setShowTrackers(!showTrackers)}/>
                             </div>
                         {/* ) : (
                             <input
@@ -255,6 +253,7 @@ const TeamCard = () => {
                             />
                         )} */}
                     </div>
+                    <img src={penIcon} alt="edit" className="create-edit-icon"/>
                 </div>
 
                 <div className="create-card-info">
@@ -267,49 +266,11 @@ const TeamCard = () => {
                             onChange={handleChange}
                             placeholder="Введите название команды"
                         />
-                        {/* <img src={penIcon} alt="edit" className="create-edit-icon"/> */}
                     </div>
+                    <img src={penIcon} alt="edit" className="create-edit-icon"/>
                 </div>
 
-                <div className="create-dropdown-block">
-                    <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
-                        {selectedMarket ? selectedMarket.displayName : "Рынок НТИ"}
-                    </div>
-                    {showNTI && (
-                        <div className="create-checkbox-list">
-                            {markets.map((market) => (
-                                <div
-                                    key={market.id}
-                                    className="create-checkbox-item"
-                                    onClick={() => handleMarketSelect(market)}
-                                >
-                                    {market.displayName}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className="create-dropdown-block">
-                    <div className="create-dropdown-toggle" onClick={() => setShowTRL(!showTRL)}>
-                        {selectedTRL ? selectedTRL.label : "TRL"}
-                    </div>
-                    {showTRL && (
-                        <div className="create-checkbox-list">
-                            {trlLevels.map((trl) => (
-                                <div
-                                    key={trl.id}
-                                    className="create-checkbox-item"
-                                    onClick={() => handleTRLSelect(trl)}
-                                >
-                                    {trl.label}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className="create-dropdown-block">
+                <div className={`create-dropdown-block${showStreams ? " open" : ""}`}>
                     <div className="create-dropdown-toggle" onClick={() => setShowStreams(!showStreams)}>
                         {selectedTRL ? selectedTRL.label : "Все потоки"}
                     </div>
@@ -328,8 +289,51 @@ const TeamCard = () => {
                         )}
                 </div>
 
+                <div className={`create-dropdown-block${showNTI ? " open" : ""}`}>
+                    <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
+                        {selectedMarket ? selectedMarket.displayName : "Рынок НТИ"}
+                    </div>
+                    {showNTI && (
+                        <div className="create-checkbox-list">
+                            {markets.map((market) => (
+                                <div
+                                    key={market.id}
+                                    className="create-checkbox-item"
+                                    onClick={() => handleMarketSelect(market)}
+                                >
+                                    {market.displayName}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className={`create-dropdown-block${showTRL ? " open" : ""}`}>
+                    <div className="create-dropdown-toggle" onClick={() => setShowTRL(!showTRL)}>
+                        {selectedTRL ? selectedTRL.label : "TRL"}
+                    </div>
+                    {showTRL && (
+                        <div className="create-checkbox-list">
+                            {trlLevels.map((trl) => (
+                                <div
+                                    key={trl.id}
+                                    className="create-checkbox-item"
+                                    onClick={() => handleTRLSelect(trl)}
+                                >
+                                    {trl.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                
+
                 <div className="create-team-description">
-                    <span className="create-team-description-label">Описание:</span>
+                    <span className="create-team-description-label">Описание:
+                        <img src={penIcon} alt="edit" className="create-edit-icon"/>    
+                    </span>
+                    
                     <div className="create-team-description-wrapper">
                         <textarea
                             className="create-description-input"
@@ -342,19 +346,20 @@ const TeamCard = () => {
 
             <div className="create-right-panel">
                 <div className="create-meetings-block">
-                    <div className="create-meetings-exist">
+                    {/* <div className="create-meetings-exist">
                         <div className="create-meeting">
                             <span class="meeting-date">25.04</span>
                             <span class="meeting-title">Встреча 1</span> 
                         </div>
                         <div className="create-meeting">   
                         </div>
-                    </div>
+                    </div> */}
                     <button
                         className="create-meeting-add"
                     >
                         Запланировать   
                     </button>
+                    <div className="fake-scrollbar"></div>
                 </div>
             </div>
 

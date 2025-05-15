@@ -12,7 +12,7 @@ body {
     width: 1719px;
     min-width: 80vh;
     min-height: 80vh;
-    max-height: 908px;
+    max-height: 988px;
     margin: 40px auto;
     padding: 40px;
     background: #fff;
@@ -73,8 +73,9 @@ body {
     font-size: 24px;
     font-weight: 300;
     line-height: 30px;
-    width: 400px;
+    width: 350px;
     min-width: 150px;
+    font-family:'Mulish';
 }
 
 input:focus {
@@ -90,10 +91,7 @@ input:focus {
 }
 
 .create-edit-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+    margin-top: 8px;
     width: 25px;
     height: 25px;
     cursor: pointer;
@@ -101,16 +99,19 @@ input:focus {
 }
 
 .create-dropdown-block {
-    width: 343px;
+    width: 303px;
     position: relative;
     border-radius: 24px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .create-dropdown-toggle {
     font-weight: bold;
     cursor: pointer;
     color: white;
+    font-family:'Mulish';
+    font-size: 20px;
+    font-weight: 600;
     background: #caa7f9;
     padding: 14px 20px;
     border: none;
@@ -118,10 +119,11 @@ input:focus {
     box-sizing: border-box;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    text-align: center;
+    text-align: left;
     position: relative;
     opacity: 1;
     transition: opacity 0.3s;
+    border-radius: 24px;
 }
 
 .create-dropdown-toggle::after {
@@ -136,8 +138,17 @@ input:focus {
     cursor: not-allowed;
 }
 
+.create-dropdown-block.open .create-dropdown-toggle {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
 
 .create-checkbox-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
     background: #caa7f9;
     min-width: 260px;
     max-width: 100%;
@@ -146,12 +157,15 @@ input:focus {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
     gap: 10px 14px;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     max-height: 300px;
+    width: 100%;
 }
 
-.create-stream-list,
+/* .create-stream-list, */
 .create-checkbox-list {
     color: white;
 }
@@ -165,7 +179,8 @@ input:focus {
 
 
 .create-team-description-label {
-    display: block;
+    display: flex;
+    gap: 20px;
     color: #333;
     font-size: 24px;
     font-weight: 400;
@@ -194,6 +209,7 @@ input:focus {
     display: flex;
     flex-direction: column;
     padding-top: 72px;
+    padding-right: 10px;
 }
 
 .create-meetings-block {
@@ -202,6 +218,9 @@ input:focus {
     border-radius: 35px;
     border: 3px solid #8338EB;
     padding: 35px 66px 35px 30px;
+    margin-left: auto;
+    display: flex;
+    position: relative;
 }
 
 .create-meetings-exist {
@@ -216,21 +235,21 @@ input:focus {
     border-radius: 70px;
     background: #8338EB;
     display: flex;
-    position: relative;
+    position: absolute;
 }
 
 .meeting-date {
     position: absolute;
-    left: 30px; /* Фиксированный отступ от края */
-    width: 60px; /* Ширина блока с датой */
+    left: 30px;
+    width: 60px;
     color: #666;
 }
   
 .meeting-title {
     flex: 1;
-    text-align: center; /* Выравнивание текста по центру */
-    padding-left: 90px; /* Компенсируем ширину даты + отступ */
-    padding-right: 30px; /* Симметричный отступ справа */
+    text-align: center;
+    padding-left: 90px; 
+    padding-right: 30px; 
 }
 
 .create-meeting-add {
@@ -241,7 +260,20 @@ input:focus {
     font-size: 24px;
     font-weight: 600;
     background: #878685;
-    margin-top: 15px;
+    border: none;
+    font-weight: 400;
+    font-family: 'Montserrat', monospace;
+}
+
+.fake-scrollbar {
+    position: absolute;
+    top: 35px;
+    right: 50px;
+    bottom: 35px;
+    width: 10px;
+    margin-right: -26px;
+    border-radius: 39px;
+    border: 3px solid #8338EB;
 }
 
 .create-checkbox-label {
@@ -259,23 +291,16 @@ input:focus {
 }
 
 .create-button {
-    background: #8e44fd;
+    background: #8338EB;
     color: white;
     padding: 14px 32px;
-    font-size: 16px;
+    font-size: 20px;
+    width: 182px;
+    height: 50px;
     border: none;
     border-radius: 30px;
     cursor: pointer;
     transition: background 0.3s;
-}
-
-.create-button:hover {
-    background: #732fd8;
-}
-
-.create-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
 }
 
 .error-message {

@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./team-card.css";
 import {useSelector} from "react-redux";
+import penIcon from "./pen.png";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 
@@ -33,15 +34,6 @@ const reduxUser = useSelector(state => state.user?.user);
     const [showTRL, setShowTRL] = useState(false);
     const [selectedMarket, setSelectedMarket] = useState(null);
     const [selectedTRL, setSelectedTRL] = useState(null);
-
-    const [isCreatingMeeting, setIsCreatingMeeting] = useState(false);
-    const [newMeetingData, setNewMeetingData] = useState({
-        number: "",
-        startDate: new Date().toISOString(),
-        link: "",
-        tasksCurrentMeeting: "",
-        tasksNextMeeting: "",
-    });
 
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState(null);
@@ -210,43 +202,6 @@ const reduxUser = useSelector(state => state.user?.user);
         setEditedData({...editedData, [e.target.name]: e.target.value});
     };
 
-    const handleNewMeetingChange = (e) => {
-        const {name, value} = e.target;
-        setNewMeetingData((prev) => ({...prev, [name]: value}));
-    };
-
-    const handleCreateMeeting = async () => {
-        try {
-            const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    ...newMeetingData,
-                    startDate: new Date(newMeetingData.startDate).toISOString(),
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Ошибка при создании встречи");
-            }
-
-            const createdMeeting = await response.json();
-            setMeetings((prev) => [...prev, createdMeeting]);
-            setIsCreatingMeeting(false);
-            setNewMeetingData({
-                number: "",
-                startDate: new Date().toISOString(),
-                link: "",
-                tasksCurrentMeeting: "",
-                tasksNextMeeting: "",
-            });
-        } catch (error) {
-            handleApiError(error, "создании встречи");
-        }
-    };
 
     const handleSave = async () => {
         setIsLoading(true);
@@ -344,259 +299,197 @@ const reduxUser = useSelector(state => state.user?.user);
 
             <button
                 className="edit-button-widget"
-                onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                // onClick={isEditing ? handleSave : () => setIsEditing(true)}
                 disabled={!teamData || isLoading}
             >
                 {isLoading ? "Сохранение..." : (isEditing ? "Сохранить" : "Редактировать")}
             </button>
 
-            {apiError && (
-                <div className="error-message" style={{
-                    position: 'absolute',
-                    top: '80px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: '#ffebee',
-                    padding: '10px 20px',
-                    borderRadius: '4px',
-                    color: '#c62828'
-                }}>
-                    {apiError}
+
+            <div className="team-card-left">
+                <div className="team-card-info">
+                    <span className="team-label-widget">Трекер:</span>
+                    <div className="team-input-wrapper">
+                        {(role === "ADMIN" || role === "SUPER_ADMIN") && isEditing ? (
+                            <>
+                                <select
+                                    className="team-input-widget"
+                                    name="username"
+                                    value={editedData.username || ""}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">Выберите трекера</option>
+                                    {Array.isArray(trackers) && trackers.map(tracker => (
+                                        <option key={tracker.id} value={tracker.id}>
+                                            {tracker.fullName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </>
+                        ) : (
+                            <>
+                                <input
+                                    className="team-input-widget"
+                                    value={teamData.user?.fullName || ""}
+                                    readOnly
+                                    placeholder="ФИО трекера"
+                                />
+                                                            </>
+                        )}
+                    </div>
+                    {isEditing && (
+                            <img src={penIcon} alt="edit" className="team-edit-icon"/>
+                    )}
                 </div>
-            )}
 
+                <div className="team-card-info">
+                    <span className="team-label-widget">Название команды:</span>
+                    <div className="team-input-wrapper">
+                        <input
+                            className="team-input-widget"
+                            name="name"
+                            value={editedData.name || ""}
+                            onChange={handleChange}
+                            readOnly={!isEditing}
+                            placeholder="Карточка команды"
+                        />
+                                            </div>
+                    {isEditing && (
+                            <img src={penIcon} alt="edit" className="team-edit-icon"/>
+                    )}
+                </div>
 
-            <div className="left-column">
-                <div className="inputs-container">
-                    <div className="create-card-info">
-                        <span className="team-label-widget">Трекер:</span>
-                        <div className="team-input-wrapper">
-                            {(role === "ADMIN" || role === "SUPER_ADMIN") && isEditing ? (
-                                <>
-                                    <select
-                                        className="team-input-widget"
-                                        name="username"
-                                        value={editedData.username || ""}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="">Выберите трекера</option>
-                                        {Array.isArray(trackers) && trackers.map(tracker => (
-                                            <option key={tracker.id} value={tracker.id}>
-                                                {tracker.fullName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <img src={require("./pen.png")} alt="edit"
-                                         className="edit-icon12345"/>
-                                </>
-                            ) : (
-                                <>
-                                    <input
-                                        className="team-input-widget"
-                                        value={teamData.user?.fullName || ""}
-                                        readOnly
-                                        placeholder="ФИО трекера"
-                                    />
-                                    {/* Не показываем pen для readonly */}
-                                </>
-                            )}
-                        </div>
+                {isEditing ? (
+                    <div className="dropdown-block">
+                        <div
+                            className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
+                        >
+                            {"Поток"}
+                        </div>                                  
                     </div>
+                ) : (null)}
 
-
-                    <div className="team-info-widget">
-                        <span className="team-label-widget">Название команды:</span>
-                        <div className="team-input-wrapper">
-                            <input
-                                className="team-input-widget"
-                                name="name"
-                                value={editedData.name || ""}
-                                onChange={handleChange}
-                                readOnly={!isEditing}
-                                placeholder="Карточка команды"
-                            />
-                            {isEditing && (
-                                <img src={require("./pen.png")} alt="edit" className="edit-icon12345"/>
-                            )}
+                {isEditing ? (
+                    <div className={`dropdown-block${showNTI ? " open" : ""}`}>
+                        <div
+                            className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
+                            onClick={() => isEditing && setShowNTI(!showNTI)}
+                        >
+                            {selectedMarket?.displayName || "Рынок НТИ"}
                         </div>
-                    </div>
-
-                    <div className="meetings-section">
-                        <div className="meetings-left">
-                            <span className="team-label-widget">Встречи:</span>
-                            <div className="meetings-grid-widget">
-                                {meetings.map((meeting) => (
+                        {isEditing && showNTI && (
+                            <div className="dropdown-list">
+                                {ntiMarkets.map((market) => (
                                     <div
-                                        key={meeting.id}
-                                        className={`meeting-item-widget ${meeting.status === 'DONE' ? 'done' : 'planned'}`}
-                                        onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
-
+                                        key={market.id}
+                                        className="dropdown-item"
+                                        onClick={() => handleMarketSelect(market)}
                                     >
-                                        <span
-                                            className="meeting-number-widget">{meeting.number || "-"}</span>
-                                        <span className="meeting-date-widget">
-                        {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                        })}
-                      </span>
-                                        {meeting.link && (
-                                            <a href={meeting.link} target="_blank"
-                                               rel="noopener noreferrer"
-                                               className="meeting-link-widget">
-                                                Ссылка на встречу
-                                            </a>
-                                        )}
-                                        {meeting.tasks && meeting.tasks.length > 0 && (
-                                            <ul className="meeting-tasks-widget">
-                                                {meeting.tasks.map((task) => (
-                                                    <li key={task.id}>{task.description}</li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                        {meeting.status === 'DONE' &&
-                                            <span className="check-mark-widget">✓</span>}
+                                        {market.displayName}
                                     </div>
                                 ))}
-                                {isCreatingMeeting && (
-                                    <div className="new-meeting-form">
-                                        <input
-                                            type="text"
-                                            name="number"
-                                            placeholder="Номер встречи"
-                                            value={newMeetingData.number}
-                                            onChange={handleNewMeetingChange}
-                                        />
-                                        <input
-                                            type="datetime-local"
-                                            name="startDate"
-                                            value={new Date(newMeetingData.startDate).toISOString().slice(0, 16)}
-                                            onChange={handleNewMeetingChange}
-                                        />
-                                        <input
-                                            type="text"
-                                            name="link"
-                                            placeholder="Ссылка на встречу"
-                                            value={newMeetingData.link}
-                                            onChange={handleNewMeetingChange}
-                                        />
-                                        <textarea
-                                            name="tasksCurrentMeeting"
-                                            placeholder="Задачи текущей встречи"
-                                            value={newMeetingData.tasksCurrentMeeting}
-                                            onChange={handleNewMeetingChange}
-                                        />
-                                        <textarea
-                                            name="tasksNextMeeting"
-                                            placeholder="Задачи к следующей встрече"
-                                            value={newMeetingData.tasksNextMeeting}
-                                            onChange={handleNewMeetingChange}
-                                        />
-                                        <button onClick={handleCreateMeeting}>Создать</button>
-                                        <button onClick={() => setIsCreatingMeeting(false)}>Отмена
-                                        </button>
-                                    </div>
-                                )}
-                                <div className="meeting-item-widget add"
-     onClick={() => navigate(`/meeting-create/${id}?username=${username}`)}>+
-</div>
                             </div>
-
-                            {totalPages > 1 && (
-                                <div className="pagination-widget">
-                                    {[...Array(totalPages)].map((_, index) => (
-                                        <span
-                                            key={index}
-                                            className={`dot-widget ${currentPage === index ? 'active' : ''}`}
-                                            onClick={() => handlePageChange(index)}
-                                        />
-                                    ))}
-                                </div>
+                        )}      
+                    </div>
+                ) : (
+                        <div className="team-card-info">
+                            <span className="team-label-widget">Рынки НТИ:</span>
+                            <div className="team-input-list">
+                                <div className="team-input-item">Рынок НТИ</div>
+                                <div className="team-input-item">Рынок НТИ</div>
+                                
+                            </div>
+                            {isEditing && (
+                                    <img src={penIcon} alt="edit" className="team-edit-icon"/>
                             )}
                         </div>
+                    )}
+
+                {isEditing ? (
+                    <div className="dropdown-block">
+                        <div
+                            className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
+                            onClick={() => isEditing && setShowTRL(!showTRL)}
+                        >
+                            {selectedTRL?.label || "TRL"}
+                        </div>
+                        {isEditing && showTRL && (
+                            <div className="dropdown-list">
+                                {trlLevels.map((trl) => (
+                                    <div
+                                        key={trl.id}
+                                        className="dropdown-item"
+                                        onClick={() => handleTRLSelect(trl)}
+                                    >
+                                        {trl.label}
+                                    </div>
+                                ))}
+                            </div>
+                        )}                                   
+                    </div>
+                ) : (
+                    <div className="team-card-info">
+                    <span className="team-label-widget">TRL:</span>
+                    <div className="team-input-list">
+                        <div className="team-input-item">TRL</div>
+                        
+                    </div>
+                    {isEditing && (
+                            <img src={penIcon} alt="edit" className="team-edit-icon"/>
+                    )}
+                </div>
+                )}
+
+                <div className="team-description">
+                    <span className="team-description-label">Описание:
+                        {isEditing && (
+                                <img src={penIcon} alt="edit" className="team-edit-icon"/>
+                        )}    
+                    </span>
+                    
+                    <div className="team-description-wrapper">
+                        <textarea
+                            className="team-description-input"
+                            name="description"
+                            placeholder="Описание карточки команды"
+                        />
                     </div>
                 </div>
+
+                {isEditing ? (null) : (
+                    <div className="team-stream-block">
+                        Название потока 12 команд 01.01.2025 - 10.10.2025
+                    </div>
+                )}
+   
             </div>
 
             <div className="right-panel">
-                <div className="dropdown-block">
-                    <div
-                        className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
-                        onClick={() => isEditing && setShowNTI(!showNTI)}
-                    >
-                        {selectedMarket?.displayName || "Рынок НТИ"}
-                    </div>
-                    {isEditing && showNTI && (
-                        <div className="dropdown-list">
-                            {ntiMarkets.map((market) => (
-                                <div
-                                    key={market.id}
-                                    className="dropdown-item"
-                                    onClick={() => handleMarketSelect(market)}
-                                >
-                                    {market.displayName}
-                                </div>
-                            ))}
+            <div className="team-meetings-block">
+                    <div className="team-meetings-exist">
+                        <div className="team-meeting">
+                            <span class="meeting-date">25.04</span>
+                            <span class="meeting-title">Встреча 1</span> 
                         </div>
-                    )}
-                </div>
-
-                <div className="dropdown-block">
-                    <div
-                        className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
-                        onClick={() => isEditing && setShowTRL(!showTRL)}
-                    >
-                        {selectedTRL?.label || "TRL"}
-                    </div>
-                    {isEditing && showTRL && (
-                        <div className="dropdown-list">
-                            {trlLevels.map((trl) => (
-                                <div
-                                    key={trl.id}
-                                    className="dropdown-item"
-                                    onClick={() => handleTRLSelect(trl)}
-                                >
-                                    {trl.label}
-                                </div>
-                            ))}
+                        <div className="team-meeting">  
+                            <span class="meeting-date">25.04</span>
+                            <span class="meeting-title">Встреча 1</span>  
                         </div>
-                    )}
+                    </div>
+                        <button className="team-meeting-add">
+                            Запланировать   
+                        </button>
+                    <div className="fake-scrollbar"></div>
                 </div>
             </div>
-
-
-            {(role === "ADMIN" || role === "SUPER_ADMIN") && isEditing ? (
-                <div className="stream-attach-button-container">
-                    <div className="dropdown-block">
-                        <select
-                            className="dropdown-toggle"
-                            name="streamId"
-                            value={editedData.streamId || ""}
-                            onChange={handleChange}
-                        >
-                            <option value="" disabled>Выберите поток</option>
-                            {streams.map((s) => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-            ) : (
-                <div className="stream-attach-button-container">
-                    <div className="dropdown-block">
-                        <div className="dropdown-toggle">
-                            {teamData.stream ? teamData.stream.name : 'Не привязан к потоку'}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="red-button-container">
+            {isEditing ? (
+                <div className="red-button-container">
                 <button className="red-button-widget" onClick={handleDeactivate}>
                     <span>Деактивировать</span>
                 </button>
             </div>
+            ) : (null)}
+            
         </div>
     );
 };
