@@ -4,7 +4,6 @@ package net.akarmanov.projectplace.sso.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface RegistrationController {
   @PostMapping("/init")
   @Operation(summary = "Регистрация нового пользователя")
-  ResponseEntity<Void> register(@RequestBody @Valid RegistrationRequestDto registrationRequest,
-                                HttpServletResponse response);
+  ResponseEntity<Void> register(@RequestBody @Valid RegistrationRequestDto registrationRequest);
 
   @PostMapping("/confirm")
   @Operation(summary = "Подтверждение регистрации пользователя")

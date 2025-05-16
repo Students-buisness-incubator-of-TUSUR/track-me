@@ -1,7 +1,6 @@
 package net.akarmanov.projectplace.sso.controller.impl;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.sso.controller.RegistrationController;
@@ -17,10 +16,9 @@ public class DefaultRegistrationController implements RegistrationController {
   private final RegistrationService registrationService;
 
   @Override
-  public ResponseEntity<Void> register(RegistrationRequestDto registrationRequest,
-                                       HttpServletResponse response) {
+  public ResponseEntity<Void> register(RegistrationRequestDto registrationRequest) {
     log.info("Registering user with email: {}", registrationRequest.email());
-    registrationService.register(registrationRequest, response);
+    registrationService.register(registrationRequest);
     return ResponseEntity.ok().build();
   }
 

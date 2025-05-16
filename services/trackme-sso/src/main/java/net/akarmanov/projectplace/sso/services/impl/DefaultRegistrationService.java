@@ -1,7 +1,6 @@
 package net.akarmanov.projectplace.sso.services.impl;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.akarmanov.projectplace.sso.components.RegistrationStore;
@@ -38,7 +37,7 @@ public class DefaultRegistrationService implements RegistrationService {
 
 
   @Override
-  public void register(RegistrationRequestDto requestDto, HttpServletResponse response) {
+  public void register(RegistrationRequestDto requestDto) {
     if (userService.existByEmail(requestDto.email())) {
       throw InformationException.builder("$account.already.exist").build();
     }
