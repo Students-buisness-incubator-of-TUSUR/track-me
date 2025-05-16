@@ -13,13 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -44,8 +38,7 @@ public interface TeamCardsAdminRestController {
   ResponseEntity<TeamCardDto> updateTeamCard(@RequestParam UUID teamCardId,
                                              @RequestParam String username,
                                              @RequestParam(required = false) UUID streamId,
-                                             @Valid @RequestBody
-                                             TeamCardCreateOrUpdateDto teamCardDto);
+                                             @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto);
 
   @PostMapping(value = "team-cards",
                produces = "application/json")
@@ -62,8 +55,7 @@ public interface TeamCardsAdminRestController {
   ResponseEntity<TeamCardDto> getTeamCard(
       @Parameter(description = "Идентификатор карточки команды",
                  example = "123e4567-e89b-12d3-a456-426614174000")
-      @RequestParam
-      UUID id,
+      @RequestParam UUID id,
       @RequestParam String username);
 
   @DeleteMapping(value = "team-card")
@@ -71,7 +63,6 @@ public interface TeamCardsAdminRestController {
   ResponseEntity<Void> deleteTeamCard(
       @Parameter(description = "Идентификатор карточки команды",
                  example = "123e4567-e89b-12d3-a456-426614174000")
-      @RequestParam
-      UUID id,
+      @RequestParam UUID id,
       @RequestParam String username);
 }

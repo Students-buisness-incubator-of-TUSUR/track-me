@@ -9,15 +9,20 @@ import net.akarmanov.projectplace.models.MeetingStatus;
 import net.akarmanov.projectplace.repos.MeetingRepository;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.repos.TeamCardsRepository;
+import net.akarmanov.projectplace.services.meeting.MeetingService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.OffsetDateTime;
-import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -34,6 +39,9 @@ class MeetingRestControllerTest extends BaseApplicationTest {
 
     @Autowired
     private MeetingRepository meetingRepository;
+
+    @Autowired
+    private MeetingService meetingService;
 
     @Autowired
     private NtiMarketRepository ntiMarketRepository;
@@ -53,26 +61,25 @@ class MeetingRestControllerTest extends BaseApplicationTest {
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
 
-        meetingRepository.saveAll(List.of(
-                Meeting.builder()
-                        .link("https://example.com/meeting")
-                        .number("12343")
-                        .startDate(OffsetDateTime.now().plusDays(1))
-                        .teamCard(teamCard)
-                        .status(MeetingStatus.OK)
-                        .tasksCurrentMeeting("tasksCurrentMeeting")
-                        .tasksNextMeeting("tasksNextMeeting")
-                        .build(),
-                Meeting.builder()
-                        .link("https://example.com/meeting")
-                        .number("12345")
-                        .startDate(OffsetDateTime.now().plusDays(1))
-                        .teamCard(teamCard)
-                        .status(MeetingStatus.OK)
-                        .tasksCurrentMeeting("tasksCurrentMeeting")
-                        .tasksNextMeeting("tasksNextMeeting")
-                        .build()
-        ));
+        meetingService.createMeeting(teamCard, Meeting.builder()
+                .link("https://example.com/meeting")
+                .number("12345")
+                .startDate(OffsetDateTime.now().plusDays(1))
+                .teamCard(teamCard)
+                .status(MeetingStatus.OK)
+                .tasksCurrentMeeting("tasksCurrentMeeting")
+                .tasksNextMeeting("tasksNextMeeting")
+                .build());
+
+        meetingService.createMeeting(teamCard, Meeting.builder()
+                .link("https://example.com/meeting")
+                .number("12343")
+                .startDate(OffsetDateTime.now().plusDays(1))
+                .teamCard(teamCard)
+                .status(MeetingStatus.OK)
+                .tasksCurrentMeeting("tasksCurrentMeeting")
+                .tasksNextMeeting("tasksNextMeeting")
+                .build());
     }
 
     @AfterEach
@@ -189,4 +196,51 @@ class MeetingRestControllerTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.link").value("https://example.com/meeting"))
                 .andExpect(jsonPath("$.number").value("123456"));
     }
+
+//    @Test
+//    void testAddPngImage_success() throws Exception {
+//        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+//        var mockMultipartFile = new MockMultipartFile("file", "test.png", "image/png", "test".getBytes());
+//        mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
+//                        .file(mockMultipartFile)
+//                        .contentType("multipart/form-data"))
+//                .andDo(print())
+//                .andExpect(status().isOk());
+//    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"image/png", "image/jpeg"})
+    void testAddImage_success(String contentType) throws Exception {
+        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+        var mockMultipartFile = new MockMultipartFile("file", "test.png", contentType, "test".getBytes());
+        mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
+                        .file(mockMultipartFile)
+                        .contentType("multipart/form-data"))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        Assertions.assertNotNull(meetingRepository.findById(UUID.fromString(meetingId)).get().getImageBytes());
+    }
+
+    @Test
+    void testAddImage_invalidContentType() throws Exception {
+        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+        var mockMultipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "test".getBytes());
+        mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
+                        .file(mockMultipartFile)
+                        .contentType("multipart/form-data"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testGetImage_success() throws Exception {
+        var meetingId = meetingRepository.findAll().getFirst().getId();
+        meetingService.addImage(meetingId, new MockMultipartFile("file", "test.png", "image/png", "test".getBytes()));
+        mockMvc.perform(get("/api/v1/meetings/" + meetingId + "/image"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/png"));
+    }
+
 }

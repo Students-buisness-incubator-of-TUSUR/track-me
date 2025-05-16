@@ -26,3 +26,6 @@ databaseChangeLog:
       file: db/changelog/meeting-add-tasks-columns.yaml
   - include:
       file: db/changelog/stream-add-active-column.yaml
+  - include:
+      file: db/changelog/meeting-add-image-column.yaml
+

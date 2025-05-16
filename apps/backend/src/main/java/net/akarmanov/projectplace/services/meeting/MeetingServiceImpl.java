@@ -4,15 +4,21 @@ import lombok.RequiredArgsConstructor;
 import net.akarmanov.projectplace.domain.Meeting;
 import net.akarmanov.projectplace.domain.TeamCard;
 import net.akarmanov.projectplace.repos.MeetingRepository;
+import net.akarmanov.projectplace.rest.api.meeting.MeetingEmptyImageException;
+import net.akarmanov.projectplace.rest.api.meeting.MeetingLargeImageSizeException;
 import net.akarmanov.projectplace.services.acl.AclService;
+import net.akarmanov.projectplace.services.exceptions.ImageUploadException;
 import net.akarmanov.projectplace.services.exceptions.MeetingNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -34,10 +40,10 @@ public class MeetingServiceImpl implements MeetingService {
     public Meeting createMeeting(TeamCard teamCard, Meeting createMeeting) {
         createMeeting.setTeamCard(teamCard);
         var save = meetingRepository.save(createMeeting);
-    var username = SecurityContextHolder.getContext().getAuthentication().getName();
-    aclService.createAclForUserWithParent(save, username, teamCard);
-    return save;
-  }
+        var username = SecurityContextHolder.getContext().getAuthentication().getName();
+        aclService.createAclForUserWithParent(save, username, teamCard);
+        return save;
+    }
 
     @Override
     @PreAuthorize("hasPermission(#teamCardId, 'net.akarmanov.projectplace.domain.TeamCard', 'READ') " +
@@ -83,6 +89,49 @@ public class MeetingServiceImpl implements MeetingService {
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
         meetingRepository.delete(meeting);
         aclService.deleteAcl(meeting);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasPermission(#meetingId, 'net.akarmanov.projectplace.domain.Meeting', 'WRITE') or hasRole('ADMIN')")
+    public void addImage(UUID meetingId, MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new MeetingEmptyImageException();
+        }
+
+        if (file.getSize() > MeetingService.MAX_FILE_SIZE) {
+            throw new MeetingLargeImageSizeException(file.getSize());
+        }
+
+        String contentType = file.getContentType();
+        if (!MediaType.IMAGE_PNG_VALUE.equals(contentType) &&
+            !MediaType.IMAGE_JPEG_VALUE.equals(contentType)) {
+            throw new MeetingMIMETypeException(contentType);
+        }
+
+        String originalName = file.getOriginalFilename();
+        if (originalName != null) {
+            String ext = originalName.substring(originalName.lastIndexOf('.') + 1).toLowerCase();
+            if (!ext.equals("png") && !ext.equals("jpg") && !ext.equals("jpeg")) {
+                throw new MeetingImageExtensionException(ext);
+            }
+        }
+
+        var meeting = meetingRepository.findOne(where(meetingIdEquals(meetingId)))
+                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+        try {
+            meeting.setImageBytes(file.getBytes());
+            meetingRepository.save(meeting);
+        } catch (IOException e) {
+            throw new ImageUploadException(e);
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#meetingId, 'net.akarmanov.projectplace.domain.Meeting', 'READ') or hasRole('ADMIN')")
+    public Meeting getById(UUID meetingId) {
+        return meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
     }
 
 }

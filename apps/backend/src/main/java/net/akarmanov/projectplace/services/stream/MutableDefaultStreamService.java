@@ -4,7 +4,7 @@ import jakarta.transaction.Transactional;
 import net.akarmanov.projectplace.domain.Stream;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.repos.StreamRepository;
-import net.akarmanov.projectplace.services.exceptions.StreamImageUploadException;
+import net.akarmanov.projectplace.services.exceptions.ImageUploadException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,7 +45,7 @@ public class MutableDefaultStreamService extends AbstractStreamService implement
       stream.setImageBytes(file.getBytes());
       streamRepository.save(stream);
     } catch (Exception e) {
-      throw new StreamImageUploadException(e);
+      throw new ImageUploadException(e);
     }
   }
 }

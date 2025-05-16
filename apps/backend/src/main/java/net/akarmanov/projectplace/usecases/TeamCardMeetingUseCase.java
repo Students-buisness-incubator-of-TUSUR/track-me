@@ -7,9 +7,12 @@ import net.akarmanov.projectplace.rest.api.meeting.MeetingDto;
 import net.akarmanov.projectplace.rest.api.meeting.MeetingUpdateDto;
 import net.akarmanov.projectplace.services.meeting.MeetingService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -43,5 +46,14 @@ public class TeamCardMeetingUseCase {
 
   public void deleteMeeting(UUID meetingId) {
     meetingService.deleteMeeting(meetingId);
+  }
+
+  public void addMeetingImage(UUID meetingId, MultipartFile file) {
+    meetingService.addImage(meetingId, file);
+  }
+
+  public Resource getMeetingImage(UUID meetingId) {
+    var meeting = meetingService.getById(meetingId);
+    return new ByteArrayResource(meeting.getImageBytes());
   }
 }
