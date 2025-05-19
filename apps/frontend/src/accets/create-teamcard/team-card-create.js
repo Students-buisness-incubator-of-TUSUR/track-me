@@ -4,7 +4,7 @@ import "./team-card-create.css";
 import penIcon from "./pen.png";
 
 const backendHost = process.env.REACT_APP_BACKEND_URI + '/backend';
-
+const backendHost1 = process.env.REACT_APP_BACKEND_URI + '/sso';
 const TeamCard = () => {
     const navigate = useNavigate();
 
@@ -45,17 +45,21 @@ const TeamCard = () => {
 
     // Получаем информацию о текущем пользователе
     useEffect(() => {
-        fetch(`${backendHost}/api/v1/users/current/info`, {
+        fetch(`${backendHost1}/api/v1/account/info`, {
             credentials: "include",
         })
             .then((response) => response.json())
             .then((userData) => {
+                console.log("userData", userData);
                 setCurrentUser(userData);
-                const isAdmin = userData.role === "ADMIN" || userData.role === "SUPER_ADMIN";
+                const isAdmin = userData.roles?.includes("ADMIN") || userData.roles?.includes("SUPER_ADMIN");
 
+                
                 // Если пользователь не админ, устанавливаем его имя в поле трекера
                 if (!isAdmin) {
-                    setFormData(prev => ({...prev, tracker: userData.fullName}));
+                    setFormData(prev => ({...prev, tracker: userData.fullName
+                        
+                    }));
                 }
             })
             .catch((error) => {
@@ -102,25 +106,36 @@ const TeamCard = () => {
     }, []);
 
     // Загрузка списка трекеров для админа
-    useEffect(() => {
-        if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN")) {
-            fetch(`${backendHost}/api/v1/admin/users/trackers?page=0&size=150`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({filters: []}),
-            })
-                .then((res) => res.ok ? res.json() : null)
-                .then((data) => {
-                    if (data?.content) {
-                        setTrackers(data.content);
-                    }
-                })
-                .catch(() => setError("Ошибка при загрузке списка трекеров"));
+    // Загрузка списка трекеров для админа (новый вариант)
+useEffect(() => {
+  if (currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN"))
+ {
+    console.log("Запрашиваем трекеров...");
+    fetch(`${backendHost1}/api/v1/users/trackers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ filters: [] })
+    })
+      .then((res) => res.ok ? res.json() : Promise.reject(res))
+      .then((data) => {
+        console.log("Получены трекеры:", data);
+        if (data?.content) {
+          setTrackers(data.content);
+        } else {
+          setTrackers([]);
         }
-    }, [currentUser]);
+      })
+      .catch((err) => {
+        console.error("Ошибка при загрузке трекеров", err);
+        setError("Ошибка при загрузке трекеров");
+      });
+  }
+}, [currentUser]);
+
+
 
     const handleChange = (e) => {
         const {name, value} = e.target;
@@ -147,7 +162,9 @@ const TeamCard = () => {
         setFormData(prev => ({
             ...prev,
             tracker: tracker.fullName,
-            trackerId: tracker.id // Добавляем ID трекера в formData
+            trackerId: tracker.id,
+  trackerUsername: tracker.username // Добавляем ID трекера в formData
+            
         }));
         setShowTrackers(false);
     };
@@ -183,8 +200,8 @@ const TeamCard = () => {
             let url = `${backendHost}`;
 
             // Добавляем username в URL если выбран трекер
-            if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN")) {
-                url += `/api/v1/admin/team-card?streamId=${formData.streamId}&username=${selectedTracker?.username}`;
+            if (currentUser && (currentUser.roles?.includes("ADMIN") || currentUser.roles?.includes("SUPER_ADMIN"))) {
+                url += `/api/v1/admin/team-card?streamId=${formData.streamId}&username=${formData.trackerUsername}`;
             } else {
                 url += `/api/v1/team-card?streamId=${formData.streamId}`;
             }
@@ -203,8 +220,13 @@ const TeamCard = () => {
             }
 
             const data = await response.json();
+            console.log("Created team card data:", data); 
             // После успешного создания переходим на страницу карточки
-            navigate(`/teamcard/${data.id}`);
+            navigate(`/teamcard/${data.id}`, {
+  state: {
+    streamId: formData.streamId,
+  }
+});
         } catch (error) {
             setError(error.message);
         } finally {
@@ -218,42 +240,50 @@ const TeamCard = () => {
 
             <div className="create-card-left">
                 <div className="create-card-info">
-                    <span className="create-card-label">Трекер:</span>
+                    <span className="create-card-label" >Трекер:</span>
                     <div className="create-input-wrapper">
-                        {/* {currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN") ? ( */}
-                            <div className="tracker-select-container">
-                                <input
-                                    className="create-input"
-                                    name="tracker"
-                                    value={formData.tracker}
-                                    onClick={() => setShowTrackers(!showTrackers)}
-                                    readOnly
-                                    placeholder="Выберите трекера"
-                                />
-                                {showTrackers && (
-                                    <div className="trackers-dropdown">
-                                        {trackers.map((tracker) => (
-                                            <div
-                                                key={tracker.id}
-                                                className="tracker-option"
-                                                onClick={() => handleTrackerSelect(tracker)}
-                                            >
-                                                {tracker.fullName}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        {/* ) : (
-                            <input
-                                className="create-input"
-                                name="tracker"
-                                value={formData.tracker}
-                                readOnly
-                            />
-                        )} */}
-                    </div>
-                    <img src={penIcon} alt="edit" className="create-edit-icon"/>
+  {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN"))
+ ? (
+    <div className="tracker-select-container">
+      <input
+        className="create-input"
+        name="tracker"
+        value={formData.tracker}
+        onClick={() => setShowTrackers(!showTrackers)}
+        readOnly
+        placeholder="Выберите трекера"
+      />
+      {showTrackers && (
+        <div className="trackers-dropdown">
+          {trackers
+  .filter((tracker) => tracker.enabled) // Показывать только подтвержденных
+  .map((tracker) => (
+    <div
+      key={tracker.id}
+      className="tracker-option"
+      onClick={() => handleTrackerSelect(tracker)}
+    >
+      {tracker.fullName}
+    </div>
+))}
+
+        </div>
+      )}
+    </div>
+  ) : (
+    <input
+      className="create-input"
+      name="tracker"
+      value={formData.tracker}
+      readOnly
+    />
+  )}
+</div>
+
+                    {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) && (
+  <img src={penIcon} alt="edit" className="create-edit-icon"/>
+)}
+
                 </div>
 
                 <div className="create-card-info">
@@ -271,60 +301,72 @@ const TeamCard = () => {
                 </div>
 
                 <div className={`create-dropdown-block${showStreams ? " open" : ""}`}>
-                    <div className="create-dropdown-toggle" onClick={() => setShowStreams(!showStreams)}>
-                        {selectedTRL ? selectedTRL.label : "Все потоки"}
-                    </div>
-                    {showStreams && (
-                            <div className="create-checkbox-list">
-                                {streams.map((stream) => (
-                                    <div
-                                        key={stream.id}
-                                        className="create-checkbox-item"
-                                        onClick={() => handleStreamSelect(stream.id)}
-                                    >
-                                        {stream.name}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                </div>
+  <div className="create-dropdown-toggle" onClick={() => setShowStreams(!showStreams)}>
+    {
+      streams.find(s => s.id === formData.streamId)?.name || "Поток"
+    }
+  </div>
+  {showStreams && (
+    <div className="create-checkbox-list">
+      {streams.map((stream) => (
+        <div key={stream.id} className="create-checkbox-item create-radio-style">
+          <input
+            type="radio"
+            name="stream"
+            checked={formData.streamId === stream.id}
+            onChange={() => handleStreamSelect(stream.id)}
+          />
+          <label className="data-create-team">{stream.name}</label>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+
 
                 <div className={`create-dropdown-block${showNTI ? " open" : ""}`}>
-                    <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
-                        {selectedMarket ? selectedMarket.displayName : "Рынок НТИ"}
-                    </div>
-                    {showNTI && (
-                        <div className="create-checkbox-list">
-                            {markets.map((market) => (
-                                <div
-                                    key={market.id}
-                                    className="create-checkbox-item"
-                                    onClick={() => handleMarketSelect(market)}
-                                >
-                                    {market.displayName}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+  <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
+    {selectedMarket ? selectedMarket.displayName : "Рынок НТИ"}
+  </div>
+  {showNTI && (
+    <div className="create-checkbox-list">
+      {markets.map((market) => (
+        <div key={market.id} className="create-checkbox-item create-radio-style">
+          <input
+            type="radio"
+            name="ntiMarket"
+            checked={selectedMarket?.id === market.id}
+            onChange={() => handleMarketSelect(market)}
+          />
+          <label className="data-create-team">{market.displayName}</label>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
 
                 <div className={`create-dropdown-block${showTRL ? " open" : ""}`}>
                     <div className="create-dropdown-toggle" onClick={() => setShowTRL(!showTRL)}>
                         {selectedTRL ? selectedTRL.label : "TRL"}
                     </div>
                     {showTRL && (
-                        <div className="create-checkbox-list">
-                            {trlLevels.map((trl) => (
-                                <div
-                                    key={trl.id}
-                                    className="create-checkbox-item"
-                                    onClick={() => handleTRLSelect(trl)}
-                                >
-                                    {trl.label}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+  <div className="create-checkbox-list">
+    {trlLevels.map((trl) => (
+      <div key={trl.id} className="create-checkbox-item create-radio-style">
+        <input
+          type="radio"
+          name="trl"
+          checked={selectedTRL?.label === trl.label}
+          onChange={() => handleTRLSelect(trl)}
+        />
+        <label className="data-create-team">{trl.label}</label>
+      </div>
+    ))}
+  </div>
+)}
+
                 </div>
 
                 
@@ -336,10 +378,13 @@ const TeamCard = () => {
                     
                     <div className="create-team-description-wrapper">
                         <textarea
-                            className="create-description-input"
-                            name="description"
-                            placeholder="Введите описание карточки команды"
-                        />
+  className="create-description-input"
+  name="description"
+  placeholder="Введите описание карточки команды"
+  onChange={handleChange} // добавить!
+  value={formData.description}
+/>
+
                     </div>
                 </div>
             </div>
@@ -355,10 +400,14 @@ const TeamCard = () => {
                         </div>
                     </div> */}
                     <button
-                        className="create-meeting-add"
-                    >
-                        Запланировать   
-                    </button>
+    className="create-meeting-add"
+    onClick={() => {
+        setError("Сначала создайте карточку команды");
+    }}
+>
+    Запланировать
+</button>
+
                     <div className="fake-scrollbar"></div>
                 </div>
             </div>
@@ -375,8 +424,10 @@ const TeamCard = () => {
                 <button
                     className="create-button"
                     onClick={handleCreate}
+                    
                     disabled={isLoading}
                 >
+                    
                     {isLoading ? "Создание..." : "Создать"}
                 </button>
             </div>

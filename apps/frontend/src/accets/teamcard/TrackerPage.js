@@ -585,7 +585,12 @@ useEffect(() => {
                         <div
                             className="card"
                             key={card.id}
-                            onClick={() => navigate(`/teamcard/${card.id}?userId=${card.userId}`)}
+                            onClick={() => navigate(`/teamcard/${card.id}`, { 
+  state: { 
+    userId: card.userId,
+    streamId: streamId 
+  }
+})}
                             style={{cursor: "pointer"}}
                         >
                             <div className="card-image"/>
