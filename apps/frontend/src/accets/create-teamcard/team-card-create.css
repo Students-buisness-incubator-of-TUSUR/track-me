@@ -165,9 +165,25 @@ input:focus {
     width: 100%;
 }
 
-/* .create-stream-list, */
-.create-checkbox-list {
-    color: white;
+
+
+.team-checkbox{
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Расстояние между чекбоксом и текстом */
+}
+  
+.team-checkbox-label {
+    font-weight: 600;
+    font-size: 13px;
+    cursor: default;
+}
+
+.team-checkbox-input {
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+    border: 1px solid white;
 }
 
 .create-team-description {

@@ -277,13 +277,17 @@ const TeamCard = () => {
                     {showStreams && (
                             <div className="create-checkbox-list">
                                 {streams.map((stream) => (
-                                    <div
+                                    
+                                    <div className="team-checkbox">
+                                    <input
+                                        type="checkbox"
                                         key={stream.id}
-                                        className="create-checkbox-item"
+                                        className="team-checkbox-input"
                                         onClick={() => handleStreamSelect(stream.id)}
-                                    >
-                                        {stream.name}
+                                    />
+                                    <label className="team-checkbox-label">{stream.name}</label>
                                     </div>
+                                    
                                 ))}
                             </div>
                         )}
@@ -296,14 +300,18 @@ const TeamCard = () => {
                     {showNTI && (
                         <div className="create-checkbox-list">
                             {markets.map((market) => (
-                                <div
-                                    key={market.id}
-                                    className="create-checkbox-item"
-                                    onClick={() => handleMarketSelect(market)}
-                                >
-                                    {market.displayName}
-                                </div>
-                            ))}
+                                    
+                                    <div className="team-checkbox">
+                                    <input
+                                        type="checkbox"
+                                        key={market.id}
+                                        className="team-checkbox-input"
+                                        onClick={() => handleMarketSelect(market)}
+                                    />
+                                    <label className="team-checkbox-label">{market.displayName}</label>
+                                    </div>
+                                    
+                                ))}
                         </div>
                     )}
                 </div>
@@ -315,14 +323,16 @@ const TeamCard = () => {
                     {showTRL && (
                         <div className="create-checkbox-list">
                             {trlLevels.map((trl) => (
-                                <div
-                                    key={trl.id}
-                                    className="create-checkbox-item"
-                                    onClick={() => handleTRLSelect(trl)}
-                                >
-                                    {trl.label}
-                                </div>
-                            ))}
+                                    <div className="team-checkbox">
+                                    <input
+                                        type="checkbox"
+                                        key={trl.id}
+                                        className="team-checkbox-input"
+                                        onClick={() => handleTRLSelect(trl)}
+                                    />
+                                    <label className="team-checkbox-label">{trl.label}</label>
+                                    </div>
+                                ))}
                         </div>
                     )}
                 </div>
