@@ -21,6 +21,22 @@ function TrackerPage() {
     const [username, setusername] = useState(null);
     const [selectedYears, setSelectedYears] = useState([]);
 
+    const formatDateToYMD = (dateString) => {
+    if (!dateString) return "";
+  
+    try {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        
+        return `${year}.${month}.${day}`;
+    } catch (e) {
+        console.error("Error formatting date:", e);
+        return dateString; // возвращаем как есть, если не удалось преобразовать
+    }
+    };
+
 
     const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
     const logoutHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/logout';
@@ -383,7 +399,7 @@ useEffect(() => {
                         </h1>
                         {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER") && (
                             <h1 className="Stream-title11">
-                                {streamName ? ": Сроки акселератора: " + streamSDate + " - " + streamEDate : "Название потока не получено"}
+                                {streamName ? ": cроки акселератора: " + formatDateToYMD(streamSDate) + " - " + formatDateToYMD(streamEDate) : ""}
                             </h1>
                         )}
                     </div>
