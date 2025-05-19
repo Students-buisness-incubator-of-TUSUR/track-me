@@ -223,6 +223,7 @@ export default function EditStream() {
   return (
     <div className="create-stream">
       <div className="create-stream-cont">
+      <button className="create-stream-close" onClick={() => navigate(-1)}>×</button>
         <div className="create-stream-cont-left">
           <label className="create-stream-title">Редактирование потока</label>
           <div className="create-stream-row">
@@ -255,7 +256,7 @@ export default function EditStream() {
          
 
           </div>
-          <div className="Stream-bb Stream-header-chosefrom-buttw">
+          <div className="Stream-bb Stream-header-chosefrom-buttw2323131">
         <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
           <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes2}>
             <b className="Stream-header-chosefrom-butt-label">Рынок</b>
