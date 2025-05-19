@@ -112,7 +112,7 @@ input:focus {
     font-family:'Mulish';
     font-size: 20px;
     font-weight: 600;
-    background: #caa7f9;
+    background: #cdaff7;
     padding: 14px 20px;
     border: none;
     width: 100%;
@@ -149,7 +149,7 @@ input:focus {
     top: 100%;
     left: 0;
     z-index: 1000;
-    background: #caa7f9;
+    background: #cdaff7;
     min-width: 260px;
     max-width: 100%;
     padding: 20px;
@@ -185,6 +185,19 @@ input:focus {
     font-size: 24px;
     font-weight: 400;
     white-space: nowrap;
+}
+
+.create-description-input {
+    width: 739px;
+    height: 238px;
+    padding: 29px 68px 29px 41px;
+    border-radius: 70px;
+    font-size: 24px;
+    font-weight: 300;
+    border: 3px solid #8338EB;
+    resize: none;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
 }
 
 .create-description-input {

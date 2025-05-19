@@ -13,8 +13,8 @@ const TeamCard = () => {
     const query = new URLSearchParams(location.search);
     
     const [role, setRole] = useState(null);
-const [username, setUsername] = useState(null);
-const reduxUser = useSelector(state => state.user?.user);
+    const [username, setUsername] = useState(null);
+    const reduxUser = useSelector(state => state.user?.user);
 
 
 
@@ -372,21 +372,24 @@ const reduxUser = useSelector(state => state.user?.user);
                 {isEditing ? (
                     <div className={`dropdown-block${showNTI ? " open" : ""}`}>
                         <div
-                            className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
-                            onClick={() => isEditing && setShowNTI(!showNTI)}
+                            className="dropdown-toggle" onClick={() => setShowNTI(!showNTI)}
                         >
-                            {selectedMarket?.displayName || "Рынок НТИ"}
+                            Рынок НТИ
                         </div>
                         {isEditing && showNTI && (
                             <div className="dropdown-list">
                                 {ntiMarkets.map((market) => (
-                                    <div
+                                    
+                                    <div className="team-checkbox">
+                                    <input
+                                        type="checkbox"
                                         key={market.id}
-                                        className="dropdown-item"
+                                        className="team-checkbox-input"
                                         onClick={() => handleMarketSelect(market)}
-                                    >
-                                        {market.displayName}
+                                    />
+                                    <label className="team-checkbox-label">{market.displayName}</label>
                                     </div>
+                                    
                                 ))}
                             </div>
                         )}      
@@ -395,9 +398,12 @@ const reduxUser = useSelector(state => state.user?.user);
                         <div className="team-card-info">
                             <span className="team-label-widget">Рынки НТИ:</span>
                             <div className="team-input-list">
-                                <div className="team-input-item">Рынок НТИ</div>
-                                <div className="team-input-item">Рынок НТИ</div>
-                                
+                                <input
+                                        className="team-input-widget"
+                                        value={teamData.ntiMarket?.displayName || ""}
+                                        readOnly
+                                        placeholder="Рынок НТИ"
+                                    />  
                             </div>
                             {isEditing && (
                                     <img src={penIcon} alt="edit" className="team-edit-icon"/>
@@ -406,9 +412,9 @@ const reduxUser = useSelector(state => state.user?.user);
                     )}
 
                 {isEditing ? (
-                    <div className="dropdown-block">
+                    <div className={`dropdown-block${showTRL ? " open" : ""}`}>
                         <div
-                            className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
+                            className="dropdown-toggle"
                             onClick={() => isEditing && setShowTRL(!showTRL)}
                         >
                             {selectedTRL?.label || "TRL"}
@@ -416,12 +422,14 @@ const reduxUser = useSelector(state => state.user?.user);
                         {isEditing && showTRL && (
                             <div className="dropdown-list">
                                 {trlLevels.map((trl) => (
-                                    <div
+                                    <div className="team-checkbox">
+                                    <input
+                                        type="checkbox"
                                         key={trl.id}
-                                        className="dropdown-item"
+                                        className="team-checkbox-input"
                                         onClick={() => handleTRLSelect(trl)}
-                                    >
-                                        {trl.label}
+                                    />
+                                    <label className="team-checkbox-label">{trl.label}</label>
                                     </div>
                                 ))}
                             </div>
@@ -431,7 +439,14 @@ const reduxUser = useSelector(state => state.user?.user);
                     <div className="team-card-info">
                     <span className="team-label-widget">TRL:</span>
                     <div className="team-input-list">
-                        <div className="team-input-item">TRL</div>
+                        <div className="team-input-wrapper">
+                            <input
+                                className="team-input-widget"
+                                value={teamData.readinessLevel || ""}
+                                readOnly
+                                placeholder="TRL"
+                            />
+                        </div>
                         
                     </div>
                     {isEditing && (
