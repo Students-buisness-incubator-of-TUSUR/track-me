@@ -239,14 +239,9 @@ databaseChangeLog:
   - changeSet:
       id: project-place-14
       author: akarmanov
-      preConditions:
-        - onFail: MARK_RAN
-          not:
-            - tableExists:
-                schemaName: ${db_schema}
-                tableName: meeting
       changes:
         - dropNotNullConstraint:
             tableName: meeting
-            schemaName: ${db_schema}
             columnName: status
+            schemaName: ${db_schema}
+
