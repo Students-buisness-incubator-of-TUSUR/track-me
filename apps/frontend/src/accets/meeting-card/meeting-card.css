@@ -232,6 +232,10 @@
   margin-top: 20px;
   margin-left: 25px;
 }
+.edit-icon2334{
+  margin-top: 8px;
+  margin-left: -10px;
+}
 
 .unique-dropdown {
     background: white;
@@ -266,6 +270,28 @@
     
     text-align: center;
 }
+.hidden-date-input {
+  display: none;
+}
+
+.fancy-date-display {
+  background: #8338EB;
+  color: white;
+  padding: 12px 40px;
+  border-radius: 70px;
+  font-size: 20px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  
+  transition: transform 0.1s ease-in-out;
+  user-select: none;
+}
+
+.fancy-date-display:hover {
+  
+  transform: scale(1.03);
+}
+
 
 .unique-status.ok {
     background-color: #0DB862;

@@ -20,6 +20,30 @@ body {
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
     display: flex;
 }
+.create-radio-style input[type="radio"] {
+  width: 17px;
+  height: 17px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid white;
+  border-radius: 4px;
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.create-radio-style input[type="radio"]:checked::before {
+  content: "✔";
+  color: black;
+  font-size: 14px;
+  font-weight: bold;
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 
 .create-card-close {
     position: absolute;
@@ -70,6 +94,7 @@ body {
     background: #8338EB;
     border-radius: 30px;
     color: #fff;
+    
     font-size: 24px;
     font-weight: 300;
     line-height: 30px;
@@ -94,6 +119,7 @@ input:focus {
     margin-top: 8px;
     width: 25px;
     height: 25px;
+    margin-left: 15px;
     cursor: pointer;
     z-index: 2;
 }
@@ -167,7 +193,15 @@ input:focus {
 
 .create-stream-list,
 .create-checkbox-list {
-    color: white;
+    color: black;
+    
+}
+.data-create-team {
+  position: relative;
+  top: -5px;           /* немного вниз */
+  left: 8px;          /* немного вправо */
+  font-size: 13px;    /* по желанию, сделать чуть больше */
+  cursor: pointer;    /* курсор "рука" для UX */
 }
 
 .create-team-description {
@@ -281,6 +315,7 @@ input:focus {
     height: 58px;
     border-radius: 70px;
     color:#ffffff;
+    cursor: pointer;
     font-size: 24px;
     font-weight: 600;
     background: #878685;

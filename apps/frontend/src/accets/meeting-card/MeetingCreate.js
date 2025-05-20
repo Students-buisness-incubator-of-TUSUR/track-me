@@ -124,15 +124,31 @@ const MeetingCreate = () => {
                 </div>
 
                 <div className="unique-meeting-info-row unique-date-row">
-                    <span className="unique-label">Дата:</span>
-                    <input
-                        type="datetime-local"
-                        name="startDate"
-                        value={new Date(meetingData.startDate).toISOString().slice(0, 16)}
-                        onChange={handleChange}
-                        className="unique-date-input"
-                    />
-                </div>
+    <span className="unique-label">Дата:</span>
+
+    {/* Скрытый input */}
+    <input
+        type="datetime-local"
+        name="startDate"
+        value={meetingData.startDate.slice(0, 16)}
+        onChange={handleChange}
+        className="hidden-date-input"
+        ref={(el) => { window.hiddenDateInput = el; }}
+    />
+
+    {/* Красивый видимый блок */}
+    <div className="fancy-date-display" onClick={() => window.hiddenDateInput?.showPicker()}>
+        {new Date(meetingData.startDate).toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })}
+    </div>
+    <img src={pencilIcon} alt="Редактировать" className="edit-icon2334" />
+</div>
+
 
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Задачи к следующей встрече:</span>
