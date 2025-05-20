@@ -22,6 +22,20 @@
   padding-bottom: 30px;
 }
 
+.create-stream-close{
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 24px;
+    background: transparent;
+    border: none;
+    color: #8e44fd;
+    cursor: pointer;
+    top: 38px;
+    right: 50px;
+}
+
+
 .create-stream-cont-left,
 .create-stream-cont-right {
     display: flex;

@@ -206,6 +206,7 @@ export default function CreateStream() {
     return (
         <div className="create-stream">
             <div className="create-stream-cont">
+            <button className="create-stream-close" onClick={() => navigate(-1)}>×</button>
                 <div className="create-stream-cont-left">
                     <label className="create-stream-title">Создание потока</label>
                     <div className="create-stream-row">

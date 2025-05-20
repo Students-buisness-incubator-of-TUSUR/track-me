@@ -6,6 +6,7 @@
     font-family: sans-serif;
 
 }
+ 
 
 .Stream-header-cont-cont {
     display: flex;
@@ -46,6 +47,7 @@
 
 /* Карточка */
 .card {
+    box-sizing: border-box;
     position: relative;
     display: flex;
     align-items: center;
@@ -54,6 +56,9 @@
     width: 849px;
     height: 201px;
     min-width: 400px;
+    max-width: 100%;
+overflow: hidden;
+padding: 0 20px;
 
     margin-top: 27px;
     margin-bottom: 20px;
@@ -64,17 +69,20 @@
 
 /* Серый блок (изображение) */
 .card-image {
-    width: 223px;
-    height: 149px;
-    border-radius: 57px;
-    background-color: #D9D9D9;
-    margin-left: 20px;
-  }
+  flex-shrink: 0;      /* запретить сжатие */
+  width: 223px;        /* фиксированная ширина */
+  height: 149px;       /* фиксированная высота */
+  border-radius: 57px;
+  background-color: #D9D9D9;
+  margin-left: 20px;
+  object-fit: cover;   /* если это <img>, чтобы сохранить пропорции */
+}
+
   
   .status {
     position: absolute;
     bottom: 30px; /* увеличено значение, чтобы блок поднялся вверх */
-    left: 60px;
+    left: 85px;
 
     background-color: #0DB862;
     color: #fff;
@@ -92,6 +100,10 @@
 /* Тело карточки */
 .card-content {
     flex: 1;
+    flex: 1 1 auto;
+min-width: 0;
+overflow: hidden;
+
 }
 
 /* Общие стили для текстовых контейнеров */
@@ -108,16 +120,26 @@
     font-weight: bold;
     color: black;
     margin: 0;
+    white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
 
 }
 
 /* Стили для описания проекта */
 .project-description p {
-    font-size: 1rem;
+    
 
     font-size: 14px;
     color: #555;
     margin: 0;
+    white-space: normal;
+word-break: break-word;
+overflow-wrap: break-word;
+max-height: 80px;
+overflow: hidden;
+
+    
 }
 
 .under-cont {
@@ -162,4 +184,5 @@
     justify-content: center;
     margin-right: 20px;
     border-radius: 70px !important;
+    flex-shrink: 0;
   }

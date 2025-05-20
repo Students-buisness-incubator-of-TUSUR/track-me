@@ -5,18 +5,24 @@ import {useSelector} from "react-redux";
 import penIcon from "./pen.png";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
-
+const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
 const TeamCard = () => {
     const navigate = useNavigate();
     const {id} = useParams();
+    
+    
+   
     const location = useLocation();
+    const streamId = location.state?.streamId;
+    const passedUsername = location.state?.username;
     const query = new URLSearchParams(location.search);
     
     const [role, setRole] = useState(null);
 const [username, setUsername] = useState(null);
 const reduxUser = useSelector(state => state.user?.user);
 
-
+const [allTeamCards, setAllTeamCards] = useState([]);
+const [teamCardsCount, setTeamCardsCount] = useState(0);
 
 
     const [teamData, setTeamData] = useState({});
@@ -44,6 +50,92 @@ const reduxUser = useSelector(state => state.user?.user);
         {id: 3, label: "6-8"},
         {id: 4, label: "9-10"},
     ], []);
+    const [trackerFullName, setTrackerFullName] = useState("");
+    const [streamInfo, setStreamInfo] = useState(null);
+
+// Добавляем эффект для загрузки данных о потоке
+useEffect(() => {
+    if (!streamId) return;
+
+    const fetchStreamInfo = async () => {
+    try {
+        const response = await fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ filters: [] }), // без фильтров
+        });
+
+        if (!response.ok) throw new Error("Ошибка загрузки данных потоков");
+
+        const result = await response.json();
+        const found = result.content?.find(stream => stream.id === streamId);
+        if (found) {
+            setStreamInfo(found);
+        } else {
+            throw new Error("Поток с указанным ID не найден");
+        }
+    } catch (error) {
+        handleApiError(error, "загрузке данных потока");
+    }
+};
+
+
+
+    fetchStreamInfo();
+}, [teamData.streamId]);
+
+// Форматируем даты для отображения
+const formatDates = (start, end) => {
+    if (!start || !end) return '';
+    
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\s/g, '');
+    };
+    
+    return `${formatDate(start)} - ${formatDate(end)}`;
+};
+
+useEffect(() => {
+  if (!role) return;
+
+  const fetchFullName = async () => {
+    try {
+      if (role === "ADMIN" || role === "SUPER_ADMIN") {
+        const usernameToFetch = passedUsername || teamData.username;
+        if (!usernameToFetch) return;
+
+        const res = await fetch(`${backendHost1}/api/v1/users/${usernameToFetch}/info`, {
+          credentials: "include"
+        });
+        if (!res.ok) throw new Error("Ошибка получения данных пользователя");
+        const data = await res.json();
+        setTrackerFullName(data.fullName);
+      } else if (role === "TRACKER") {
+        const res = await fetch(`${backendHost1}/api/v1/account/info`, {
+          credentials: "include"
+        });
+        if (!res.ok) throw new Error("Ошибка получения данных текущего пользователя");
+        const data = await res.json();
+        setTrackerFullName(data.fullName);
+      }
+    } catch (err) {
+      handleApiError(err, "загрузке ФИО трекера");
+    }
+  };
+
+  fetchFullName();
+}, [role, passedUsername, teamData.username]);
+
+
+
     useEffect(() => {
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
@@ -56,6 +148,35 @@ const reduxUser = useSelector(state => state.user?.user);
             setUsername(reduxUser.username || null);
         }
     }, [reduxUser]);
+    useEffect(() => {
+  if (!streamId) return;
+
+  const fetchTeamCardsCount = async () => {
+    try {
+      // Формируем URL с query-параметром streamId
+      const url = new URL(`${backendHost}/api/v1/team-card/count`);
+      url.searchParams.append("streamId", streamId);
+
+      const response = await fetch(url.toString(), {
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ошибка при получении количества карточек: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // Предполагается, что сервер возвращает число в поле count или просто число
+      const count = typeof data === "number" ? data : data.count || 0;
+      setTeamCardsCount(count);
+    } catch (error) {
+      handleApiError(error, "получении количества карточек команд");
+    }
+  };
+
+  fetchTeamCardsCount();
+}, [streamId]);
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -77,7 +198,7 @@ const reduxUser = useSelector(state => state.user?.user);
     useEffect(() => {
         const loadMeetings = async () => {
             try {
-                const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=10`, {
+                const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000`, {
                     credentials: 'include',
                 });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -90,46 +211,72 @@ const reduxUser = useSelector(state => state.user?.user);
         };
         loadMeetings();
     }, [id, currentPage]);
+    
 
      useEffect(() => {
-        if (!role || !username) return; // Wait until user data is loaded
-        
-        const endpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
-            ? `${backendHost}/api/v1/admin/team-card?id=${id}&username=${username}`
-            : `${backendHost}/api/v1/team-card?id=${id}`;
+    if (!username || !role || !id) return;
 
-        fetch(endpoint, {
-            credentials: 'include',
+    const endpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
+        ? `${backendHost}/api/v1/admin/team-cards?page=0&size=1000`
+        : `${backendHost}/api/v1/team-cards?page=0&size=1000`;
+
+    const payload = {
+  filters: []
+};
+    fetch(endpoint, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(payload)
+    })
+        .then(res => {
+            if (!res.ok) throw new Error("Ошибка при получении карточек");
+            return res.json();
         })
-            .then(res => res.json())
-            .then(data => {
-                setTeamData(data);
-                setEditedData({
-                    ...data,
-                    streamId: data.streamId,
-                    ntiMarketId: data.ntiMarket?.id || "",
-                    readinessLevel: data.readinessLevel || ""
-                });
-            })
-            .catch(err => handleApiError(err, "загрузке карточки"));
-    }, [id, username, role]);
+        .then(data => {
+            console.log("Загруженные карточки:", data.content.map(card => card.id));
+            const cards = data.content || [];
+            setAllTeamCards(cards);
+            const found = data.content?.find(card => String(card.id) === String(id));
+
+            
+            if (found) {
+                setTeamData(found);
+                setEditedData(found); // если нужно редактирование
+            } else {
+                setApiError("Карточка команды не найдена");
+            }
+        })
+        .catch(err => handleApiError(err, "поиске карточки команды"));
+}, [username, role, id]);
+
+
 
     useEffect(() => {
         if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            fetch(`${backendHost}/api/v1/users`, {
+            fetch(`${backendHost1}/api/v1/users/trackers`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 credentials: 'include',
                 body: JSON.stringify({
-                    filters: [{key: "role", value: "TRACKER"}],
-                    page: 0,
-                    size: 150,
-                    order: {field: "fullName", direction: "ASC"}
-                }),
+  filters: [
+   
+  ],
+  page: 0,
+  size: 150,
+  order: { field: "fullName", direction: "ASC" }
+}),
+
             })
-                .then((res) => res.json())
+                .then(async (res) => {
+  if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
+  return res.json();
+})
+
                 .then((data) => {
                     setTrackers(data.content || []);
                 })
@@ -142,7 +289,7 @@ const reduxUser = useSelector(state => state.user?.user);
 
     useEffect(() => {
         if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
+            fetch(`${backendHost}/api/v1/streams?page=0&size=1500`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -150,7 +297,11 @@ const reduxUser = useSelector(state => state.user?.user);
                 credentials: 'include',
                 body: JSON.stringify({filters: []}),
             })
-                .then((res) => res.json())
+                .then(async (res) => {
+  if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
+  return res.json();
+})
+
                 .then((data) => {
                     const streamsWithNames = Array.isArray(data.content)
                         ? data.content.map((s) => ({id: s.id, name: s.name}))
@@ -204,56 +355,52 @@ const reduxUser = useSelector(state => state.user?.user);
 
 
     const handleSave = async () => {
-        setIsLoading(true);
-        setApiError(null);
+    setIsLoading(true);
+    setApiError(null);
 
+    try {
         const patchData = {
+            name: editedData.name?.trim(),
+            description: editedData.description?.trim(),
             ntiMarketId: editedData.ntiMarketId,
-            readinessLevel: editedData.readinessLevel,
+            readinessLevel: editedData.readinessLevel
         };
 
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            patchData.name = editedData.name;
-            patchData.description = editedData.description;
+        // Валидация
+        if (!patchData.name || !patchData.description || !patchData.ntiMarketId || !patchData.readinessLevel) {
+            throw new Error("Пожалуйста, заполните все обязательные поля");
         }
 
-        const baseEndpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
-            ? `${backendHost}/api/v1/admin/team-card`
-            : `${backendHost}/api/v1/team-card`;
+        const endpoint = `${backendHost}/api/v1/team-card`;
 
         const params = new URLSearchParams();
         params.append("teamCardId", id);
 
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            params.append("username", editedData.username || username);
-            if (editedData.streamId) {
-                params.append("streamId", editedData.streamId);
-            }
+        const response = await fetch(`${endpoint}?${params.toString()}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: 'include',
+            body: JSON.stringify(patchData),
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Ошибка: ${response.status} ${errText}`);
         }
 
-        try {
-            const response = await fetch(`${baseEndpoint}?${params.toString()}`, {
-                method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: 'include',
-                body: JSON.stringify(patchData),
-            });
+        const updated = await response.json();
+        setTeamData(updated);
+        setEditedData(updated);
+        setIsEditing(false);
+    } catch (error) {
+        handleApiError(error, "сохранении карточки");
+    } finally {
+        setIsLoading(false);
+    }
+};
 
-            if (!response.ok) {
-                throw new Error("Ошибка при сохранении: " + response.status);
-            }
-
-            const updated = await response.json();
-            setTeamData(updated);
-            setIsEditing(false);
-        } catch (error) {
-            handleApiError(error, "сохранении изменений");
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleDeactivate = async () => {
         if (!window.confirm('Вы уверены, что хотите деактивировать карточку команды?')) {
@@ -268,7 +415,8 @@ const reduxUser = useSelector(state => state.user?.user);
 
         if (role === "ADMIN" || role === "SUPER_ADMIN") {
             params.append("teamCardId", id);
-            params.append("username", teamData.user.id);
+            params.append("username", teamData.user?.id || ""); // безопасно
+
         } else {
             params.append("teamCardId", id);
         }
@@ -288,7 +436,7 @@ const reduxUser = useSelector(state => state.user?.user);
             handleApiError(error, "деактивации карточки");
         }
     };
-
+    
     const handlePageChange = (pageIndex) => {
         setCurrentPage(pageIndex);
     };
@@ -299,7 +447,7 @@ const reduxUser = useSelector(state => state.user?.user);
 
             <button
                 className="edit-button-widget"
-                // onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                onClick={isEditing ? handleSave : () => setIsEditing(true)}
                 disabled={!teamData || isLoading}
             >
                 {isLoading ? "Сохранение..." : (isEditing ? "Сохранить" : "Редактировать")}
@@ -329,11 +477,11 @@ const reduxUser = useSelector(state => state.user?.user);
                         ) : (
                             <>
                                 <input
-                                    className="team-input-widget"
-                                    value={teamData.user?.fullName || ""}
-                                    readOnly
-                                    placeholder="ФИО трекера"
-                                />
+            className="team-input-widget"
+            value={trackerFullName || ""}
+            readOnly
+            placeholder="ФИО трекера"
+        />
                                                             </>
                         )}
                     </div>
@@ -395,8 +543,13 @@ const reduxUser = useSelector(state => state.user?.user);
                         <div className="team-card-info">
                             <span className="team-label-widget">Рынки НТИ:</span>
                             <div className="team-input-list">
-                                <div className="team-input-item">Рынок НТИ</div>
-                                <div className="team-input-item">Рынок НТИ</div>
+                                <input
+    className="team-input-widget"
+    value={teamData.ntiMarket?.displayName || ""}
+    readOnly
+    placeholder="Рынок НТИ"
+/>
+
                                 
                             </div>
                             {isEditing && (
@@ -431,7 +584,14 @@ const reduxUser = useSelector(state => state.user?.user);
                     <div className="team-card-info">
                     <span className="team-label-widget">TRL:</span>
                     <div className="team-input-list">
-                        <div className="team-input-item">TRL</div>
+                        <div className="team-input-wrapper">
+        <input
+            className="team-input-widget"
+            value={teamData.readinessLevel || ""}
+            readOnly
+            placeholder="TRL"
+        />
+    </div>
                         
                     </div>
                     {isEditing && (
@@ -449,16 +609,25 @@ const reduxUser = useSelector(state => state.user?.user);
                     
                     <div className="team-description-wrapper">
                         <textarea
-                            className="team-description-input"
-                            name="description"
-                            placeholder="Описание карточки команды"
-                        />
+            className="team-input-widget"
+            value={teamData.description || ""}
+            readOnly
+            placeholder="Описание карточки"
+        />
                     </div>
                 </div>
 
                 {isEditing ? (null) : (
                     <div className="team-stream-block">
-                        Название потока 12 команд 01.01.2025 - 10.10.2025
+                        {streamInfo ? (
+              <div className="stream-info-block">
+    <span className="stream-name">{streamInfo.name}</span>
+    <span className="stream-count">{teamCardsCount} команд</span>
+    <span className="stream-dates">{formatDates(streamInfo.startDate, streamInfo.endDate)}</span>
+  </div>
+        ) : (
+            "Загрузка данных о потоке..."
+        )}
                     </div>
                 )}
    
@@ -467,16 +636,25 @@ const reduxUser = useSelector(state => state.user?.user);
             <div className="right-panel">
             <div className="team-meetings-block">
                     <div className="team-meetings-exist">
-                        <div className="team-meeting">
-                            <span class="meeting-date">25.04</span>
-                            <span class="meeting-title">Встреча 1</span> 
-                        </div>
-                        <div className="team-meeting">  
-                            <span class="meeting-date">25.04</span>
-                            <span class="meeting-title">Встреча 1</span>  
-                        </div>
+                        {meetings.map((meeting) => (
+    <div
+        key={meeting.id}
+        className="team-meeting"
+        onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
+    >
+        <span className="meeting-date">
+            {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit'
+            })}
+        </span>
+        <span className="meeting-title">
+            Встреча {meeting.number || "Без номера"}
+        </span>
+    </div>
+))}
                     </div>
-                        <button className="team-meeting-add">
+                        <button className="team-meeting-add" onClick={() => navigate(`/meeting-create/${id}?username=${username}`)}>
                             Запланировать   
                         </button>
                     <div className="fake-scrollbar"></div>
