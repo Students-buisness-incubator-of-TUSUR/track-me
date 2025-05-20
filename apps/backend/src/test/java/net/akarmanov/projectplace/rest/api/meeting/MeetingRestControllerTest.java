@@ -197,17 +197,6 @@ class MeetingRestControllerTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.number").value("123456"));
     }
 
-//    @Test
-//    void testAddPngImage_success() throws Exception {
-//        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
-//        var mockMultipartFile = new MockMultipartFile("file", "test.png", "image/png", "test".getBytes());
-//        mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
-//                        .file(mockMultipartFile)
-//                        .contentType("multipart/form-data"))
-//                .andDo(print())
-//                .andExpect(status().isOk());
-//    }
-
     @ParameterizedTest
     @ValueSource(strings = {"image/png", "image/jpeg"})
     void testAddImage_success(String contentType) throws Exception {
@@ -226,6 +215,39 @@ class MeetingRestControllerTest extends BaseApplicationTest {
     void testAddImage_invalidContentType() throws Exception {
         var meetingId = meetingRepository.findAll().getFirst().getId().toString();
         var mockMultipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "test".getBytes());
+        mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
+                        .file(mockMultipartFile)
+                        .contentType("multipart/form-data"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testAddImage_largeFile() throws Exception {
+        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+        var mockMultipartFile = new MockMultipartFile("file", "test.png", "image/png", new byte[MeetingService.MAX_FILE_SIZE + 1]);
+        mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
+                        .file(mockMultipartFile)
+                        .contentType("multipart/form-data"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testAddImage_emptyFile() throws Exception {
+        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+        var mockMultipartFile = new MockMultipartFile("file", "test.png", "image/png", new byte[0]);
+        mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
+                        .file(mockMultipartFile)
+                        .contentType("multipart/form-data"))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testAddImage_invalidFileExtension() throws Exception {
+        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+        var mockMultipartFile = new MockMultipartFile("file", "test.txt", "image/png", "test".getBytes());
         mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
                         .file(mockMultipartFile)
                         .contentType("multipart/form-data"))
