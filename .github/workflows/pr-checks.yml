@@ -90,7 +90,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node
       - name: Install dependencies
-        run: npm ci
+        run: npm install
         working-directory: apps/frontend
       - name: Install sonar-scanner
         run: npm install -g sonar-scanner
