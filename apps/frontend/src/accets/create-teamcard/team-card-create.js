@@ -175,9 +175,10 @@ useEffect(() => {
         if (!selectedMarket) errors.push("Выберите рынок НТИ");
         if (!selectedTRL) errors.push("Выберите уровень TRL");
         if (!formData.streamId) errors.push("Привяжите к потоку");
-        if (currentUser?.role === "ADMIN" && !selectedTracker) {
-            errors.push("Выберите трекера");
-        }
+        const isAdmin = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN");
+if (isAdmin && !selectedTracker) {
+    errors.push("Выберите трекера");
+}
         return errors;
     };
 
