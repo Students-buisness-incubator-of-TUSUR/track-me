@@ -36,7 +36,7 @@ public interface TeamCardsAdminRestController {
                 produces = "application/json")
   @Operation(summary = "Обновление карточки команды")
   ResponseEntity<TeamCardDto> updateTeamCard(@RequestParam UUID teamCardId,
-                                             @RequestParam String username,
+                                             @RequestParam(required = false) String username,
                                              @RequestParam(required = false) UUID streamId,
                                              @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto);
 
