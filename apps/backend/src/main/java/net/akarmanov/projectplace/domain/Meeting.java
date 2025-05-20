@@ -38,8 +38,7 @@ public class Meeting {
   private byte[] screenshot;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false,
-          length = 32)
+  @Column(length = 32)
   private MeetingStatus status;
 
   @ManyToOne(fetch = FetchType.LAZY)
