@@ -94,6 +94,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         }
         if (username != null) {
             teamCard.setUsername(username);
+            aclService.updateAclOwner(teamCard, username);
         }
         return teamCardsRepository.save(teamCard);
     }

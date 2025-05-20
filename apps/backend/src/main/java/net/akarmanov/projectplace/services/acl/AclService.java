@@ -60,6 +60,53 @@ public class AclService {
         log.info("ACL для объекта '{}' успешно удалён.", identity);
     }
 
+    /**
+     * Обновить владельца ACL по объектному идентификатору.
+     *
+     * @param identity         сущность, для которой меняется владелец
+     * @param newOwnerUsername имя нового владельца
+     */
+    public void updateAclOwner(Object identity, String newOwnerUsername) {
+        log.info("Обновление владельца ACL для объекта '{}' на '{}'", identity, newOwnerUsername);
+        ObjectIdentity oid = new ObjectIdentityImpl(identity);
+        MutableAcl acl = (MutableAcl) mutableAclService.readAclById(oid);
+        updateAclOwner(acl, newOwnerUsername);
+    }
+
+    /**
+     * Обновить владельца у заданного MutableAcl.
+     * Старые ACE для предыдущего владельца удаляются,
+     * новому владельцу назначаются полные права.
+     *
+     * @param acl              ACL, для которого меняется владелец
+     * @param newOwnerUsername имя нового владельца
+     */
+    public void updateAclOwner(MutableAcl acl, String newOwnerUsername) {
+        Sid oldOwnerSid = acl.getOwner();
+        PrincipalSid newOwnerSid = new PrincipalSid(newOwnerUsername);
+
+        log.debug("Смена владельца ACL '{}' c '{}' на '{}'",
+                acl.getObjectIdentity(), oldOwnerSid, newOwnerUsername);
+
+        // Установить нового владельца
+        acl.setOwner(newOwnerSid);
+
+        // Удалить все ACE, принадлежавшие старому владельцу
+        for (int i = acl.getEntries().size() - 1; i >= 0; i--) {
+            if (acl.getEntries().get(i).getSid().equals(oldOwnerSid)) {
+                acl.deleteAce(i);
+            }
+        }
+
+        // Назначить новому владельцу полный набор прав
+        addPermissionsToUser(acl, newOwnerUsername, FULL_PERMISSIONS);
+
+        // Сохранить изменения
+        mutableAclService.updateAcl(acl);
+        log.info("Владелец ACL '{}' успешно обновлён на '{}'",
+                acl.getObjectIdentity(), newOwnerUsername);
+    }
+
     /*
      * Внутренние методы
      */
