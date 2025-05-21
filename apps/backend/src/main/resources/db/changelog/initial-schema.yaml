@@ -236,4 +236,12 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
+  - changeSet:
+      id: project-place-14
+      author: akarmanov
+      changes:
+        - dropNotNullConstraint:
+            tableName: meeting
+            columnName: status
+            schemaName: ${db_schema}
 
