@@ -94,7 +94,6 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         var meetingCreateDto = MeetingCreateDto.builder()
                 .link("https://example.com/meeting")
                 .number("12345")
-                .status(MeetingStatus.OK)
                 .startDate(OffsetDateTime.now().plusDays(1))
                 .build();
 
@@ -108,7 +107,6 @@ class MeetingRestControllerTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.link").value(meetingCreateDto.link()))
                 .andExpect(jsonPath("$.number").value(meetingCreateDto.number()))
-                .andExpect(jsonPath("$.status").value(meetingCreateDto.status().toString()))
                 .andExpect(jsonPath("$.teamCardId").value(teamCard.getId().toString()));
     }
 
