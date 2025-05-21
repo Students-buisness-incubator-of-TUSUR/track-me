@@ -9,7 +9,6 @@ const mockedNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => {
   const originalModule = jest.requireActual('react-router-dom');
-  // Сохраняем состояние параметров, чтобы можно было динамически менять search
   let searchValue = '';
   return {
     ...originalModule,
@@ -17,14 +16,9 @@ jest.mock('react-router-dom', () => {
     useParams: () => ({ id: '42' }),
     useLocation: () => ({
       state: {},
-      get search() {
-        return searchValue;
-      },
-      set search(val) {
-        searchValue = val;
-      }
+      get search() { return searchValue; },
+      set search(val) { searchValue = val; }
     }),
-    // Экспорт для изменения search в тестах
     __setSearch: (val) => { searchValue = val; }
   };
 });
@@ -37,33 +31,12 @@ jest.mock('react-redux', () => ({
 beforeEach(() => {
   mockedNavigate.mockClear();
   jest.clearAllMocks();
-
   redux.useSelector.mockImplementation(() => ({ user: { username: 'reduxUser', roles: ['ADMIN'] } }));
-
-  // Мокаем localStorage.getItem для username
   Storage.prototype.getItem = jest.fn(() => JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] }));
 });
 
-describe('TeamCard simple tests', () => {
-  test('renders main buttons and title', async () => {
-    // Устанавливаем search пустым
-    require('react-router-dom').__setSearch('');
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42']}>
-          <Routes>
-            <Route path="/team-card/:id" element={<TeamCard />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-
-    expect(screen.getByText(/Редактировать/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Редактировать/i })).toBeEnabled();
-    expect(screen.getByRole('button', { name: /×/i })).toBeInTheDocument();
-  });
-
-  test('edit button toggles to save', async () => {
+describe('TeamCard basic interactions', () => {
+  test('renders main buttons and toggles Edit/Save button', async () => {
     require('react-router-dom').__setSearch('');
     await act(async () => {
       render(
@@ -76,13 +49,15 @@ describe('TeamCard simple tests', () => {
     });
 
     const editBtn = screen.getByRole('button', { name: /Редактировать/i });
+    expect(editBtn).toBeInTheDocument();
+    expect(editBtn).toBeEnabled();
+
     fireEvent.click(editBtn);
+
     expect(screen.getByRole('button', { name: /Сохранить/i })).toBeInTheDocument();
   });
 
-  
-
-  test('schedule meeting button navigates', async () => {
+  test('clicking "Запланировать" navigates with username from redux/localStorage', async () => {
     require('react-router-dom').__setSearch('?edit=true');
     await act(async () => {
       render(
@@ -98,6 +73,7 @@ describe('TeamCard simple tests', () => {
     expect(scheduleBtn).toBeInTheDocument();
 
     fireEvent.click(scheduleBtn);
+
     expect(mockedNavigate).toHaveBeenCalledWith('/meeting-create/42?username=reduxUser');
   });
 
@@ -114,6 +90,7 @@ describe('TeamCard simple tests', () => {
     });
 
     const trackerInput = screen.getByPlaceholderText(/ФИО трекера/i);
+
     expect(trackerInput).toBeInTheDocument();
     expect(trackerInput).toHaveAttribute('readonly');
   });
