@@ -9,6 +9,9 @@ project(':frontend').projectDir = file('apps/frontend')
 include ':trackme-gateway'
 project(':trackme-gateway').projectDir = file('apps/trackme-gateway')
 
+include ':trackme-report-service'
+project(':trackme-report-service').projectDir = file('services/trackme-report-service')
+
 include ':trackme-sso'
 project(':trackme-sso').projectDir = file('services/trackme-sso')
 
