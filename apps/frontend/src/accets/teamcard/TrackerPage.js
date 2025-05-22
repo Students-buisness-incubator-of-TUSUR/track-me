@@ -40,6 +40,7 @@ function TrackerPage() {
 
     const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
     const logoutHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/logout';
+    const ssoHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/sso';
     // Состояния для отображения панели фильтров и групп чекбоксов
     const [isVisible, setIsVisible] = useState(false);
     const [showCheckboxesStream, setShowCheckboxesStream] = useState(false); // Для "Все потоки"
@@ -321,6 +322,47 @@ useEffect(() => {
         setIsVisible(!isVisible);
     };
 
+    const handleLogoClick = () => {
+    fetch(`${ssoHost}/api/v1/account/info`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "include"
+    })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Ошибка запроса");
+            }
+            return response.json();
+        })
+        .then((userData) => {
+            if (userData && userData.roles) {
+                const role = userData.roles[0].toLowerCase();
+                if (
+                    role === "superadmin" ||
+                    role === "суперадмин" ||
+                    role === "super_admin"
+                ) {
+                    window.location.href = "/streams";
+                } else if (
+                    role === "admin" ||
+                    role === "админ"
+                ) {
+                    window.location.href = "/streams";
+                } else if (role === "tracker" || role === "трекер") {
+                    window.location.href = "/team-cards";
+                }
+            } else {
+                window.location.href = "/";
+            }
+        })
+        .catch((err) => {
+            console.error("Ошибка загрузки данных пользователя:", err);
+            window.location.href = "/";
+        });
+    };
+
     // Обработчик применения фильтров
     const applyFilters = () => {
         const filters = [];
@@ -388,7 +430,7 @@ useEffect(() => {
         <div className="tracker-container">
             <header className="Stream-header">
                 <div className="Stream-header-cont">
-                    <div className='Stream-header-logo'/>
+                    <div className='Stream-header-logo' onClick={handleLogoClick} style={{cursor: 'pointer'}}/>
                     <h1 className="Stream-title">TrackMe</h1>
                     <div className="Stream-header-cont-cont">
                         <h1 className="Stream-title11">
