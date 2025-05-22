@@ -607,14 +607,21 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
             }}
           />
           <label
-            className="data-create-team"
-            onClick={() => {
-              setSelectedStreamId(stream.id);
-              setShowStreams(false);
-            }}
-          >
-            {stream.name}
-          </label>
+  className="data-create-team"
+  tabIndex={0}
+  onClick={() => {
+    setSelectedStreamId(stream.id);
+    setShowStreams(false);
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      setSelectedStreamId(stream.id);
+      setShowStreams(false);
+    }
+  }}
+>
+  {stream.name}
+</label>
         </div>
       ))}
         </div>
@@ -648,12 +655,18 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
               handleMarketSelect(market);
             }}
           />
-          <label
-            className="data-create-team"
-            onClick={() => handleMarketSelect(market)}
-          >
-            {market.displayName}
-          </label>
+          <button
+  type="button"
+  className="data-create-team"
+  onClick={() => handleMarketSelect(market)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      handleMarketSelect(market);
+    }
+  }}
+>
+  {market.displayName}
+</button>
         </div>
       ))}
                             </div>
@@ -701,12 +714,19 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
               handleTRLSelect(trl);
             }}
           />
-          <label
-            className="data-create-team"
-            onClick={() => handleTRLSelect(trl)}
-          >
-            {trl.label}
-          </label>
+          <button
+    key={trl.id}
+    type="button"
+    className={`data-create-team`}
+    onClick={() => handleTRLSelect(trl)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        handleTRLSelect(trl);
+      }
+    }}
+  >
+    {trl.label}
+  </button>
         </div>
       ))}
                             </div>

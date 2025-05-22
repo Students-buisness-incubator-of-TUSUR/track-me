@@ -297,8 +297,96 @@ describe('Tracker full name & localStorage fallback', () => {
     });
     expect(await screen.findByDisplayValue('Admin FullName')).toBeInTheDocument();
   });
+  test('если поток не найден, бросается ошибка', async () => {
+  require('react-router-dom').__setState({ streamId: 999 }); // Несуществующий ID
 
-   
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/api/v1/streams?page=0')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [] }), // пустой список
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+
+  const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+  expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('загрузке данных потока'), expect.any(Error));
+  consoleSpy.mockRestore();
+});
+test('handleApiError вызывается при ошибке загрузки встреч', async () => {
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/api/v1/meetings')) {
+      return Promise.resolve({ ok: false, status: 500 });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+
+  const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+  expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('загрузке встреч'), expect.any(Error));
+  consoleSpy.mockRestore();
+});
+test('ошибка загрузки трекеров вызывает обработку ошибки', async () => {
+  redux.useSelector.mockImplementation(() => ({
+    user: { username: 'reduxUser', roles: ['ADMIN'] }
+  }));
+
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/api/v1/users/trackers')) {
+      return Promise.resolve({ ok: false, status: 500 });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+
+  const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+  expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('загрузке трекеров'), expect.any(Error));
+  consoleSpy.mockRestore();
+});
+test('handleSave выбрасывает ошибку при незаполненных обязательных полях (console)', async () => {
+  const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  require('react-router-dom').__setSearch('?edit=true');
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  fireEvent.change(screen.getByPlaceholderText(/Карточка команды/i), { target: { value: '' } });
+  fireEvent.change(screen.getByPlaceholderText(/Описание карточки/i), { target: { value: '' } });
+
+  fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+
+  await waitFor(() => {
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('сохранении карточки'),
+      expect.any(Error)
+    );
+  });
+  consoleSpy.mockRestore();
+});
 
 
 
