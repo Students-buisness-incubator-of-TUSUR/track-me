@@ -64,6 +64,7 @@ jobs:
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
             -Dsonar.log.level=DEBUG
+            -Dsonar.sources=src/main/java,src/main/resources
 
   frontend-sonar:
     runs-on: ubuntu-latest
