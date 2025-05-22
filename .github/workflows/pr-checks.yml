@@ -63,7 +63,7 @@ jobs:
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
-            -Dsonar.log.level=DEBUG
+            -Dsonar.log.level=DEBUG \
             -Dsonar.sources=apps/*/src/main/java,apps/*/src/main/resources,services/*/src/main/java,services/*/src/main/resources
 
   frontend-sonar:
