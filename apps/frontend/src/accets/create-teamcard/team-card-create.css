@@ -6,6 +6,9 @@ body {
     background: #ffffff;
     color: #333;
 }
+a {
+  font-family: 'Mulish', sans-serif;
+}
 
 .create-card-container {
     position: relative;
@@ -249,7 +252,7 @@ input:focus {
 
   /* скролл теперь у обёртки: */
                 
-  scrollbar-color: white #8338EB;
+  
   scrollbar-width: thin;            /* Firefox */
   scrollbar-color: #8338EB transparent;
   

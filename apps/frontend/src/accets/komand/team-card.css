@@ -7,8 +7,9 @@ body {
     color: #333;
 }
 a {
-  font-family: "Mulish";
+  font-family: 'Mulish', sans-serif;
 }
+
 .team-card-widget-container {
     position: relative;
     max-width: 1719px;
@@ -25,8 +26,7 @@ a {
 
 .close-button-widget {
     position: absolute;
-    top: 20px;
-    right: 30px;
+    
     font-size: 24px;
     background: transparent;
     border: none;
