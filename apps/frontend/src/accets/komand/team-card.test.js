@@ -387,6 +387,32 @@ test('handleSave выбрасывает ошибку при незаполнен
   });
   consoleSpy.mockRestore();
 });
+test('берет данные из localStorage, если он есть', async () => {
+  const saved = JSON.stringify({ username: 'localUser', roles: ['SUPER_ADMIN'] });
+  Storage.prototype.getItem = jest.fn(() => saved);
+  
+  const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
+
+  redux.useSelector.mockImplementation(() => ({
+    user: { username: 'reduxUser', roles: ['ADMIN'] }
+  }));
+
+  require('react-router-dom').__setState({});
+  require('react-router-dom').__setSearch('');
+
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  // Проверим, что localStorage использовался
+  expect(Storage.prototype.getItem).toHaveBeenCalledWith('user');
+  // И не было вызова setItem, потому что localStorage уже был
+  expect(setItemSpy).not.toHaveBeenCalled();
+});
 
 
 
