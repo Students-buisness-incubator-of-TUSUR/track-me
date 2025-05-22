@@ -202,6 +202,7 @@ input:focus {
     
 }
 .data-create-team {
+    all: unset;
   position: relative;
   top: -1px;           /* немного вниз */
   left: 8px;          /* немного вправо */
