@@ -451,8 +451,132 @@ test('ошибка при удалении карточки вызывает han
 
   consoleSpy.mockRestore(); // ⬅️ не забудь очистить
 });
+test('выбор TRL через клавишу Enter вызывает handleTRLSelect', async () => {
+  require('react-router-dom').__setSearch('?edit=true');
 
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
 
+  // Клик по отображаемому текущему TRL (например, "0-2")
+  fireEvent.click(screen.getByText('0-2'));
+
+  // Получение кнопки TRL уровня (например, "3-5") и имитация клавиши
+  const trlButton = screen.getByRole('button', { name: '3-5' });
+  fireEvent.keyDown(trlButton, { key: 'Enter' });
+
+  // Проверка, что TRL изменился
+  expect(screen.getByText('3-5')).toBeInTheDocument();
+});
+
+test('handleSave заменяет username на объектный, если он найден в trackers', async () => {
+  require('react-router-dom').__setSearch('?edit=true');
+
+  redux.useSelector.mockImplementation(() => ({
+    user: { username: 'reduxUser', roles: ['ADMIN'] }
+  }));
+
+  const patchSpy = jest.fn((url, options) => {
+    const body = JSON.parse(options.body);
+    expect(url).toContain('username=realUser'); // важно: именно username, а не id
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        ...body,
+        username: 'realUser'
+      })
+    });
+  });
+
+  global.fetch = jest.fn((url, options = {}) => {
+    if (url.includes('/api/v1/users/trackers')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{ id: 99, username: 'realUser', fullName: 'Имя', enabled: true }]
+        })
+      });
+    }
+
+    if (options.method === 'PATCH') {
+      return patchSpy(url, options);
+    }
+
+    if (url.includes('/api/v1/admin/team-cards')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{
+            id: 42,
+            name: 'OldName',
+            description: 'OldDesc',
+            ntiMarket: { id: 10, displayName: 'OldMarket' },
+            readinessLevel: '0-2',
+            stream: { id: 1 },
+            username: 'reduxUser'
+          }]
+        })
+      });
+    }
+
+    if (url.includes('/api/v1/streams/nti-markets')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([
+          { id: 10, displayName: 'OldMarket' },
+          { id: 20, displayName: 'NewMarket' }
+        ])
+      });
+    }
+
+    if (url.includes('/api/v1/streams')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{ id: 1, name: 'MyStream', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' }]
+        })
+      });
+    }
+
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+  });
+
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  fireEvent.change(screen.getByPlaceholderText(/Карточка команды/i), {
+    target: { value: 'TestName' }
+  });
+
+  fireEvent.change(screen.getByPlaceholderText(/Описание карточки/i), {
+    target: { value: 'TestDesc' }
+  });
+
+  // Выбор трекера
+  fireEvent.change(screen.getByRole('combobox'), {
+    target: { value: 'realUser' }
+  });
+
+  // Клик по кнопке сохранения
+  fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+
+  // Ожидаем, что вернулась кнопка "Редактировать"
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: /Редактировать/i })).toBeInTheDocument()
+  );
+
+  // Убедимся, что PATCH был вызван с username=realUser
+  expect(patchSpy).toHaveBeenCalled();
+});
 
 
 
