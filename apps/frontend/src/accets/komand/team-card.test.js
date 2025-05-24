@@ -710,6 +710,179 @@ describe('Additional coverage (manual lines)', () => {
     fetchSpy.mockRestore();
   });
 });
+test('TRACKER branch uses /account/info for fullName', async () => {
+    const RR = require('react-router-dom');
+    RR.__setSearch('');
+    // Ставим роль TRACKER
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'trackerUser', roles: ['TRACKER'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'trackerUser', roles: ['TRACKER'] })
+    );
+    global.fetch = jest.fn((url, opts = {}) => {
+      if (url.endsWith('/api/v1/account/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ fullName: 'Tracker FullName' })
+        });
+      }
+      // team-cards
+      if (url.includes('/api/v1/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: 42,
+              name: 'OldName',
+              description: 'OldDesc',
+              ntiMarket: { id: 10, displayName: 'OldMarket' },
+              readinessLevel: '0-2',
+              stream: { id: 1 },
+              username: 'trackerUser'
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      // потоки
+      if (url.includes('/api/v1/streams?page=0&size=150')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ id: 1, name: 'MyStream', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' }]
+          })
+        });
+      }
+      // рынки НТИ
+      if (url.includes('/api/v1/streams/nti-markets')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 10, displayName: 'OldMarket' }])
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    // Проверяем, что отрисовалось ФИО трекера
+    expect(await screen.findByDisplayValue('Tracker FullName')).toBeInTheDocument();
+  });
+
+  test('console.error on fetch team-cards error', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const RR = require('react-router-dom');
+    RR.__setSearch('');
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: ['ADMIN'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+    );
+    global.fetch = jest.fn((url, opts = {}) => {
+      if (url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('поиске карточки команды'),
+      expect.any(Error)
+    );
+    consoleSpy.mockRestore();
+  });
+
+  test('console.error on fetch streams error', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const RR = require('react-router-dom');
+    RR.__setSearch('');
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: ['ADMIN'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+    );
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/streams?page=0&size=1500')) {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('загрузке потоков'),
+      expect.any(Error)
+    );
+    consoleSpy.mockRestore();
+  });
+
+  test('initial view displays NTI and TRL values', async () => {
+    require('react-router-dom').__setSearch('');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    const ntiInput = await screen.findByPlaceholderText('Рынок НТИ');
+    expect(ntiInput).toHaveValue('OldMarket');
+    const trlInput = screen.getByPlaceholderText('TRL');
+    expect(trlInput).toHaveValue('0-2');
+  });
+
+  test('NTI selection via Enter key', async () => {
+    require('react-router-dom').__setSearch('?edit=true');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    // Открываем список НТИ
+    fireEvent.click(screen.getByText('OldMarket'));
+    const newBtn = screen.getByRole('button', { name: 'NewMarket' });
+    fireEvent.keyDown(newBtn, { key: 'Enter' });
+    expect(screen.getByText('NewMarket')).toBeInTheDocument();
+  });
+
+  test('streams dropdown opens and shows options', async () => {
+    require('react-router-dom').__setSearch('?edit=true');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    // Изначально только один элемент — переключатель
+    expect(screen.getAllByText('MyStream').length).toBe(1);
+    fireEvent.click(screen.getByText('MyStream'));
+    // После клика появляется минимум ещё одна копия из списка
+    expect(screen.getAllByText('MyStream').length).toBeGreaterThan(1);
+  });
 
 
 
