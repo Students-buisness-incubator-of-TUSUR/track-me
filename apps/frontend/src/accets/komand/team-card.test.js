@@ -578,6 +578,46 @@ test('handleSave заменяет username на объектный, если о�
   expect(patchSpy).toHaveBeenCalled();
 });
 
+test('tooltip отображается при наведении (для TRACKER)', async () => {
+  redux.useSelector.mockImplementation(() => ({
+    user: { username: 'trackerUser', roles: ['TRACKER'] }
+  }));
+
+  Storage.prototype.getItem = jest.fn(() =>
+    JSON.stringify({ username: 'trackerUser', roles: ['TRACKER'] })
+  );
+
+  require('react-router-dom').__setSearch('?edit=true');
+
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  const dropdown = screen.getByText(/Поток/);
+  fireEvent.mouseEnter(dropdown);
+  expect(await screen.findByText(/Трекер не может редактировать/i)).toBeInTheDocument();
+  fireEvent.mouseLeave(dropdown);
+  expect(screen.queryByText(/Трекер не может редактировать/i)).not.toBeInTheDocument();
+});
+
+
+test('если selectedStreamId не задан, используется streamInfo.id', async () => {
+  require('react-router-dom').__setState({ streamId: 1 });
+
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  expect(screen.getByText('MyStream')).toBeInTheDocument();
+});
 
 
 });
