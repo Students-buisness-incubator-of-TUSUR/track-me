@@ -162,6 +162,7 @@ beforeEach(() => {
   });
 });
 
+
 // === Базовые проверки ===
 describe('TeamCard basic interactions', () => {
   test('renders Edit/Save toggle', async () => {
@@ -618,6 +619,98 @@ test('если selectedStreamId не задан, используется stream
 
   expect(screen.getByText('MyStream')).toBeInTheDocument();
 });
+
+describe('Additional coverage (manual lines)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    require('react-router-dom').__setSearch('');
+    require('react-router-dom').__setState({});
+  });
+
+  test('Показывает “Загрузка данных о потоке...”, пока streamInfo ещё null', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+    expect(screen.getByText('Загрузка данных о потоке...')).toBeInTheDocument();
+  });
+
+  test('При клике вне блока .dropdown-block дропдауны NTI/TRL закрываются', async () => {
+    // включаем режим редактирования, чтобы dropdown заработали
+    require('react-router-dom').__setSearch('?edit=true');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Открываем NTI-список (меню появляются как <button>)
+    fireEvent.click(screen.getByText('OldMarket'));
+    expect(screen.getAllByRole('button', { name: 'OldMarket' }).length).toBeGreaterThanOrEqual(1);
+
+    // Открываем TRL-список
+    fireEvent.click(screen.getByText('0-2'));
+    expect(screen.getAllByRole('button', { name: '3-5' }).length).toBeGreaterThanOrEqual(1);
+
+    // Кликаем вне dropdown
+    fireEvent.mouseDown(document.body);
+
+    // После клика вне оба списка должны закрыться (ни одной кнопки-элемента меню не остаётся)
+    expect(screen.queryAllByRole('button', { name: 'OldMarket' })).toHaveLength(0);
+    expect(screen.queryAllByRole('button', { name: '3-5' })).toHaveLength(0);
+  });
+
+  test('Если в localStorage нет user — берёт из reduxUser и сохраняет его туда', async () => {
+    jest.spyOn(Storage.prototype, 'getItem').mockReturnValueOnce(null);
+    const spySet = jest.spyOn(Storage.prototype, 'setItem');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+    expect(spySet).toHaveBeenCalledWith(
+      'user',
+      JSON.stringify({ user: { username: 'reduxUser', roles: ['ADMIN'] } })
+    );
+    spySet.mockRestore();
+  });
+
+  test('handleDeactivate: если confirm отклонён, fetch и navigate не вызываются', async () => {
+    window.confirm = jest.fn(() => false);
+    const fetchSpy = jest.spyOn(global, 'fetch');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Редактировать/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Деактивировать/i }));
+    expect(fetchSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/admin/team-card'),
+      expect.objectContaining({ method: 'DELETE' })
+    );
+    expect(mockedNavigate).not.toHaveBeenCalledWith('/team-cards');
+    fetchSpy.mockRestore();
+  });
+});
+
 
 
 });
