@@ -416,4 +416,44 @@ test('берет данные из localStorage, если он есть', async 
 
 
 
+
+
+test('ошибка при удалении карточки вызывает handleApiError', async () => {
+  const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {}); // ⬅️ добавлено
+
+  global.fetch = jest.fn((url, options) => {
+    if (options?.method === 'DELETE') {
+      return Promise.resolve({ ok: false, status: 500 });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+
+  window.confirm = jest.fn(() => true); // подтверждение деактивации
+
+  require('react-router-dom').__setSearch('');
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  fireEvent.click(screen.getByRole('button', { name: /Редактировать/i }));
+  fireEvent.click(screen.getByRole('button', { name: /Деактивировать/i }));
+
+  await waitFor(() =>
+    expect(consoleSpy).toHaveBeenCalledWith( // ⬅️ заменено с console.error
+      expect.stringContaining('удалении карточки'),
+      expect.any(Error)
+    )
+  );
+
+  consoleSpy.mockRestore(); // ⬅️ не забудь очистить
+});
+
+
+
+
+
 });
