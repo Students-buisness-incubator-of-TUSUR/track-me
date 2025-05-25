@@ -229,12 +229,13 @@ body {
 .Stream-pic {
     display: flex;
     align-self: center;
-    background-image: url("personal_account_1.png");
+    
     width: 42px;
     height: 42px;
     margin-left: 59px;
     margin-right: 121px;
-    background: none;
+    background-color: transparent;
+
     border: none;
     padding: 0;
     cursor: pointer;
