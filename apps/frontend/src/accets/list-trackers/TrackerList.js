@@ -6,6 +6,7 @@ import falseIcon from "./false.png";
 import editIcon from "./edit.png";
 import trueIcon2 from "./true2.png";
 import falseIcon2 from "./false2.png";
+import ProfileIcon from "./personal_account_1.png";
 
 function TrackerList() {
     const [trackers, setTrackers] = useState([]);
@@ -15,10 +16,16 @@ function TrackerList() {
     const trackersPerPage = 20;
     const [hoveredTracker, setHoveredTracker] = useState(null);
     const [hoveredButton, setHoveredButton] = useState(null);
-
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    
+    
+    const toggleProfileMenu = () => {
+        setIsProfileMenuOpen(prev => !prev);
+    };
     // Если фильтры не изменяются, мемоизируем их
     const filters = useMemo(() => [], []);
     const ssoServiceUri = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + "/sso";
+    const logoutHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/logout';
 
     useEffect(() => {
         fetch(`${ssoServiceUri}/api/v1/users/trackers?page=0&size=10`, {
@@ -119,6 +126,16 @@ function TrackerList() {
                 setError(`Ошибка при удалении пользователя: ${err.message}`);
             });
     };
+    const handleLogout = async () => {
+    // 1. Удаление данных из localStorage
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("streamName");
+    localStorage.removeItem("streamId");
+    localStorage.removeItem("streamSDate");
+    localStorage.removeItem("streamEDate");
+    
+    }
 
     const handleSearchChange = (event) => {
         setSearchQuery(event.target.value);
@@ -159,7 +176,21 @@ function TrackerList() {
                         <Link to="/team-cards">
                             <button className="Stream-butt">Все команды</button>
                         </Link>
-                        <Link to="/profile" className="Stream-pic"></Link>
+                        <button className="Stream-pic" onClick={toggleProfileMenu}>
+                          <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
+                        </button>
+                        
+                        
+                        {isProfileMenuOpen && (
+                          <div className="ProfileDropdown">
+                            <Link to="/profile" className="ProfileDropdown-item">
+                              Личный кабинет
+                            </Link>
+                            <Link onClick={handleLogout} to={logoutHost} className="ProfileDropdown-item logout">
+                              Выход
+                            </Link>
+                          </div>
+                        )}
                     </div>
                 </div>
                 {/* Поле поиска */}

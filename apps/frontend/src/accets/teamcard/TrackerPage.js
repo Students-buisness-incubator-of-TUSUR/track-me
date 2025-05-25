@@ -3,7 +3,7 @@ import "./TrackerPage.css";
 
 import {Link, useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
-
+import ProfileIcon from "./personal_account_1.png";
 function TrackerPage() {
     const [cards, setCards] = useState([]);
     const [visibleCardsStart, setVisibleCardsStart] = useState(0);
@@ -20,7 +20,12 @@ function TrackerPage() {
     const [userRole, setUserRole] = useState(null);
     const [username, setusername] = useState(null);
     const [selectedYears, setSelectedYears] = useState([]);
-
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    
+    
+    const toggleProfileMenu = () => {
+        setIsProfileMenuOpen(prev => !prev);
+    };
     const formatDateToYMD = (dateString) => {
     if (!dateString) return "";
   
@@ -405,10 +410,22 @@ useEffect(() => {
                     </div>
 
                     <div className="Stream-buttons">
-                        <Link to={logoutHost}>
-                            <button className="Stream-butt" onClick={handleLogout}>Выход</button>
-                        </Link>
-                        <Link to="/profile" className="Stream-pic"></Link>
+                        <button className="Stream-pic" onClick={toggleProfileMenu}>
+                          <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
+                        </button>
+                        
+                        
+                        {isProfileMenuOpen && (
+                          <div className="ProfileDropdown">
+                            <Link to="/profile" className="ProfileDropdown-item">
+                              Личный кабинет
+                            </Link>
+                            <Link onClick={handleLogout} to={logoutHost} className="ProfileDropdown-item logout">
+                              Выход
+                            </Link>
+                          </div>
+                        )}
+                           
                     </div>
                 </div>
                 <div className="Stream-header-bottom-cont">

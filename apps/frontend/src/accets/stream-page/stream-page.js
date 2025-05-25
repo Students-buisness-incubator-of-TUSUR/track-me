@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Link} from "react-router-dom";
 import axios from 'axios';
 import './stream-page.css';
+import ProfileIcon from "./personal_account_1.png";
 
 export default function Stream() {
     const [isVisible, setIsVisible] = useState(false);
@@ -31,7 +32,12 @@ export default function Stream() {
     const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
     const logoutHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/logout';
     const numberOfCheckboxes = year - 2015;
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
+
+const toggleProfileMenu = () => {
+    setIsProfileMenuOpen(prev => !prev);
+};
     // Убираем использование и проверку токена
     const fetchData = useCallback(async (filters = {filters: []}) => {
         setLoading(true);
@@ -264,7 +270,16 @@ export default function Stream() {
             return newCheckedTRLs;
         });
     };
-
+    const handleLogout = async () => {
+    // 1. Удаление данных из localStorage
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("streamName");
+    localStorage.removeItem("streamId");
+    localStorage.removeItem("streamSDate");
+    localStorage.removeItem("streamEDate");
+    
+    }
     const handleApplyFilters = () => {
         setpage(0);
         const newFilters = {
@@ -349,10 +364,21 @@ export default function Stream() {
                             <button className="Stream-butt">Трекеры</button>
                         </Link>
                         <button className="Stream-butt">Все команды</button>
-                        <Link to={logoutHost}>
-                            <button className="Stream-butt">Выход</button>
-                        </Link>
-                        <Link to="/profile" className="Stream-pic"></Link>
+                        <button className="Stream-pic" onClick={toggleProfileMenu}>
+  <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
+</button>
+
+
+{isProfileMenuOpen && (
+  <div className="ProfileDropdown">
+    <Link to="/profile" className="ProfileDropdown-item">
+      Личный кабинет
+    </Link>
+    <Link onClick={handleLogout} to={logoutHost} className="ProfileDropdown-item logout">
+      Выход
+    </Link>
+  </div>
+)}
                     </div>
                 </div>
                 <div className="Stream-header-bottom-cont">
