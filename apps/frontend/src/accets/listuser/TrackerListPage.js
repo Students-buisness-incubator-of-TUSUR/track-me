@@ -127,32 +127,54 @@ function TrackerListPage({ endpoint }) {
           {visibleTrackers.length > 0 ? (
             visibleTrackers.map((tracker, index) =>
               tracker.enabled ? (
-                <div className="tracker-item-true" key={tracker.username || index}
-                     onClick={() => setHoveredTracker(tracker.username)}
-                     onMouseLeave={() => setHoveredTracker(null)}>
+                <div
+  className="tracker-item-true"
+  key={tracker.username || index}
+  onClick={() => setHoveredTracker(tracker.username)}
+  onMouseLeave={() => setHoveredTracker(null)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      setHoveredTracker(tracker.username);
+    }
+  }}
+  role="button"
+  tabIndex={0}
+>
+
                   <div className="tracker-avatar">
                     {hoveredTracker === tracker.username && (
-                      <div className="tracker-edit-panel12">
-                        <button className="confirm-button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setHoveredTracker(null);
-                                }}
-                                onMouseEnter={() => setHoveredButton("confirm")}
-                                onMouseLeave={() => setHoveredButton(null)}>
-                          <img src={hoveredButton === "cancel" ? trueIcon2 : trueIcon} alt="" />
-                        </button>
-                        <button className="cancel-button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteUser(tracker.username);
-                                }}
-                                onMouseEnter={() => setHoveredButton("cancel")}
-                                onMouseLeave={() => setHoveredButton(null)}>
-                          <img src={hoveredButton === "confirm" ? falseIcon2 : falseIcon} alt="" />
-                        </button>
-                      </div>
-                    )}
+  <div className="tracker-edit-panel12">
+    <button
+      className="confirm-button"
+      onClick={(e) => {
+        e.stopPropagation();
+        setHoveredTracker(null);
+      }}
+      onMouseEnter={() => setHoveredButton("confirm")}
+      onMouseLeave={() => setHoveredButton(null)}
+    >
+      <img src={hoveredButton === "cancel" ? trueIcon2 : trueIcon} alt="Оставить" />
+    </button>
+    {hoveredButton === "cancel" && (
+      <span className="tooltip tooltip-red">Удалить</span>
+    )}
+    <button
+      className="cancel-button"
+      onClick={(e) => {
+        e.stopPropagation();
+        deleteUser(tracker.username);
+      }}
+      onMouseEnter={() => setHoveredButton("cancel")}
+      onMouseLeave={() => setHoveredButton(null)}
+    >
+      <img src={hoveredButton === "confirm" ? falseIcon2 : falseIcon} alt="Удалить" />
+    </button>
+    {hoveredButton === "confirm" && (
+      <span className="tooltip tooltip-green">Оставить</span>
+    )}
+  </div>
+)}
+
                     <span className="green-checkmark" title="Включён">
                       <img src={trueIcon} alt="Подтвержден" />
                     </span>
@@ -163,26 +185,48 @@ function TrackerListPage({ endpoint }) {
                   </div>
                 </div>
               ) : (
-                <div className="tracker-item-edit" key={tracker.username || index}
-                     onClick={() => setHoveredTracker(tracker.username)}
-                     onMouseLeave={() => setHoveredTracker(null)}>
+                <div
+  className="tracker-item-edit"
+  key={tracker.username || index}
+  onClick={() => setHoveredTracker(tracker.username)}
+  onMouseLeave={() => setHoveredTracker(null)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      setHoveredTracker(tracker.username);
+    }
+  }}
+  role="button"
+  tabIndex={0}
+>
+
                   <div className="tracker-avatar">
                     {hoveredTracker === tracker.username && (
-                      <div className="tracker-edit-panel">
-                        <button className="confirm-button"
-                                onClick={() => confirmUser(tracker.username)}
-                                onMouseEnter={() => setHoveredButton("confirm")}
-                                onMouseLeave={() => setHoveredButton(null)}>
-                          <img src={hoveredButton === "cancel" ? trueIcon2 : trueIcon} alt="Подтвердить" />
-                        </button>
-                        <button className="cancel-button"
-                                onClick={() => deleteUser(tracker.username)}
-                                onMouseEnter={() => setHoveredButton("cancel")}
-                                onMouseLeave={() => setHoveredButton(null)}>
-                          <img src={hoveredButton === "confirm" ? falseIcon2 : falseIcon} alt="Отклонить" />
-                        </button>
-                      </div>
-                    )}
+  <div className="tracker-edit-panel">
+    <button
+      className="confirm-button"
+      onClick={() => confirmUser(tracker.username)}
+      onMouseEnter={() => setHoveredButton("confirm")}
+      onMouseLeave={() => setHoveredButton(null)}
+    >
+      <img src={hoveredButton === "cancel" ? trueIcon2 : trueIcon} alt="Подтвердить" />
+    </button>
+    {hoveredButton === "cancel" && (
+      <span className="tooltip tooltip-red">Отменить</span>
+    )}
+    <button
+      className="cancel-button"
+      onClick={() => deleteUser(tracker.username)}
+      onMouseEnter={() => setHoveredButton("cancel")}
+      onMouseLeave={() => setHoveredButton(null)}
+    >
+      <img src={hoveredButton === "confirm" ? falseIcon2 : falseIcon} alt="Отклонить" />
+    </button>
+    {hoveredButton === "confirm" && (
+      <span className="tooltip tooltip-green">Подтвердить</span>
+    )}
+  </div>
+)}
+
                     <div className="edit-icon" title="Редактировать">
                       <img src={editIcon} alt="Редактировать" />
                     </div>
