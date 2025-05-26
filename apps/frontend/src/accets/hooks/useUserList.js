@@ -21,6 +21,7 @@ export function useUserList(type = "trackers") {
             if (!res.ok) throw new Error(`Status: ${res.status}`);
             return res.json();
         })
+        //////
         .then(data => {
             if (data?.content) {
                 setTrackers(data.content);
