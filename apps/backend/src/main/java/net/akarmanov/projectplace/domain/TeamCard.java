@@ -78,7 +78,7 @@ public class TeamCard {
              FROM meeting m
              WHERE m.team_id = id)
             """)
-    private BigDecimal averageGrade = BigDecimal.ZERO;
+    private BigDecimal averageGrade;
 
     public void addStream(Stream stream) {
         streams.clear();
@@ -86,6 +86,8 @@ public class TeamCard {
     }
 
     public BigDecimal getAverageGrade() {
-        return averageGrade.setScale(2, RoundingMode.HALF_DOWN);
+        return averageGrade != null
+                ? averageGrade.setScale(2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
     }
 }
