@@ -16,7 +16,8 @@ const TeamCard = () => {
     const streamId = location.state?.streamId;
     const passedUsername = location.state?.username;
     const query = new URLSearchParams(location.search);
-    
+    const from = location.state?.from || "/team-cards";
+
     const [role, setRole] = useState(null);
 const [username, setUsername] = useState(null);
 const reduxUser = useSelector(state => state.user?.user);
@@ -485,7 +486,7 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
       throw new Error(`Ошибка при удалении: ${response.status}`);
     }
 
-    navigate("/team-cards"); // или `navigate(-1)` для возврата
+    navigate(from); // или `navigate(-1)` для возврата
   } catch (error) {
     handleApiError(error, "удалении карточки");
   }
@@ -496,7 +497,7 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
 
     return (
         <div className="team-card-widget-container">
-            <button className="close-button-widget" onClick={() => navigate(`/team-cards`)}>×</button>
+            <button className="close-button-widget" onClick={() => navigate(from)}>×</button>
 
             <button
                 className="edit-button-widget"
