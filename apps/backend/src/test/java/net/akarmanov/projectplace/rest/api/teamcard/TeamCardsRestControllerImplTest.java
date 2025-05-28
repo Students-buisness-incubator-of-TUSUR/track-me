@@ -1,12 +1,15 @@
 package net.akarmanov.projectplace.rest.api.teamcard;
 
 import net.akarmanov.projectplace.BaseApplicationTest;
+import net.akarmanov.projectplace.domain.Meeting;
 import net.akarmanov.projectplace.domain.NTIMarket;
 import net.akarmanov.projectplace.domain.ReadinessLevel;
 import net.akarmanov.projectplace.domain.TeamCard;
+import net.akarmanov.projectplace.models.MeetingStatus;
 import net.akarmanov.projectplace.models.TeamCardStatus;
 import net.akarmanov.projectplace.repos.NtiMarketRepository;
 import net.akarmanov.projectplace.repos.TeamCardsRepository;
+import net.akarmanov.projectplace.services.meeting.MeetingService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.Year;
 
 import static org.hamcrest.Matchers.is;
@@ -35,6 +39,9 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
     @Autowired
     private NtiMarketRepository ntiMarketRepository;
+
+    @Autowired
+    private MeetingService meetingService;
 
     private NTIMarket ntiMarket;
 
@@ -128,12 +135,23 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
 
+        meetingService.createMeeting(teamCard, Meeting.builder()
+                .status(MeetingStatus.OK)
+                .startDate(OffsetDateTime.now())
+                .build());
+
+        meetingService.createMeeting(teamCard, Meeting.builder()
+                .status(MeetingStatus.WITH_ISSUES)
+                .startDate(OffsetDateTime.now().plusDays(1))
+                .build());
+
         mockMvc.perform(get("/api/v1/team-card")
                         .param("id", teamCard.getId().toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
                 .andExpect(jsonPath("$.name", is("Team card1")))
+                .andExpect(jsonPath("$.averageGrade").isNumber())
                 .andExpect(jsonPath("$.readinessLevel", is("0-2")));
     }
 
