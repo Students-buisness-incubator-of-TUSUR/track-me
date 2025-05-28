@@ -6,6 +6,9 @@ body {
     background: #ffffff;
     color: #333;
 }
+a {
+  font-family: 'Mulish', sans-serif;
+}
 
 .team-card-widget-container {
     position: relative;
@@ -23,15 +26,15 @@ body {
 
 .close-button-widget {
     position: absolute;
-    top: 20px;
-    right: 30px;
+    
     font-size: 24px;
     background: transparent;
     border: none;
     color: #8e44fd;
     cursor: pointer;
-    top: 38px;
+    top: 42px;
     right: 50px;
+    
 }
 
 .team-title-widget {
@@ -44,10 +47,10 @@ body {
 }
 
 .edit-button-widget {
-    background: #8B5CF6;
+    background: #8338EB;
     color: white;
     border: none;
-    padding: 10px 25px;
+    padding: 10px 50px;
     border-radius: 20px;
     cursor: pointer;
     font-size: 20px;
@@ -56,6 +59,25 @@ body {
     top: 38px;
     right: 137px;
 }
+
+.stream-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #ffc;
+  color: #000;
+  font-size: 14px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  z-index: 100;
+  width: max-content;
+  max-width: 280px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  margin-top: 8px;
+  white-space: normal;
+}
+
 
 .edit-button-widget:disabled {
     opacity: 0.7;
@@ -123,23 +145,43 @@ body {
     font-weight: 400;
     white-space: nowrap;
 }
+.team-description-wrapper {
+  position: relative;
+  width: 739px;
+  height: 238px;
+  padding: 29px 30px 29px 41px;
+  scrollbar-gutter: stable;            /* внутренняя «подушка» */
+  border: 3px solid #8338EB;
+  border-radius: 70px;
+  box-sizing: border-box;
 
-.team-description-input {
-    width: 739px;
-    height: 238px;
-    padding: 29px 68px 29px 41px;
-    border-radius: 70px;
-    font-size: 24px;
-    font-weight: 300;
-    border: 3px solid #8338EB;
-    resize: none;
-    box-sizing: border-box;
-    transition: border-color 0.3s ease;
+  /* скролл теперь у обёртки: */
+                
+  
+  scrollbar-width: thin;            /* Firefox */
+  scrollbar-color: #8338EB transparent;
 }
 
-.team-description-input:focus {
-    outline: none;
+/* Внутрь wrapper-а textarea просто растягиваем по 100% */
+.team-description-wrapper .team-description-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  font-size: 24px;
+  font-weight: 300;
+  background: transparent;
+  
+
+  padding-right: 20px;
 }
+
+
+
+
 
 .right-panel {
     width: 50%;
@@ -172,8 +214,35 @@ body {
     font-size: 24px;
     font-weight: 300;
     line-height: 30px;
-    width: 350px;
+    width: 500px;
     min-width: 150px;
+    
+}
+.team-input-widget1 {
+    height: 40px;
+    padding:  0 20px;
+    border: none;
+    background: #8338EB;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 30px;
+    width: 120px;
+    
+    
+}
+.team-input-widget2 {
+    height: 40px;
+    padding: 0 20px;
+    border: none;
+    background: #8338EB;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 30px;
+    width: 55px;
     font-family:'Mulish';
 }
 
@@ -211,6 +280,10 @@ select.team-input-widget option {
     border-radius: 24px;
     overflow: visible;
 }
+.dropdown-block.open .create-dropdown-toggle {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
 
 .dropdown-toggle {
     font-weight: bold;
@@ -238,10 +311,10 @@ select.team-input-widget option {
 }
 
 .dropdown-toggle.editable::after {
-    content: "▾";
+    content: url("arrow.png");
     position: absolute;
-    right: 14px;
-    font-size: 12px;
+    right: 25px;
+    top: 15px;
 }
 
 .create-dropdown-block.open .create-dropdown-toggle {
@@ -288,19 +361,68 @@ select.team-input-widget option {
     width: 604px;
     height: 523px;
     border-radius: 35px;
+   
     border: 3px solid #8338EB;
-    padding: 35px 66px 35px 30px;
+    padding: 35px 20px 35px 30px;
     margin-left: auto;
     display: flex;
     flex-direction: column;
     gap: 15px;
     position: relative;
+    
 }
 
 .team-meetings-exist {
-    display: flex;
+    flex: 1 1 auto;    /* растягиваем на всё доступное место */
+  min-height: 0;     /* чтобы flex-контейнер правильно рассчитал высоту */
+  overflow-y: auto;
     flex-direction: column;
-    gap: 15px;
+    
+     overflow-x: hidden;
+     padding-right: 20px;
+     
+     
+     
+    
+    
+}
+/* вместо width: 604px; */
+.team-meetings-exist .team-meeting {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.team-meetings-exist::-webkit-scrollbar {
+  width: 16px;
+
+}
+
+.team-meetings-exist::-webkit-scrollbar-thumb {
+  /* цвет фона трека, которым потом обрамим белую зону */
+  border: 3px solid #8338EB;  
+
+  /* сам бегунок белый, но его размер — внутренняя область рамки */
+  background-color: #ffffff;
+  
+  /* чтобы background-color не растягивался под рамку */
+  background-clip: content-box;  
+  min-height: 4px;
+
+  /* и «уменьшаем» скругление чуть поменьше */
+  border-radius: 8px;          
+  
+  /* ключевой момент — считаем рамку внутрь размера */
+  box-sizing: content-box;
+  
+  
+  
+}
+
+.team-meetings-exist::-webkit-scrollbar-track {
+  background: #8338EB;
+  border-radius: 39px;
+  padding-right: 20px;
+  
 }
 
 .team-meeting {
@@ -311,7 +433,11 @@ select.team-input-widget option {
     background: #8338EB;
     display: flex;
     position: relative;
+    margin-right: 8px !important;
     align-items: center;
+    margin-bottom: 12px;    /* расстояние между элементами */
+    
+  box-sizing: border-box;
 }
 
 .meeting-date {
@@ -330,6 +456,7 @@ select.team-input-widget option {
     font-weight: 700;
     color: #ffffff;
     padding-left: 90px; 
+    
     padding-right: 30px; 
     margin-left: -30px;
     font-weight: 600;
@@ -348,6 +475,8 @@ select.team-input-widget option {
     border: none;
     font-weight: 400;
     font-family:'Mulish';
+    flex: none;        /* не растягивается */
+  
 }
 .stream-info-block {
     display: flex;
@@ -357,7 +486,7 @@ select.team-input-widget option {
     color: #6c2bd9; /* фиолетовый как на скрине */
     margin-top: 12px;
 }
-.create-description-input {
+.create-description-input2 {
     width: 739px;
     height: 238px;
     padding: 29px 68px 29px 41px;
@@ -442,15 +571,15 @@ select.team-input-widget option {
 
 .red-button-container {
     position: absolute;
-    left: 159px;
-    bottom: 33px;
+    left: 149px;
+    bottom: 40px;
 }
 
 .red-button-widget {
-    background: #EF4444;
+    background: #D34F4F;
     color: white;
-    height: 50px;
-    padding: 14px 32px;
+    height: 45px;
+    padding: 10px 52px;
     font-size: 20px;
     border: none;
     border-radius: 30px;

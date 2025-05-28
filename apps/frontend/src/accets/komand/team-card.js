@@ -21,28 +21,32 @@ const TeamCard = () => {
 const [username, setUsername] = useState(null);
 const reduxUser = useSelector(state => state.user?.user);
 
-const [allTeamCards, setAllTeamCards] = useState([]);
+const [allTeamCards, setAllTeamCards] = useState([]); // eslint-disable-line no-unused-vars
 const [teamCardsCount, setTeamCardsCount] = useState(0);
 
 
     const [teamData, setTeamData] = useState({});
     const [editedData, setEditedData] = useState({});
     const [meetings, setMeetings] = useState([]);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const [currentPage, setCurrentPage] = useState(0); // eslint-disable-line no-unused-vars
+    const [totalPages, setTotalPages] = useState(1); // eslint-disable-line no-unused-vars
     const [streams, setStreams] = useState([]);
     const [ntiMarkets, setNtiMarkets] = useState([]);
     const [trackers, setTrackers] = useState([]);
     const forceEdit = query.get("edit") === "true";
     const [isEditing, setIsEditing] = useState(forceEdit);
+    const [showTooltip, setShowTooltip] = useState(false);
 
     const [showNTI, setShowNTI] = useState(false);
     const [showTRL, setShowTRL] = useState(false);
     const [selectedMarket, setSelectedMarket] = useState(null);
     const [selectedTRL, setSelectedTRL] = useState(null);
+    const [selectedStreamId, setSelectedStreamId] = useState(null);
+const [showStreams, setShowStreams] = useState(false);
+
 
     const [isLoading, setIsLoading] = useState(false);
-    const [apiError, setApiError] = useState(null);
+    const [apiError, setApiError] = useState(null); // eslint-disable-line no-unused-vars
 
     const trlLevels = useMemo(() => [
         {id: 1, label: "0-2"},
@@ -85,7 +89,7 @@ useEffect(() => {
 
 
     fetchStreamInfo();
-}, [teamData.streamId]);
+}, [streamId]);
 
 // Форматируем даты для отображения
 const formatDates = (start, end) => {
@@ -102,6 +106,11 @@ const formatDates = (start, end) => {
     
     return `${formatDate(start)} - ${formatDate(end)}`;
 };
+useEffect(() => {
+  if (teamData.stream?.id) {
+    setSelectedStreamId(teamData.stream.id);
+  }
+}, [teamData]);
 
 useEffect(() => {
   if (!role) return;
@@ -255,37 +264,36 @@ useEffect(() => {
 
 
     useEffect(() => {
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            fetch(`${backendHost1}/api/v1/users/trackers`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-  filters: [
-   
-  ],
-  page: 0,
-  size: 150,
-  order: { field: "fullName", direction: "ASC" }
-}),
-
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+        fetch(`${backendHost1}/api/v1/users/trackers`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                filters: [],
+                page: 0,
+                size: 150,
+                order: { field: "fullName", direction: "ASC" }
+            }),
+        })
+            .then(async (res) => {
+                if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
+                return res.json();
             })
-                .then(async (res) => {
-  if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
-  return res.json();
-})
+            .then((data) => {
+                // ⚠️ фильтруем только enabled === true
+                const activeTrackers = (data.content || []).filter(t => t.enabled === true);
+                setTrackers(activeTrackers);
+            })
+            .catch((err) => {
+                handleApiError(err, "загрузке трекеров");
+                setTrackers([]);
+            });
+    }
+}, [role]);
 
-                .then((data) => {
-                    setTrackers(data.content || []);
-                })
-                .catch((err) => {
-                    handleApiError(err, "загрузке трекеров");
-                    setTrackers([]);
-                });
-        }
-    }, [role]);
 
     useEffect(() => {
         if (role === "ADMIN" || role === "SUPER_ADMIN") {
@@ -322,6 +330,24 @@ useEffect(() => {
             })
             .catch(err => handleApiError(err, "загрузке рынков НТИ"));
     }, []);
+    useEffect(() => {
+  if (!teamData || !teamData.id) return;
+
+  setEditedData(prev => ({
+    ...prev,
+    // если у teamData есть вложенный объект ntiMarket
+    ntiMarketId: teamData.ntiMarket?.id || prev.ntiMarketId,
+    // готовность
+    readinessLevel: teamData.readinessLevel || prev.readinessLevel,
+    // описание
+    description: teamData.description || prev.description,
+  }));
+}, [teamData]);
+useEffect(() => {
+  if (!selectedStreamId && streamInfo?.id) {
+    setSelectedStreamId(streamInfo.id);
+  }
+}, [streamInfo, selectedStreamId]);
 
     useEffect(() => {
         if (teamData.ntiMarket) {
@@ -355,91 +381,118 @@ useEffect(() => {
 
 
     const handleSave = async () => {
-    setIsLoading(true);
-    setApiError(null);
+  setIsLoading(true);
+  setApiError(null);
 
-    try {
-        const patchData = {
-            name: editedData.name?.trim(),
-            description: editedData.description?.trim(),
-            ntiMarketId: editedData.ntiMarketId,
-            readinessLevel: editedData.readinessLevel
-        };
-
-        // Валидация
-        if (!patchData.name || !patchData.description || !patchData.ntiMarketId || !patchData.readinessLevel) {
-            throw new Error("Пожалуйста, заполните все обязательные поля");
-        }
-
-        const endpoint = `${backendHost}/api/v1/team-card`;
-
-        const params = new URLSearchParams();
-        params.append("teamCardId", id);
-
-        const response = await fetch(`${endpoint}?${params.toString()}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: 'include',
-            body: JSON.stringify(patchData),
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Ошибка: ${response.status} ${errText}`);
-        }
-
-        const updated = await response.json();
-        setTeamData(updated);
-        setEditedData(updated);
-        setIsEditing(false);
-    } catch (error) {
-        handleApiError(error, "сохранении карточки");
-    } finally {
-        setIsLoading(false);
+  try {
+    // 1. Проверка заполненности
+    if (!editedData.name?.trim() ||
+        !editedData.description?.trim() ||
+        !editedData.ntiMarketId ||
+        !editedData.readinessLevel ||
+        ((role === "ADMIN" || role === "SUPER_ADMIN") && !editedData.username)) {
+      throw new Error("Пожалуйста, заполните все обязательные поля");
     }
+    let usernameToSend = editedData.username;
+    if ((role === "ADMIN" || role === "SUPER_ADMIN") && trackers.length) {
+      const sel = trackers.find(t => t.id === editedData.username);
+      if (sel && sel.username) {
+        usernameToSend = sel.username;
+      }
+    }
+
+    // 2. Выбираем endpoint
+    const baseEndpoint =
+      (role === "ADMIN" || role === "SUPER_ADMIN")
+        ? `${backendHost}/api/v1/admin/team-card`
+        : `${backendHost}/api/v1/team-card`;
+
+    // 2. Параметры запроса
+    const params = new URLSearchParams();
+params.append("teamCardId", id);
+params.append("streamId", selectedStreamId);
+if (role === "ADMIN" || role === "SUPER_ADMIN") {
+  params.append("username", usernameToSend);
+}
+
+
+
+    // 4. Тело запроса
+    const patchData = {
+      name: editedData.name.trim(),
+      description: editedData.description.trim(),
+      ntiMarketId: editedData.ntiMarketId,
+      readinessLevel: editedData.readinessLevel,
+      
+    };
+
+    // 5. Отправка PATCH
+    const response = await fetch(
+      `${baseEndpoint}?${params.toString()}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(patchData),
+      }
+    );
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Ошибка: ${response.status} ${errText}`);
+    }
+
+    const updated = await response.json();
+    setTeamData(updated);
+    setEditedData(updated);
+    setIsEditing(false);
+
+  } catch (error) {
+    handleApiError(error, "сохранении карточки");
+  } finally {
+    setIsLoading(false);
+  }
 };
 
 
+
     const handleDeactivate = async () => {
-        if (!window.confirm('Вы уверены, что хотите деактивировать карточку команды?')) {
-            return;
-        }
+  const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
 
-        const baseEndpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
-            ? `${backendHost}/api/v1/admin/team-card`
-            : `${backendHost}/api/v1/team-card`;
+  if (!window.confirm('Вы уверены, что хотите деактивировать карточку команды?')) {
+    return;
+  }
 
-        const params = new URLSearchParams();
+  const baseEndpoint = isAdmin
+    ? `${backendHost}/api/v1/admin/team-card`
+    : `${backendHost}/api/v1/team-card`;
 
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            params.append("teamCardId", id);
-            params.append("username", teamData.user?.id || ""); // безопасно
+  const params = new URLSearchParams();
+  params.append("id", id);
 
-        } else {
-            params.append("teamCardId", id);
-        }
+  if (isAdmin) {
+    const userIdOrUsername = teamData?.user?.id || teamData?.username || "";
+    params.append("username", userIdOrUsername); // ← важно, если бэкенд требует
+  }
 
-        try {
-            const response = await fetch(`${baseEndpoint}?${params.toString()}`, {
-                method: "DELETE",
-                credentials: 'include',
-            });
+  try {
+    const response = await fetch(`${baseEndpoint}?${params.toString()}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
 
-            if (!response.ok) {
-                throw new Error("Ошибка при деактивации карточки");
-            }
+    if (!response.ok) {
+      throw new Error(`Ошибка при удалении: ${response.status}`);
+    }
 
-            navigate(-1);
-        } catch (error) {
-            handleApiError(error, "деактивации карточки");
-        }
-    };
+    navigate("/team-cards"); // или `navigate(-1)` для возврата
+  } catch (error) {
+    handleApiError(error, "удалении карточки");
+  }
+};
+
     
-    const handlePageChange = (pageIndex) => {
-        setCurrentPage(pageIndex);
-    };
+   
 
     return (
         <div className="team-card-widget-container">
@@ -468,7 +521,7 @@ useEffect(() => {
                                 >
                                     <option value="">Выберите трекера</option>
                                     {Array.isArray(trackers) && trackers.map(tracker => (
-                                        <option key={tracker.id} value={tracker.id}>
+                                        <option key={tracker.id} value={tracker.username}>
                                             {tracker.fullName}
                                         </option>
                                     ))}
@@ -508,34 +561,114 @@ useEffect(() => {
                 </div>
 
                 {isEditing ? (
-                    <div className="dropdown-block">
-                        <div
-                            className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
-                        >
-                            {"Поток"}
-                        </div>                                  
-                    </div>
-                ) : (null)}
+  role === "TRACKER" ? (
+    <div
+      className="dropdown-block"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      style={{ position: "relative" }}
+    >
+      <div
+        className={`dropdown-toggle editable`}
+        style={{ cursor: "not-allowed", opacity: 0.6 }}
+      >
+        {streamInfo?.name || "Поток"}
+      </div>
+      {showTooltip && (
+        <div className="stream-tooltip">
+          Трекер не может редактировать привязку к потоку
+        </div>
+      )}
+    </div>
+  ) : (
+    <div className={`dropdown-block${showStreams ? " open" : ""}`}>
+      <div
+        className="create-dropdown-toggle"
+        onClick={() => setShowStreams(!showStreams)}
+      >
+        {streams.find(s => s.id === selectedStreamId)?.name || streamInfo?.name || "Поток"}
+
+      </div>
+      {showStreams && (
+    <div className="create-checkbox-list">
+      {streams.map(stream => (
+        <div
+          key={stream.id}
+          className="create-checkbox-item create-radio-style"
+        >
+          <input
+            type="radio"
+            name="stream"
+            checked={selectedStreamId === stream.id}
+            onChange={() => {
+              setSelectedStreamId(stream.id);
+              setShowStreams(false);
+              // при сохранении сюда уже попадёт selectedStreamId
+            }}
+          />
+          <label
+  className="data-create-team"
+  tabIndex={0}
+  onClick={() => {
+    setSelectedStreamId(stream.id);
+    setShowStreams(false);
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      setSelectedStreamId(stream.id);
+      setShowStreams(false);
+    }
+  }}
+>
+  {stream.name}
+</label>
+        </div>
+      ))}
+        </div>
+      )}
+    </div>
+  )
+) : null}
+
+
 
                 {isEditing ? (
                     <div className={`dropdown-block${showNTI ? " open" : ""}`}>
                         <div
-                            className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
+                            className={`create-dropdown-toggle ${isEditing ? 'editable' : ''}`}
                             onClick={() => isEditing && setShowNTI(!showNTI)}
                         >
                             {selectedMarket?.displayName || "Рынок НТИ"}
                         </div>
-                        {isEditing && showNTI && (
-                            <div className="dropdown-list">
-                                {ntiMarkets.map((market) => (
-                                    <div
-                                        key={market.id}
-                                        className="dropdown-item"
-                                        onClick={() => handleMarketSelect(market)}
-                                    >
-                                        {market.displayName}
-                                    </div>
-                                ))}
+                        {showNTI && (
+    <div className="create-checkbox-list">
+      {ntiMarkets.map(market => (
+        <div
+          key={market.id}
+          className="create-checkbox-item create-radio-style"
+        >
+          <input
+            type="radio"
+            name="ntiMarket"
+            checked={selectedMarket?.id === market.id}
+            onChange={() => {
+              handleMarketSelect(market);
+            }}
+          />
+          <button
+  type="button"
+  className="data-create-team"
+  onClick={() => handleMarketSelect(market)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      handleMarketSelect(market);
+    }
+  }}
+>
+  {market.displayName}
+</button>
+        </div>
+      ))}
                             </div>
                         )}      
                     </div>
@@ -544,7 +677,7 @@ useEffect(() => {
                             <span className="team-label-widget">Рынки НТИ:</span>
                             <div className="team-input-list">
                                 <input
-    className="team-input-widget"
+    className="team-input-widget1"
     value={teamData.ntiMarket?.displayName || ""}
     readOnly
     placeholder="Рынок НТИ"
@@ -559,24 +692,43 @@ useEffect(() => {
                     )}
 
                 {isEditing ? (
-                    <div className="dropdown-block">
+                    <div className={`dropdown-block${showTRL ? " open" : ""}`}>
                         <div
-                            className={`dropdown-toggle ${isEditing ? 'editable' : ''}`}
+                            className={`create-dropdown-toggle ${isEditing ? 'editable' : ''}`}
                             onClick={() => isEditing && setShowTRL(!showTRL)}
                         >
                             {selectedTRL?.label || "TRL"}
                         </div>
-                        {isEditing && showTRL && (
-                            <div className="dropdown-list">
-                                {trlLevels.map((trl) => (
-                                    <div
-                                        key={trl.id}
-                                        className="dropdown-item"
-                                        onClick={() => handleTRLSelect(trl)}
-                                    >
-                                        {trl.label}
-                                    </div>
-                                ))}
+                        {showTRL && (
+    <div className="create-checkbox-list">
+      {trlLevels.map(trl => (
+        <div
+          key={trl.id}
+          className="create-checkbox-item create-radio-style"
+        >
+          <input
+            type="radio"
+            name="trl"
+            checked={selectedTRL?.id === trl.id}
+            onChange={() => {
+              handleTRLSelect(trl);
+            }}
+          />
+          <button
+    key={trl.id}
+    type="button"
+    className={`data-create-team`}
+    onClick={() => handleTRLSelect(trl)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        handleTRLSelect(trl);
+      }
+    }}
+  >
+    {trl.label}
+  </button>
+        </div>
+      ))}
                             </div>
                         )}                                   
                     </div>
@@ -586,7 +738,7 @@ useEffect(() => {
                     <div className="team-input-list">
                         <div className="team-input-wrapper">
         <input
-            className="team-input-widget"
+            className="team-input-widget2"
             value={teamData.readinessLevel || ""}
             readOnly
             placeholder="TRL"
@@ -601,21 +753,21 @@ useEffect(() => {
                 )}
 
                 <div className="team-description">
-                    <span className="team-description-label">Описание:
-                        {isEditing && (
-                                <img src={penIcon} alt="edit" className="team-edit-icon"/>
-                        )}    
-                    </span>
-                    
-                    <div className="team-description-wrapper">
-                        <textarea
-            className="team-input-widget"
-            value={teamData.description || ""}
-            readOnly
-            placeholder="Описание карточки"
-        />
-                    </div>
-                </div>
+  <span className="team-description-label">Описание:</span>
+  
+  <div className="team-description-wrapper">
+    <textarea
+  name="description"
+  className="team-description-input"
+  value={editedData.description || ""}
+  onChange={handleChange}
+  readOnly={!isEditing}
+  placeholder="Описание карточки"
+/>
+
+  </div>
+</div>
+
 
                 {isEditing ? (null) : (
                     <div className="team-stream-block">
@@ -657,7 +809,7 @@ useEffect(() => {
                         <button className="team-meeting-add" onClick={() => navigate(`/meeting-create/${id}?username=${username}`)}>
                             Запланировать   
                         </button>
-                    <div className="fake-scrollbar"></div>
+                    
                 </div>
             </div>
             {isEditing ? (
