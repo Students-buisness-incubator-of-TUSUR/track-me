@@ -12,7 +12,10 @@ function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userPhoto, setUserPhoto] = useState(null);
+    const [teamCount, setTeamCount] = useState(0);
+    const [showTooltip, setShowTooltip] = useState(false);
     const ssoHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/sso';
+    const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
 
     // Флаг редактирования
     const [isEditing, setIsEditing] = useState(false);
@@ -72,6 +75,42 @@ function ProfilePage() {
                 setUserPhoto(null);
             });
     }, [userData, ssoHost]);
+
+    // New effect to fetch team count
+    useEffect(() => {
+        if (!userData || !userData.roles) return;
+        
+        const isTracker = userData.roles.includes("TRACKER");
+        
+        if (isTracker) {
+            fetch(`${backendHost}/api/v1/team-cards`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({ 
+                    filters: [{
+                        fieldName: "username",
+                        type: "EQ",
+                        value: userData.username
+                    }] 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data?.content) {
+                    setTeamCount(data.content.length);
+                } else {
+                    setTeamCount(0);
+                }
+            })
+            .catch(error => {
+                console.error("Error in team count fetch:", error);
+                setTeamCount(0);
+            });
+        }
+    }, [userData, backendHost]);
 
     const handleEditClick = () => {
         setIsEditing(true);
@@ -392,8 +431,24 @@ function ProfilePage() {
                 )}
 
                 {!isEditing ? (
-                    <button className="profile-team-cards-button" onClick={handleTeamCardsClick}>
-                        Карточки команд
+                    <button 
+                        className="profile-team-cards-button" 
+                        onClick={handleTeamCardsClick}
+                    >
+                        Карточки команд {userData?.roles?.includes("TRACKER") ? (
+                            <span 
+                                className="count-container"
+                                onMouseEnter={() => setShowTooltip(true)}
+                                onMouseLeave={() => setShowTooltip(false)}
+                            >
+                                ({teamCount})
+                                {showTooltip && (
+                                    <div className="profile-tooltip">
+                                        Количество команд
+                                    </div>
+                                )}
+                            </span>
+                        ) : ''}
                     </button>
                 ) : (
                     <button className="profile-team-cards-button" onClick={handleSaveClick}>
