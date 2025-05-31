@@ -5,7 +5,6 @@ import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardCreateOrUpdateDt
 import net.akarmanov.projectplace.rest.api.teamcard.dto.TeamCardDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring", uses = {NtiMarketMapper.class})
 public interface TeamCardMapper {
@@ -13,6 +12,7 @@ public interface TeamCardMapper {
   @Mapping(target = "streams", ignore = true)
   TeamCard mapToEntity(TeamCardDto dto);
 
+  @Mapping(target = "averageGrade", ignore = true)
   @Mapping(target = "username", ignore = true)
   @Mapping(target = "ntiMarket", ignore = true)
   @Mapping(target = "teamMeetings", ignore = true)
@@ -28,12 +28,4 @@ public interface TeamCardMapper {
   @Mapping(target = "readinessLevel", expression = "java( entity.getReadinessLevel().getValue() )")
   TeamCardDto mapToDto(TeamCard entity);
 
-  @Mapping(target = "username", ignore = true)
-  @Mapping(target = "teamMeetings", ignore = true)
-  @Mapping(target = "ntiMarket", ignore = true)
-  @Mapping(target = "streams", ignore = true)
-  @Mapping(target = "enabled", ignore = true)
-  @Mapping(target = "id", ignore = true)
-  @Mapping(target = "status", ignore = true)
-  void updateFromDto(TeamCardCreateOrUpdateDto dto, @MappingTarget TeamCard entity);
 }
