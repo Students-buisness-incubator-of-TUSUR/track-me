@@ -5,6 +5,7 @@ import lombok.Builder;
 import net.akarmanov.projectplace.models.TeamCardStatus;
 import net.akarmanov.projectplace.rest.api.dto.NTIMarketDto;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Builder
@@ -34,6 +35,10 @@ public record TeamCardDto(
 
     @Schema(description = "Уровень готовности технологии",
             allowableValues = {"0-2", "3-5", "6-8", "9-10"})
-    String readinessLevel
+    String readinessLevel,
+
+    @Schema(description = "Средняя оценка команды",
+            example = "4.5")
+    BigDecimal averageGrade
 ) {
 }
