@@ -4,9 +4,10 @@ import { useLocation } from "react-router-dom";
 import {Link, useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
 import ProfileIcon from "./personal_account_1.png";
+
 function TrackerPage() {
     const [cards, setCards] = useState([]);
-    const [visibleCardsStart, setVisibleCardsStart] = useState(0);
+    
     const [streamName, setStreamName] = useState("");
     // eslint-disable-next-line
     const [streamId, setStreamId] = useState("");
@@ -24,6 +25,10 @@ function TrackerPage() {
     const location = useLocation();
 const showAllCards = location.pathname === "/all-team-cards";
 const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
+const [page, setPage] = useState(0);
+const pageSize = 9; // или 10, если хочешь другой размер
+const [totalPages, setTotalPages] = useState(1);
+
 
 
     
@@ -146,33 +151,32 @@ useEffect(() => {
     const allFilters = [...filters];
 
     if ((userRole === "ADMIN" || userRole === "SUPER_ADMIN")) {
-    if (!showAllCards) {
-        allFilters.push({
-            fieldName: "streams.name",
-            type: "EQ",
-            value: streamName,
-        });
-    } else if (showMyTeamsOnly) {
+        if (!showAllCards) {
+            allFilters.push({
+                fieldName: "streams.name",
+                type: "EQ",
+                value: streamName,
+            });
+        } else if (showMyTeamsOnly) {
+            allFilters.push({
+                fieldName: "username",
+                type: "EQ",
+                value: username,
+            });
+        }
+    } else if (userRole === "TRACKER") {
         allFilters.push({
             fieldName: "username",
             type: "EQ",
             value: username,
         });
     }
-} else if (userRole === "TRACKER") {
-    allFilters.push({
-        fieldName: "username",
-        type: "EQ",
-        value: username,
-    });
-}
-
 
     const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
         ? `${backendHost}/api/v1/admin/team-cards`
         : `${backendHost}/api/v1/team-cards`;
 
-    fetch(`${endpoint}?page=0&size=150`, {
+    fetch(`${endpoint}?page=${page}&size=${pageSize}&sort=enabled%2Cdesc&sort=streams.startDate&sort=averageGrade%2Cdesc`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -187,25 +191,17 @@ useEffect(() => {
         .then((data) => {
             if (data?.content) {
                 const cardsArray = Array.isArray(data.content) ? data.content : [];
-const sortedCards = cardsArray.sort((a, b) => {
-  if (a.enabled === b.enabled) {
-    const dateA = a.lastModifiedDate ? new Date(a.lastModifiedDate) : new Date(0);
-    const dateB = b.lastModifiedDate ? new Date(b.lastModifiedDate) : new Date(0);
-    return dateB - dateA;
-  }
-  return a.enabled ? -1 : 1;
-});
-setCards(sortedCards);
-
-                setCards(data.content);
-                setVisibleCardsStart(0);
+                
+                setCards(cardsArray);
+                setTotalPages(data?.page?.totalPages || 1);
             }
         })
         .catch((err) => {
             console.error("Error fetching cards:", err);
             setError(`Ошибка при загрузке карточек: ${err.message}`);
         });
-}, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly]); // ✅ streamName в зависимости
+}, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly, page]);
+ // ✅ streamName в зависимости
 
     
     useEffect(() => {
@@ -306,19 +302,20 @@ setCards(sortedCards);
     const filteredCards = cards.filter((card) =>
         card.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    const visibleCards = filteredCards.slice(visibleCardsStart, visibleCardsStart + 9);
+    const visibleCards = filteredCards;
+
 
     const handleShowMore = () => {
-        setVisibleCardsStart((prev) => prev + 9);
+        setPage((prev) => prev + 1)
     };
 
     const handleShowPrevious = () => {
-        setVisibleCardsStart((prev) => Math.max(prev - 9, 0));
+        setPage((prev) => Math.max(prev - 1, 0))
     };
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
-        setVisibleCardsStart(0);
+        setPage(0)
     };
 
     // Переключение отображения панели фильтров
@@ -710,42 +707,43 @@ setCards(sortedCards);
             </div>
 
             {filteredCards.length > 0 && (
-                <footer className="Stream-footer">
-                    <div className="Stream-footer-butts">
-                        <div className="Stream-footer-p-butt-1">
-                            {visibleCardsStart > 0 && (
-                                <button
-                                    onClick={handleShowPrevious}
-                                    className="Stream-footer-button-1"
-                                ></button>
-                            )}
-                        </div>
-                        <div className="Stream-footer-p-butts">
-                            {visibleCardsStart > 0 && (
-                                <button
-                                    onClick={handleShowPrevious}
-                                    className="Stream-footer-button-2"
-                                ></button>
-                            )}
-                            <button className="Stream-footer-button-3"></button>
-                            {visibleCardsStart + 9 < filteredCards.length && (
-                                <button
-                                    onClick={handleShowMore}
-                                    className="Stream-footer-button-4"
-                                ></button>
-                            )}
-                        </div>
-                        <div className="Stream-footer-p-butt-5">
-                            {visibleCardsStart + 9 < filteredCards.length && (
-                                <button
-                                    onClick={handleShowMore}
-                                    className="Stream-footer-button-5"
-                                ></button>
-                            )}
-                        </div>
-                    </div>
-                </footer>
-            )}
+    <footer className="Stream-footer">
+        <div className="Stream-footer-butts">
+            <div className="Stream-footer-p-butt-1">
+                {page > 0 && (
+                    <button
+                        onClick={handleShowPrevious}
+                        className="Stream-footer-button-1"
+                    ></button>
+                )}
+            </div>
+            <div className="Stream-footer-p-butts">
+                {page > 0 && (
+                    <button
+                        onClick={handleShowPrevious}
+                        className="Stream-footer-button-2"
+                    ></button>
+                )}
+                <button className="Stream-footer-button-3"></button>
+                {page + 1 < totalPages && (
+                    <button
+                        onClick={handleShowMore}
+                        className="Stream-footer-button-4"
+                    ></button>
+                )}
+            </div>
+            <div className="Stream-footer-p-butt-5">
+                {page + 1 < totalPages && (
+                    <button
+                        onClick={handleShowMore}
+                        className="Stream-footer-button-5"
+                    ></button>
+                )}
+            </div>
+        </div>
+    </footer>
+)}
+
         </div>
     );
 }
