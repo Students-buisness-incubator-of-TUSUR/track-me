@@ -67,6 +67,7 @@ public class TeamCard {
             joinColumns = @JoinColumn(name = "team_id"),
             inverseJoinColumns = @JoinColumn(name = "stream_id")
     )
+    @OrderBy("startDate DESC")
     @Builder.Default
     private Set<Stream> streams = new HashSet<>();
 
