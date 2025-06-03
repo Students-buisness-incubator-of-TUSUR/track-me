@@ -14,7 +14,7 @@ public interface TeamCardMapper {
 
   @Mapping(target = "averageGrade", ignore = true)
   @Mapping(target = "username", ignore = true)
-  @Mapping(target = "ntiMarket", ignore = true)
+  @Mapping(target = "ntiMarkets", ignore = true)
   @Mapping(target = "teamMeetings", ignore = true)
   @Mapping(target = "streams", ignore = true)
   @Mapping(target = "status", ignore = true)
@@ -24,7 +24,6 @@ public interface TeamCardMapper {
            expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
   TeamCard mapToEntity(TeamCardCreateOrUpdateDto dto);
 
-  @Mapping(target = "username", source = "username")
   @Mapping(target = "readinessLevel", expression = "java( entity.getReadinessLevel().getValue() )")
   TeamCardDto mapToDto(TeamCard entity);
 

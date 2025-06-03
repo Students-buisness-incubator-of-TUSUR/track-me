@@ -51,3 +51,11 @@ databaseChangeLog:
             schemaName: ${db_schema}
             tableName: team_card
             columnName: readiness_level
+  - changeSet:
+      id: team-card-add-nti-market-id-column-2
+      author: akarmanov
+      changes:
+        - dropColumn:
+            tableName: team_card
+            columnName: nti_market_id
+            schemaName: ${db_schema}

@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -50,7 +52,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
         var teamCard = teamCardsService.createTeamCard(
                 TeamCard.builder()
                         .status(TeamCardStatus.OK)
-                        .ntiMarket(ntiMarket)
+                        .ntiMarkets(List.of(ntiMarket))
                         .name("Team card1")
                         .readinessLevel(ReadinessLevel.LEVEL_1)
                         .build(),
@@ -68,7 +70,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "ntiMarketId": "%s",
+                                  "ntiMarketIds": ["%s"],
                                   "name": "Team card2",
                                   "readinessLevel": "0-2"
                                 }

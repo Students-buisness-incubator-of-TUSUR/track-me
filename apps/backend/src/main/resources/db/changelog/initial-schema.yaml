@@ -244,4 +244,40 @@ databaseChangeLog:
             tableName: meeting
             columnName: status
             schemaName: ${db_schema}
+  - changeSet:
+      id: project-place-16
+      author: akarmanov
+      changes:
+        - createTable:
+            tableName: team_card_nti_market
+            schemaName: ${db_schema}
+            columns:
+              - column:
+                  name: team_card_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: nti_market_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: team_card_nti_market
+            baseColumnNames: team_card_id
+            referencedTableName: team_card
+            referencedColumnNames: id
+            constraintName: fk_team_card_nti_market_team_card
+            baseTableSchemaName: ${db_schema}
+            referencedTableSchemaName: ${db_schema}
+        - addForeignKeyConstraint:
+            baseTableName: team_card_nti_market
+            baseColumnNames: nti_market_id
+            referencedTableName: nti_market
+            referencedColumnNames: id
+            constraintName: fk_team_card_nti_market_nti_market
+            baseTableSchemaName: ${db_schema}
+            referencedTableSchemaName: ${db_schema}
 

@@ -8,9 +8,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -45,9 +43,14 @@ public class TeamCard {
     @Column(nullable = false)
     private String username;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
-    @JoinColumn(name = "nti_market_id", nullable = false)
-    private NTIMarket ntiMarket;
+    @ManyToMany(fetch = FetchType.EAGER,
+            cascade = CascadeType.DETACH)
+    @JoinTable(
+            name = "team_card_nti_market",
+            joinColumns = @JoinColumn(name = "team_card_id"),
+            inverseJoinColumns = @JoinColumn(name = "nti_market_id"))
+    @Builder.Default
+    private List<NTIMarket> ntiMarkets = new ArrayList<>();
 
     @Column(nullable = false, name = "readiness_level")
     @Enumerated(EnumType.STRING)

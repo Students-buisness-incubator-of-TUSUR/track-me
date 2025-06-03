@@ -149,8 +149,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         if (source.getStatus() != null) {
             target.setStatus(source.getStatus());
         }
-        if (source.getNtiMarket() != null) {
-            target.setNtiMarket(source.getNtiMarket());
+        if (!source.getNtiMarkets().isEmpty()) {
+            target.setNtiMarkets(source.getNtiMarkets());
         }
         if (source.getReadinessLevel() != null) {
             target.setReadinessLevel(source.getReadinessLevel());

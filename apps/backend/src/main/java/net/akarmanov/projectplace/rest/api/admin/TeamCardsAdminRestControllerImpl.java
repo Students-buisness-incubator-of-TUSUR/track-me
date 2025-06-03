@@ -32,9 +32,10 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
                                                     UUID streamId,
                                                     String username) {
     var teamCard = teamCardMapper.mapToEntity(dto);
-    var ntiMarketId = dto.ntiMarketId();
+    var ntiMarketIds = dto.ntiMarketIds();
+    var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
 
-    teamCard.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
+    teamCard.setNtiMarkets(ntiMarkets);
     teamCard = teamCardsService.createTeamCard(teamCard, streamId, username);
     var teamCardDto = teamCardMapper.mapToDto(teamCard);
     return ResponseEntity.ok(teamCardDto);
@@ -46,9 +47,10 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
                                                     String username, UUID streamId,
                                                     TeamCardCreateOrUpdateDto updateDto) {
     var teamCard = teamCardMapper.mapToEntity(updateDto);
-    var ntiMarketId = updateDto.ntiMarketId();
+    var ntiMarketIds = updateDto.ntiMarketIds();
+    var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
 
-    teamCard.setNtiMarket(ntiMarketService.getNtiMarket(ntiMarketId));
+    teamCard.setNtiMarkets(ntiMarkets);
     teamCard = teamCardsService.updateTeamCard(teamCardId, teamCard, streamId, username);
     var teamCardDto = teamCardMapper.mapToDto(teamCard);
     return ResponseEntity.ok(teamCardDto);

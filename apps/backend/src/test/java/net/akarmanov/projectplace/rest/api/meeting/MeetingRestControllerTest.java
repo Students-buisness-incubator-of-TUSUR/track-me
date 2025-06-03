@@ -57,7 +57,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
                 .name("Test")
                 .description("Test")
                 .username(BaseApplicationTest.USER)
-                .ntiMarket(ntiMarketRepository.findAll().getFirst())
+                .ntiMarkets(ntiMarketRepository.findAll())
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
 

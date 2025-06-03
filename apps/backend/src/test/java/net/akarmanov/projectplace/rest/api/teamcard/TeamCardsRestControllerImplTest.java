@@ -12,7 +12,6 @@ import net.akarmanov.projectplace.repos.TeamCardsRepository;
 import net.akarmanov.projectplace.services.meeting.MeetingService;
 import net.akarmanov.projectplace.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -21,6 +20,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Year;
+import java.util.List;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -43,13 +44,6 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @Autowired
     private MeetingService meetingService;
 
-    private NTIMarket ntiMarket;
-
-    @BeforeEach
-    void setUpNti() {
-        ntiMarket = ntiMarketRepository.findAll().getFirst();
-    }
-
     @AfterEach
     void tearDown() {
         teamCardsRepository.deleteAll();
@@ -60,6 +54,10 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             roles = "TRACKER")
     void createTeamCard_success() throws Exception {
         var stream = streamRepository.findAll().getFirst();
+        var ntiMarkets = ntiMarketRepository.findAll().stream()
+                .map(NTIMarket::getId)
+                .map(UUID::toString)
+                .toList();
 
         mockMvc.perform(post("/api/v1/team-card")
                         .param("streamId", stream.getId().toString())
@@ -68,10 +66,10 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "name": "Test",
                                   "description": "Test description",
-                                  "ntiMarketId": "%s",
+                                  "ntiMarketIds": ["%s"],
                                   "readinessLevel": "0-2"
                                 }
-                                """.formatted(ntiMarket.getId())))
+                                """.formatted(String.join("\", \"", ntiMarkets))))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").exists())
@@ -97,9 +95,11 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void updateTeamCard_success() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
         var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket))
                 .name("Team card1")
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
@@ -112,7 +112,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "name": "Updated name",
                                   "description": "Updated description",
-                                  "ntiMarketId": "%s",
+                                  "ntiMarketIds": ["%s"],
                                   "readinessLevel": "3-5"
                                 }
                                 """.formatted(ntiMarket.getId())))
@@ -128,10 +128,11 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCard_success() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
         var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
@@ -160,10 +161,12 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCards_withoutFilters_success() throws Exception {
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
         teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .description("Team card1 description")
@@ -171,7 +174,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card2")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_2)
                 .description("Team card2 description")
@@ -193,19 +196,22 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCards_withFilters_likeName_success() throws Exception {
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
+
         var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
                 .description("Team card1 description")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .username(BaseApplicationTest.USER)
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket1))
                 .build());
         teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card2")
                 .readinessLevel(ReadinessLevel.LEVEL_2)
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket2))
                 .description("Team card2 description")
                 .username(BaseApplicationTest.USER)
                 .build());
@@ -271,9 +277,12 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCards_withFilters_in_success() throws Exception {
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
+
         var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket1))
                 .name("Team card1")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .username(BaseApplicationTest.USER)
@@ -282,7 +291,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card2")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .description("Team card2 description")
@@ -316,10 +325,13 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCards_withFilters_join_success() throws Exception {
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
+
         var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .description("Team card1 description")
@@ -327,7 +339,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card2")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .description("Team card2 description")
@@ -361,19 +373,22 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCards_withSomeFilters_success() throws Exception {
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
+
         var teamCard1 = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
                 .description("Team card1 description")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .username(BaseApplicationTest.USER)
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket1))
                 .build());
         teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .username(BaseApplicationTest.USER)
                 .name("Team card2")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket2))
                 .readinessLevel(ReadinessLevel.LEVEL_2)
                 .description("Team card2 description")
                 .build());
@@ -433,11 +448,14 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCards_withFilters_withNtiMarketId_success() throws Exception {
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
+
         teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
                 .description("Team card1 description")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
@@ -445,7 +463,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .status(TeamCardStatus.OK)
                 .name("Team card2")
                 .description("Team card2 description")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
@@ -456,7 +474,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "filters": [
                                     {
-                                      "fieldName": "ntiMarket.name",
+                                      "fieldName": "ntiMarkets.name",
                                       "value": "%s",
                                       "type": "EQ"
                                     },
@@ -467,7 +485,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                     }
                                   ]
                                 }
-                                """.formatted(ntiMarket.getName()))
+                                """.formatted(ntiMarket2.getName()))
                 )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -478,19 +496,22 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCards_withFilters_withTelegranId_success() throws Exception {
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
+
         teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
                 .description("Team card1 description")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .build());
         teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card2")
                 .description("Team card2 description")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket2))
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .username(BaseApplicationTest.USER)
                 .build());
@@ -523,6 +544,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             roles = "TRACKER")
     void getTeamCards_withFilters_withStreamsName_success() throws Exception {
         var stream = streamRepository.findAll().getFirst();
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/team-card")
                         .param("streamId", stream.getId().toString())
@@ -531,7 +553,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "name": "Test",
                                   "description": "Test description",
-                                  "ntiMarketId": "%s",
+                                  "ntiMarketIds": ["%s"],
                                   "readinessLevel": "0-2"
                                 }
                                 """.formatted(ntiMarket.getId())))
@@ -571,6 +593,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             roles = "TRACKER")
     void getTeamCards_withFilters_withStreamsYear_success() throws Exception {
         var stream = streamRepository.findAll().getFirst();
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/team-card")
                         .param("streamId", stream.getId().toString())
@@ -579,7 +602,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "name": "Test",
                                   "description": "Test description",
-                                  "ntiMarketId": "%s",
+                                  "ntiMarketIds": ["%s"],
                                   "readinessLevel": "0-2"
                                 }
                                 """.formatted(ntiMarket.getId())))
@@ -616,6 +639,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var stream = streamRepository.findAll().getFirst();
         stream.setEndDate(LocalDate.now().minusDays(1));
         streamRepository.save(stream);
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/team-card")
                         .param("streamId", stream.getId().toString())
@@ -624,7 +648,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "name": "Test",
                                   "description": "Test description",
-                                  "ntiMarketId": "%s",
+                                  "ntiMarketIds": ["%s"],
                                   "readinessLevel": "0-2"
                                 }
                                 """.formatted(ntiMarket.getId())))
@@ -637,6 +661,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             roles = "TRACKER")
     void getTeamCardCount_success() throws Exception {
         var stream = streamRepository.findAll().getFirst();
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
         mockMvc.perform(post("/api/v1/team-card")
                         .param("streamId", stream.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -644,7 +670,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "name": "Test",
                                   "description": "Test description",
-                                  "ntiMarketId": "%s",
+                                  "ntiMarketIds": ["%s"],
                                   "readinessLevel": "0-2"
                                 }
                                 """.formatted(ntiMarket.getId())))
@@ -662,10 +688,11 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER,
             roles = "TRACKER")
     void getTeamCard_forbidden() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
         var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
-                .ntiMarket(ntiMarket)
+                .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
@@ -680,6 +707,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @Test
     void createTeamCardForOtherUser_success() throws Exception {
         var stream = streamRepository.findAll().getFirst();
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/admin/team-card")
                         .param("streamId", stream.getId().toString())
@@ -689,7 +717,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "name": "Test",
                                   "description": "Test description",
-                                  "ntiMarketId": "%s",
+                                  "ntiMarketIds": ["%s"],
                                   "readinessLevel": "0-2"
                                 }
                                 """.formatted(ntiMarket.getId()))

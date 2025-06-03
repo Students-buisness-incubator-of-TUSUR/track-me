@@ -38,14 +38,14 @@ public class TeamCardsUseCase {
   public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCardDto, UUID streamId,
                                     Authentication authentication) {
     var username = authentication.getName();
-    var ntiMarketId = teamCardDto.ntiMarketId();
+    var ntiMarketIds = teamCardDto.ntiMarketIds();
 
     var stream = streamService.findActive(streamId);
     var teamCardEntity = teamCardMapper.mapToEntity(teamCardDto);
-    var ntiMarket = ntiMarketService.getNtiMarket(ntiMarketId);
+    var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
 
-    teamCardEntity.setNtiMarket(ntiMarket);
     teamCardEntity.setUsername(username);
+    teamCardEntity.setNtiMarkets(ntiMarkets);
     teamCardEntity.addStream(stream);
     teamCardEntity.setStatus(TeamCardStatus.OK);
 
@@ -55,9 +55,11 @@ public class TeamCardsUseCase {
 
 
   public TeamCardDto updateTeamCard(UUID teamCardId, TeamCardCreateOrUpdateDto createOrUpdateDto) {
-    var ntMarketId = createOrUpdateDto.ntiMarketId();
+    var ntiMarketIds = createOrUpdateDto.ntiMarketIds();
     var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
-    teamCard.setNtiMarket(ntiMarketService.getNtiMarket(ntMarketId));
+    var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
+
+    teamCard.setNtiMarkets(ntiMarkets);
     var updatedTeamCard = teamCardsService.updateTeamCard(teamCardId, teamCard);
     return teamCardMapper.mapToDto(updatedTeamCard);
   }

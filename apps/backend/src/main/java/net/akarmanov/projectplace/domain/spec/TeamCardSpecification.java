@@ -22,7 +22,7 @@ public class TeamCardSpecification implements Specification<TeamCard> {
 
   public static final List<String> ALLOWED_FIELDS = List.of(
       "name",
-      "ntiMarket.name",
+          "ntiMarkets.name",
       "description",
       "status",
       "username",
