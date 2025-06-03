@@ -884,6 +884,24 @@ test('TRACKER branch uses /account/info for fullName', async () => {
     expect(screen.getAllByText('MyStream').length).toBeGreaterThan(1);
   });
 
+test('нажатие на кнопку × вызывает navigate(from)', async () => {
+  const RR = require('react-router-dom');
+  RR.__setSearch('');
+  RR.__setState({ from: '/custom-return-path' });
+
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  const closeButton = screen.getByRole('button', { name: '×' });
+  fireEvent.click(closeButton);
+
+  expect(mockedNavigate).toHaveBeenCalledWith('/custom-return-path');
+});
 
 
 });

@@ -363,7 +363,12 @@ const toggleProfileMenu = () => {
                         <Link to="/list-trackers">
                             <button className="Stream-butt">Трекеры</button>
                         </Link>
-                        <button className="Stream-butt">Все команды</button>
+                        
+  <Link to="/all-team-cards">
+    <button className="Stream-butt">Все команды</button>
+  </Link>
+
+
                         <button className="Stream-pic" onClick={toggleProfileMenu}>
   <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
 </button>

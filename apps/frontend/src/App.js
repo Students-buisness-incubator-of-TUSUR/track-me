@@ -43,6 +43,7 @@ function App() {
                 <Route path="/teamcard/create" element={<TeamCardCreate/>}/>
                 <Route path="/teamcard/:id" element={<TeamCard/>}/>
                 <Route path="/meeting/new" element={<MeetingCard/>}/>
+                <Route path="/all-team-cards" element={<TrackerPage showAllCards={true} />} />
                 <Route path="/meeting/:meetingId" element={<MeetingCard />} />
 
             </Routes>

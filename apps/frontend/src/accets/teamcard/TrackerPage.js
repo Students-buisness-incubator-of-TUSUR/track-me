@@ -1,12 +1,13 @@
 import React, {useCallback, useEffect, useState} from "react";
 import "./TrackerPage.css";
-
+import { useLocation } from "react-router-dom";
 import {Link, useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
 import ProfileIcon from "./personal_account_1.png";
+
 function TrackerPage() {
     const [cards, setCards] = useState([]);
-    const [visibleCardsStart, setVisibleCardsStart] = useState(0);
+    
     const [streamName, setStreamName] = useState("");
     // eslint-disable-next-line
     const [streamId, setStreamId] = useState("");
@@ -21,7 +22,15 @@ function TrackerPage() {
     const [username, setusername] = useState(null);
     const [selectedYears, setSelectedYears] = useState([]);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    
+    const location = useLocation();
+const showAllCards = location.pathname === "/all-team-cards";
+const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
+const [page, setPage] = useState(0);
+const pageSize = 9; // или 10, если хочешь другой размер
+const [totalPages, setTotalPages] = useState(1);
+
+
+
     
     const toggleProfileMenu = () => {
         setIsProfileMenuOpen(prev => !prev);
@@ -137,51 +146,63 @@ useEffect(() => {
 
     // Функция для запроса карточек с заданными фильтрами
     const fetchCards = useCallback((filters = []) => {
-        if (!userRole || !username) return;
-    
-        const allFilters = [...filters];
-    
-        if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+    if (!userRole || !username) return;
+
+    const allFilters = [...filters];
+
+    if ((userRole === "ADMIN" || userRole === "SUPER_ADMIN")) {
+        if (!showAllCards) {
             allFilters.push({
                 fieldName: "streams.name",
                 type: "EQ",
-                value: localStorage.getItem("streamName"),
+                value: streamName,
             });
-        } else if (userRole === "TRACKER") {
+        } else if (showMyTeamsOnly) {
             allFilters.push({
                 fieldName: "username",
                 type: "EQ",
                 value: username,
             });
         }
-    
-        const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
-            ? `${backendHost}/api/v1/admin/team-cards`
-            : `${backendHost}/api/v1/team-cards`;
-    
-        fetch(`${endpoint}?page=0&size=150`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ filters: allFilters }),
+    } else if (userRole === "TRACKER") {
+        allFilters.push({
+            fieldName: "username",
+            type: "EQ",
+            value: username,
+        });
+    }
+
+    const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+        ? `${backendHost}/api/v1/admin/team-cards`
+        : `${backendHost}/api/v1/team-cards`;
+
+    fetch(`${endpoint}?page=${page}&size=${pageSize}&sort=enabled%2Cdesc&sort=streams.startDate&sort=averageGrade%2Cdesc`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ filters: allFilters }),
+    })
+        .then((response) => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
         })
-            .then((response) => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
-            .then((data) => {
-                if (data?.content) {
-                    setCards(data.content);
-                    setVisibleCardsStart(0);
-                }
-            })
-            .catch((err) => {
-                console.error("Error fetching cards:", err);
-                setError(`Ошибка при загрузке карточек: ${err.message}`);
-            });
-    }, [userRole, username, backendHost]);
+        .then((data) => {
+            if (data?.content) {
+                const cardsArray = Array.isArray(data.content) ? data.content : [];
+                
+                setCards(cardsArray);
+                setTotalPages(data?.page?.totalPages || 1);
+            }
+        })
+        .catch((err) => {
+            console.error("Error fetching cards:", err);
+            setError(`Ошибка при загрузке карточек: ${err.message}`);
+        });
+}, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly, page]);
+ // ✅ streamName в зависимости
+
     
     useEffect(() => {
         if (userRole && username) {
@@ -215,17 +236,27 @@ useEffect(() => {
                 console.error(error);
             });
     }, [navigate, backendHost, fetchCards]);
+    
+
+
     useEffect(() => {
     if (!userRole) return;
 
-    fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
-        method: "POST",
+    const isTracker = userRole === "TRACKER";
+    const url = isTracker
+        ? `${backendHost}/api/v1/streams/active?page=0&size=150`
+        : `${backendHost}/api/v1/admin/streams?page=0&size=150`;
+
+    const options = {
+        method: isTracker ? "GET" : "POST",
         headers: {
             "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ filters: [] }),
-    })
+        ...(isTracker ? {} : { body: JSON.stringify({ filters: [] }) }),
+    };
+
+    fetch(url, options)
         .then((response) => {
             if (!response.ok) {
                 throw new Error("Ошибка при загрузке потоков");
@@ -241,84 +272,50 @@ useEffect(() => {
                 startDate: stream.startDate,
                 endDate: stream.endDate,
             }));
+
             setStreams(streamsWithNames);
 
-            if (userRole === "TRACKER" && streamsWithNames.length > 0) {
-                const firstStream = streamsWithNames[0];
-                localStorage.setItem("streamName", firstStream.name);
-                localStorage.setItem("streamId", firstStream.id);
-                localStorage.setItem("streamSDate", firstStream.startDate);
-                localStorage.setItem("streamEDate", firstStream.endDate);
+            // Запоминаем в localStorage первый поток, если он есть
+            const firstStream = streamsWithNames[0];
+            if (firstStream) {
+    if (!localStorage.getItem("streamName")) {
+        localStorage.setItem("streamName", firstStream.name);
+        localStorage.setItem("streamId", firstStream.id);
+        localStorage.setItem("streamSDate", firstStream.startDate);
+        localStorage.setItem("streamEDate", firstStream.endDate);
+    }
 
-                setStreamName(firstStream.name);
-                setStreamId(firstStream.id);
-                setStreamSDate(firstStream.startDate);
-                setStreamEDate(firstStream.endDate);
-            } else {
-                setStreamName(localStorage.getItem("streamName"));
-                setStreamId(localStorage.getItem("streamId"));
-                setStreamSDate(localStorage.getItem("streamSDate"));
-                setStreamEDate(localStorage.getItem("streamEDate"));
-            }
+    setStreamName(localStorage.getItem("streamName") || firstStream.name);
+    setStreamId(localStorage.getItem("streamId") || firstStream.id);
+    setStreamSDate(localStorage.getItem("streamSDate") || firstStream.startDate);
+    setStreamEDate(localStorage.getItem("streamEDate") || firstStream.endDate);
+}
+
         })
         .catch((error) => {
-            console.error(error);
+            console.error("Ошибка при получении потоков:", error);
         });
 }, [backendHost, userRole]);
 
-
-    useEffect(() => {
-
-        fetch(`${backendHost}/api/v1/admin/streams?page=0&size=150`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            // Передаём именно массив фильтров, как ожидает сервер
-            body: JSON.stringify({filters: []}),
-        })
-            .then((response) => {
-                setStreamName(localStorage.getItem("streamName"));
-                setStreamId(localStorage.getItem("streamId"));
-                setStreamSDate(localStorage.getItem("streamSDate"));
-                setStreamEDate(localStorage.getItem("streamEDate"));
-
-                if (!response.ok) {
-                    throw new Error("Ошибка при загрузке потоков");
-                }
-                return response.json();
-            })
-            .then((data) => {
-                // Если нужно, извлекаем только id и name
-                const streamsWithNames = data.content.map((stream) => ({
-                    id: stream.id,
-                    name: stream.name,
-                }));
-                setStreams(streamsWithNames);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }, [backendHost]);
 
     // Фильтрация карточек по поисковому запросу
     const filteredCards = cards.filter((card) =>
         card.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    const visibleCards = filteredCards.slice(visibleCardsStart, visibleCardsStart + 9);
+    const visibleCards = filteredCards;
+
 
     const handleShowMore = () => {
-        setVisibleCardsStart((prev) => prev + 9);
+        setPage((prev) => prev + 1)
     };
 
     const handleShowPrevious = () => {
-        setVisibleCardsStart((prev) => Math.max(prev - 9, 0));
+        setPage((prev) => Math.max(prev - 1, 0))
     };
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
-        setVisibleCardsStart(0);
+        setPage(0)
     };
 
     // Переключение отображения панели фильтров
@@ -388,6 +385,12 @@ useEffect(() => {
     localStorage.removeItem("streamEDate");
     
     }
+    useEffect(() => {
+    if (userRole && username && streamName) {
+        fetchCards([]);
+    }
+}, [userRole, username, streamName, fetchCards]);
+
 
     return (
         <div className="tracker-container">
@@ -396,17 +399,23 @@ useEffect(() => {
                     <div className='Stream-header-logo'/>
                     <h1 className="Stream-title">TrackMe</h1>
                     <div className="Stream-header-cont-cont">
-                        <h1 className="Stream-title11">
-                            {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER")
-                                ? (streamName ? streamName : "Название потока не получено")
-                                : ""
-                            }
-                        </h1>
-                        {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER") && (
-                            <h1 className="Stream-title11">
-                                {streamName ? ": cроки акселератора: " + formatDateToYMD(streamSDate) + " - " + formatDateToYMD(streamEDate) : ""}
-                            </h1>
-                        )}
+                        {showAllCards ? (
+  <h1 className="Stream-title11">Все карточки команд</h1>
+) : (
+  <>
+    <h1 className="Stream-title11">
+      {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER")
+        ? (streamName ? streamName : "Название потока не получено")
+        : ""}
+    </h1>
+    {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER") && (
+      <h1 className="Stream-title11">
+        {streamName ? ": cроки акселератора: " + formatDateToYMD(streamSDate) + " - " + formatDateToYMD(streamEDate) : ""}
+      </h1>
+    )}
+  </>
+)}
+
                     </div>
 
                     <div className="Stream-buttons">
@@ -598,6 +607,22 @@ useEffect(() => {
                                 </div>
                             </div>
                         </div>
+                        <div className="switch-wrapper">
+  <div className="tooltip-wrapper">
+    <label className="ios-switch">
+      <input
+        type="checkbox"
+        checked={showMyTeamsOnly}
+        onChange={() => setShowMyTeamsOnly(prev => !prev)}
+      />
+      <span className="slider"></span>
+    </label>
+    <span className="tooltip-text">Показать карточки, где вы назначены трекером</span>
+  </div>
+</div>
+
+
+
                         <div className="Stream-header-afterclick-right">
                             <button onClick={resetFilters} className="Stream-header-chose-butt2">
                                 Сбросить
@@ -621,7 +646,8 @@ useEffect(() => {
                             onClick={() => navigate(`/teamcard/${card.id}`, { 
   state: { 
     userId: card.userId,
-    streamId: streamId 
+    streamId: streamId, 
+    from: location.pathname 
   }
 })}
                             style={{cursor: "pointer"}}
@@ -657,7 +683,14 @@ useEffect(() => {
                                 className="edit-button"
                                 onClick={(e) => {
                                     e.stopPropagation(); // чтобы не срабатывал переход по карточке
-                                    navigate(`/teamcard/${card.id}?userId=${card.userId}&edit=true`);
+                                    navigate(`/teamcard/${card.id}?userId=${card.userId}&edit=true`, {
+  state: {
+    userId: card.userId,
+    streamId: streamId,
+    from: location.pathname
+  }
+});
+
                                 }}
                             >
                                 Редактировать
@@ -674,42 +707,43 @@ useEffect(() => {
             </div>
 
             {filteredCards.length > 0 && (
-                <footer className="Stream-footer">
-                    <div className="Stream-footer-butts">
-                        <div className="Stream-footer-p-butt-1">
-                            {visibleCardsStart > 0 && (
-                                <button
-                                    onClick={handleShowPrevious}
-                                    className="Stream-footer-button-1"
-                                ></button>
-                            )}
-                        </div>
-                        <div className="Stream-footer-p-butts">
-                            {visibleCardsStart > 0 && (
-                                <button
-                                    onClick={handleShowPrevious}
-                                    className="Stream-footer-button-2"
-                                ></button>
-                            )}
-                            <button className="Stream-footer-button-3"></button>
-                            {visibleCardsStart + 9 < filteredCards.length && (
-                                <button
-                                    onClick={handleShowMore}
-                                    className="Stream-footer-button-4"
-                                ></button>
-                            )}
-                        </div>
-                        <div className="Stream-footer-p-butt-5">
-                            {visibleCardsStart + 9 < filteredCards.length && (
-                                <button
-                                    onClick={handleShowMore}
-                                    className="Stream-footer-button-5"
-                                ></button>
-                            )}
-                        </div>
-                    </div>
-                </footer>
-            )}
+    <footer className="Stream-footer">
+        <div className="Stream-footer-butts">
+            <div className="Stream-footer-p-butt-1">
+                {page > 0 && (
+                    <button
+                        onClick={handleShowPrevious}
+                        className="Stream-footer-button-1"
+                    ></button>
+                )}
+            </div>
+            <div className="Stream-footer-p-butts">
+                {page > 0 && (
+                    <button
+                        onClick={handleShowPrevious}
+                        className="Stream-footer-button-2"
+                    ></button>
+                )}
+                <button className="Stream-footer-button-3"></button>
+                {page + 1 < totalPages && (
+                    <button
+                        onClick={handleShowMore}
+                        className="Stream-footer-button-4"
+                    ></button>
+                )}
+            </div>
+            <div className="Stream-footer-p-butt-5">
+                {page + 1 < totalPages && (
+                    <button
+                        onClick={handleShowMore}
+                        className="Stream-footer-button-5"
+                    ></button>
+                )}
+            </div>
+        </div>
+    </footer>
+)}
+
         </div>
     );
 }

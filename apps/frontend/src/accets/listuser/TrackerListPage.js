@@ -93,7 +93,9 @@ function TrackerListPage({ endpoint }) {
     </>
   )}
             <Link to="/streams"><button className="Stream-butt">Потоки</button></Link>
-            <Link to="/team-cards"><button className="Stream-butt">Все команды</button></Link>
+            <Link to="/all-team-cards">
+                <button className="Stream-butt">Все команды</button>
+              </Link>
             <button className="Stream-pic" onClick={toggleProfileMenu}>
               <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
             </button>
