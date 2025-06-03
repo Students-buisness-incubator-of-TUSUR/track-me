@@ -32,7 +32,7 @@ public record TeamCardDto(
                 example = "true", defaultValue = "true")
         Boolean enabled,
 
-        @Schema(description = "Рынок НТИ", implementation = NTIMarketDto.class)
+        @Schema(description = "Рынок НТИ")
         List<NTIMarketDto> ntiMarkets,
 
         @Schema(description = "Уровень готовности технологии",

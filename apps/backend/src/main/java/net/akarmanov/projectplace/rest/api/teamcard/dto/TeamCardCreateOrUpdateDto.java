@@ -20,8 +20,7 @@ public record TeamCardCreateOrUpdateDto(
                 example = "Описание карточки команды")
         String description,
 
-        @Schema(description = "Идентификаторы рынков НТИ, к которым относится карточка команды",
-                implementation = UUID.class)
+        @Schema(description = "Идентификаторы рынков НТИ, к которым относится карточка команды")
         List<UUID> ntiMarketIds,
 
         @Schema(description = "Уровень готовности технологии",
