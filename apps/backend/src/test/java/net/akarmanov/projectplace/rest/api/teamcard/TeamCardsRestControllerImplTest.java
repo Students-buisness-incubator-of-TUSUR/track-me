@@ -78,6 +78,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.name", is("Test")))
                 .andExpect(jsonPath("$.description", is("Test description")))
                 .andExpect(jsonPath("$.readinessLevel", is("0-2")))
+                .andExpect(jsonPath("$.streams[0].id", is(stream.getId().toString())))
                 .andExpect(jsonPath("$.status", is(TeamCardStatus.OK.name())));
     }
 

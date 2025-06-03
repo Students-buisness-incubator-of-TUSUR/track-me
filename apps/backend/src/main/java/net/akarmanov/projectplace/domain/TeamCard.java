@@ -58,7 +58,7 @@ public class TeamCard {
     @Builder.Default
     private Set<Meeting> teamMeetings = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(
             name = "stream_team_card",
             joinColumns = @JoinColumn(name = "team_id"),
