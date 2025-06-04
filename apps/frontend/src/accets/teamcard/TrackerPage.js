@@ -151,32 +151,37 @@ useEffect(() => {
     const allFilters = [...filters];
 
     if ((userRole === "ADMIN" || userRole === "SUPER_ADMIN")) {
-        if (!showAllCards) {
-            allFilters.push({
-                fieldName: "streams.name",
-                type: "EQ",
-                value: streamName,
-            });
-        } else if (showMyTeamsOnly) {
-            allFilters.push({
-                fieldName: "username",
-                type: "EQ",
-                value: username,
-            });
-        }
-    } else if (userRole === "TRACKER") {
+    // Всегда применять фильтр по потоку, если не показываем все команды
+    if (!showAllCards) {
+        allFilters.push({
+            fieldName: "streams.name",
+            type: "EQ",
+            value: streamName,
+        });
+    }
+
+    // Применять фильтр по пользователю, если включён тумблер
+    if (showMyTeamsOnly) {
         allFilters.push({
             fieldName: "username",
             type: "EQ",
             value: username,
         });
     }
+} else if (userRole === "TRACKER") {
+    // Трекеры всегда видят только свои команды
+    allFilters.push({
+        fieldName: "username",
+        type: "EQ",
+        value: username,
+    });
+}
 
     const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
         ? `${backendHost}/api/v1/admin/team-cards`
         : `${backendHost}/api/v1/team-cards`;
 
-    fetch(`${endpoint}?page=${page}&size=${pageSize}&sort=enabled%2Cdesc&sort=streams.startDate&sort=averageGrade%2Cdesc`, {
+    fetch(`${endpoint}?page=${page}&size=${pageSize}&sort=enabled%2Cdesc&sort=streams.startDate%2Cdesc&sort=averageGrade%2Cdesc`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -337,7 +342,7 @@ useEffect(() => {
 
         if (selectedNtiMarkets.length > 0) {
             filters.push({
-                fieldName: "ntiMarket.name",
+                fieldName: "ntiMarkets.name",
                 type: "EQ",
                 values: selectedNtiMarkets,
             });
@@ -607,19 +612,22 @@ useEffect(() => {
                                 </div>
                             </div>
                         </div>
-                        <div className="switch-wrapper">
-  <div className="tooltip-wrapper">
-    <label className="ios-switch">
-      <input
-        type="checkbox"
-        checked={showMyTeamsOnly}
-        onChange={() => setShowMyTeamsOnly(prev => !prev)}
-      />
-      <span className="slider"></span>
-    </label>
-    <span className="tooltip-text">Показать карточки, где вы назначены трекером</span>
+                        {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && 
+ (location.pathname === "/all-team-cards" || location.pathname.startsWith("/team-cards")) ? (
+  <div className="switch-wrapper">
+    <div className="tooltip-wrapper">
+      <label className="ios-switch">
+        <input
+          type="checkbox"
+          checked={showMyTeamsOnly}
+          onChange={() => setShowMyTeamsOnly(prev => !prev)}
+        />
+        <span className="slider"></span>
+      </label>
+      <span className="tooltip-text">Показать карточки, где вы назначены трекером</span>
+    </div>
   </div>
-</div>
+) : null}
 
 
 
@@ -666,15 +674,23 @@ useEffect(() => {
                                 </div>
                                 <div className="under-cont">
                                     <div className="text-container project-markets">
-                                        <p>Рынки НТИ: {card.ntiMarket ? card.ntiMarket.displayName : "Неизвестен"}</p>
+                                        <p>
+  Рынки НТИ:{" "}
+  {card.ntiMarkets?.length > 0
+    ? card.ntiMarkets.map((market) => market.displayName).join(", ")
+    : "Неизвестны"}
+</p>
+
+
                                     </div>
                                     <div className="text-container project-trl">
                                         <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
                                     </div>
                                     <div className="text-container project-flow">
-                                        <p>Поток: {streamName || "Неизвестен"}
-                                        {streamName ? ": " + streamSDate + " - " + streamEDate : "Название потока не получено"}
-                                        </p>
+                                        <p>
+  Поток: {card.streams?.[0]?.name || "Неизвестен"}: {card.streams?.[0]?.startDate || "?"} - {card.streams?.[0]?.endDate || "?"}
+</p>
+
                                     </div>
                                 </div>
                             </div>

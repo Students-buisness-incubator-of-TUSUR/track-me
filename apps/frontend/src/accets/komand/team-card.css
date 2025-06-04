@@ -119,6 +119,7 @@ a {
 .team-input-list {
     display: flex;
     flex-wrap: wrap;
+    
     gap: 8px;
 }
 

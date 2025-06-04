@@ -13,7 +13,6 @@ const TeamCard = () => {
     
    
     const location = useLocation();
-    const streamId = location.state?.streamId;
     const passedUsername = location.state?.username;
     const query = new URLSearchParams(location.search);
     const from = location.state?.from || "/team-cards";
@@ -58,39 +57,11 @@ const [showStreams, setShowStreams] = useState(false);
     const [trackerFullName, setTrackerFullName] = useState("");
     const [streamInfo, setStreamInfo] = useState(null);
 
-// Добавляем эффект для загрузки данных о потоке
 useEffect(() => {
-    if (!streamId) return;
-
-    const fetchStreamInfo = async () => {
-    try {
-        const response = await fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ filters: [] }), // без фильтров
-        });
-
-        if (!response.ok) throw new Error("Ошибка загрузки данных потоков");
-
-        const result = await response.json();
-        const found = result.content?.find(stream => stream.id === streamId);
-        if (found) {
-            setStreamInfo(found);
-        } else {
-            throw new Error("Поток с указанным ID не найден");
-        }
-    } catch (error) {
-        handleApiError(error, "загрузке данных потока");
-    }
-};
-
-
-
-    fetchStreamInfo();
-}, [streamId]);
+  if (teamData.streams && teamData.streams.length > 0) {
+    setStreamInfo(teamData.streams[0]); // берем первый поток
+  }
+}, [teamData]);
 
 // Форматируем даты для отображения
 const formatDates = (start, end) => {
@@ -159,16 +130,17 @@ useEffect(() => {
         }
     }, [reduxUser]);
     useEffect(() => {
-  if (!streamId) return;
+  const streamIdFromTeam = teamData?.streams?.[0]?.id;
+
+  if (!streamIdFromTeam) return;
 
   const fetchTeamCardsCount = async () => {
     try {
-      // Формируем URL с query-параметром streamId
       const url = new URL(`${backendHost}/api/v1/team-card/count`);
-      url.searchParams.append("streamId", streamId);
+      url.searchParams.append("streamId", streamIdFromTeam);
 
       const response = await fetch(url.toString(), {
-        credentials: "include"
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -176,7 +148,6 @@ useEffect(() => {
       }
 
       const data = await response.json();
-      // Предполагается, что сервер возвращает число в поле count или просто число
       const count = typeof data === "number" ? data : data.count || 0;
       setTeamCardsCount(count);
     } catch (error) {
@@ -185,7 +156,7 @@ useEffect(() => {
   };
 
   fetchTeamCardsCount();
-}, [streamId]);
+}, [teamData]); // зависимость от teamData
 
 
     useEffect(() => {
@@ -677,12 +648,15 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
                         <div className="team-card-info">
                             <span className="team-label-widget">Рынки НТИ:</span>
                             <div className="team-input-list">
-                                <input
-    className="team-input-widget1"
-    value={teamData.ntiMarket?.displayName || ""}
-    readOnly
-    placeholder="Рынок НТИ"
-/>
+  {(teamData.ntiMarkets || []).map((market) => (
+    <input
+      key={market.id}
+      className="team-input-widget1"
+      value={market.displayName}
+      readOnly
+      placeholder="Рынок НТИ"
+    />
+  ))}
 
                                 
                             </div>
