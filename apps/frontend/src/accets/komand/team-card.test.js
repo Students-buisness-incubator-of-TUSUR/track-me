@@ -1017,3 +1017,185 @@ test('нажатие на кнопку × вызывает navigate(from)', asyn
 
 
 });
+describe('Additional coverage (manual lines)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    require('react-router-dom').__setSearch('');
+    require('react-router-dom').__setState({});
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: ['ADMIN'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+    );
+    global.fetch = jest.fn((url, opts = {}) => {
+      if (url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: 42,
+              name: 'OldName',
+              description: 'OldDesc',
+              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+              readinessLevel: '0-2',
+              streams: [{ id: 1, name: 'Stream1', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' }],
+              username: 'reduxUser'
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      if (url.includes('/api/v1/streams?page=0&size=1500')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 1, name: 'Stream1', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' },
+              { id: 2, name: 'Stream2', startDate: '2025-04-01T00:00:00Z', endDate: '2025-04-10T00:00:00Z' }
+            ]
+          })
+        });
+      }
+      if (url.includes('/api/v1/streams/nti-markets')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([
+            { id: 10, displayName: 'OldMarket' },
+            { id: 20, displayName: 'NewMarket' }
+          ])
+        });
+      }
+      if (url.endsWith('/api/v1/users/reduxUser/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ fullName: 'Admin FullName' })
+        });
+      }
+      if (url.includes('/api/v1/team-card/count')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(5) });
+      }
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [], totalPages: 1 })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+  });
+
+  test('Stream selection via Enter key', async () => {
+    require('react-router-dom').__setSearch('?edit=true');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Open stream dropdown
+    fireEvent.click(screen.getByText('Stream1'));
+    const streamOption = await screen.findByText('Stream2');
+
+    // Simulate Enter key on stream label
+    fireEvent.keyDown(streamOption, { key: 'Enter' });
+
+    // Verify dropdown closed and Stream2 is selected
+    await waitFor(() => {
+      expect(screen.queryAllByText('Stream2').length).toBe(1); // Only toggle remains
+      expect(screen.getByText('Stream2')).toBeInTheDocument();
+    });
+  });
+
+  test('Stream selection via Space key', async () => {
+    require('react-router-dom').__setSearch('?edit=true');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Open stream dropdown
+    fireEvent.click(screen.getByText('Stream1'));
+    const streamOption = await screen.findByText('Stream2');
+
+    // Simulate Space key on stream label
+    fireEvent.keyDown(streamOption, { key: ' ' });
+
+    // Verify dropdown closed and Stream2 is selected
+    await waitFor(() => {
+      expect(screen.queryAllByText('Stream2').length).toBe(1); // Only toggle remains
+      expect(screen.getByText('Stream2')).toBeInTheDocument();
+    });
+  });
+
+  test('NTI dropdown toggle via Enter key', async () => {
+    require('react-router-dom').__setSearch('?edit=true');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Find NTI dropdown toggle
+    const ntiToggle = screen.getByRole('button', { name: /Выбрать рынки НТИ/i });
+
+    // Simulate Enter key to open dropdown
+    fireEvent.keyDown(ntiToggle, { key: 'Enter' });
+
+    // Verify dropdown opened (NewMarket appears)
+    expect(await screen.findByText('NewMarket')).toBeInTheDocument();
+
+    // Simulate Enter key to close dropdown
+    fireEvent.keyDown(ntiToggle, { key: 'Enter' });
+
+    // Verify dropdown closed
+    await waitFor(() => {
+      expect(screen.queryByText('NewMarket')).not.toBeInTheDocument();
+    });
+  });
+
+  test('NTI dropdown toggle via Space key', async () => {
+    require('react-router-dom').__setSearch('?edit=true');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Find NTI dropdown toggle
+    const ntiToggle = screen.getByRole('button', { name: /Выбрать рынки НТИ/i });
+
+    // Simulate Space key to open dropdown
+    fireEvent.keyDown(ntiToggle, { key: ' ' });
+
+    // Verify dropdown opened (NewMarket appears)
+    expect(await screen.findByText('NewMarket')).toBeInTheDocument();
+
+    // Simulate Space key to close dropdown
+    fireEvent.keyDown(ntiToggle, { key: ' ' });
+
+    // Verify dropdown closed
+    await waitFor(() => {
+      expect(screen.queryByText('NewMarket')).not.toBeInTheDocument();
+    });
+  });
+
+  
+});
