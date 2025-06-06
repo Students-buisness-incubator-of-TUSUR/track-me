@@ -1199,3 +1199,267 @@ describe('Additional coverage (manual lines)', () => {
 
   
 });
+describe('Additional coverage for specific lines', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    require('react-router-dom').__setSearch('');
+    require('react-router-dom').__setState({});
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: ['ADMIN'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+    );
+    global.fetch = jest.fn((url, opts = {}) => {
+      if (url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: 42,
+              name: 'OldName',
+              description: 'OldDesc',
+              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+              readinessLevel: '0-2',
+              streams: [{ id: 1, name: 'Stream1', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' }],
+              username: 'reduxUser'
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      if (url.includes('/api/v1/streams?page=0&size=1500')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 1, name: 'Stream1', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' }
+            ]
+          })
+        });
+      }
+      if (url.includes('/api/v1/streams/nti-markets')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([
+            { id: 10, displayName: 'OldMarket' },
+            { id: 20, displayName: 'NewMarket' }
+          ])
+        });
+      }
+      if (url.endsWith('/api/v1/users/reduxUser/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ fullName: 'Admin FullName' })
+        });
+      }
+      if (url.includes('/api/v1/team-card/count')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(5) });
+      }
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [], totalPages: 1 })
+        });
+      }
+      if (url.includes('/api/v1/users/trackers')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ id: 99, username: 'realUser', fullName: 'Tracker Name', enabled: true }]
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+  });
+
+  // Lines 61-65: formatDates with missing dates
+  test('formatDates returns empty string when start or end date is missing', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: 42,
+              name: 'OldName',
+              description: 'OldDesc',
+              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+              readinessLevel: '0-2',
+              streams: [{ id: 1, name: 'Stream1' }], // No startDate/endDate
+              username: 'reduxUser'
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    expect(screen.queryByText(/ - /)).not.toBeInTheDocument(); // No dates displayed
+  });
+
+  // Lines 133-135, 140, 143: TRACKER fetchFullName error
+  test('TRACKER fetchFullName error triggers handleApiError', async () => {
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'trackerUser', roles: ['TRACKER'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'trackerUser', roles: ['TRACKER'] })
+    );
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch = jest.fn((url) => {
+      if (url.endsWith('/api/v1/account/info')) {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
+      if (url.includes('/api/v1/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: 42,
+              name: 'OldName',
+              description: 'OldDesc',
+              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+              readinessLevel: '0-2',
+              streams: [{ id: 1, name: 'Stream1' }],
+              username: 'trackerUser'
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('загрузке ФИО трекера'),
+        expect.any(Error)
+      );
+    });
+    consoleSpy.mockRestore();
+  });
+
+  // Line 159: fetchTeamCardsCount error
+  test('fetchTeamCardsCount error triggers handleApiError', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/team-card/count')) {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{
+            id: 42,
+            name: 'OldName',
+            description: 'OldDesc',
+            ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+            readinessLevel: '0-2',
+            streams: [{ id: 1, name: 'Stream1' }],
+            username: 'reduxUser'
+          }],
+          totalPages: 1
+        })
+      });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('получении количества карточек'),
+        expect.any(Error)
+      );
+    });
+    consoleSpy.mockRestore();
+  });
+
+  // Lines 309-314: Team card not found
+  
+
+  // Lines 346-356: Successful trackers fetch
+  test('successfully fetches and sets active trackers', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Редактировать/i }));
+    const trackerOption = await screen.findByText('Tracker Name');
+    expect(trackerOption).toBeInTheDocument();
+  });
+
+  // Lines 610-630: handleSave with empty trackers
+  
+  // Lines 660-668: handleDeactivate error
+  test('handleDeactivate error triggers handleApiError', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch = jest.fn((url, opts = {}) => {
+      if (opts.method === 'DELETE') {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{
+            id: 42,
+            name: 'OldName',
+            description: 'OldDesc',
+            ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+            readinessLevel: '0-2',
+            streams: [{ id: 1, name: 'Stream1' }],
+            username: 'reduxUser'
+          }],
+          totalPages: 1
+        })
+      });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Редактировать/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Деактивировать/i }));
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('удалении карточки'),
+        expect.any(Error)
+      );
+    });
+    consoleSpy.mockRestore();
+  });
+});
