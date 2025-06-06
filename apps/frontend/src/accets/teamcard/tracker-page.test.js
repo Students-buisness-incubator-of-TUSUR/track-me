@@ -1178,6 +1178,225 @@ test('Отображение сообщения "Ничего не найден�
   });
 });
 
+test('fetchCards добавляет фильтр по username для роли TRACKER и устанавливает cards/totalPages (147-157, 164-171)', async () => {
+    localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['TRACKER'] }));
+    localStorage.setItem('streamName', 'TestStream');
 
+    const mockCard = {
+      id: 'card1',
+      name: 'Test Card',
+      description: 'Test Description',
+      enabled: true,
+      ntiMarkets: [{ displayName: 'Market1' }],
+      readinessLevel: '5',
+      streams: [{ name: 'TestStream', startDate: '2025-01-01', endDate: '2025-12-31' }],
+      userId: 'testuser',
+    };
+
+    global.fetch = jest.fn((url, options) => {
+      if (url.includes('/streams/active')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: '1', name: 'TestStream', startDate: '2025-01-01', endDate: '2025-12-31' }],
+            }),
+        });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/team-cards')) {
+        expect(options.body).toContain('"fieldName":"username"'); // Проверка фильтра по username (147-157)
+        expect(options.body).toContain('"value":"testuser"');
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [mockCard],
+              page: { totalPages: 2 },
+            }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    expect(await screen.findByText('Test Card')).toBeInTheDocument(); // Проверка рендеринга карточки (164-171)
+    expect(document.querySelector('.Stream-footer-button-4')).toBeInTheDocument(); // Проверка пагинации (totalPages > 1)
+  });
+
+  // Тест для строк 605-618, 701-708, 714-717: Рендеринг карточек с разными статусами и данными
+  test('Рендеринг карточек с разными статусами, рынками НТИ и потоками (605-618, 701-708, 714-717)', async () => {
+    const mockCards = [
+      {
+        id: '1',
+        name: 'Active Card',
+        description: 'Active Description',
+        enabled: true,
+        ntiMarkets: [{ displayName: 'Market1' }],
+        readinessLevel: '7',
+        userId: 'user1',
+        streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+      },
+      {
+        id: '2',
+        name: 'Inactive Card',
+        description: 'Inactive Description',
+        enabled: false,
+        ntiMarkets: [{ displayName: 'Market2' }],
+        readinessLevel: '2',
+        userId: 'user2',
+        streams: [{ name: 'Stream2', startDate: '2024-01-01', endDate: '2024-12-31' }],
+      },
+    ];
+
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams/active')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [
+                { id: 'stream1', name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' },
+                { id: 'stream2', name: 'Stream2', startDate: '2024-01-01', endDate: '2024-12-31' },
+              ],
+            }),
+        });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve([
+              { id: 'm1', name: 'Market1', displayName: 'Market1' },
+              { id: 'm2', name: 'Market2', displayName: 'Market2' },
+            ]),
+        });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: mockCards,
+              page: { totalPages: 1 },
+            }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    // Проверка строк 605-618
+    expect(await screen.findByText('Active Card')).toBeInTheDocument();
+    expect(screen.getByText('Активно')).toBeInTheDocument();
+    expect(screen.getByText('Inactive Card')).toBeInTheDocument();
+    expect(screen.getByText('Завершено')).toBeInTheDocument();
+
+    // Проверка строк 701-708
+    expect(screen.getByText('Рынки НТИ: Market1')).toBeInTheDocument();
+    expect(screen.getByText('Рынки НТИ: Market2')).toBeInTheDocument();
+
+    // Проверка строк 714-717
+    expect(screen.getByText(/Поток: Stream1/)).toBeInTheDocument();
+    expect(screen.getByText(/Поток: Stream2/)).toBeInTheDocument();
+  });
+
+  // Тест для строк 662-698: Рендеринг карточки с длинным описанием и кнопкой "Подробнее"/"Свернуть"
+  test('Рендеринг карточки с длинным описанием и переключение "Подробнее"/"Свернуть" (662-698)', async () => {
+    const longDescription = 'This is a very long description that exceeds 100 characters to ensure the "Подробнее" button is shown. We need to test the toggle functionality.';
+    const mockCard = {
+      id: 'card1',
+      name: 'Test Card',
+      description: longDescription,
+      enabled: true,
+      ntiMarkets: [{ displayName: 'Market1' }],
+      readinessLevel: '5',
+      userId: 'user1',
+      streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+    };
+
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams/active')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: 'stream1', name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+            }),
+        });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 'm1', name: 'Market1', displayName: 'Market1' }]),
+        });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [mockCard],
+              page: { totalPages: 1 },
+            }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    // Проверка строк 662-667: начальное состояние (описание свернуто)
+    const descriptionElement = screen.getByText(longDescription);
+    expect(descriptionElement).toBeInTheDocument();
+    expect(descriptionElement.parentElement).not.toHaveClass('expanded'); // Описание не развернуто
+
+    // Проверка строк 668-694: кнопка "Подробнее" и переключение
+    const toggleButton = screen.getByText('Подробнее');
+    expect(toggleButton).toBeInTheDocument();
+
+    fireEvent.click(toggleButton);
+    await waitFor(() => {
+      expect(descriptionElement.parentElement).toHaveClass('expanded'); // Описание развернуто
+      expect(screen.getByText('Свернуть')).toBeInTheDocument();
+    });
+
+    // Проверка строк 668-694: повторное нажатие на "Свернуть"
+    const collapseButton = screen.getByText('Свернуть');
+    fireEvent.click(collapseButton);
+    await waitFor(() => {
+      expect(descriptionElement.parentElement).not.toHaveClass('expanded'); // Описание снова свернуто
+      expect(screen.getByText('Подробнее')).toBeInTheDocument();
+    });
+
+    // Проверка строк 668-694: доступность с клавиатуры (onKeyDown)
+    fireEvent.keyDown(toggleButton, { key: 'Enter' });
+    await waitFor(() => {
+      expect(descriptionElement.parentElement).toHaveClass('expanded'); // Описание развернуто
+      expect(screen.getByText('Свернуть')).toBeInTheDocument();
+    });
+  });
   
 });
