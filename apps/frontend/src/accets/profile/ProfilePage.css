@@ -202,6 +202,26 @@
     font-family: 'Montserrat', sans-serif;
 }
 
+.count-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.profile-tooltip {
+    position: fixed;
+    padding: 8px 12px;
+    background: #451982d5;
+    color: white;
+    border-radius: 30px;
+    font-size: 14px;
+    transform: translate(-50%, -100%);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: tooltipFadeIn 0.2s ease-in-out;
+    z-index: 1000;
+}
+
 
 @media (max-width: 992px) {
     .profile-container {

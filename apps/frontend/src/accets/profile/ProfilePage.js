@@ -20,6 +20,21 @@ function ProfilePage() {
     // Состояние для редактируемых данных
     const [editedData, setEditedData] = useState({});
 
+    // Состояние для отображения подсказки
+    const [showTooltip, setShowTooltip] = useState(false);
+    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (event) => {
+        const rect = event.currentTarget.getBoundingClientRect();
+        setTooltipPosition({
+            x: rect.left + (rect.width / 2),
+            y: rect.top - 10
+        });
+    };
+
+    // Количество команд, получаемое из userData
+    const [teamCount, setTeamCount] = useState(0);
+
     useEffect(() => {
 
         fetch(`${ssoHost}/api/v1/account/info`, {
@@ -72,6 +87,26 @@ function ProfilePage() {
                 setUserPhoto(null);
             });
     }, [userData, ssoHost]);
+
+    useEffect(() => {
+        if (!userData?.roles?.includes("TRACKER")) return;
+        const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
+        fetch(`${backendHost}/api/v1/team-cards`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                filters: [{
+                    fieldName: "username",
+                    type: "EQ",
+                    value: userData.username
+                }]
+            })
+        })
+            .then(res => res.json())
+            .then(data => setTeamCount(Array.isArray(data?.content) ? data.content.length : 0))
+            .catch(() => setTeamCount(0));
+    }, [userData]);
 
     const handleEditClick = () => {
         setIsEditing(true);
@@ -392,9 +427,35 @@ function ProfilePage() {
                 )}
 
                 {!isEditing ? (
-                    <button className="profile-team-cards-button" onClick={handleTeamCardsClick}>
-                        Карточки команд
-                    </button>
+                    <>
+                        <button 
+                            className="profile-team-cards-button" 
+                            onClick={handleTeamCardsClick}
+                        >
+                            Карточки команд
+                            {userData?.roles?.includes("TRACKER") && (
+                                <span 
+                                    className="count-container"
+                                    onMouseEnter={() => setShowTooltip(true)}
+                                    onMouseLeave={() => setShowTooltip(false)}
+                                    onMouseMove={handleMouseMove}
+                                >
+                                    ({teamCount})
+                                </span>
+                            )}
+                        </button>
+                        {showTooltip && userData?.roles?.includes("TRACKER") && (
+                            <div 
+                                className="profile-tooltip"
+                                style={{
+                                    left: `${tooltipPosition.x}px`,
+                                    top: `${tooltipPosition.y}px`
+                                }}
+                            >
+                                Количество моих команд
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <button className="profile-team-cards-button" onClick={handleSaveClick}>
                         Сохранить
