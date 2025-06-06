@@ -1462,4 +1462,92 @@ describe('Additional coverage for specific lines', () => {
     });
     consoleSpy.mockRestore();
   });
+  test('toggles NTI market selection in editedData', async () => {
+  global.fetch = jest.fn((url, opts = {}) => {
+    if (url.includes('/api/v1/admin/team-cards')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{
+            id: 42,
+            name: 'OldName',
+            description: 'OldDesc',
+            ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+            readinessLevel: '0-2',
+            streams: [{ id: 1, name: 'Stream1', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' }],
+            username: 'reduxUser'
+          }],
+          totalPages: 1
+        })
+      });
+    }
+    if (url.includes('/api/v1/streams/nti-markets')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([
+          { id: 10, displayName: 'OldMarket' },
+          { id: 20, displayName: 'NewMarket' }
+        ])
+      });
+    }
+    if (url.includes('/api/v1/users/trackers')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [] })
+      });
+    }
+    if (opts.method === 'PATCH') {
+      const body = JSON.parse(opts.body || '{}');
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          id: 42,
+          name: body.name || 'OldName',
+          description: body.description || 'OldDesc',
+          ntiMarketIds: body.ntiMarketIds || [],
+          readinessLevel: body.readinessLevel || '0-2',
+          username: 'reduxUser'
+        })
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+  });
+
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  // Enter edit mode
+  fireEvent.click(screen.getByRole('button', { name: /Редактировать/i }));
+
+  // Open NTI dropdown
+  fireEvent.click(screen.getByRole('button', { name: /Выбрать рынки НТИ/i }));
+
+  // Deselect OldMarket (already selected, ID 10)
+  const oldMarketLabel = await screen.findByText('OldMarket', { selector: '.data-create-team' });
+  const oldMarketCheckbox = oldMarketLabel.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+  fireEvent.click(oldMarketCheckbox); // Should remove ID 10
+
+  // Select NewMarket (ID 20)
+  const newMarketLabel = await screen.findByText('NewMarket', { selector: '.data-create-team' });
+  const newMarketCheckbox = newMarketLabel.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+  fireEvent.click(newMarketCheckbox); // Should add ID 20
+
+  // Fill required fields to pass validation
+  fireEvent.change(screen.getByPlaceholderText(/Карточка команды/i), { target: { value: 'TestName' } });
+  fireEvent.change(screen.getByPlaceholderText(/Описание карточки/i), { target: { value: 'TestDesc' } });
+
+  // Save
+  fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+
+  await waitFor(() => {
+    const patchCall = global.fetch.mock.calls.find(call => call[1]?.method === 'PATCH');
+    const body = JSON.parse(patchCall[1]?.body || '{}');
+    expect(body.ntiMarketIds).toEqual([20]);
+  });
+});
 });
