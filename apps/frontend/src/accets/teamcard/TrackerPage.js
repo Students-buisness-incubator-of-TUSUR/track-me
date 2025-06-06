@@ -174,7 +174,11 @@ useEffect(() => {
         ? `${backendHost}/api/v1/admin/team-cards`
         : `${backendHost}/api/v1/team-cards`;
 
-    fetch(`${endpoint}?page=${page}&size=${pageSize}&sort=enabled%2Cdesc&sort=streams.startDate%2Cdesc&sort=averageGrade%2Cdesc`, {
+    const sortParams = (userRole === "TRACKER")
+        ? "sort=enabled,desc&sort=streams.startDate,desc&sort=name,asc"  // Новая сортировка для трекеров
+        : "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc";  // Старая сортировка для админов
+
+    fetch(`${endpoint}?page=${page}&size=${pageSize}&${sortParams}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
