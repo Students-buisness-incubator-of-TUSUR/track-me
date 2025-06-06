@@ -127,20 +127,53 @@ text-overflow: ellipsis;
 }
 
 /* Стили для описания проекта */
-.project-description p {
-    
-
-    font-size: 14px;
-    color: #555;
-    margin: 0;
-    white-space: normal;
-word-break: break-word;
-overflow-wrap: break-word;
-max-height: 80px;
-overflow: hidden;
-
-    
+.project-description {
+  position: relative;
+  max-height: 45px;
+  overflow: hidden;
+  cursor: default;
+  padding-right: 12px;
 }
+
+
+.project-description p {
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2; /* <---- добавь это */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 45px;
+}
+
+
+.project-description.expanded {
+  overflow-y: auto;
+  
+  max-height: 45px;
+}
+
+.project-description.expanded p {
+  -webkit-line-clamp: unset;
+  line-clamp: unset; /* ← добавь это */
+  overflow: visible;
+}
+
+.show-more-text {
+  font-size: 13px;
+  color: #8338EB;
+  text-decoration: underline;
+  margin-top: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+
 
 .under-cont {
     margin-top: 25px; /* отступ сверху, чтобы этот блок оказался ниже описания */

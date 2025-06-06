@@ -306,14 +306,12 @@ useEffect(() => {
   if (!teamData || !teamData.id) return;
 
   setEditedData(prev => ({
-    ...prev,
-    // если у teamData есть вложенный объект ntiMarket
-    ntiMarketId: teamData.ntiMarket?.id || prev.ntiMarketId,
-    // готовность
-    readinessLevel: teamData.readinessLevel || prev.readinessLevel,
-    // описание
-    description: teamData.description || prev.description,
-  }));
+  ...prev,
+  ntiMarketIds: teamData.ntiMarkets?.map(m => m.id) || prev.ntiMarketIds || [],
+  readinessLevel: teamData.readinessLevel || prev.readinessLevel,
+  description: teamData.description || prev.description,
+}));
+
 }, [teamData]);
 useEffect(() => {
   if (!selectedStreamId && streamInfo?.id) {
@@ -331,13 +329,7 @@ useEffect(() => {
         }
     }, [teamData, trlLevels]);
 
-    const handleMarketSelect = (market) => {
-        setSelectedMarket(market);
-        setShowNTI(false);
-        if (isEditing) {
-            setEditedData(prev => ({...prev, ntiMarketId: market.id}));
-        }
-    };
+   
 
     const handleTRLSelect = (trl) => {
         setSelectedTRL(trl);
@@ -351,7 +343,17 @@ useEffect(() => {
         setEditedData({...editedData, [e.target.name]: e.target.value});
     };
 
-
+useEffect(() => {
+  if (Array.isArray(ntiMarkets)) {
+    setSelectedMarket(
+      ntiMarkets.filter(m =>
+        editedData.ntiMarketIds?.includes(m.id)
+      )
+    );
+  } else {
+    setSelectedMarket([]); // Устанавливаем пустой массив, если ntiMarkets не массив
+  }
+}, [editedData.ntiMarketIds, ntiMarkets]);
     const handleSave = async () => {
   setIsLoading(true);
   setApiError(null);
@@ -360,7 +362,7 @@ useEffect(() => {
     // 1. Проверка заполненности
     if (!editedData.name?.trim() ||
         !editedData.description?.trim() ||
-        !editedData.ntiMarketId ||
+        !editedData.ntiMarketIds ||
         !editedData.readinessLevel ||
         ((role === "ADMIN" || role === "SUPER_ADMIN") && !editedData.username)) {
       throw new Error("Пожалуйста, заполните все обязательные поля");
@@ -393,7 +395,7 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
     const patchData = {
       name: editedData.name.trim(),
       description: editedData.description.trim(),
-      ntiMarketId: editedData.ntiMarketId,
+      ntiMarketIds: editedData.ntiMarketIds,
       readinessLevel: editedData.readinessLevel,
       
     };
@@ -605,45 +607,39 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
 
 
                 {isEditing ? (
-                    <div className={`dropdown-block${showNTI ? " open" : ""}`}>
-                        <div
-                            className={`create-dropdown-toggle ${isEditing ? 'editable' : ''}`}
-                            onClick={() => isEditing && setShowNTI(!showNTI)}
-                        >
-                            {selectedMarket?.displayName || "Рынок НТИ"}
-                        </div>
-                        {showNTI && (
+                   <div className={`dropdown-block${showNTI ? " open" : ""}`}>
+  <div className={`create-dropdown-toggle editable`} onClick={() => setShowNTI(!showNTI)}>
+    {(selectedMarket?.length > 0
+      ? selectedMarket.slice(0, 2).map(m => m.displayName).join(", ") +
+        (selectedMarket.length > 2 ? ` +${selectedMarket.length - 2}` : "")
+      : "Рынки НТИ")}
+  </div>
+  {showNTI && (
     <div className="create-checkbox-list">
       {ntiMarkets.map(market => (
-        <div
-          key={market.id}
-          className="create-checkbox-item create-radio-style"
-        >
+        <div key={market.id} className="create-checkbox-item create-radio-style">
           <input
-            type="radio"
-            name="ntiMarket"
-            checked={selectedMarket?.id === market.id}
+            type="checkbox"
+            checked={editedData.ntiMarketIds?.includes(market.id)}
             onChange={() => {
-              handleMarketSelect(market);
+              setEditedData(prev => {
+                const already = prev.ntiMarketIds?.includes(market.id);
+                return {
+                  ...prev,
+                  ntiMarketIds: already
+                    ? prev.ntiMarketIds.filter(id => id !== market.id)
+                    : [...(prev.ntiMarketIds || []), market.id]
+                };
+              });
             }}
           />
-          <button
-  type="button"
-  className="data-create-team"
-  onClick={() => handleMarketSelect(market)}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      handleMarketSelect(market);
-    }
-  }}
->
-  {market.displayName}
-</button>
+          <label className="data-create-team">{market.displayName}</label>
         </div>
       ))}
-                            </div>
-                        )}      
-                    </div>
+    </div>
+  )}
+</div>
+
                 ) : (
                         <div className="team-card-info">
                             <span className="team-label-widget">Рынки НТИ:</span>

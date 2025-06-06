@@ -245,10 +245,13 @@ describe("TeamCard — валидация формы для админа", () =>
 
     renderComponent();
 
-    // Ждем загрузки компонента
     await waitFor(() => {
-      expect(screen.getByText(/Рынок НТИ/i)).toBeInTheDocument();
-    });
+  expect(screen.getAllByText((content, element) =>
+    element?.className.includes("create-dropdown-toggle") &&
+    content.includes("Рынк")
+  ).length).toBeGreaterThan(0);
+});
+
 
     // Заполняем название команды
     fireEvent.change(
@@ -257,7 +260,13 @@ describe("TeamCard — валидация формы для админа", () =>
     );
 
     // Выбираем рынок НТИ
-    fireEvent.click(screen.getByText(/Рынок НТИ/i));
+    const ntiToggle = screen.getAllByText((content, element) =>
+  element?.className.includes("create-dropdown-toggle") &&
+  content.includes("Рынк")
+)[0];
+
+fireEvent.click(ntiToggle);
+
     fireEvent.click(await screen.findByText(/Market 1/i));
 
     // Выбираем TRL
@@ -294,76 +303,79 @@ fireEvent.click(screen.getByText(/Создать/i));
   });
 
   it("не показывает ошибку выбора трекера для обычного пользователя", async () => {
-    // Мокаем обычного пользователя (без роли ADMIN)
-    fetch.mockImplementation((url) => {
-      if (url.includes("/account/info")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => 
-            Promise.resolve({ 
-              roles: [], 
-              fullName: "Обычный пользователь" 
-            }),
-        });
-      }
-      if (url.includes("/streams?page=0")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ 
-            content: [{ id: 1, name: "Stream 1" }] 
-          }),
-        });
-      }
-      if (url.includes("/streams/nti-markets")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([{ id: 1, displayName: "Market 1" }]),
-        });
-      }
+  // Мокаем обычного пользователя (без роли ADMIN)
+  fetch.mockImplementation((url) => {
+    if (url.includes("/account/info")) {
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({}),
+        json: () => 
+          Promise.resolve({ 
+            roles: [], 
+            fullName: "Обычный пользователь" 
+          }),
       });
-    });
-
-    renderComponent();
-
-    // Ждем загрузки компонента
-    await waitFor(() => {
-      expect(screen.getByText(/Рынок НТИ/i)).toBeInTheDocument();
-    });
-
-    // Заполняем название команды
-    fireEvent.change(
-      screen.getByPlaceholderText(/Введите название команды/i),
-      { target: { value: "Тестовая команда" } }
-    );
-
-    // Выбираем рынок НТИ
-    fireEvent.click(screen.getByText(/Рынок НТИ/i));
-    fireEvent.click(await screen.findByText(/Market 1/i));
-
-    // Выбираем TRL
-    fireEvent.click(screen.getByText(/TRL/i));
-    fireEvent.click(await screen.findByText(/3-5/i));
-
-    // Выбираем поток (упрощаем проверку)
-    const stream = { id: 1, name: "Stream 1" };
-    // Вместо прямого доступа к formData делаем пользовательские действия:
-
-// Открыть dropdown с потоками
-fireEvent.click(screen.getByText(/Поток/i));
-
-// Кликнуть на пункт "Stream 1"
-fireEvent.click(await screen.findByText(/Stream 1/i));
-
-    // Нажимаем кнопку создания
-    fireEvent.click(screen.getByText(/Создать/i));
-
-    // Проверяем, что ошибки выбора трекера нет
-    await waitFor(() => {
-      expect(screen.queryByText(/Выберите трекера/i)).not.toBeInTheDocument();
+    }
+    if (url.includes("/streams?page=0")) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ 
+          content: [{ id: 1, name: "Stream 1" }] 
+        }),
+      });
+    }
+    if (url.includes("/streams/nti-markets")) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([{ id: 1, displayName: "Market 1" }]),
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({}),
     });
   });
+
+  renderComponent();
+
+  // Ждем загрузки компонента
+  await waitFor(() => {
+    expect(screen.getByText(/Рынки НТИ/i)).toBeInTheDocument();
+  });
+
+  // Заполняем название команды
+  fireEvent.change(
+    screen.getByPlaceholderText(/Введите название команды/i),
+    { target: { value: "Тестовая команда" } }
+  );
+
+  // Выбираем рынок НТИ
+  fireEvent.click(screen.getByText(/Рынки НТИ/i)); // Обновляем matcher на plural
+  await waitFor(() => {
+    expect(screen.getByText(/Market 1/i)).toBeInTheDocument();
+  });
+  fireEvent.click(screen.getByText(/Market 1/i));
+
+  // Выбираем TRL
+  fireEvent.click(screen.getByText(/TRL/i));
+  await waitFor(() => {
+    expect(screen.getByText(/3-5/i)).toBeInTheDocument();
+  });
+  fireEvent.click(screen.getByText(/3-5/i));
+
+  // Выбираем поток
+  fireEvent.click(screen.getByText(/Поток/i));
+  await waitFor(() => {
+    expect(screen.getByText(/Stream 1/i)).toBeInTheDocument();
+  });
+  fireEvent.click(screen.getByText(/Stream 1/i));
+
+  // Нажимаем кнопку создания
+  fireEvent.click(screen.getByText(/Создать/i));
+
+  // Проверяем, что ошибки выбора трекера нет
+  await waitFor(() => {
+    expect(screen.queryByText(/Выберите трекера/i)).not.toBeInTheDocument();
+  });
+});
 });
 

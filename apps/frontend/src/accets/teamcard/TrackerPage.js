@@ -128,14 +128,7 @@ useEffect(() => {
         setusername(user.user.username);
     }
 }, [user]);
-    useEffect(() => {
-        if (user?.roles?.length && user?.username) {
-            const role = user.roles[0];
-            const uname = user.username;
-            setUserRole(role);
-            setusername(uname);
-        }
-    }, [user]);
+    
     
 
     // Данные для чекбоксов "год"
@@ -198,6 +191,7 @@ useEffect(() => {
                 const cardsArray = Array.isArray(data.content) ? data.content : [];
                 
                 setCards(cardsArray);
+                setCards(cardsArray.map(card => ({ ...card, _showFull: false })));
                 setTotalPages(data?.page?.totalPages || 1);
             }
         })
@@ -209,11 +203,6 @@ useEffect(() => {
  // ✅ streamName в зависимости
 
     
-    useEffect(() => {
-        if (userRole && username) {
-            fetchCards([]);
-        }
-    }, [userRole, username, fetchCards]);
     
 
     useEffect(() => {
@@ -221,8 +210,7 @@ useEffect(() => {
         const role = localStorage.getItem("userRole");
         console.log("Initial role check:", role);
 
-        // Загружаем карточки без фильтров при первом рендере
-        fetchCards([]);
+        
 
         fetch(`${backendHost}/api/v1/streams/nti-markets`, {
             method: "GET",
@@ -240,7 +228,7 @@ useEffect(() => {
             .catch((error) => {
                 console.error(error);
             });
-    }, [navigate, backendHost, fetchCards]);
+    }, [backendHost]);
     
 
 
@@ -365,6 +353,8 @@ useEffect(() => {
         
 
         console.log("Applying filters:", filters);
+        setCards([]);     // сброс перед новым поиском/фильтром
+        setPage(0);
         fetchCards(filters);
         setIsVisible(false);
     };
@@ -669,9 +659,30 @@ useEffect(() => {
                                 <div className="text-container project-title">
                                     <h3>{card.name}</h3>
                                 </div>
-                                <div className="text-container project-description">
-                                    <p>{card.description}</p>
-                                </div>
+                                <div className="text-container">
+  <div className={`project-description ${card._showFull ? "expanded" : ""}`}>
+    <p>{card.description}</p>
+  </div>
+
+  {card.description.length > 100 && (
+    <div
+      className="show-more-text"
+      onClick={(e) => {
+        e.stopPropagation();
+        setCards((prev) =>
+          prev.map((c) =>
+            c.id === card.id ? { ...c, _showFull: !c._showFull } : c
+          )
+        );
+      }}
+    >
+      {card._showFull ? "Свернуть" : "Подробнее"}
+    </div>
+  )}
+</div>
+
+
+
                                 <div className="under-cont">
                                     <div className="text-container project-markets">
                                         <p>
