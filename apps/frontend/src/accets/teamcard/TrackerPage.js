@@ -666,18 +666,31 @@ useEffect(() => {
 
   {card.description.length > 100 && (
     <div
-      className="show-more-text"
-      onClick={(e) => {
-        e.stopPropagation();
-        setCards((prev) =>
-          prev.map((c) =>
-            c.id === card.id ? { ...c, _showFull: !c._showFull } : c
-          )
-        );
-      }}
-    >
-      {card._showFull ? "Свернуть" : "Подробнее"}
-    </div>
+  className="show-more-text"
+  onClick={(e) => {
+    e.stopPropagation();
+    setCards((prev) =>
+      prev.map((c) =>
+        c.id === card.id ? { ...c, _showFull: !c._showFull } : c
+      )
+    );
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); // Предотвращаем прокрутку страницы при нажатии пробела
+      setCards((prev) =>
+        prev.map((c) =>
+          c.id === card.id ? { ...c, _showFull: !c._showFull } : c
+        )
+      );
+    }
+  }}
+  tabIndex={0} // Делаем элемент фокусируемым
+  role="button" // Указываем роль кнопки для семантики
+  aria-label={card._showFull ? "Свернуть описание" : "Показать полное описание"} // Улучшаем доступность
+>
+  {card._showFull ? "Свернуть" : "Подробнее"}
+</div>
   )}
 </div>
 

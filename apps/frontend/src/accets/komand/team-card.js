@@ -608,12 +608,25 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
 
                 {isEditing ? (
                    <div className={`dropdown-block${showNTI ? " open" : ""}`}>
-  <div className={`create-dropdown-toggle editable`} onClick={() => setShowNTI(!showNTI)}>
-    {(selectedMarket?.length > 0
-      ? selectedMarket.slice(0, 2).map(m => m.displayName).join(", ") +
-        (selectedMarket.length > 2 ? ` +${selectedMarket.length - 2}` : "")
-      : "Рынки НТИ")}
-  </div>
+  <div
+  className={`create-dropdown-toggle editable`}
+  onClick={() => setShowNTI(!showNTI)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); // Предотвращаем прокрутку страницы при нажатии пробела
+      setShowNTI(!showNTI);
+    }
+  }}
+  tabIndex={0} // Делаем элемент фокусируемым
+  role="button" // Указываем роль для лучшей семантики
+  aria-expanded={showNTI} // Указываем состояние выпадающего списка
+  aria-label="Выбрать рынки НТИ" // Улучшаем доступность для экранных читалок
+>
+  {(selectedMarket?.length > 0
+    ? selectedMarket.slice(0, 2).map(m => m.displayName).join(", ") +
+      (selectedMarket.length > 2 ? ` +${selectedMarket.length - 2}` : "")
+    : "Рынки НТИ")}
+</div>
   {showNTI && (
     <div className="create-checkbox-list">
       {ntiMarkets.map(market => (
