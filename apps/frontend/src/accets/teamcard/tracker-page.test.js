@@ -958,9 +958,225 @@ describe('TrackerPage - Полное покрытие', () => {
   await waitFor(() => {
     expect(global.fetch).toHaveBeenCalled();
   });
+  
+});
+test('fetchCards добавляет фильтр по username для роли TRACKER (141-161)', async () => {
+  localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['TRACKER'] }));
+  localStorage.setItem('streamName', 'TestStream');
+
+  const mockCard = {
+    id: 'card1',
+    name: 'Test Card',
+    description: 'Test Description',
+    enabled: true,
+    ntiMarkets: [{ displayName: 'Market1' }],
+    readinessLevel: '5',
+    streams: [{ name: 'TestStream', startDate: '2025-01-01', endDate: '2025-12-31' }],
+    userId: 'testuser',
+  };
+
+  global.fetch = jest.fn((url, options) => {
+    if (url.includes('/streams/active')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{ id: '1', name: 'TestStream', startDate: '2025-01-01', endDate: '2025-12-31' }],
+        }),
+      });
+    }
+    if (url.endsWith('/streams/nti-markets')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    }
+    if (url.includes('/team-cards')) {
+      expect(options.body).toContain('"fieldName":"username"');
+      expect(options.body).toContain('"value":"testuser"');
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [mockCard],
+          page: { totalPages: 1 },
+        }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+  });
+
+  await act(async () => {
+    render(
+      <MemoryRouter>
+        <TrackerPage />
+      </MemoryRouter>
+    );
+  });
+
+  expect(await screen.findByText('Test Card')).toBeInTheDocument();
 });
 
 
+test('fetchCards устанавливает cards и totalPages при успешном ответе (141-161)', async () => {
+  localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['TRACKER'] }));
+  localStorage.setItem('streamName', 'TestStream');
+
+  const mockCard = {
+    id: 'card1',
+    name: 'Test Card',
+    description: 'Test Description',
+    enabled: true,
+    ntiMarkets: [{ displayName: 'Market1' }],
+    readinessLevel: '5',
+    streams: [{ name: 'TestStream', startDate: '2025-01-01', endDate: '2025-12-31' }],
+    userId: 'testuser',
+  };
+
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/streams/active')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{ id: '1', name: 'TestStream', startDate: '2025-01-01', endDate: '2025-12-31' }],
+        }),
+      });
+    }
+    if (url.endsWith('/streams/nti-markets')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    }
+    if (url.includes('/team-cards')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [mockCard],
+          page: { totalPages: 2 },
+        }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+  });
+
+  await act(async () => {
+    render(
+      <MemoryRouter>
+        <TrackerPage />
+      </MemoryRouter>
+    );
+  });
+
+  expect(await screen.findByText('Test Card')).toBeInTheDocument();
+  expect(document.querySelector('.Stream-footer-button-4')).toBeInTheDocument(); // Кнопка пагинации
+});
+test('Рендеринг карточек с разными статусами (668-694)', async () => {
+  const mockCards = [
+    {
+      id: '1',
+      name: 'Active Card',
+      description: 'Active Description',
+      enabled: true,
+      ntiMarkets: [{ displayName: 'Market1' }],
+      readinessLevel: '7',
+      userId: 'user1',
+      streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+    },
+    {
+      id: '2',
+      name: 'Inactive Card',
+      description: 'Inactive Description',
+      enabled: false,
+      ntiMarkets: [{ displayName: 'Market2' }],
+      readinessLevel: '2',
+      userId: 'user2',
+      streams: [{ name: 'Stream2', startDate: '2024-01-01', endDate: '2024-12-31' }],
+    },
+  ];
+
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/streams/active')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [
+            { id: 'stream1', name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' },
+            { id: 'stream2', name: 'Stream2', startDate: '2024-01-01', endDate: '2024-12-31' },
+          ],
+        }),
+      });
+    }
+    if (url.endsWith('/streams/nti-markets')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([
+          { id: 'm1', name: 'Market1', displayName: 'Market1' },
+          { id: 'm2', name: 'Market2', displayName: 'Market2' },
+        ]),
+      });
+    }
+    if (url.includes('/team-cards')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: mockCards,
+          page: { totalPages: 1 },
+        }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+  });
+
+  await act(async () => {
+    render(
+      <MemoryRouter>
+        <TrackerPage />
+      </MemoryRouter>
+    );
+  });
+
+  expect(await screen.findByText('Active Card')).toBeInTheDocument();
+  expect(screen.getByText('Активно')).toBeInTheDocument();
+  expect(screen.getByText('Inactive Card')).toBeInTheDocument();
+  expect(screen.getByText('Завершено')).toBeInTheDocument();
+  expect(screen.getByText('Рынки НТИ: Market1')).toBeInTheDocument();
+  expect(screen.getByText('Рынки НТИ: Market2')).toBeInTheDocument();
+  expect(screen.getByText('TRL: 7')).toBeInTheDocument();
+  expect(screen.getByText('TRL: 2')).toBeInTheDocument();
+  expect(screen.getByText(/Поток: Stream1/)).toBeInTheDocument();
+  expect(screen.getByText(/Поток: Stream2/)).toBeInTheDocument();
+});
+
+test('Отображение сообщения "Ничего не найдено по запросу" (668-694)', async () => {
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/streams/active')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{ id: '1', name: 'Stream', startDate: '2025-01-01', endDate: '2025-12-31' }],
+        }),
+      });
+    }
+    if (url.endsWith('/streams/nti-markets')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    }
+    if (url.includes('/team-cards')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [],
+          page: { totalPages: 1 },
+        }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+  });
+
+  await act(async () => {
+    render(
+      <MemoryRouter>
+        <TrackerPage />
+      </MemoryRouter>
+    );
+  });
+
+  await waitFor(() => {
+    expect(screen.getByText('Ничего не найдено по запросу')).toBeInTheDocument();
+  });
+});
 
 
   
