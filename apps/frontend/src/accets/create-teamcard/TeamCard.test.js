@@ -377,5 +377,220 @@ fireEvent.click(screen.getByText(/Создать/i));
     expect(screen.queryByText(/Выберите трекера/i)).not.toBeInTheDocument();
   });
 });
+
+
+
+});
+describe("TeamCard — выбор рынков НТИ", () => {
+  beforeEach(() => {
+    fetch.mockImplementation((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ roles: [], fullName: "Иван Иванов" }),
+        });
+      }
+      if (url.includes("/streams?page=0")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [{ id: 1, name: "Stream 1" }] }),
+        });
+      }
+      if (url.includes("/streams/nti-markets")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([
+            { id: 1, displayName: "Market 1" },
+            { id: 2, displayName: "Market 2" },
+            { id: 3, displayName: "Market 3" },
+          ]),
+        });
+      }
+      if (url.includes("/team-card")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 42 }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({}),
+      });
+    });
+  });
+
+  it("отображает выпадающий список рынков НТИ", async () => {
+    renderComponent();
+    fireEvent.click(await screen.findByText(/Рынки НТИ/i));
+    expect(await screen.findByText(/Market 1/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Market 2/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Market 3/i)).toBeInTheDocument();
+  });
+
+  it("позволяет выбрать несколько рынков НТИ", async () => {
+    renderComponent();
+    fireEvent.click(await screen.findByText(/Рынки НТИ/i));
+
+    // Select Market 1
+    const market1Label = await screen.findByText(/Market 1/i);
+    const market1Checkbox = market1Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market1Checkbox);
+
+    // Verify toggle text
+    await waitFor(() => {
+      expect(screen.getByText(/Market 1/i, { selector: '.create-dropdown-toggle' })).toBeInTheDocument();
+    });
+
+    // Verify checkbox is checked
+    expect(market1Checkbox).toBeChecked();
+
+    // Select Market 2
+    const market2Label = await screen.findByText(/Market 2/i);
+    const market2Checkbox = market2Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market2Checkbox);
+
+    // Verify toggle text
+    await waitFor(() => {
+      expect(screen.getByText(/Market 1, Market 2/i, { selector: '.create-dropdown-toggle' })).toBeInTheDocument();
+    });
+
+    // Verify checkbox is checked
+    expect(market2Checkbox).toBeChecked();
+  });
+
+  it("позволяет снять выбор рынка НТИ", async () => {
+    renderComponent();
+    fireEvent.click(await screen.findByText(/Рынки НТИ/i));
+
+    // Select Market 1
+    const market1Label = await screen.findByText(/Market 1/i);
+    const market1Checkbox = market1Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market1Checkbox);
+
+    // Deselect Market 1
+    fireEvent.click(market1Checkbox);
+
+    // Verify toggle text returns to default
+    await waitFor(() => {
+      expect(screen.getByText(/Рынки НТИ/i, { selector: '.create-dropdown-toggle' })).toBeInTheDocument();
+    });
+
+    // Verify checkbox is unchecked
+    expect(market1Checkbox).not.toBeChecked();
+  });
+
+  it("отображает '+N' при выборе более 2 рынков", async () => {
+    renderComponent();
+    fireEvent.click(await screen.findByText(/Рынки НТИ/i));
+
+    // Select three markets
+    const market1Label = await screen.findByText(/Market 1/i);
+    const market1Checkbox = market1Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market1Checkbox);
+
+    const market2Label = await screen.findByText(/Market 2/i);
+    const market2Checkbox = market2Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market2Checkbox);
+
+    const market3Label = await screen.findByText(/Market 3/i);
+    const market3Checkbox = market3Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market3Checkbox);
+
+    // Verify toggle text shows "+1"
+    await waitFor(() => {
+      expect(screen.getByText(/Market 1, Market 2 \+1/i, { selector: '.create-dropdown-toggle' })).toBeInTheDocument();
+    });
+
+    // Verify checkboxes are checked
+    expect(market1Checkbox).toBeChecked();
+    expect(market2Checkbox).toBeChecked();
+    expect(market3Checkbox).toBeChecked();
+  });
+
+  it("показывает ошибку, если не выбран ни один рынок НТИ", async () => {
+    renderComponent();
+    fireEvent.change(screen.getByPlaceholderText(/Введите название команды/i), {
+      target: { value: "Тестовая команда" },
+    });
+    fireEvent.click(screen.getByText(/TRL/i));
+    fireEvent.click(await screen.findByText(/3-5/i));
+    fireEvent.click(screen.getByText(/Поток/i));
+    fireEvent.click(await screen.findByText(/Stream 1/i));
+    fireEvent.click(screen.getByText(/Создать/i));
+    expect(await screen.findByText(/Выберите хотя бы один рынок НТИ/i)).toBeInTheDocument();
+  });
+
+  it("корректно отображает выбранные рынки в dropdown toggle", async () => {
+    renderComponent();
+    const toggle = await screen.findByText(/Рынки НТИ/i, { selector: '.create-dropdown-toggle' });
+    fireEvent.click(toggle);
+
+    // Select markets
+    const market1Label = await screen.findByText(/Market 1/i);
+    const market1Checkbox = market1Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market1Checkbox);
+
+    const market2Label = await screen.findByText(/Market 2/i);
+    const market2Checkbox = market2Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market2Checkbox);
+
+    // Verify toggle text
+    await waitFor(() => {
+      expect(toggle).toHaveTextContent(/Market 1, Market 2/);
+    });
+  });
+
+  it("отправляет корректные ntiMarketIds при создании команды", async () => {
+  renderComponent();
+
+  // Open NTI markets dropdown and select Market 1 and Market 3
+  fireEvent.click(await screen.findByText(/Рынки НТИ/i));
+  const market1Label = await screen.findByText(/Market 1/i);
+  const market1Checkbox = market1Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+  fireEvent.click(market1Checkbox);
+
+  const market3Label = await screen.findByText(/Market 3/i);
+  const market3Checkbox = market3Label.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+  fireEvent.click(market3Checkbox);
+
+  // Verify NTI markets toggle text
+  await waitFor(() => {
+    expect(screen.getByText(/Market 1, Market 3/i, { selector: '.create-dropdown-toggle' })).toBeInTheDocument();
+  });
+
+  // Fill team name
+  fireEvent.change(screen.getByPlaceholderText(/Введите название команды/i), {
+    target: { value: "Тестовая команда" },
+  });
+
+  // Select TRL
+  fireEvent.click(screen.getByText(/TRL/i));
+  const trlLabel = await screen.findByText(/3-5/i);
+  const trlRadio = trlLabel.closest('.create-checkbox-item').querySelector('input[type="radio"]');
+  fireEvent.click(trlRadio);
+  await waitFor(() => {
+    expect(trlRadio).toBeChecked();
+  });
+
+  // Select Stream
+  fireEvent.click(screen.getByText(/Поток/i));
+  const streamLabel = await screen.findByText(/Stream 1/i);
+  const streamRadio = streamLabel.closest('.create-checkbox-item').querySelector('input[type="radio"]');
+  fireEvent.click(streamRadio);
+  await waitFor(() => {
+    expect(streamRadio).toBeChecked();
+  });
+
+  // Submit form
+  fireEvent.click(screen.getByText(/Создать/i));
+
+  // Verify fetch payload
+  await waitFor(() => {
+    const fetchCall = global.fetch.mock.calls.find(call => call[0].includes("/team-card"));
+    expect(fetchCall).toBeDefined();
+    const body = JSON.parse(fetchCall[1].body);
+    expect(body.ntiMarketIds).toEqual([1, 3]);
+  }, { timeout: 2000 });
+});
 });
 
