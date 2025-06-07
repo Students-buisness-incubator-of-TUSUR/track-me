@@ -3,7 +3,7 @@ plugins {
     id 'jacoco'
 }
 
-group = 'net.akarmanov.projectplace'
+group = 'net.trackme.backend'
 
 repositories {
     mavenCentral()
