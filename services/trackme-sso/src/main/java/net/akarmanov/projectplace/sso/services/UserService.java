@@ -2,26 +2,14 @@ package net.akarmanov.projectplace.sso.services;
 
 import net.akarmanov.projectplace.commons.filters.FilterRequest;
 import net.akarmanov.projectplace.sso.dao.entity.UserEntity;
-import net.akarmanov.projectplace.sso.dto.AuthProvider;
-import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import net.akarmanov.projectplace.sso.dto.UserDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.UUID;
 
 public interface UserService {
-  /**
-   * Создание или обновление пользователя используя сервис-провайдер
-   */
-  UserEntity save(OAuth2User userDto, AuthProvider provider);
-
-  /**
-   * Создание или обновление пользователя с последующим маппингом в сущность AuthorizedUser
-   */
-  AuthorizedUser saveAndMap(OAuth2User userDto, AuthProvider provider);
 
   /**
    * Создание пользователя на основе регистрационных данных. Пользователь будет не активирован.

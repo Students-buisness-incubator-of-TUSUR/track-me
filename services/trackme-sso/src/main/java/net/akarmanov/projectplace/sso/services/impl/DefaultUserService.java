@@ -7,13 +7,10 @@ import net.akarmanov.projectplace.sso.dao.entity.RoleEntity;
 import net.akarmanov.projectplace.sso.dao.entity.UserEntity;
 import net.akarmanov.projectplace.sso.dao.repository.RoleRepository;
 import net.akarmanov.projectplace.sso.dao.repository.UserRepository;
-import net.akarmanov.projectplace.sso.dto.AuthProvider;
-import net.akarmanov.projectplace.sso.dto.AuthorizedUser;
 import net.akarmanov.projectplace.sso.dto.RegistrationRequestDto;
 import net.akarmanov.projectplace.sso.dto.UserDto;
 import net.akarmanov.projectplace.sso.exception.AuthException;
 import net.akarmanov.projectplace.sso.exception.WrongOldPasswordException;
-import net.akarmanov.projectplace.sso.mapper.AuthorizedUserMapper;
 import net.akarmanov.projectplace.sso.mapper.UserMapper;
 import net.akarmanov.projectplace.sso.services.UserService;
 import net.akarmanov.projectplace.sso.type.AuthErrorCode;
@@ -21,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -43,89 +39,6 @@ public class DefaultUserService implements UserService {
 
   private final UserMapper userMapper;
 
-  /**
-   * Создание или обновление пользователя используя сервис-провайдер
-   */
-  @Override
-  public UserEntity save(OAuth2User userDto, AuthProvider provider) {
-    return switch (provider) {
-      case GITHUB -> this.saveUserFromGithub(userDto);
-      case GOOGLE -> this.saveUserFromGoogle(userDto);
-      case TELEGRAM -> null;
-    };
-  }
-
-  /**
-   * Создание или обновление пользователя с последующим маппингом в сущность AuthorizedUser
-   */
-  @Override
-  public AuthorizedUser saveAndMap(OAuth2User userDto, AuthProvider provider) {
-    UserEntity entity = this.save(userDto, provider);
-    return AuthorizedUserMapper.map(entity);
-  }
-
-
-  /**
-   * Метод описывающий создание/обновление UserEntity на основе OAuth2User полученного из провайдера Github
-   */
-  private UserEntity saveUserFromGithub(OAuth2User userDto) {
-    String email = userDto.getAttribute("email");           // пытаемся получить атрибут email
-    UserEntity user = this.getEntityByEmail(email);
-
-    if (userDto.getAttribute("name") != null) {             // получаем firstName, lastName и middleName
-      String name = userDto.getAttribute("name");
-      user.setFullName(name);
-
-    } else {                                                      // иначе устанавливаем в эти поля значение email
-      user.setFullName(userDto.getAttribute("login"));
-    }
-
-    if (userDto.getAttribute("avatar_url") !=
-        null) {       // если есть аватар, то устанавливаем значение в поле avatarUrl
-      user.setAvatarUrl(userDto.getAttribute("avatar_url"));
-    }
-    return userRepository.save(user);                             // сохраняем сущность UserEntity
-  }
-
-  /**
-   * Метод описывающий создание/обновление UserEntity на основе OAuth2User полученного из провайдера Google
-   */
-  private UserEntity saveUserFromGoogle(OAuth2User userDto) {
-    String email = userDto.getAttribute("email");
-    UserEntity user = this.getEntityByEmail(email);
-
-    if (userDto.getAttribute("given_name") != null) {
-      user.setFullName(userDto.getAttribute("given_name"));
-    }
-
-    if (userDto.getAttribute("picture") != null) {
-      user.setAvatarUrl(userDto.getAttribute("picture"));
-    }
-
-    return userRepository.save(user);
-  }
-
-  /**
-   * Метод получения сущности UserEntity по email
-   * Если пользователь с данным email не найден в БД, то создаём новую сущность
-   */
-  private UserEntity getEntityByEmail(String email) {
-    if (email == null) {
-      throw new AuthException(AuthErrorCode.EMAIL_IS_EMPTY);
-    }
-    Optional<UserEntity> userOptional = this.userRepository.findByEmail(email);
-    if (userOptional.isEmpty()) {
-      var user = new UserEntity();
-      user.setEmail(email);
-      user.setUsername(email.substring(0, email.indexOf("@")));
-      user.setActive(true);
-      // добавляем роль по умолчанию
-//       TODO: добавить роль по умолчанию
-//      user.setRoles(Set.of(roleRepository.findByCode("TRACKER")));
-      return userRepository.save(user);
-    }
-    return userOptional.get();
-  }
 
   /**
    * Создание пользователя на основе регистрационных данных. Пользователь будет не активирован.
