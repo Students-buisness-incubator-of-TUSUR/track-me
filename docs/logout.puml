@@ -1,0 +1,29 @@
+@startuml
+actor User
+participant "trackme-frontend" as Frontend
+participant "trackme-client-gateway" as Gateway
+participant "trackme-sso" as SSO
+participant "Redis"
+
+== Выход пользователя из системы ==
+User -> Frontend : Нажимает кнопку "Выход"
+Frontend -> Gateway : POST /logout
+Gateway -> Gateway : Обработка запроса
+
+note over Gateway
+  Создание запроса на выход из OIDC-провайдера
+  Определение post-logout URI
+end note
+
+Gateway -> SSO : GET /logout\n(id_token_hint, post_logout_redirect_uri)
+SSO -> SSO : Проверка валидности\nid_token_hint
+SSO -> Redis : Удаление сессии пользователя\nи связанных токенов
+Redis --> SSO : OK
+SSO -> Redis : Удаление refresh_token
+Redis --> SSO : OK
+SSO -> SSO : Очистка локальных\nсессионных данных
+SSO --> Gateway : 302 Redirect\n(на post_logout_redirect_uri)
+Gateway --> Frontend : 302 Redirect\n
+Frontend -> User : Перенаправление на\nстраницу после выхода
+
+@enduml
