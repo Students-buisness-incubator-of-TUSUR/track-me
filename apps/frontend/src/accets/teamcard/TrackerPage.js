@@ -26,7 +26,7 @@ function TrackerPage() {
 const showAllCards = location.pathname === "/all-team-cards";
 const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
 const [page, setPage] = useState(0);
-const pageSize = 9; // или 10, если хочешь другой размер
+const pageSize = 18; // или 10, если хочешь другой размер
 const [totalPages, setTotalPages] = useState(1);
 
 
@@ -240,18 +240,18 @@ useEffect(() => {
     if (!userRole) return;
 
     const isTracker = userRole === "TRACKER";
-    const url = isTracker
-        ? `${backendHost}/api/v1/streams/active?page=0&size=150`
-        : `${backendHost}/api/v1/admin/streams?page=0&size=150`;
+const url = isTracker
+    ? `${backendHost}/api/v1/streams?page=0&size=150`
+    : `${backendHost}/api/v1/admin/streams?page=0&size=150`;
 
-    const options = {
-        method: isTracker ? "GET" : "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        credentials: "include",
-        ...(isTracker ? {} : { body: JSON.stringify({ filters: [] }) }),
-    };
+const options = {
+    method: "POST", // Всегда POST
+    headers: {
+        "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ filters: [] }), // Отправляем пустые фильтры для всех
+};
 
     fetch(url, options)
         .then((response) => {
@@ -398,24 +398,23 @@ useEffect(() => {
                     <div className='Stream-header-logo'/>
                     <h1 className="Stream-title">TrackMe</h1>
                     <div className="Stream-header-cont-cont">
-                        {showAllCards ? (
-  <h1 className="Stream-title11">Все карточки команд</h1>
-) : (
-  <>
-    <h1 className="Stream-title11">
-      {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER")
-        ? (streamName ? streamName : "Название потока не получено")
-        : ""}
-    </h1>
-    {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER") && (
-      <h1 className="Stream-title11">
-        {streamName ? ": cроки акселератора: " + formatDateToYMD(streamSDate) + " - " + formatDateToYMD(streamEDate) : ""}
-      </h1>
+    {showAllCards || userRole === "TRACKER" ? (
+        <h1 className="Stream-title11">Все команды</h1>
+    ) : (
+        <>
+            <h1 className="Stream-title11">
+                {(userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+                    ? (streamName ? streamName : "Название потока не получено")
+                    : ""}
+            </h1>
+            {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
+                <h1 className="Stream-title11">
+                    {streamName ? ": cроки акселератора: " + formatDateToYMD(streamSDate) + " - " + formatDateToYMD(streamEDate) : ""}
+                </h1>
+            )}
+        </>
     )}
-  </>
-)}
-
-                    </div>
+</div>
 
                     <div className="Stream-buttons">
                         <button className="Stream-pic" onClick={toggleProfileMenu}>
