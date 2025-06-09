@@ -623,6 +623,11 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                       "fieldName": "streams.year",
                                       "value": "%s",
                                       "type": "EQ"
+                                    },
+                                    {
+                                      "fieldName": "enabled",
+                                      "value": true,
+                                      "type": "EQ"
                                     }
                                   ]
                                 }
