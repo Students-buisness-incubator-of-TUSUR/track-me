@@ -66,6 +66,9 @@ padding: 0 20px;
     border: 1px solid #e0e0e0; /* тонкая оконтовка */
 
 }
+.card:hover {
+    transform: translateY(-5px);
+}
 
 /* Серый блок (изображение) */
 .card-image {
@@ -318,4 +321,31 @@ text-overflow: ellipsis;
 
 .ios-switch input:checked + .slider::before {
   transform: translateX(22px);
+}
+
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .cards-wrapper {
+        grid-template-columns: 1fr;
+    }
+    
+    .card {
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+/* Для планшетов */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .cards-wrapper {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Для десктопов */
+@media (min-width: 1025px) {
+    .cards-wrapper {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
