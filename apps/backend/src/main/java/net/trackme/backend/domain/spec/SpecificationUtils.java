@@ -6,7 +6,6 @@ import net.trackme.backend.domain.ReadinessLevel;
 public class SpecificationUtils {
 
   private SpecificationUtils() {
-    // Utility class
   }
 
   public static Filter getStartDateFilter(Filter filter) {
