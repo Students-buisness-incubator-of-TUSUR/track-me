@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Фильтр для запросов поиска
@@ -29,6 +31,23 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
                      List<String> values,
                      @JsonProperty("value")
                      String singleValue) {
+
+    public static final Map<Class<?>, Function<String, Object>> TYPE_CONVERTERS = Map.ofEntries(
+            Map.entry(Boolean.class, Boolean::parseBoolean),
+            Map.entry(boolean.class, Boolean::parseBoolean),
+            Map.entry(Integer.class, Integer::parseInt),
+            Map.entry(int.class, Integer::parseInt),
+            Map.entry(Long.class, Long::parseLong),
+            Map.entry(long.class, Long::parseLong),
+            Map.entry(Double.class, Double::parseDouble),
+            Map.entry(double.class, Double::parseDouble),
+            Map.entry(Float.class, Float::parseFloat),
+            Map.entry(float.class, Float::parseFloat),
+            Map.entry(BigDecimal.class, BigDecimal::new),
+            Map.entry(LocalDate.class, LocalDate::parse),
+            Map.entry(LocalDateTime.class, LocalDateTime::parse),
+            Map.entry(Instant.class, Instant::parse)
+    );
 
     public Predicate toPredicate(Root<?> root, CriteriaBuilder cb) {
         if (fieldName == null || fieldName.isBlank()) {
@@ -178,31 +197,25 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
     }
 
     private Object convertValue(String value, Class<?> targetType) {
+        // Early return for String type to avoid unnecessary processing
+        if (targetType == String.class) {
+            return value;
+        }
+
         try {
-            if (targetType == String.class) {
-                return value;
-            } else if (targetType == Boolean.class || targetType == boolean.class) {
-                return Boolean.parseBoolean(value);
-            } else if (targetType == Integer.class || targetType == int.class) {
-                return Integer.parseInt(value);
-            } else if (targetType == Long.class || targetType == long.class) {
-                return Long.parseLong(value);
-            } else if (targetType == Double.class || targetType == double.class) {
-                return Double.parseDouble(value);
-            } else if (targetType == Float.class || targetType == float.class) {
-                return Float.parseFloat(value);
-            } else if (targetType == BigDecimal.class) {
-                return new BigDecimal(value);
-            } else if (targetType == LocalDate.class) {
-                return LocalDate.parse(value);
-            } else if (targetType == LocalDateTime.class) {
-                return LocalDateTime.parse(value);
-            } else if (targetType == Instant.class) {
-                return Instant.parse(value);
-            } else if (Enum.class.isAssignableFrom(targetType)) {
-                var enumType = (Class<? extends Enum>) targetType;
+
+            // Check for converter in the map
+            if (TYPE_CONVERTERS.containsKey(targetType)) {
+                return TYPE_CONVERTERS.get(targetType).apply(value);
+            }
+
+            // Special case for enum types
+            if (Enum.class.isAssignableFrom(targetType)) {
+                @SuppressWarnings("unchecked")
+                Class<? extends Enum> enumType = (Class<? extends Enum>) targetType;
                 return Enum.valueOf(enumType, value.toUpperCase());
             }
+
             throw new IllegalArgumentException("Unsupported field type: " + targetType.getName());
         } catch (Exception e) {
             throw new IllegalArgumentException(
