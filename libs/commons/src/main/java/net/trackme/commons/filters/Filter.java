@@ -73,7 +73,6 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
         };
     }
 
-    @SuppressWarnings("unchecked")
     private Predicate createYearPredicate(Root<?> root, CriteriaBuilder cb) {
         var yearValues = getValues();
 
@@ -93,11 +92,13 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
 
         Path<LocalDate> dateFieldPath;
         try {
+            //noinspection unchecked
             dateFieldPath = (Path<LocalDate>) getFieldPath(root, datePath);
         } catch (Exception e) {
             // Если startDate не найден, пробуем с date
             var alternativePath = datePath.replace("startDate", "date");
             try {
+                //noinspection unchecked
                 dateFieldPath = (Path<LocalDate>) getFieldPath(root, alternativePath);
             } catch (Exception e2) {
                 throw new IllegalArgumentException(

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,10 +26,67 @@ class FilterTest {
     @Mock
     private Path<Object> path;
 
+    @Test
+    void testToPredicateComparisonGreaterThan() {
+        Filter filter = Filter.builder()
+                .fieldName("numericField")
+                .type(OperationType.GREATER_THAN)
+                .singleValue("10")
+                .build();
+
+        Predicate predicate = mock(Predicate.class);
+        when(cb.greaterThan(any(), any(Integer.class))).thenReturn(predicate);
+        doReturn(Integer.class).when(path).getJavaType();
+
+        when(root.get("numericField")).thenReturn(path);
+
+        Predicate result = filter.toPredicate(root, cb);
+        assertNotNull(result);
+        verify(cb).greaterThan(any(), eq(10));
+    }
+
+    @Test
+    void testToPredicateComparisonLessThan() {
+        Filter filter = Filter.builder()
+                .fieldName("numericField")
+                .type(OperationType.LESS_THAN)
+                .singleValue("20")
+                .build();
+
+        Predicate predicate = mock(Predicate.class);
+        doReturn(predicate).when(cb).lessThan(any(), any(Integer.class));
+        doReturn(Integer.class).when(path).getJavaType();
+
+        when(root.get("numericField")).thenReturn(path);
+
+        Predicate result = filter.toPredicate(root, cb);
+        assertNotNull(result);
+        verify(cb).lessThan(any(), eq(20));
+    }
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         when(root.get(anyString())).thenReturn(path);
+    }
+
+    @Test
+    void testToPredicateYearFiltering() {
+        Filter filter = Filter.builder()
+                .fieldName("someField.year")
+                .type(OperationType.EQUALS)
+                .values(List.of("2022"))
+                .build();
+
+        Predicate predicate = mock(Predicate.class);
+        doReturn(LocalDate.class).when(path).getJavaType();
+        when(cb.equal(any(), any(LocalDate.class))).thenReturn(predicate);
+        when(cb.between(any(), any(LocalDate.class), any(LocalDate.class))).thenReturn(predicate);
+        when(cb.or(any())).thenReturn(predicate);
+
+        Predicate result = filter.toPredicate(root, cb);
+        assertNotNull(result);
+        verify(cb, times(1)).between(any(), any(LocalDate.class), any(LocalDate.class));
     }
 
     @Test
