@@ -4,9 +4,9 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import net.trackme.backend.commons.filters.Filter;
-import net.trackme.backend.commons.filters.FilterFieldNotAllowedException;
 import net.trackme.backend.domain.Stream;
+import net.trackme.commons.filters.Filter;
+import net.trackme.commons.filters.FilterFieldNotAllowedException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -15,18 +15,15 @@ import java.util.List;
 import java.util.UUID;
 
 import static net.trackme.backend.domain.spec.SpecificationUtils.getReadinessLevelFilter;
-import static net.trackme.backend.domain.spec.SpecificationUtils.getStartDateFilter;
 
 public class StreamSpecification implements Specification<Stream> {
 
   public static final String READINESS_LEVEL_FIELD = "teamCards.readinessLevel";
 
-  public static final String YEAR_FIELD = "year";
-
   public static final List<String> ALLOWED_FIELDS = List.of(
       "name",
       "active",
-      YEAR_FIELD,
+          "year",
       "ntiMarkets.name",
       READINESS_LEVEL_FIELD
   );
@@ -73,9 +70,6 @@ public class StreamSpecification implements Specification<Stream> {
       }
       if (READINESS_LEVEL_FIELD.equals(filter.fieldName())) {
         filter = getReadinessLevelFilter(filter);
-      }
-      if (YEAR_FIELD.equals(filter.fieldName())) {
-        filter = getStartDateFilter(filter);
       }
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }

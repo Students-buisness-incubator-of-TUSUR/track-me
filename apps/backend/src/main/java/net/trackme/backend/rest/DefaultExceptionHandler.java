@@ -2,8 +2,8 @@ package net.trackme.backend.rest;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
-import net.trackme.backend.commons.filters.FilterFieldNotAllowedException;
 import net.trackme.backend.services.exceptions.PPNotFoundException;
+import net.trackme.commons.filters.FilterFieldNotAllowedException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

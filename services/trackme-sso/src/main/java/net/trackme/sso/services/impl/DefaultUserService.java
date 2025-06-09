@@ -2,7 +2,7 @@ package net.trackme.sso.services.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.trackme.backend.commons.filters.FilterRequest;
+import net.trackme.commons.filters.FilterRequest;
 import net.trackme.sso.dao.entity.RoleEntity;
 import net.trackme.sso.dao.entity.UserEntity;
 import net.trackme.sso.dao.repository.RoleRepository;

@@ -306,7 +306,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                     {
                                       "fieldName": "name",
                                       "values": ["%s", "%s"],
-                                      "type": "EQ"
+                                      "type": "IN"
                                     }
                                   ]
                                 }

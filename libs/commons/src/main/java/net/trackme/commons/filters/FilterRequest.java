@@ -1,4 +1,4 @@
-package net.trackme.backend.commons.filters;
+package net.trackme.commons.filters;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

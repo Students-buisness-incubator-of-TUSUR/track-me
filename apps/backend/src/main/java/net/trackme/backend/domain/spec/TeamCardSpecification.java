@@ -4,9 +4,9 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import net.trackme.backend.commons.filters.Filter;
-import net.trackme.backend.commons.filters.FilterFieldNotAllowedException;
 import net.trackme.backend.domain.TeamCard;
+import net.trackme.commons.filters.Filter;
+import net.trackme.commons.filters.FilterFieldNotAllowedException;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -18,8 +18,6 @@ public class TeamCardSpecification implements Specification<TeamCard> {
 
     public static final String READINESS_LEVEL_FIELD_NAME = "readinessLevel";
 
-    public static final String STREAMS_YEAR_FIELD = "streams.year";
-
     public static final List<String> ALLOWED_FIELDS = List.of(
             "name",
             "ntiMarkets.name",
@@ -27,7 +25,7 @@ public class TeamCardSpecification implements Specification<TeamCard> {
             "status",
             "username",
             READINESS_LEVEL_FIELD_NAME,
-            STREAMS_YEAR_FIELD,
+            "streams.year",
             "streams.name",
             "enabled"
     );
@@ -56,16 +54,6 @@ public class TeamCardSpecification implements Specification<TeamCard> {
             if (!ALLOWED_FIELDS.contains(filter.fieldName())) {
                 throw new FilterFieldNotAllowedException(filter.fieldName(), ALLOWED_FIELDS);
             }
-
-            if (STREAMS_YEAR_FIELD.equals(filter.fieldName())) {
-                filter = Filter.builder()
-                        .fieldName("streams.startDate")
-                        .type(filter.type())
-                        .values(filter.values())
-                        .singleValue(filter.singleValue())
-                        .build();
-            }
-
             if (READINESS_LEVEL_FIELD_NAME.equals(filter.fieldName())) {
                 filter = getReadinessLevelFilter(filter);
             }

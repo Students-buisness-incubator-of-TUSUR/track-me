@@ -2,7 +2,6 @@ package net.trackme.backend.usecases;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import net.trackme.backend.commons.filters.Filter;
 import net.trackme.backend.mapping.TeamCardMapper;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
@@ -10,6 +9,7 @@ import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.services.nti.NtiMarketService;
 import net.trackme.backend.services.stream.MutableStreamService;
 import net.trackme.backend.services.teamcard.TeamCardsService;
+import net.trackme.commons.filters.Filter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;

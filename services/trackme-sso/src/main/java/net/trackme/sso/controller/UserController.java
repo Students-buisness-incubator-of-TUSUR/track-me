@@ -3,7 +3,7 @@ package net.trackme.sso.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import net.trackme.backend.commons.filters.FilterRequest;
+import net.trackme.commons.filters.FilterRequest;
 import net.trackme.sso.dto.UserDto;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;

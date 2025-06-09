@@ -1,13 +1,13 @@
 package net.trackme.backend.usecases;
 
 import lombok.RequiredArgsConstructor;
-import net.trackme.backend.commons.filters.Filter;
 import net.trackme.backend.domain.spec.StreamSpecification;
 import net.trackme.backend.mapping.NtiMarketMapper;
 import net.trackme.backend.mapping.StreamMapper;
 import net.trackme.backend.rest.api.dto.NTIMarketDto;
 import net.trackme.backend.rest.api.dto.StreamDto;
 import net.trackme.backend.services.stream.MutableStreamService;
+import net.trackme.commons.filters.Filter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;

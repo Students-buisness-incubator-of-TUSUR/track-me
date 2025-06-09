@@ -6,7 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import net.trackme.backend.commons.dao.VersionedBusinessEntity;
+import net.trackme.commons.dao.VersionedBusinessEntity;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;

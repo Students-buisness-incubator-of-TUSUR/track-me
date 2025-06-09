@@ -2,7 +2,7 @@ package net.trackme.sso.controller.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.trackme.backend.commons.filters.FilterRequest;
+import net.trackme.commons.filters.FilterRequest;
 import net.trackme.sso.controller.UserController;
 import net.trackme.sso.dto.UserDto;
 import net.trackme.sso.services.UserService;
