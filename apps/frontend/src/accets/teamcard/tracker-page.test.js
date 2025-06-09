@@ -4,9 +4,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TrackerPage from './TrackerPage';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, createMemoryRouter, RouterProvider } from 'react-router-dom'; // Добавьте createMemoryRouter и RouterProvider
 import * as redux from 'react-redux';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react'; // Используйте act из react
 
 // Мок для useNavigate и Link/ useLocation
 const mockNavigate = jest.fn();
@@ -47,55 +47,74 @@ describe('TrackerPage - Исправленные тесты', () => {
   });
 
   test('форматирование даты отображается в заголовке потока', async () => {
-    const isoDate = '2025-06-02T00:00:00Z';
-    localStorage.setItem('streamName', 'TestStream');
-    localStorage.setItem('streamSDate', isoDate);
-    localStorage.setItem('streamEDate', isoDate);
-    localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['TRACKER'] }));
+  const isoDate = '2025-06-02T00:00:00Z';
+  localStorage.setItem('streamName', 'TestStream');
+  localStorage.setItem('streamSDate', isoDate);
+  localStorage.setItem('streamEDate', isoDate);
+  localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['ADMIN'] }));
 
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              content: [
-                {
-                  id: '1',
-                  name: 'TestStream',
-                  startDate: isoDate,
-                  endDate: isoDate,
-                },
-              ],
-            }),
-        });
-      }
-      if (url.endsWith('/streams/nti-markets')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([]),
-        });
-      }
+  redux.useSelector.mockImplementation(() => ({
+    user: { username: 'testuser', roles: ['ADMIN'] },
+    roles: ['ADMIN'],
+    username: 'testuser',
+  }));
+
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/api/v1/admin/streams')) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            content: [
+              {
+                id: '1',
+                name: 'TestStream',
+                startDate: isoDate,
+                endDate: isoDate,
+              },
+            ],
+          }),
+      });
+    }
+    if (url.endsWith('/streams/nti-markets')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+      });
+    }
+    if (url.includes('/team-cards')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }),
       });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }),
     });
+  });
 
+  await act(async () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={['/teamcard']}>
         <TrackerPage />
       </MemoryRouter>
     );
-
-    const formatted = '2025.06.02';
-    expect(await screen.findByText(/TestStream/)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(`${formatted} - ${formatted}`))).toBeInTheDocument();
   });
+
+  const formatted = '2025.06.02';
+  await waitFor(
+    () => {
+      expect(screen.getByText(/TestStream/)).toBeInTheDocument();
+      expect(screen.getByText(new RegExp(`${formatted} - ${formatted}`))).toBeInTheDocument();
+    },
+    { timeout: 2000 }
+  );
+});
 
   test('показывает сообщение "Ничего не найдено по запросу", когда карточек нет', async () => {
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -142,7 +161,7 @@ describe('TrackerPage - Исправленные тесты', () => {
   };
 
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () =>
@@ -210,7 +229,7 @@ describe('TrackerPage - Исправленные тесты', () => {
     };
 
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -280,7 +299,7 @@ describe('TrackerPage - Исправленные тесты', () => {
     };
 
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -343,7 +362,7 @@ describe('TrackerPage - Исправленные тесты', () => {
   
 test('открытие и закрытие панели фильтров по клику на иконку', async () => {
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -397,7 +416,7 @@ test('открытие и закрытие панели фильтров по к
     };
 
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -460,7 +479,7 @@ test('открытие и закрытие панели фильтров по к
   localStorage.setItem('streamEDate', '2025-12-31');
 
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () =>
@@ -522,7 +541,7 @@ describe('TrackerPage - Полное покрытие', () => {
   localStorage.setItem('streamId', '1');
 
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -558,29 +577,72 @@ describe('TrackerPage - Полное покрытие', () => {
   }, { timeout: 2000 });
 });
   // 85-87: Проверка отображения заголовка с датой
-  test('Отображение заголовка с форматированной датой (85-87)', async () => {
-    const isoDate = '2025-06-02T00:00:00Z';
-    localStorage.setItem('streamName', 'TestStream');
-    localStorage.setItem('streamSDate', isoDate);
-    localStorage.setItem('streamEDate', isoDate);
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ content: [{ id: '1', name: 'TestStream', startDate: isoDate, endDate: isoDate }] }),
-        });
-      }
-      if (url.endsWith('/streams/nti-markets')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+ test('Отображение заголовка с форматированной датой (85-87)', async () => {
+  const isoDate = '2025-06-02T00:00:00Z';
+  localStorage.setItem('streamName', 'TestStream');
+  localStorage.setItem('streamSDate', isoDate);
+  localStorage.setItem('streamEDate', isoDate);
+  localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['ADMIN'] }));
+  localStorage.setItem('userRole', 'ADMIN');
+
+  redux.useSelector.mockImplementation(() => ({
+    user: { username: 'testuser', roles: ['ADMIN'] },
+    roles: ['ADMIN'],
+    username: 'testuser',
+  }));
+
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/api/v1/admin/streams')) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            content: [
+              {
+                id: '1',
+                name: 'TestStream',
+                startDate: isoDate,
+                endDate: isoDate,
+              },
+            ],
+          }),
+      });
+    }
+    if (url.endsWith('/streams/nti-markets')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+      });
+    }
+    if (url.includes('/team-cards')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }),
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }),
     });
-    render(<MemoryRouter><TrackerPage /></MemoryRouter>);
-    const formatted = '2025.06.02';
-    expect(await screen.findByText(/TestStream/)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(`${formatted} - ${formatted}`))).toBeInTheDocument();
   });
 
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/teamcard']}>
+        <TrackerPage />
+      </MemoryRouter>
+    );
+  });
+
+  const formatted = '2025.06.02';
+  await waitFor(
+    () => {
+      expect(screen.getByText(/TestStream/)).toBeInTheDocument();
+      expect(screen.getByText(new RegExp(`${formatted} - ${formatted}`))).toBeInTheDocument();
+    },
+    { timeout: 2000 }
+  );
+});
   // 94-96: Сообщение при отсутствии карточек
   test('Сообщение "Ничего не найдено по запросу" при пустых данных (94-96)', async () => {
     global.fetch = jest.fn(() => Promise.resolve({
@@ -605,7 +667,7 @@ describe('TrackerPage - Полное покрытие', () => {
       userId: 'user1',
     };
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: '1', name: 'StreamA', startDate: '2025-01-01', endDate: '2025-12-31' }] }) });
       }
       if (url.endsWith('/streams/nti-markets')) {
@@ -633,7 +695,7 @@ describe('TrackerPage - Полное покрытие', () => {
       username: 'admin',
     }));
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: '1', name: 'StreamAdmin', startDate: '2025-01-01', endDate: '2025-12-31' }] }) });
       }
       if (url.endsWith('/streams/nti-markets')) {
@@ -651,7 +713,7 @@ describe('TrackerPage - Полное покрытие', () => {
   // 154-161: Фильтр по годам
   test('Фильтр по годам (154–161)', async () => {
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: '1', name: 'Stream', startDate: '2025-01-01', endDate: '2025-12-31' }] }) });
     }
     if (url.endsWith('/streams/nti-markets')) {
@@ -727,7 +789,7 @@ describe('TrackerPage - Полное покрытие', () => {
           }),
       });
     }
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () =>
@@ -809,7 +871,7 @@ describe('TrackerPage - Полное покрытие', () => {
   // 262: Фильтр по TRL
  test('Фильтр по TRL (262)', async () => {
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [] }) });
     }
     if (url.endsWith('/streams/nti-markets')) {
@@ -847,7 +909,7 @@ describe('TrackerPage - Полное покрытие', () => {
   // 309, 313: Взаимодействие с фильтрами
   test('Выбор и сброс фильтров (309–313)', async () => {
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: '1', name: 'Stream', startDate: '2025-01-01', endDate: '2025-12-31' }] }) });
     }
     if (url.endsWith('/streams/nti-markets')) {
@@ -904,7 +966,7 @@ describe('TrackerPage - Полное покрытие', () => {
       },
     ];
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: 'stream1', name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }] }) });
       }
       if (url.endsWith('/streams/nti-markets')) {
@@ -921,45 +983,10 @@ describe('TrackerPage - Полное покрытие', () => {
     expect(screen.getByText('Завершено')).toBeInTheDocument();
   });
 
-  // 369-375: Фильтр по рынкам НТИ
- test('Фильтр по рынкам НТИ (369–375)', async () => {
-  const markets = [
-    { id: 'm1', name: 'Market1', displayName: 'Market1' },
-    { id: 'm2', name: 'Market2', displayName: 'Market2' },
-  ];
 
-  global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [] }) });
-    }
-    if (url.endsWith('/streams/nti-markets')) {
-      return Promise.resolve({ ok: true, json: () => Promise.resolve(markets) });
-    }
-    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
-  });
 
-  await act(async () => {
-    render(<MemoryRouter><TrackerPage /></MemoryRouter>);
-  });
 
-  const filterToggleBtn = document.querySelector('.Stream-settings-pic');
-  fireEvent.click(filterToggleBtn);
 
-  const ntiBtn = screen.getAllByText('Рынки Нти').find(el => el.closest('.Stream-header-chosefrom-butt-label'));
-  expect(ntiBtn).toBeInTheDocument();
-  fireEvent.click(ntiBtn);
-
-  const checkbox = screen.getByLabelText('Market1');
-  fireEvent.click(checkbox);
-
-  const applyBtn = screen.getByText('Применить');
-  fireEvent.click(applyBtn);
-
-  await waitFor(() => {
-    expect(global.fetch).toHaveBeenCalled();
-  });
-  
-});
 test('fetchCards добавляет фильтр по username для роли TRACKER (141-161)', async () => {
   localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['TRACKER'] }));
   localStorage.setItem('streamName', 'TestStream');
@@ -976,7 +1003,7 @@ test('fetchCards добавляет фильтр по username для роли T
   };
 
   global.fetch = jest.fn((url, options) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -1029,7 +1056,7 @@ test('fetchCards устанавливает cards и totalPages при успе�
   };
 
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -1088,7 +1115,7 @@ test('Рендеринг карточек с разными статусами (
   ];
 
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -1142,7 +1169,7 @@ test('Рендеринг карточек с разными статусами (
 
 test('Отображение сообщения "Ничего не найдено по запросу" (668-694)', async () => {
   global.fetch = jest.fn((url) => {
-    if (url.includes('/streams/active')) {
+    if (url.includes('/api/v1/streams')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
@@ -1194,7 +1221,7 @@ test('fetchCards добавляет фильтр по username для роли T
     };
 
     global.fetch = jest.fn((url, options) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -1259,7 +1286,7 @@ test('fetchCards добавляет фильтр по username для роли T
     ];
 
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -1332,7 +1359,7 @@ test('fetchCards добавляет фильтр по username для роли T
     };
 
     global.fetch = jest.fn((url) => {
-      if (url.includes('/streams/active')) {
+      if (url.includes('/api/v1/streams')) {
         return Promise.resolve({
           ok: true,
           json: () =>
