@@ -17,7 +17,8 @@ const TeamCard = () => {
     const [showNTI, setShowNTI] = useState(false);
     const [showTRL, setShowTRL] = useState(false);
     const [showTrackers, setShowTrackers] = useState(false);
-    const [selectedMarket, setSelectedMarket] = useState(null);
+    const [selectedMarkets, setSelectedMarkets] = useState([]);
+
     const [selectedTRL, setSelectedTRL] = useState(null);
     const [selectedTracker, setSelectedTracker] = useState(null);
     const [formData, setFormData] = useState({
@@ -143,9 +144,15 @@ useEffect(() => {
     };
 
     const handleMarketSelect = (market) => {
-        setSelectedMarket(market);
-        setShowNTI(false);
-    };
+    setSelectedMarkets(prev => {
+        if (prev.some(m => m.id === market.id)) {
+            return prev.filter(m => m.id !== market.id); // снять выбор
+        } else {
+            return [...prev, market]; // добавить в выбор
+        }
+    });
+};
+
 
     const handleTRLSelect = (trl) => {
         setSelectedTRL(trl);
@@ -172,7 +179,7 @@ useEffect(() => {
     const validateForm = () => {
         const errors = [];
         if (!formData.name?.trim()) errors.push("Название команды обязательно");
-        if (!selectedMarket) errors.push("Выберите рынок НТИ");
+        if (selectedMarkets.length === 0) errors.push("Выберите хотя бы один рынок НТИ");
         if (!selectedTRL) errors.push("Выберите уровень TRL");
         if (!formData.streamId) errors.push("Привяжите к потоку");
         const isAdmin = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN");
@@ -194,7 +201,7 @@ if (isAdmin && !selectedTracker) {
             const payload = {
                 name: formData.name,
                 description: formData.description || "Описание карточки команды",
-                ntiMarketId: selectedMarket.id,
+                ntiMarketIds: selectedMarkets.map(m => m.id),
                 readinessLevel: selectedTRL.label
             };
 
@@ -328,18 +335,24 @@ if (isAdmin && !selectedTracker) {
 
                 <div className={`create-dropdown-block${showNTI ? " open" : ""}`}>
   <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
-    {selectedMarket ? selectedMarket.displayName : "Рынок НТИ"}
-  </div>
+  {selectedMarkets.length > 0
+    ? selectedMarkets.slice(0, 2).map(m => m.displayName).join(", ") +
+        (selectedMarkets.length > 2 ? ` +${selectedMarkets.length - 2}` : "")
+    : "Рынки НТИ"}
+</div>
+
+
   {showNTI && (
     <div className="create-checkbox-list">
       {markets.map((market) => (
         <div key={market.id} className="create-checkbox-item create-radio-style">
           <input
-            type="radio"
-            name="ntiMarket"
-            checked={selectedMarket?.id === market.id}
-            onChange={() => handleMarketSelect(market)}
-          />
+  type="checkbox"
+  name="ntiMarket"
+  checked={selectedMarkets.some(m => m.id === market.id)}
+  onChange={() => handleMarketSelect(market)}
+/>
+
           <label className="data-create-team">{market.displayName}</label>
         </div>
       ))}

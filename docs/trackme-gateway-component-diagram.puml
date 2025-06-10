@@ -1,0 +1,38 @@
+@startuml trackme-gateway-component-diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title "Сервис TrackMe Gateway - Диаграмма компонентов"
+
+Person(user, "Пользователь", "Пользователь системы")
+
+System_Boundary(trackme_gateway, "Сервис TrackMe Gateway") {
+    Container_Boundary(gateway, "API Gateway") {
+        Component(gateway_app, "Gateway Application", "Spring Cloud Gateway", "Основное приложение API Gateway")
+        Component(routes, "Маршрутизация", "Spring Cloud Gateway Routes", "Определяет маршруты к микросервисам")
+        Component(filters, "Фильтры", "WebFilter", "Пре- и пост-обработка запросов")
+        Component(token_refresh, "Обновление токенов", "TokenRefreshWebFilter", "Автоматическое обновление токенов доступа")
+        Component(config, "Конфигурация", "Spring @Configuration", "Конфигурация приложения")
+        Component(oauth_client, "OAuth2 Клиент", "Spring Security OAuth2", "Интеграция с OAuth2 сервером")
+        Component(cookie_config, "Конфигурация Cookie", "GatewayCookieConfig", "Управление Cookie для токенов")
+    }
+}
+
+System_Ext(browser, "Веб-браузер", "Клиент пользователя")
+System_Ext(sso_service, "Сервис SSO", "OAuth2 сервер авторизации")
+System_Ext(backend_services, "Бэкенд-сервисы", "Микросервисы приложения")
+
+' Основные связи
+Rel(user, browser, "Использует")
+Rel(browser, gateway_app, "Отправляет запросы", "HTTPS")
+Rel(gateway_app, routes, "Использует для маршрутизации")
+Rel(gateway_app, filters, "Применяет к запросам")
+Rel(filters, token_refresh, "Включает")
+Rel(token_refresh, oauth_client, "Использует")
+Rel(oauth_client, cookie_config, "Использует")
+Rel(oauth_client, sso_service, "Аутентифицируется через", "OAuth2/OIDC")
+Rel(config, gateway_app, "Конфигурирует")
+Rel(config, oauth_client, "Конфигурирует")
+Rel(config, cookie_config, "Конфигурирует")
+Rel(gateway_app, backend_services, "Проксирует запросы к", "HTTP/HTTPS")
+
+@enduml

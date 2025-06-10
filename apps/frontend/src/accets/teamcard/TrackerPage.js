@@ -26,7 +26,7 @@ function TrackerPage() {
 const showAllCards = location.pathname === "/all-team-cards";
 const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
 const [page, setPage] = useState(0);
-const pageSize = 9; // или 10, если хочешь другой размер
+const pageSize = 18; // или 10, если хочешь другой размер
 const [totalPages, setTotalPages] = useState(1);
 
 
@@ -128,14 +128,7 @@ useEffect(() => {
         setusername(user.user.username);
     }
 }, [user]);
-    useEffect(() => {
-        if (user?.roles?.length && user?.username) {
-            const role = user.roles[0];
-            const uname = user.username;
-            setUserRole(role);
-            setusername(uname);
-        }
-    }, [user]);
+    
     
 
     // Данные для чекбоксов "год"
@@ -151,32 +144,41 @@ useEffect(() => {
     const allFilters = [...filters];
 
     if ((userRole === "ADMIN" || userRole === "SUPER_ADMIN")) {
-        if (!showAllCards) {
-            allFilters.push({
-                fieldName: "streams.name",
-                type: "EQ",
-                value: streamName,
-            });
-        } else if (showMyTeamsOnly) {
-            allFilters.push({
-                fieldName: "username",
-                type: "EQ",
-                value: username,
-            });
-        }
-    } else if (userRole === "TRACKER") {
+    // Всегда применять фильтр по потоку, если не показываем все команды
+    if (!showAllCards) {
+        allFilters.push({
+            fieldName: "streams.name",
+            type: "EQ",
+            value: streamName,
+        });
+    }
+
+    // Применять фильтр по пользователю, если включён тумблер
+    if (showMyTeamsOnly) {
         allFilters.push({
             fieldName: "username",
             type: "EQ",
             value: username,
         });
     }
+} else if (userRole === "TRACKER") {
+    // Трекеры всегда видят только свои команды
+    allFilters.push({
+        fieldName: "username",
+        type: "EQ",
+        value: username,
+    });
+}
 
     const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
         ? `${backendHost}/api/v1/admin/team-cards`
         : `${backendHost}/api/v1/team-cards`;
 
-    fetch(`${endpoint}?page=${page}&size=${pageSize}&sort=enabled%2Cdesc&sort=streams.startDate&sort=averageGrade%2Cdesc`, {
+    const sortParams = (userRole === "TRACKER")
+        ? "sort=enabled,desc&sort=streams.startDate,desc&sort=name,asc"  // Новая сортировка для трекеров
+        : "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc";  // Старая сортировка для админов
+
+    fetch(`${endpoint}?page=${page}&size=${pageSize}&${sortParams}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -193,6 +195,7 @@ useEffect(() => {
                 const cardsArray = Array.isArray(data.content) ? data.content : [];
                 
                 setCards(cardsArray);
+                setCards(cardsArray.map(card => ({ ...card, _showFull: false })));
                 setTotalPages(data?.page?.totalPages || 1);
             }
         })
@@ -204,11 +207,6 @@ useEffect(() => {
  // ✅ streamName в зависимости
 
     
-    useEffect(() => {
-        if (userRole && username) {
-            fetchCards([]);
-        }
-    }, [userRole, username, fetchCards]);
     
 
     useEffect(() => {
@@ -216,8 +214,7 @@ useEffect(() => {
         const role = localStorage.getItem("userRole");
         console.log("Initial role check:", role);
 
-        // Загружаем карточки без фильтров при первом рендере
-        fetchCards([]);
+        
 
         fetch(`${backendHost}/api/v1/streams/nti-markets`, {
             method: "GET",
@@ -235,7 +232,7 @@ useEffect(() => {
             .catch((error) => {
                 console.error(error);
             });
-    }, [navigate, backendHost, fetchCards]);
+    }, [backendHost]);
     
 
 
@@ -243,18 +240,18 @@ useEffect(() => {
     if (!userRole) return;
 
     const isTracker = userRole === "TRACKER";
-    const url = isTracker
-        ? `${backendHost}/api/v1/streams/active?page=0&size=150`
-        : `${backendHost}/api/v1/admin/streams?page=0&size=150`;
+const url = isTracker
+    ? `${backendHost}/api/v1/streams?page=0&size=150`
+    : `${backendHost}/api/v1/admin/streams?page=0&size=150`;
 
-    const options = {
-        method: isTracker ? "GET" : "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        credentials: "include",
-        ...(isTracker ? {} : { body: JSON.stringify({ filters: [] }) }),
-    };
+const options = {
+    method: "POST", // Всегда POST
+    headers: {
+        "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ filters: [] }), // Отправляем пустые фильтры для всех
+};
 
     fetch(url, options)
         .then((response) => {
@@ -337,7 +334,7 @@ useEffect(() => {
 
         if (selectedNtiMarkets.length > 0) {
             filters.push({
-                fieldName: "ntiMarket.name",
+                fieldName: "ntiMarkets.name",
                 type: "EQ",
                 values: selectedNtiMarkets,
             });
@@ -360,6 +357,8 @@ useEffect(() => {
         
 
         console.log("Applying filters:", filters);
+        setCards([]);     // сброс перед новым поиском/фильтром
+        setPage(0);
         fetchCards(filters);
         setIsVisible(false);
     };
@@ -399,24 +398,23 @@ useEffect(() => {
                     <div className='Stream-header-logo'/>
                     <h1 className="Stream-title">TrackMe</h1>
                     <div className="Stream-header-cont-cont">
-                        {showAllCards ? (
-  <h1 className="Stream-title11">Все карточки команд</h1>
-) : (
-  <>
-    <h1 className="Stream-title11">
-      {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER")
-        ? (streamName ? streamName : "Название потока не получено")
-        : ""}
-    </h1>
-    {(userRole === "ADMIN" || userRole === "SUPER_ADMIN" || userRole === "TRACKER") && (
-      <h1 className="Stream-title11">
-        {streamName ? ": cроки акселератора: " + formatDateToYMD(streamSDate) + " - " + formatDateToYMD(streamEDate) : ""}
-      </h1>
+    {showAllCards || userRole === "TRACKER" ? (
+        <h1 className="Stream-title11">Все команды</h1>
+    ) : (
+        <>
+            <h1 className="Stream-title11">
+                {(userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+                    ? (streamName ? streamName : "Название потока не получено")
+                    : ""}
+            </h1>
+            {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
+                <h1 className="Stream-title11">
+                    {streamName ? ": cроки акселератора: " + formatDateToYMD(streamSDate) + " - " + formatDateToYMD(streamEDate) : ""}
+                </h1>
+            )}
+        </>
     )}
-  </>
-)}
-
-                    </div>
+</div>
 
                     <div className="Stream-buttons">
                         <button className="Stream-pic" onClick={toggleProfileMenu}>
@@ -607,19 +605,22 @@ useEffect(() => {
                                 </div>
                             </div>
                         </div>
-                        <div className="switch-wrapper">
-  <div className="tooltip-wrapper">
-    <label className="ios-switch">
-      <input
-        type="checkbox"
-        checked={showMyTeamsOnly}
-        onChange={() => setShowMyTeamsOnly(prev => !prev)}
-      />
-      <span className="slider"></span>
-    </label>
-    <span className="tooltip-text">Показать карточки, где вы назначены трекером</span>
+                        {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && 
+ (location.pathname === "/all-team-cards" || location.pathname.startsWith("/team-cards")) ? (
+  <div className="switch-wrapper">
+    <div className="tooltip-wrapper">
+      <label className="ios-switch">
+        <input
+          type="checkbox"
+          checked={showMyTeamsOnly}
+          onChange={() => setShowMyTeamsOnly(prev => !prev)}
+        />
+        <span className="slider"></span>
+      </label>
+      <span className="tooltip-text">Показать карточки, где вы назначены трекером</span>
+    </div>
   </div>
-</div>
+) : null}
 
 
 
@@ -661,20 +662,62 @@ useEffect(() => {
                                 <div className="text-container project-title">
                                     <h3>{card.name}</h3>
                                 </div>
-                                <div className="text-container project-description">
-                                    <p>{card.description}</p>
-                                </div>
+                                <div className="text-container">
+  <div className={`project-description ${card._showFull ? "expanded" : ""}`}>
+    <p>{card.description}</p>
+  </div>
+
+  {card.description.length > 100 && (
+    <div
+  className="show-more-text"
+  onClick={(e) => {
+    e.stopPropagation();
+    setCards((prev) =>
+      prev.map((c) =>
+        c.id === card.id ? { ...c, _showFull: !c._showFull } : c
+      )
+    );
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); // Предотвращаем прокрутку страницы при нажатии пробела
+      setCards((prev) =>
+        prev.map((c) =>
+          c.id === card.id ? { ...c, _showFull: !c._showFull } : c
+        )
+      );
+    }
+  }}
+  tabIndex={0} // Делаем элемент фокусируемым
+  role="button" // Указываем роль кнопки для семантики
+  aria-label={card._showFull ? "Свернуть описание" : "Показать полное описание"} // Улучшаем доступность
+>
+  {card._showFull ? "Свернуть" : "Подробнее"}
+</div>
+  )}
+</div>
+
+
+
                                 <div className="under-cont">
                                     <div className="text-container project-markets">
-                                        <p>Рынки НТИ: {card.ntiMarket ? card.ntiMarket.displayName : "Неизвестен"}</p>
+                                        <p>
+  Рынки НТИ:{" "}
+  {card.ntiMarkets?.length > 0
+    ? card.ntiMarkets.map((market) => market.displayName).join(", ")
+    : "Неизвестны"}
+</p>
+
+
                                     </div>
                                     <div className="text-container project-trl">
                                         <p>TRL: {card.readinessLevel || "Неизвестен"}</p>
                                     </div>
                                     <div className="text-container project-flow">
-                                        <p>Поток: {streamName || "Неизвестен"}
-                                        {streamName ? ": " + streamSDate + " - " + streamEDate : "Название потока не получено"}
-                                        </p>
+                                        <p>
+  Поток: {card.streams?.[0]?.name || "Неизвестен"}: {card.streams?.[0]?.startDate || "?"} - {card.streams?.[0]?.endDate || "?"}
+</p>
+
                                     </div>
                                 </div>
                             </div>

@@ -1,8 +1,8 @@
 logging:
   level:
     net:
-      akarmanov:
-        projectplace:
+      trackme:
+        backend:
           services:
             acl: DEBUG
 spring:

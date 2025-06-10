@@ -47,6 +47,30 @@ a {
   transform: translate(-50%, -50%);
 }
 
+.create-radio-style input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid white;
+  border-radius: 4px;
+  background-color: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.create-radio-style input[type="checkbox"]:checked::before {
+  content: "✔";
+  color: black;
+  font-size: 14px;
+  font-weight: bold;
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 
 .create-card-close {
     position: absolute;
@@ -182,11 +206,11 @@ input:focus {
     background: #caa7f9;
     min-width: 260px;
     max-width: 100%;
-    padding: 20px;
+    padding: 10px 14px;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 10px 14px;
+    grid-template-columns: repeat(2, minmax(100px, 1fr)); /* Оставляем только это */
+    gap: 6px 8px;
     border-bottom-left-radius: 24px;
     border-bottom-right-radius: 24px;
     border-top-left-radius: 0;
@@ -204,7 +228,7 @@ input:focus {
 .data-create-team {
     all: unset;
   position: relative;
-  top: -1px;           /* немного вниз */
+  top: -6px;           /* немного вниз */
   left: 8px;          /* немного вправо */
   font-size: 13px;    /* по желанию, сделать чуть больше */
   cursor: pointer;    /* курсор "рука" для UX */

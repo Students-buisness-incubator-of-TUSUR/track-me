@@ -451,6 +451,7 @@ function ProfilePage() {
                                     onMouseMove={handleMouseMove}
                                 >
                                     ({activeTeamCount})
+
                                 </span>
                             )}
                         </button>
@@ -463,6 +464,7 @@ function ProfilePage() {
                                 }}
                             >
                                 Количество активных команд
+
                             </div>
                         )}
                     </>

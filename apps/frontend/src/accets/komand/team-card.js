@@ -13,7 +13,6 @@ const TeamCard = () => {
     
    
     const location = useLocation();
-    const streamId = location.state?.streamId;
     const passedUsername = location.state?.username;
     const query = new URLSearchParams(location.search);
     const from = location.state?.from || "/team-cards";
@@ -58,39 +57,11 @@ const [showStreams, setShowStreams] = useState(false);
     const [trackerFullName, setTrackerFullName] = useState("");
     const [streamInfo, setStreamInfo] = useState(null);
 
-// Добавляем эффект для загрузки данных о потоке
 useEffect(() => {
-    if (!streamId) return;
-
-    const fetchStreamInfo = async () => {
-    try {
-        const response = await fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ filters: [] }), // без фильтров
-        });
-
-        if (!response.ok) throw new Error("Ошибка загрузки данных потоков");
-
-        const result = await response.json();
-        const found = result.content?.find(stream => stream.id === streamId);
-        if (found) {
-            setStreamInfo(found);
-        } else {
-            throw new Error("Поток с указанным ID не найден");
-        }
-    } catch (error) {
-        handleApiError(error, "загрузке данных потока");
-    }
-};
-
-
-
-    fetchStreamInfo();
-}, [streamId]);
+  if (teamData.streams && teamData.streams.length > 0) {
+    setStreamInfo(teamData.streams[0]); // берем первый поток
+  }
+}, [teamData]);
 
 // Форматируем даты для отображения
 const formatDates = (start, end) => {
@@ -159,16 +130,17 @@ useEffect(() => {
         }
     }, [reduxUser]);
     useEffect(() => {
-  if (!streamId) return;
+  const streamIdFromTeam = teamData?.streams?.[0]?.id;
+
+  if (!streamIdFromTeam) return;
 
   const fetchTeamCardsCount = async () => {
     try {
-      // Формируем URL с query-параметром streamId
       const url = new URL(`${backendHost}/api/v1/team-card/count`);
-      url.searchParams.append("streamId", streamId);
+      url.searchParams.append("streamId", streamIdFromTeam);
 
       const response = await fetch(url.toString(), {
-        credentials: "include"
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -176,7 +148,6 @@ useEffect(() => {
       }
 
       const data = await response.json();
-      // Предполагается, что сервер возвращает число в поле count или просто число
       const count = typeof data === "number" ? data : data.count || 0;
       setTeamCardsCount(count);
     } catch (error) {
@@ -185,7 +156,7 @@ useEffect(() => {
   };
 
   fetchTeamCardsCount();
-}, [streamId]);
+}, [teamData]); // зависимость от teamData
 
 
     useEffect(() => {
@@ -335,14 +306,12 @@ useEffect(() => {
   if (!teamData || !teamData.id) return;
 
   setEditedData(prev => ({
-    ...prev,
-    // если у teamData есть вложенный объект ntiMarket
-    ntiMarketId: teamData.ntiMarket?.id || prev.ntiMarketId,
-    // готовность
-    readinessLevel: teamData.readinessLevel || prev.readinessLevel,
-    // описание
-    description: teamData.description || prev.description,
-  }));
+  ...prev,
+  ntiMarketIds: teamData.ntiMarkets?.map(m => m.id) || prev.ntiMarketIds || [],
+  readinessLevel: teamData.readinessLevel || prev.readinessLevel,
+  description: teamData.description || prev.description,
+}));
+
 }, [teamData]);
 useEffect(() => {
   if (!selectedStreamId && streamInfo?.id) {
@@ -360,13 +329,7 @@ useEffect(() => {
         }
     }, [teamData, trlLevels]);
 
-    const handleMarketSelect = (market) => {
-        setSelectedMarket(market);
-        setShowNTI(false);
-        if (isEditing) {
-            setEditedData(prev => ({...prev, ntiMarketId: market.id}));
-        }
-    };
+   
 
     const handleTRLSelect = (trl) => {
         setSelectedTRL(trl);
@@ -380,7 +343,17 @@ useEffect(() => {
         setEditedData({...editedData, [e.target.name]: e.target.value});
     };
 
-
+useEffect(() => {
+  if (Array.isArray(ntiMarkets)) {
+    setSelectedMarket(
+      ntiMarkets.filter(m =>
+        editedData.ntiMarketIds?.includes(m.id)
+      )
+    );
+  } else {
+    setSelectedMarket([]); // Устанавливаем пустой массив, если ntiMarkets не массив
+  }
+}, [editedData.ntiMarketIds, ntiMarkets]);
     const handleSave = async () => {
   setIsLoading(true);
   setApiError(null);
@@ -389,7 +362,7 @@ useEffect(() => {
     // 1. Проверка заполненности
     if (!editedData.name?.trim() ||
         !editedData.description?.trim() ||
-        !editedData.ntiMarketId ||
+        !editedData.ntiMarketIds ||
         !editedData.readinessLevel ||
         ((role === "ADMIN" || role === "SUPER_ADMIN") && !editedData.username)) {
       throw new Error("Пожалуйста, заполните все обязательные поля");
@@ -422,7 +395,7 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
     const patchData = {
       name: editedData.name.trim(),
       description: editedData.description.trim(),
-      ntiMarketId: editedData.ntiMarketId,
+      ntiMarketIds: editedData.ntiMarketIds,
       readinessLevel: editedData.readinessLevel,
       
     };
@@ -634,55 +607,65 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
 
 
                 {isEditing ? (
-                    <div className={`dropdown-block${showNTI ? " open" : ""}`}>
-                        <div
-                            className={`create-dropdown-toggle ${isEditing ? 'editable' : ''}`}
-                            onClick={() => isEditing && setShowNTI(!showNTI)}
-                        >
-                            {selectedMarket?.displayName || "Рынок НТИ"}
-                        </div>
-                        {showNTI && (
-    <div className="create-checkbox-list">
-      {ntiMarkets.map(market => (
-        <div
-          key={market.id}
-          className="create-checkbox-item create-radio-style"
-        >
-          <input
-            type="radio"
-            name="ntiMarket"
-            checked={selectedMarket?.id === market.id}
-            onChange={() => {
-              handleMarketSelect(market);
-            }}
-          />
-          <button
-  type="button"
-  className="data-create-team"
-  onClick={() => handleMarketSelect(market)}
+                   <div className={`dropdown-block${showNTI ? " open" : ""}`}>
+  <div
+  className={`create-dropdown-toggle editable`}
+  onClick={() => setShowNTI(!showNTI)}
   onKeyDown={(e) => {
     if (e.key === 'Enter' || e.key === ' ') {
-      handleMarketSelect(market);
+      e.preventDefault(); // Предотвращаем прокрутку страницы при нажатии пробела
+      setShowNTI(!showNTI);
     }
   }}
+  tabIndex={0} // Делаем элемент фокусируемым
+  role="button" // Указываем роль для лучшей семантики
+  aria-expanded={showNTI} // Указываем состояние выпадающего списка
+  aria-label="Выбрать рынки НТИ" // Улучшаем доступность для экранных читалок
 >
-  {market.displayName}
-</button>
+  {(selectedMarket?.length > 0
+    ? selectedMarket.slice(0, 2).map(m => m.displayName).join(", ") +
+      (selectedMarket.length > 2 ? ` +${selectedMarket.length - 2}` : "")
+    : "Рынки НТИ")}
+</div>
+  {showNTI && (
+    <div className="create-checkbox-list">
+      {ntiMarkets.map(market => (
+        <div key={market.id} className="create-checkbox-item create-radio-style">
+          <input
+            type="checkbox"
+            checked={editedData.ntiMarketIds?.includes(market.id)}
+            onChange={() => {
+              setEditedData(prev => {
+                const already = prev.ntiMarketIds?.includes(market.id);
+                return {
+                  ...prev,
+                  ntiMarketIds: already
+                    ? prev.ntiMarketIds.filter(id => id !== market.id)
+                    : [...(prev.ntiMarketIds || []), market.id]
+                };
+              });
+            }}
+          />
+          <label className="data-create-team">{market.displayName}</label>
         </div>
       ))}
-                            </div>
-                        )}      
-                    </div>
+    </div>
+  )}
+</div>
+
                 ) : (
                         <div className="team-card-info">
                             <span className="team-label-widget">Рынки НТИ:</span>
                             <div className="team-input-list">
-                                <input
-    className="team-input-widget1"
-    value={teamData.ntiMarket?.displayName || ""}
-    readOnly
-    placeholder="Рынок НТИ"
-/>
+  {(teamData.ntiMarkets || []).map((market) => (
+    <input
+      key={market.id}
+      className="team-input-widget1"
+      value={market.displayName}
+      readOnly
+      placeholder="Рынок НТИ"
+    />
+  ))}
 
                                 
                             </div>

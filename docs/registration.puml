@@ -1,11 +1,33 @@
 @startuml
-'https://plantuml.com/sequence-diagram
+actor User
+participant "trackme-sso-frontend" as Frontend
+participant "trackme-sso-backend" as SSO
+participant "Redis"
 
-autonumber
+== Инициация регистрации ==
+User -> Frontend : Открывает\nформу регистрации
+Frontend -> User : Отображение формы регистрации
+User -> Frontend : Заполняет данные и\nнажимает "Зарегистрироваться"
+Frontend -> SSO : HTTP POST\n/api/v1/registration/init
+SSO -> SSO : Проверка существования\nпользователя с email
+SSO -> SSO : Генерация токена\nподтверждения
+SSO -> Redis : Сохранение данных регистрации\nи токена
+Redis --> SSO : OK
+SSO -> SSO : Отправка email\nс ссылкой подтверждения
+SSO --> Frontend : 200 OK
+Frontend -> User : Отображение сообщения\n"Проверьте вашу почту"
 
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
+== Подтверждение регистрации ==
+User -> User : Проверяет почту
+User -> Frontend : Открывает страницу\nс подтверждением
+Frontend -> Frontend : Отображение страницы\nподтверждения
+Frontend -> SSO : POST\n/api/v1/registration/confirm?token=...
+SSO -> Redis : Проверка токена
+Redis --> SSO : OK
+SSO -> Redis : Получение данных\nрегистрации по токену
+Redis --> SSO : Данные пользователя
+SSO -> SSO : Создание данных\nпользователя
+SSO -> Frontend : 200 OK
+Frontend -> User : Перенаправление\nна страницу входа
 
-Alice -> Bob: Another authentication Request
-Alice <-- Bob: another authentication Response
 @enduml
