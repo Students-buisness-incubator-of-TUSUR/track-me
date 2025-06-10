@@ -1,6 +1,7 @@
 package net.trackme.commons.filters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -24,13 +25,19 @@ import java.util.function.Function;
  * @param values    значения
  */
 @Builder
-public record Filter(@NotBlank(message = "Имя поля не может быть пустым")
-                     String fieldName,
-                     @NotNull(message = "Тип операции не может быть пустым")
-                     OperationType type,
-                     List<String> values,
-                     @JsonProperty("value")
-                     String singleValue) {
+@Schema(name = "Filter", description = "Фильтр для запросов поиска")
+public record Filter(
+        @Schema(description = "Имя поля для фильтрации", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "Имя поля не может быть пустым")
+        String fieldName,
+        @NotNull(message = "Тип операции не может быть пустым")
+        @Schema(description = "Тип операции фильтрации", requiredMode = Schema.RequiredMode.REQUIRED, implementation = OperationType.class)
+        OperationType type,
+        @Schema(description = "Список значений для фильтрации")
+        List<String> values,
+        @JsonProperty("value")
+        @Schema(description = "Единственное значение для фильтрации")
+        String singleValue) {
 
     public static final Map<Class<?>, Function<String, Object>> TYPE_CONVERTERS = Map.ofEntries(
             Map.entry(Boolean.class, Boolean::parseBoolean),
@@ -77,8 +84,8 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
         return switch (type) {
             case EQUALS -> createEqualsPredicate(cb, fieldPath, first, fieldType);
             case NOT_EQUALS -> cb.not(createEqualsPredicate(cb, fieldPath, first, fieldType));
-            case IN -> createInPredicate(cb, fieldPath, valuesList, fieldType);
-            case NOT_IN -> cb.not(createInPredicate(cb, fieldPath, valuesList, fieldType));
+            case IN -> createInPredicate(fieldPath, valuesList, fieldType);
+            case NOT_IN -> cb.not(createInPredicate(fieldPath, valuesList, fieldType));
             case GREATER_THAN -> createComparisonPredicate(cb, fieldPath, first, fieldType, ComparisonType.GREATER);
             case GREATER_THAN_OR_EQUAL ->
                     createComparisonPredicate(cb, fieldPath, first, fieldType, ComparisonType.GREATER_OR_EQUAL);
@@ -168,7 +175,7 @@ public record Filter(@NotBlank(message = "Имя поля не может быт
         return cb.equal(path, convertedValue);
     }
 
-    private Predicate createInPredicate(CriteriaBuilder cb, Path<?> path, List<String> values, Class<?> fieldType) {
+    private Predicate createInPredicate(Path<?> path, List<String> values, Class<?> fieldType) {
         var convertedValues = values.stream()
                 .map(v -> convertValue(v, fieldType))
                 .toList();
