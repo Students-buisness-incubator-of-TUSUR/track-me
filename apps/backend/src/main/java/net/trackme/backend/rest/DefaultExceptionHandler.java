@@ -67,9 +67,9 @@ public class DefaultExceptionHandler {
 
   @ResponseBody
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(FilterFieldNotAllowedException.class)
+  @ExceptionHandler({FilterFieldNotAllowedException.class, IllegalArgumentException.class})
   public ResponseEntity<RestError> handleFilterFieldNotAllowedException(
-      FilterFieldNotAllowedException ex) {
+          Exception ex) {
     var restError = RestError.builder()
         .code(HttpStatus.BAD_REQUEST.toString())
         .message(ex.getMessage())
