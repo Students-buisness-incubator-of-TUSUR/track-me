@@ -100,7 +100,13 @@ function ProfilePage() {
                     fieldName: "username",
                     type: "EQ",
                     value: userData.username
-                }]
+                },
+                {
+                    fieldName: "enabled",
+                    type: "EQ",
+                    value: true
+                }
+                ]
             })
         })
             .then(res => res.json())
