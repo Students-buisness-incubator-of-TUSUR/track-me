@@ -32,11 +32,10 @@ function ProfilePage() {
         });
     };
 
-    // Количество команд, получаемое из userData
-    const [teamCount, setTeamCount] = useState(0);
+    // Количество активных команд (enabled: true)
+    const [activeTeamCount, setActiveTeamCount] = useState(0);
 
     useEffect(() => {
-
         fetch(`${ssoHost}/api/v1/account/info`, {
             method: "GET",
             headers: {
@@ -100,12 +99,23 @@ function ProfilePage() {
                     fieldName: "username",
                     type: "EQ",
                     value: userData.username
-                }]
+                },
+                {
+                    fieldName: "enabled",
+                    type: "EQ",
+                    value: true
+                }
+                ]
             })
         })
             .then(res => res.json())
-            .then(data => setTeamCount(Array.isArray(data?.content) ? data.content.length : 0))
-            .catch(() => setTeamCount(0));
+            .then(data => {
+                const activeTeams = Array.isArray(data?.content) ? data.content : [];
+                setActiveTeamCount(activeTeams.length);
+            })
+            .catch(() => {
+                setActiveTeamCount(0);
+            });
     }, [userData]);
 
     const handleEditClick = () => {
@@ -440,7 +450,7 @@ function ProfilePage() {
                                     onMouseLeave={() => setShowTooltip(false)}
                                     onMouseMove={handleMouseMove}
                                 >
-                                    ({teamCount})
+                                    ({activeTeamCount})
                                 </span>
                             )}
                         </button>
@@ -452,7 +462,7 @@ function ProfilePage() {
                                     top: `${tooltipPosition.y}px`
                                 }}
                             >
-                                Количество моих команд
+                                Количество активных команд
                             </div>
                         )}
                     </>
