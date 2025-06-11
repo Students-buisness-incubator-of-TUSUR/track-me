@@ -4,8 +4,8 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import net.trackme.backend.commons.filters.Filter;
-import net.trackme.backend.commons.filters.FilterFieldNotAllowedException;
+import net.trackme.commons.filters.Filter;
+import net.trackme.commons.filters.FilterFieldNotAllowedException;
 import net.trackme.sso.dao.entity.UserEntity;
 import org.springframework.data.jpa.domain.Specification;
 

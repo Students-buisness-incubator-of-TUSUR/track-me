@@ -1,6 +1,6 @@
 package net.trackme.sso.services;
 
-import net.trackme.backend.commons.filters.FilterRequest;
+import net.trackme.commons.filters.FilterRequest;
 import net.trackme.sso.dao.entity.UserEntity;
 import net.trackme.sso.dto.RegistrationRequestDto;
 import net.trackme.sso.dto.UserDto;

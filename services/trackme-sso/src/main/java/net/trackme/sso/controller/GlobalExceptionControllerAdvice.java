@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.trackme.backend.commons.filters.FilterFieldNotAllowedException;
+import net.trackme.commons.filters.FilterFieldNotAllowedException;
 import net.trackme.sso.dto.ErrorResponseDto;
 import net.trackme.sso.exception.ConfirmRegistrationException;
 import net.trackme.sso.exception.RegistrationException;

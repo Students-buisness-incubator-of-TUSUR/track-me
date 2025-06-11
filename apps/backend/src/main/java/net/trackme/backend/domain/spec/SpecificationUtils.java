@@ -1,21 +1,11 @@
 package net.trackme.backend.domain.spec;
 
-import net.trackme.backend.commons.filters.Filter;
 import net.trackme.backend.domain.ReadinessLevel;
+import net.trackme.commons.filters.Filter;
 
 public class SpecificationUtils {
 
   private SpecificationUtils() {
-    // Utility class
-  }
-
-  public static Filter getStartDateFilter(Filter filter) {
-    return Filter.builder()
-        .fieldName("startDate")
-        .type(filter.type())
-        .singleValue(filter.singleValue())
-        .values(filter.values())
-        .build();
   }
 
   public static Filter getReadinessLevelFilter(Filter filter) {

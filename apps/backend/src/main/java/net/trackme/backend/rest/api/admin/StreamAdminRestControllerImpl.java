@@ -1,11 +1,11 @@
 package net.trackme.backend.rest.api.admin;
 
 import lombok.RequiredArgsConstructor;
-import net.trackme.backend.commons.filters.FilterRequest;
 import net.trackme.backend.rest.api.dto.StreamCreateDto;
 import net.trackme.backend.rest.api.dto.StreamDto;
 import net.trackme.backend.rest.api.dto.StreamUpdateDto;
 import net.trackme.backend.usecases.StreamAdminUseCase;
+import net.trackme.commons.filters.FilterRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;

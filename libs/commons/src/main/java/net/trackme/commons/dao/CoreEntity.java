@@ -1,4 +1,4 @@
-package net.trackme.backend.commons.dao;
+package net.trackme.commons.dao;
 
 import java.io.Serializable;
 
