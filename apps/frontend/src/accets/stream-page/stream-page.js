@@ -63,11 +63,7 @@ const toggleProfileMenu = () => {
     useEffect(() => {
         const newFilters = {
             filters: [
-                {
-                    fieldName: "name",
-                    type: "LIKE",
-                    value: searchQuery,
-                },
+                
                 ...Array.from(selectedYears).map(year => ({
                     fieldName: "year",
                     type: 'EQ',
@@ -284,11 +280,7 @@ const toggleProfileMenu = () => {
         setpage(0);
         const newFilters = {
             filters: [
-                {
-                    fieldName: "name",
-                    type: "LIKE",
-                    value: searchQuery,
-                },
+                
                 ...Array.from(selectedYears).map(year => ({
                     fieldName: "year",
                     type: 'EQ',

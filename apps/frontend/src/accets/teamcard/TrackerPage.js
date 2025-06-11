@@ -138,45 +138,41 @@ useEffect(() => {
     }));
 
     // Функция для запроса карточек с заданными фильтрами
-    const fetchCards = useCallback((filters = []) => {
+   const fetchCards = useCallback((filters = []) => {
     if (!userRole || !username) return;
 
     const allFilters = [...filters];
 
-    if ((userRole === "ADMIN" || userRole === "SUPER_ADMIN")) {
-    // Всегда применять фильтр по потоку, если не показываем все команды
-    if (!showAllCards) {
-        allFilters.push({
-            fieldName: "streams.name",
-            type: "EQ",
-            value: streamName,
-        });
-    }
-
-    // Применять фильтр по пользователю, если включён тумблер
-    if (showMyTeamsOnly) {
+    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+        if (!showAllCards && streamName) {
+            allFilters.push({
+                fieldName: "streams.name",
+                type: "EQ",
+                value: streamName,
+            });
+        }
+        if (showMyTeamsOnly) {
+            allFilters.push({
+                fieldName: "username",
+                type: "EQ",
+                value: username,
+            });
+        }
+    } else if (userRole === "TRACKER") {
         allFilters.push({
             fieldName: "username",
             type: "EQ",
             value: username,
         });
     }
-} else if (userRole === "TRACKER") {
-    // Трекеры всегда видят только свои команды
-    allFilters.push({
-        fieldName: "username",
-        type: "EQ",
-        value: username,
-    });
-}
 
     const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
         ? `${backendHost}/api/v1/admin/team-cards`
         : `${backendHost}/api/v1/team-cards`;
 
     const sortParams = (userRole === "TRACKER")
-        ? "sort=enabled,desc&sort=streams.startDate,desc&sort=name,asc"  // Новая сортировка для трекеров
-        : "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc";  // Старая сортировка для админов
+        ? "sort=enabled,desc&sort=streams.startDate,desc&sort=name,asc"
+        : "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc";
 
     fetch(`${endpoint}?page=${page}&size=${pageSize}&${sortParams}`, {
         method: "POST",
@@ -193,8 +189,6 @@ useEffect(() => {
         .then((data) => {
             if (data?.content) {
                 const cardsArray = Array.isArray(data.content) ? data.content : [];
-                
-                setCards(cardsArray);
                 setCards(cardsArray.map(card => ({ ...card, _showFull: false })));
                 setTotalPages(data?.page?.totalPages || 1);
             }
@@ -398,21 +392,14 @@ const options = {
                     <div className='Stream-header-logo'/>
                     <h1 className="Stream-title">TrackMe</h1>
                     <div className="Stream-header-cont-cont">
-    {showAllCards || userRole === "TRACKER" ? (
-        <h1 className="Stream-title11">Все команды</h1>
+    {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && !showAllCards ? (
+        <h1 className="Stream-title11">
+            {streamName 
+                ? `${streamName}: сроки акселератора: ${formatDateToYMD(streamSDate)} - ${formatDateToYMD(streamEDate)}`
+                : "Название потока не получено"}
+        </h1>
     ) : (
-        <>
-            <h1 className="Stream-title11">
-                {(userRole === "ADMIN" || userRole === "SUPER_ADMIN")
-                    ? (streamName ? streamName : "Название потока не получено")
-                    : ""}
-            </h1>
-            {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && (
-                <h1 className="Stream-title11">
-                    {streamName ? ": cроки акселератора: " + formatDateToYMD(streamSDate) + " - " + formatDateToYMD(streamEDate) : ""}
-                </h1>
-            )}
-        </>
+        <h1 className="Stream-title11">Все команды</h1>
     )}
 </div>
 
