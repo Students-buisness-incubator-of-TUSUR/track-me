@@ -7,7 +7,7 @@ import ProfileIcon from "./personal_account_1.png";
 
 function TrackerPage() {
     const [cards, setCards] = useState([]);
-    
+    const [streamImages, setStreamImages] = useState({});
     const [streamName, setStreamName] = useState("");
     // eslint-disable-next-line
     const [streamId, setStreamId] = useState("");
@@ -200,9 +200,84 @@ useEffect(() => {
 }, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly, page]);
  // ✅ streamName в зависимости
 
+    const fetchStreamImage = useCallback(async (streamId) => {
+  try {
+    const response = await fetch(`${backendHost}/api/v1/streams/${streamId}/image`, {
+      credentials: 'include'
+    });
     
+    if (!response.ok) {
+      throw new Error('Image not found');
+    }
     
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error('Error fetching stream image:', error);
+    return null; // или URL дефолтного изображения
+  }
+}, [backendHost]);
+useEffect(() => {
+  if (!userRole) return;
 
+  const isTracker = userRole === "TRACKER";
+  const url = isTracker
+    ? `${backendHost}/api/v1/streams?page=0&size=150`
+    : `${backendHost}/api/v1/admin/streams?page=0&size=150`;
+
+  const options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ filters: [] }),
+  };
+
+  fetch(url, options)
+    .then((response) => {
+      if (!response.ok) throw new Error("Ошибка при загрузке потоков");
+      return response.json();
+    })
+    .then(async (data) => {
+      const list = data?.content ?? [];
+      const streamsWithNames = await Promise.all(list.map(async (stream) => {
+        const imageUrl = await fetchStreamImage(stream.id);
+        return {
+          id: stream.id,
+          name: stream.name,
+          startDate: stream.startDate,
+          endDate: stream.endDate,
+          imageUrl: imageUrl
+        };
+      }));
+
+      setStreams(streamsWithNames);
+
+      // Обновляем изображения в состоянии
+      const imagesMap = {};
+      streamsWithNames.forEach(stream => {
+        if (stream.imageUrl) {
+          imagesMap[stream.id] = stream.imageUrl;
+        }
+      });
+      setStreamImages(imagesMap);
+
+      // Остальная логика...
+    })
+    .catch((error) => {
+      console.error("Ошибка при получении потоков:", error);
+    });
+}, [backendHost, userRole, fetchStreamImage]);
+    
+useEffect(() => {
+  return () => {
+    // Очищаем URL объектов при размонтировании
+    Object.values(streamImages).forEach(url => {
+      if (url) URL.revokeObjectURL(url);
+    });
+  };
+}, [streamImages]);
     useEffect(() => {
         // Проверяем роль при загрузке компонента
         const role = localStorage.getItem("userRole");
@@ -628,19 +703,18 @@ const options = {
                     <p className="error-message">{error}</p>
                 ) : filteredCards.length > 0 ? (
                     visibleCards.map((card) => (
-                        <div
-                            className="card"
-                            key={card.id}
-                            onClick={() => navigate(`/teamcard/${card.id}`, { 
-  state: { 
-    userId: card.userId,
-    streamId: streamId, 
-    from: location.pathname 
-  }
-})}
-                            style={{cursor: "pointer"}}
-                        >
-                            <div className="card-image"/>
+                        <div className="card" key={card.id} onClick={() => navigate(`/teamcard/${card.id}`)}>
+  <div className="card-image">
+    {card.streams?.[0]?.id && streamImages[card.streams[0].id] ? (
+      <img 
+        src={streamImages[card.streams[0].id]} 
+        alt={`Изображение потока ${card.streams[0].name}`}
+        className="stream-image"
+      />
+    ) : (
+      <div className="default-image"></div>
+    )}
+  </div>
                             <span className="status">
                                 {card.enabled ? "Активно" : "Завершено"}
                             </span>

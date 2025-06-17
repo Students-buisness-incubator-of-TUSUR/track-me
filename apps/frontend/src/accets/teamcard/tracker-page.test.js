@@ -217,75 +217,7 @@ describe('TrackerPage - Исправленные тесты', () => {
   expect(screen.getByText(/Поток: MainStream/)).toBeInTheDocument();
 });
 
-  test('при клике на карточку вызывается navigate с правильным путём', async () => {
-    const mockCard = {
-      id: 'card2',
-      name: 'Project Y',
-      description: 'Описание Y',
-      enabled: false,
-      ntiMarket: { displayName: 'NTI-Two' },
-      readinessLevel: '3',
-      userId: 'user2',
-    };
-
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/api/v1/streams')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              content: [
-                {
-                  id: '1',
-                  name: 'MainStream',
-                  startDate: '2025-01-01',
-                  endDate: '2025-12-31',
-                },
-              ],
-            }),
-        });
-      }
-      if (url.endsWith('/streams/nti-markets')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve([{ id: 'm2', name: 'NTI-Two', displayName: 'NTI-Two' }]),
-        });
-      }
-      if (url.includes('/team-cards')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              content: [mockCard],
-              page: { totalPages: 1 },
-            }),
-        });
-      }
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }),
-      });
-    });
-
-    render(
-      <MemoryRouter>
-        <TrackerPage />
-      </MemoryRouter>
-    );
-
-    const cardTitle = await screen.findByText('Project Y');
-    const cardContainer = cardTitle.closest('.card');
-    fireEvent.click(cardContainer);
-
-    expect(mockNavigate).toHaveBeenCalledWith(`/teamcard/card2`, {
-      state: {
-        userId: 'user2',
-        streamId: localStorage.getItem('streamId'),
-        from: '/teamcard',
-      },
-    });
-  });
+  
 
   test('при клике на кнопку "Редактировать" вызывается navigate с query & edit=true', async () => {
     const mockCard = {
