@@ -1551,3 +1551,49 @@ describe('Additional coverage for specific lines', () => {
   });
 });
 });
+describe('Meetings list and navigation', () => {
+  // Existing test for click navigation
+  test('loads meetings and navigates', async () => {
+    require('react-router-dom').__setSearch('');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    const meet = await screen.findByText(/Встреча 2/i);
+    fireEvent.click(meet);
+    expect(mockedNavigate).toHaveBeenCalledWith('/meeting/100?teamId=42&username=reduxUser');
+  });
+
+  // New test for Enter key navigation
+  test('navigates to meeting on Enter key press', async () => {
+    require('react-router-dom').__setSearch('');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    const meet = await screen.findByRole('button', { name: /Встреча 2 от 05\.01\.2025/i });
+    fireEvent.keyDown(meet, { key: 'Enter' });
+    expect(mockedNavigate).toHaveBeenCalledWith('/meeting/100?teamId=42&username=reduxUser');
+  });
+
+  // New test for Space key navigation
+  test('navigates to meeting on Space key press', async () => {
+    require('react-router-dom').__setSearch('');
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+    const meet = await screen.findByRole('button', { name: /Встреча 2 от 05\.01\.2025/i });
+    fireEvent.keyDown(meet, { key: ' ' });
+    expect(mockedNavigate).toHaveBeenCalledWith('/meeting/100?teamId=42&username=reduxUser');
+  });
+});
