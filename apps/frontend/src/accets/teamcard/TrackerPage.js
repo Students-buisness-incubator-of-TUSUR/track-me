@@ -703,7 +703,19 @@ const options = {
                     <p className="error-message">{error}</p>
                 ) : filteredCards.length > 0 ? (
                     visibleCards.map((card) => (
-                        <div className="card" key={card.id} onClick={() => navigate(`/teamcard/${card.id}`)}>
+                        <div 
+  className="card" 
+  key={card.id} 
+  onClick={() => navigate(`/teamcard/${card.id}`)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      navigate(`/teamcard/${card.id}`);
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label={`Перейти к карточке команды ${card.name}`}
+>
   <div className="card-image">
     {card.streams?.[0]?.id && streamImages[card.streams[0].id] ? (
       <img 

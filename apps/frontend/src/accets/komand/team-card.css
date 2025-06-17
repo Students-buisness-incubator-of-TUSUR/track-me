@@ -545,7 +545,7 @@ select.team-input-widget option {
     font-family: 'Montserrat', monospace;
 }
 .stream-loading-message {
-    margin-top: 20px;
+    
     color: #8338EB;
     font-size: 20px;
     margin-top: 100px;
