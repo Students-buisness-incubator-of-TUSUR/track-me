@@ -175,23 +175,74 @@ const MeetingCreate = () => {
                 </div>
 
                 <div className="unique-meeting-info-row">
-                    <span className="unique-label">Текущий статус команды:</span>
-                    <div className="status-dropdown-wrapper">
-                        <div className="status-selected" onClick={() => setShowStatusDropdown(prev => !prev)}>
-                            {meetingData.status === "OK" && "Всё ок"}
-                            {meetingData.status === "WITH_ISSUES" && "Есть проблемы"}
-                            {meetingData.status === "MANY_ISSUES" && "Есть большие проблемы"}
-                            <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
-                        </div>
-                        {showStatusDropdown && (
-                            <div className="status-options">
-                                <div className="status-option ok" onClick={() => { setMeetingData(prev => ({ ...prev, status: "OK" })); setShowStatusDropdown(false); }}>Всё ок</div>
-                                <div className="status-option problems" onClick={() => { setMeetingData(prev => ({ ...prev, status: "WITH_ISSUES" })); setShowStatusDropdown(false); }}>Есть проблемы</div>
-                                <div className="status-option major-problems" onClick={() => { setMeetingData(prev => ({ ...prev, status: "MANY_ISSUES" })); setShowStatusDropdown(false); }}>Есть большие проблемы</div>
-                            </div>
-                        )}
-                    </div>
-                </div>
+  <span className="unique-label">Текущий статус команды:</span>
+  <div className="status-dropdown-wrapper">
+    <div 
+      className="status-selected" 
+      onClick={() => setShowStatusDropdown(prev => !prev)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          setShowStatusDropdown(prev => !prev);
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-expanded={showStatusDropdown}
+      aria-label="Выбрать статус команды"
+    >
+      {meetingData.status === "OK" && "Всё ок"}
+      {meetingData.status === "WITH_ISSUES" && "Есть проблемы"}
+      {meetingData.status === "MANY_ISSUES" && "Есть большие проблемы"}
+      <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
+    </div>
+    {showStatusDropdown && (
+      <div className="status-options">
+        <div 
+          className="status-option ok" 
+          onClick={() => { setMeetingData(prev => ({ ...prev, status: "OK" })); setShowStatusDropdown(false); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setMeetingData(prev => ({ ...prev, status: "OK" }));
+              setShowStatusDropdown(false);
+            }
+          }}
+          tabIndex={0}
+          role="button"
+        >
+          Всё ок
+        </div>
+        <div 
+          className="status-option problems" 
+          onClick={() => { setMeetingData(prev => ({ ...prev, status: "WITH_ISSUES" })); setShowStatusDropdown(false); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setMeetingData(prev => ({ ...prev, status: "WITH_ISSUES" }));
+              setShowStatusDropdown(false);
+            }
+          }}
+          tabIndex={0}
+          role="button"
+        >
+          Есть проблемы
+        </div>
+        <div 
+          className="status-option major-problems" 
+          onClick={() => { setMeetingData(prev => ({ ...prev, status: "MANY_ISSUES" })); setShowStatusDropdown(false); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              setMeetingData(prev => ({ ...prev, status: "MANY_ISSUES" }));
+              setShowStatusDropdown(false);
+            }
+          }}
+          tabIndex={0}
+          role="button"
+        >
+          Есть большие проблемы
+        </div>
+      </div>
+    )}
+  </div>
+</div>
 
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Скриншот встречи:</span>

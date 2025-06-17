@@ -780,21 +780,29 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
             <div className="team-meetings-block">
                     <div className="team-meetings-exist">
                         {meetings.map((meeting) => (
-    <div
-        key={meeting.id}
-        className="team-meeting"
-        onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
-    >
-        <span className="meeting-date">
-            {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
-                day: '2-digit',
-                month: '2-digit'
-            })}
-        </span>
-        <span className="meeting-title">
-            Встреча {meeting.number || "Без номера"}
-        </span>
-    </div>
+  <div
+    key={meeting.id}
+    className="team-meeting"
+    onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`);
+      }
+    }}
+    tabIndex={0}
+    role="button"
+    aria-label={`Встреча ${meeting.number || "Без номера"} от ${new Date(meeting.startDate).toLocaleDateString('ru-RU')}`}
+  >
+    <span className="meeting-date">
+      {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit'
+      })}
+    </span>
+    <span className="meeting-title">
+      Встреча {meeting.number || "Без номера"}
+    </span>
+  </div>
 ))}
                     </div>
                         <button className="team-meeting-add" onClick={() => navigate(`/meeting-create/${id}?username=${username}`)}>
