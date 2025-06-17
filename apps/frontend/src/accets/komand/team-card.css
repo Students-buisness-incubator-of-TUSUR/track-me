@@ -116,6 +116,38 @@ a {
     max-width: 600px;
 }
 
+.stream-info-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.stream-header {
+  display: flex;
+  justify-content: flex-start; /* Выравнивание по левому краю */
+  gap: 40px; /* Расстояние между элементами */
+}
+
+.stream-data {
+  display: flex;
+  justify-content: flex-start; /* Выравнивание по левому краю */
+  gap: 40px; /* То же расстояние, что и у заголовков */
+}
+
+
+
+.stream-header-label {
+  font-weight: bold;
+  color: #333;
+}
+.stream-header-label,
+.stream-name,
+.stream-count,
+.stream-dates {
+  flex: 0 0 auto; /* Не растягивать, не сжимать, авто-ширина */
+  text-align: left; /* Текст по левому краю */
+  min-width: 200px; /* Минимальная ширина для выравнивания */
+}
+
 .team-input-list {
     display: flex;
     flex-wrap: wrap;
@@ -480,12 +512,12 @@ select.team-input-widget option {
   
 }
 .stream-info-block {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 60px;
-    font-weight: bold;
-    color: #6c2bd9; /* фиолетовый как на скрине */
-    margin-top: 12px;
+  margin-top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-weight: bold;
+  color: #6c2bd9;
 }
 .create-description-input2 {
     width: 739px;
@@ -507,10 +539,17 @@ select.team-input-widget option {
 .team-stream-block {
     color: #8338EB;
     font-size: 20px;
-    margin-top: 24px;
+    margin-top: -70px;
     font-weight: 700;
     line-height: 100%;
     font-family: 'Montserrat', monospace;
+}
+.stream-loading-message {
+    margin-top: 20px;
+    color: #8338EB;
+    font-size: 20px;
+    margin-top: 100px;
+    font-weight: 700;
 }
 
 .dot-widget {

@@ -753,19 +753,26 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
 </div>
 
 
-                {isEditing ? (null) : (
-                    <div className="team-stream-block">
-                        {streamInfo ? (
-              <div className="stream-info-block">
+                {isEditing ? null : (
+  <div className="team-stream-block">
+    {streamInfo ? (
+      <div className="stream-info-block">
+  <div className="stream-header">
+    <span className="stream-header-label">Название потока:</span>
+    <span className="stream-header-label">Количество команд:</span>
+    <span className="stream-header-label">Сроки потока:</span>
+  </div>
+  <div className="stream-data">
     <span className="stream-name">{streamInfo.name}</span>
-    <span className="stream-count">{teamCardsCount} команд</span>
+    <span className="stream-count">{teamCardsCount}</span>
     <span className="stream-dates">{formatDates(streamInfo.startDate, streamInfo.endDate)}</span>
   </div>
-        ) : (
-            "Загрузка данных о потоке..."
-        )}
-                    </div>
-                )}
+</div>
+    ) : (
+  <div className="stream-loading-message">Загрузка данных о потоке...</div>
+)}
+  </div>
+)}
    
             </div>
 
