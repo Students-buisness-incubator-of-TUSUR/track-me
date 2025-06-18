@@ -24,27 +24,60 @@
   transform: translateY(-2px);
 }
 
+.feedback-form-container {
+  position: fixed;
+  bottom: 80px;
+  right: 30px;
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 400px;
+  max-width: 90%;
+  z-index: 1001;
+}
+
 .feedback-form {
   background: linear-gradient(180deg, #ffffff 0%, #f9f6ff 100%);
   border: 1px solid #e0e0e0;
   border-radius: 20px;
   padding: 30px;
-  width: 400px;
-  max-width: 90%;
   box-shadow: 11px 12px 7px rgba(112, 14, 240, 0.4);
-  margin-top: 10px;
   transition: all 0.3s ease;
   transform: scale(0);
   transform-origin: bottom right;
   position: relative;
 }
 
-.feedback-form:not(.hidden) {
+.feedback-form-container:not(.hidden) .feedback-form {
   transform: scale(1);
 }
 
 .hidden {
   display: none;
+}
+
+.form-content {
+  max-height: calc(80vh - 200px);
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Стили для скроллбара */
+.form-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.form-content::-webkit-scrollbar-thumb {
+  background: #cccacf;
+  border-radius: 3px;
+}
+
+.form-content::-webkit-scrollbar-thumb:hover {
+  background: #a259ff;
 }
 
 .feedback-close {
@@ -98,8 +131,18 @@
 }
 
 .feedback-textarea {
-  height: 120px;
+  min-height: 80px;
   resize: vertical;
+}
+
+.feedback-select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 16px;
+  background-color: #fff;
 }
 
 .feedback-submit {
@@ -114,6 +157,7 @@
   width: 100%;
   box-shadow: 0 4px 6px rgba(112, 14, 240, 0.3);
   transition: background-color 0.2s, transform 0.2s;
+  margin-top: 10px;
 }
 
 .feedback-submit:hover {
@@ -129,11 +173,19 @@
   padding: 20px;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
-  .feedback-form {
+  .feedback-form-container {
     width: 90%;
+    right: 5%;
+    bottom: 70px;
+  }
+
+  .feedback-form {
     padding: 20px;
+  }
+
+  .form-content {
+    max-height: calc(80vh - 180px);
   }
 
   .feedback-toggle {
@@ -146,7 +198,8 @@
   }
 
   .feedback-input,
-  .feedback-textarea {
+  .feedback-textarea,
+  .feedback-select {
     font-size: 14px;
     padding: 10px;
   }
