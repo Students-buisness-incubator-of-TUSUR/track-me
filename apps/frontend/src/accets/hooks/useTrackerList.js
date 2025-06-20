@@ -13,7 +13,7 @@ export function useTrackerList(endpoint) {
   const ssoServiceUri = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + "/sso";
 
   useEffect(() => {
-    fetch(`${ssoServiceUri}${endpoint}?page=0&size=10`, {
+    fetch(`${ssoServiceUri}${endpoint}?page=0&size=100`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
