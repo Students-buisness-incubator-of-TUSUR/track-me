@@ -63,7 +63,7 @@ export function useTrackerList(endpoint) {
   };
 
   const deleteUser = (username) => {
-    const url = `${ssoServiceUri}/api/v1/users/delete?username=${username}`;
+    const url = `${ssoServiceUri}/api/v1/users/disable?username=${username}`;
     fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
