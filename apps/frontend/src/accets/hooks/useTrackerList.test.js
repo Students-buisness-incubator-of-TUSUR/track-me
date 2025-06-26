@@ -62,6 +62,46 @@ describe('useTrackerList', () => {
     expect(result.current.totalElements).toBe(0);
   });
 
+  it('должен обрабатывать неверный формат данных', async () => {
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ invalid: "data" }), // Invalid format
+      })
+    );
+
+    const { result } = renderHook(() => useTrackerList(endpoint));
+    await waitFor(() =>
+      expect(result.current.error).toMatch(/Неверный формат данных/)
+    );
+    expect(result.current.trackers).toEqual([]);
+    expect(result.current.totalPages).toBe(1);
+    expect(result.current.totalElements).toBe(0);
+  });
+
+  it('должен обрабатывать массив без пагинации', async () => {
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            { username: 'user1', enabled: false },
+            { username: 'user2', enabled: true },
+          ]),
+      })
+    );
+
+    const { result } = renderHook(() => useTrackerList(endpoint));
+    await waitFor(() =>
+      expect(result.current.trackers).toEqual([
+        { username: 'user1', enabled: false },
+        { username: 'user2', enabled: true },
+      ])
+    );
+    expect(result.current.totalPages).toBe(1);
+    expect(result.current.totalElements).toBe(2);
+  });
+
   it('confirmUser обновляет enabled', async () => {
     global.fetch
       .mockImplementationOnce(() =>
@@ -159,5 +199,74 @@ describe('useTrackerList', () => {
     });
 
     expect(result.current.searchQuery).toBe('новый');
+  });
+
+  it('должен обрабатывать навигацию по страницам', async () => {
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            content: [{ username: 'user1' }],
+            page: { totalPages: 3, totalElements: 45 },
+          }),
+      })
+    );
+
+    const { result } = renderHook(() => useTrackerList(endpoint));
+    await waitFor(() => expect(result.current.totalPages).toBe(3));
+
+    // Test handleNextPage (lines 108-109)
+    act(() => {
+      result.current.handleNextPage();
+    });
+    expect(result.current.page).toBe(1);
+
+    // Test handlePrevPage (lines 122-123)
+    act(() => {
+      result.current.handlePrevPage();
+    });
+    expect(result.current.page).toBe(0);
+
+    // Test handleFirstPage (line 90)
+    act(() => {
+      result.current.setPage(2); // Set to a different page
+      result.current.handleFirstPage();
+    });
+    expect(result.current.page).toBe(0);
+
+    // Test handleLastPage (line 91)
+    act(() => {
+      result.current.handleLastPage();
+    });
+    expect(result.current.page).toBe(2);
+  });
+
+  
+
+  it('должен устанавливать hoveredTracker и hoveredButton', async () => {
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            content: [{ username: 'user1' }],
+            page: { totalPages: 1, totalElements: 1 },
+          }),
+      })
+    );
+
+    const { result } = renderHook(() => useTrackerList(endpoint));
+    await waitFor(() => expect(result.current.trackers.length).toBe(1));
+
+    act(() => {
+      result.current.setHoveredTracker('user1');
+    });
+    expect(result.current.hoveredTracker).toBe('user1');
+
+    act(() => {
+      result.current.setHoveredButton('confirm');
+    });
+    expect(result.current.hoveredButton).toBe('confirm');
   });
 });
