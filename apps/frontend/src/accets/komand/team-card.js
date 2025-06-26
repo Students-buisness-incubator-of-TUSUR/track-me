@@ -470,6 +470,11 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
 
     return (
         <div className="team-card-widget-container">
+          {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
+  <div className="team-rating">
+    {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+  </div>
+)}
             <button className="close-button-widget" onClick={() => navigate(from)}>×</button>
 
             <button

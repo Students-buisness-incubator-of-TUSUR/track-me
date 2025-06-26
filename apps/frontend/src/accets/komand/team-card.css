@@ -559,7 +559,22 @@ select.team-input-widget option {
     background: #D1D5DB;
     cursor: pointer;
 }
-
+.team-rating {
+    position: absolute;
+    
+   left: -1px;
+    background-color: #68D39D;
+    color: black;
+    font-weight: 700;
+    font-size: 36px;
+    width: 200px;
+    height: 57px;
+    line-height: 50px;
+    text-align: center;
+    border-radius: 0px 271px 271px 0;
+    
+    z-index: 10;
+}
 .dot-widget.active {
     background: #8B5CF6;
     width: 8px;

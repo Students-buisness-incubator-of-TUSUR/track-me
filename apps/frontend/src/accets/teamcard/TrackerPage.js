@@ -717,6 +717,11 @@ const options = {
   aria-label={`Перейти к карточке команды ${card.name}`}
 >
   <div className="card-image">
+    {card?.averageGrade !== undefined && card?.averageGrade !== null && (
+      <div className="card-image-rating">
+        {card.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </div>
+    )}
     {card.streams?.[0]?.id && streamImages[card.streams[0].id] ? (
       <img 
         src={streamImages[card.streams[0].id]} 

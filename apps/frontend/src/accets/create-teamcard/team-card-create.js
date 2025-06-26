@@ -78,20 +78,28 @@ const TeamCard = () => {
 
     // Загрузка потоков
     useEffect(() => {
-        fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({filters: []}),
-            credentials: "include"
+    fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({filters: []}),
+        credentials: "include"
+    })
+        .then((res) => res.ok ? res.json() : Promise.reject(new Error("Ошибка при загрузке потоков")))
+        .then((data) => {
+            if (data?.content) {
+                const filteredStreams = data.content.filter(stream => 
+                    stream.active === true 
+                );
+                setStreams(filteredStreams);
+            }
         })
-            .then((res) => res.ok ? res.json() : null)
-            .then((data) => {
-                if (data?.content) setStreams(data.content);
-            })
-            .catch(() => setError("Ошибка при загрузке потоков"));
-    }, []);
+        .catch((err) => {
+            console.error("Ошибка при загрузке потоков:", err);
+            setError("Ошибка при загрузке потоков");
+        });
+}, []);
 
     // Загрузка рынков НТИ
     useEffect(() => {

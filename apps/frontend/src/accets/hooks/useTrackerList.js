@@ -1,82 +1,126 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useCallback, useState } from "react";
 
 export function useTrackerList(endpoint) {
   const [trackers, setTrackers] = useState([]);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [visibleTrackersStart, setVisibleTrackersStart] = useState(0);
   const [hoveredTracker, setHoveredTracker] = useState(null);
   const [hoveredButton, setHoveredButton] = useState(null);
-  const trackersPerPage = 20;
+  
+  // Пагинация
+  const [page, setPage] = useState(0);
+  const [size] = useState(16);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
 
-  const filters = useMemo(() => [], []);
   const ssoServiceUri = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + "/sso";
 
-  useEffect(() => {
-    fetch(`${ssoServiceUri}${endpoint}?page=0&size=100`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ filters }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 401) {
-            setError("Ошибка авторизации! Пожалуйста, выполните вход заново.");
-          } else {
-            setError("Ошибка при загрузке пользователей. Статус: " + response.status);
-          }
-          throw new Error("Ошибка запроса");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (data && data.content) {
-          setTrackers(data.content);
-          setVisibleTrackersStart(0);
-        } else {
-          setError("Неверный формат данных, полученных с сервера.");
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка при загрузке пользователей:", err);
-      });
-  }, [filters, ssoServiceUri, endpoint]);
+  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, currentSearchQuery = "") => {
+    try {
+      const filters = [];
+      if (currentSearchQuery) {
+        filters.push({
+          fieldName: "fullName",
+          type: "LIKE",
+          value: currentSearchQuery,
+        });
+      }
 
-  const confirmUser = (username) => {
-    const url = `${ssoServiceUri}/api/v1/users/enable?username=${username}`;
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    })
-      .then((res) => res.ok ? res.text() : Promise.reject(res.statusText))
-      .then(() => {
-        setTrackers((prev) =>
-          prev.map((t) => (t.username === username ? { ...t, enabled: true } : t))
-        );
-      })
-      .catch((err) => {
-        console.error("Ошибка при подтверждении пользователя:", err);
-        setError(`Ошибка при подтверждении пользователя: ${err.message}`);
+      const response = await fetch(`${ssoServiceUri}${endpoint}?page=${currentPage}&size=${currentSize}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ filters }),
       });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Ошибка авторизации! Пожалуйста, выполните вход заново.");
+        } else {
+          throw new Error(`Ошибка при загрузке пользователей. Статус: ${response.status}`);
+        }
+      }
+
+      const data = await response.json();
+      console.log("Backend response:", data);
+
+      // Обновленная проверка ответа с учетом пагинации
+      if (data.content && data.page) {
+        setTrackers(data.content);
+        setTotalPages(data.page.totalPages);
+        setTotalElements(data.page.totalElements);
+      } else if (Array.isArray(data)) {
+        // Если бэкенд возвращает просто массив без пагинации
+        setTrackers(data);
+        setTotalPages(1);
+        setTotalElements(data.length);
+      } else {
+        throw new Error("Неверный формат данных, полученных с сервера.");
+      }
+    } catch (err) {
+      console.error("Ошибка при загрузке пользователей:", err);
+      setError(err.message);
+      setTrackers([]);
+      setTotalPages(1);
+      setTotalElements(0);
+    }
+  }, [ssoServiceUri, endpoint]);
+
+  useEffect(() => {
+    fetchTrackers(page, size, searchQuery);
+  }, [fetchTrackers, page, size, searchQuery]);
+
+  // Остальные функции остаются без изменений
+  const confirmUser = async (username) => {
+    try {
+      const url = `${ssoServiceUri}/api/v1/users/enable?username=${username}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!response.ok) throw new Error(response.statusText);
+
+      setTrackers(prev => 
+        prev.map(t => t.username === username ? { ...t, enabled: true } : t)
+      );
+      fetchTrackers(page, size, searchQuery);
+    } catch (err) {
+      console.error("Ошибка при подтверждении пользователя:", err);
+      setError(`Ошибка при подтверждении пользователя: ${err.message}`);
+    }
   };
 
-  const deleteUser = (username) => {
-    const url = `${ssoServiceUri}/api/v1/users/disable?username=${username}`;
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    })
-      .then((res) => res.ok ? res.text() : Promise.reject(res.statusText))
-      .then(() => {
-        setTrackers((prev) => prev.filter((t) => t.username !== username));
-      })
-      .catch((err) => {
-        console.error("Ошибка при удалении пользователя:", err);
-        setError(`Ошибка при удалении пользователя: ${err.message}`);
+  const deleteUser = async (username) => {
+    try {
+      const url = `${ssoServiceUri}/api/v1/users/disable?username=${username}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
+
+      if (!response.ok) throw new Error(response.statusText);
+
+      await fetchTrackers(page, size, searchQuery);
+    } catch (err) {
+      console.error("Ошибка при удалении пользователя:", err);
+      setError(`Ошибка при удалении пользователя: ${err.message}`);
+    }
+  };
+
+  const handleFirstPage = () => setPage(0);
+  const handleLastPage = () => setPage(totalPages - 1);
+  const handleNextPage = () => {
+    if (page < totalPages - 1) setPage(p => p + 1);
+  };
+  const handlePrevPage = () => {
+    if (page > 0) setPage(p => p - 1);
+  };
+  const handlePageJump = (jump) => {
+    const newPage = page + jump;
+    if (newPage >= 0 && newPage < totalPages) setPage(newPage);
   };
 
   return {
@@ -84,14 +128,22 @@ export function useTrackerList(endpoint) {
     error,
     searchQuery,
     setSearchQuery,
-    visibleTrackersStart,
-    setVisibleTrackersStart,
     hoveredTracker,
     setHoveredTracker,
     hoveredButton,
     setHoveredButton,
-    trackersPerPage,
     confirmUser,
     deleteUser,
+    page,
+    totalPages,
+    totalElements,
+    setPage,
+    size,
+    handleFirstPage,
+    handleLastPage,
+    handleNextPage,
+    handlePrevPage,
+    handlePageJump,
+    fetchTrackers,
   };
 }
