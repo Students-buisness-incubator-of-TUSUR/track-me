@@ -630,3 +630,250 @@ describe('TrackerListPage (объединённые тесты)', () => {
     expect(deleteUser).toHaveBeenCalledWith('disabled2');
   });
 });
+test('клик по кнопке "Следующая страница" вызывает handleNextPage', () => {
+  const setPage = jest.fn();
+  const handleNextPage = jest.fn(() => setPage((page) => page + 1));
+  require('../hooks/useTrackerList').useTrackerList = () => ({
+    trackers: Array.from({ length: 10 }, (_, i) => ({
+      username: `user${i}`,
+      fullName: `User ${i}`,
+      telegramId: `tg${i}`,
+      enabled: true,
+    })),
+    error: null,
+    searchQuery: '',
+    setSearchQuery: jest.fn(),
+    page: 0,
+    setPage,
+    totalPages: 2,
+    handleNextPage,
+    handlePrevPage: jest.fn(),
+    handlePageJump: jest.fn(),
+    hoveredTracker: null,
+    setHoveredTracker: jest.fn(),
+    hoveredButton: null,
+    setHoveredButton: jest.fn(),
+    trackersPerPage: 5,
+    confirmUser: jest.fn(),
+    deleteUser: jest.fn(),
+  });
+
+  renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+  const nextButton = screen.getAllByRole('button', { name: 'Следующая страница' })[0];
+  fireEvent.click(nextButton);
+  expect(handleNextPage).toHaveBeenCalled();
+  expect(setPage).toHaveBeenCalledWith(expect.any(Function));
+  expect(setPage.mock.calls[0][0](0)).toBe(1);
+});
+describe('TrackerListPage - Coverage for Lines 121, 139-140, 153-154, 179-180, 245-271', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Test for Line 121: onKeyDown with Space for enabled tracker
+  test('нажатие Space на активном трекере вызывает setHoveredTracker', () => {
+    const setHoveredTracker = require('../hooks/useTrackerList').setHoveredTracker;
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [{ username: 'active1', fullName: 'Active', telegramId: 'act', enabled: true }],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker,
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    const trackerElement = screen.getByText('Active').closest('[role="button"]');
+    fireEvent.keyDown(trackerElement, { key: ' ' });
+    expect(setHoveredTracker).toHaveBeenCalledWith('active1');
+  });
+
+  // Test for Lines 139-140: Confirm button hover tooltip for enabled tracker
+  test('рендер тултипа "Оставить" при наведении на confirm для активного трекера', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [{ username: 'enabled1', fullName: 'Enabled', telegramId: 'tg', enabled: true }],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: 'enabled1',
+      setHoveredTracker: jest.fn(),
+      hoveredButton: 'confirm',
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    expect(screen.getByText('Оставить')).toBeInTheDocument();
+  });
+
+  // Test for Lines 153-154: Cancel button hover tooltip for enabled tracker
+  test('рендер тултипа "Удалить" при наведении на cancel для активного трекера', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [{ username: 'enabled1', fullName: 'Enabled', telegramId: 'tg', enabled: true }],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: 'enabled1',
+      setHoveredTracker: jest.fn(),
+      hoveredButton: 'cancel',
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    expect(screen.getByText('Удалить')).toBeInTheDocument();
+  });
+
+  // Test for Lines 179-180: onKeyDown with Space for disabled tracker
+  test('нажатие Space на неактивном трекере вызывает setHoveredTracker', () => {
+    const setHoveredTracker = require('../hooks/useTrackerList').setHoveredTracker;
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [{ username: 'disabled1', fullName: 'Disabled', telegramId: 'tg', enabled: false }],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker,
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    const trackerElement = screen.getByText('Disabled').closest('[role="button"]');
+    fireEvent.keyDown(trackerElement, { key: ' ' });
+    expect(setHoveredTracker).toHaveBeenCalledWith('disabled1');
+  });
+
+ 
+
+  // Test conditional rendering of pagination buttons
+  test('пагинация не рендерится при отсутствии трекеров', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    expect(screen.queryByRole('button', { name: 'Следующая страница' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Предыдущая страница' })).not.toBeInTheDocument();
+  });
+
+  // Test pagination buttons visibility on first page
+  test('на первой странице не отображаются кнопки "Предыдущая" и "На 2 назад"', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: Array.from({ length: 15 }, (_, i) => ({
+        username: `user${i}`,
+        fullName: `User ${i}`,
+        telegramId: `tg${i}`,
+        enabled: true,
+      })),
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0, // First page
+      setPage: jest.fn(),
+      totalPages: 3,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    expect(screen.queryByRole('button', { name: 'Предыдущая страница' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Перейти на 2 страницы назад' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Следующая страница' })).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Перейти на 2 страницы вперед' })).toBeInTheDocument();
+  });
+
+  // Test pagination buttons visibility on last page
+  test('на последней странице не отображаются кнопки "Следующая" и "На 2 вперед"', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: Array.from({ length: 15 }, (_, i) => ({
+        username: `user${i}`,
+        fullName: `User ${i}`,
+        telegramId: `tg${i}`,
+        enabled: true,
+      })),
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 2, // Last page
+      setPage: jest.fn(),
+      totalPages: 3,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    expect(screen.getAllByRole('button', { name: 'Предыдущая страница' })).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Перейти на 2 страницы назад' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Следующая страница' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Перейти на 2 страницы вперед' })).not.toBeInTheDocument();
+  });
+});
