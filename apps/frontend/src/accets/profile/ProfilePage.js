@@ -89,14 +89,16 @@ function ProfilePage() {
     }, [userData, ssoHost]);
 
     useEffect(() => {
-        if (!userData?.roles?.includes("TRACKER")) return;
-        const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
-        fetch(`${backendHost}/api/v1/team-cards`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-                filters: [{
+    if (!userData?.roles?.includes("TRACKER")) return;
+    const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
+    
+    fetch(`${backendHost}/api/v1/team-cards?page=0&size=1000`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+            filters: [
+                {
                     fieldName: "username",
                     type: "EQ",
                     value: userData.username
@@ -106,13 +108,24 @@ function ProfilePage() {
                     type: "EQ",
                     value: true
                 }
-                ]
-            })
+            ]
         })
-            .then(res => res.json())
-            .then(data => setTeamCount(Array.isArray(data?.content) ? data.content.length : 0))
-            .catch(() => setTeamCount(0));
-    }, [userData]);
+    })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("Ошибка при загрузке карточек команд");
+            }
+            return res.json();
+        })
+        .then(data => {
+            // Устанавливаем teamCount на основе totalElements, если доступно, или длины content
+            setTeamCount(data.totalElements || (Array.isArray(data?.content) ? data.content.length : 0));
+        })
+        .catch(err => {
+            console.error("Ошибка при загрузке карточек:", err);
+            setTeamCount(0);
+        });
+}, [userData]);
 
     const handleEditClick = () => {
         setIsEditing(true);

@@ -16,7 +16,7 @@ const MeetingCard = () => {
     const username = query.get("username");
     const userId = query.get("userId");
     const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-
+    const [meetingImage, setMeetingImage] = useState(null);
     const isNewMeeting = meetingId === "new";
 
     const [error, setError] = useState(null);
@@ -31,23 +31,26 @@ const MeetingCard = () => {
     const [isEditing, setIsEditing] = useState(isNewMeeting);
 
     useEffect(() => {
-        if (!isNewMeeting && meetingId) {
-            const url = new URL(`${backendHost}/api/v1/meetings`);
-            url.searchParams.append('teamCardId', teamId);
-            url.searchParams.append('page', 0);
-            url.searchParams.append('size', 10);
+    if (!isNewMeeting && meetingId) {
+        // Загрузка данных встречи
+        const loadMeetingData = async () => {
+            try {
+                const url = new URL(`${backendHost}/api/v1/meetings`);
+                url.searchParams.append('teamCardId', teamId);
+                url.searchParams.append('page', 0);
+                url.searchParams.append('size', 10);
 
-            fetch(url, {
-                method: 'GET',
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include',
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Ошибка загрузки встречи');
-                return res.json();
-            })
-            .then(data => {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { "Content-Type": "application/json" },
+                    credentials: 'include',
+                });
+
+                if (!response.ok) throw new Error('Ошибка загрузки встречи');
+                
+                const data = await response.json();
                 const meeting = data.content.find(m => m.id === meetingId);
+                
                 if (meeting) {
                     setMeetingData({
                         number: meeting.number || "Новая встреча",
@@ -57,16 +60,29 @@ const MeetingCard = () => {
                         tasksNextMeeting: meeting.tasksNextMeeting || "",
                         status: meeting.status || "OK",
                     });
+
+                    // Загрузка изображения встречи
+                    const imageResponse = await fetch(`${backendHost}/api/v1/meetings/${meetingId}/image`, {
+                        credentials: 'include',
+                    });
+
+                    if (imageResponse.ok) {
+                        const imageBlob = await imageResponse.blob();
+                        const imageUrl = URL.createObjectURL(imageBlob);
+                        setMeetingImage(imageUrl);
+                    }
                 } else {
                     throw new Error('Встреча не найдена');
                 }
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error("Ошибка при загрузке встречи:", err);
                 setError("Не удалось загрузить данные встречи");
-            });
-        }
-    }, [meetingId, teamId, isNewMeeting]);
+            }
+        };
+
+        loadMeetingData();
+    }
+}, [meetingId, teamId, isNewMeeting]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -241,9 +257,17 @@ const MeetingCard = () => {
 </div>
 
                 <div className="unique-meeting-info-row">
-                    <span className="unique-label">Скриншот встречи:</span>
-                    <div className="unique-screenshot-placeholder" />
-                </div>
+    <span className="unique-label">Скриншот встречи:</span>
+    
+        <div className="unique-screenshot-container">
+            <img 
+                src={meetingImage} 
+                alt="Скриншот встречи" 
+                className="unique-screenshot-image"
+            />
+        </div>
+    
+</div>
 
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Запись встречи:</span>
