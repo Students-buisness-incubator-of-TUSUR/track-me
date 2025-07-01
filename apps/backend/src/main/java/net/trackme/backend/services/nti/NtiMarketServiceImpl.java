@@ -15,13 +15,11 @@ public class NtiMarketServiceImpl implements NtiMarketService {
   private final NtiMarketRepository ntiMarketRepository;
 
   @Override
-  public NTIMarket getNtiMarket(UUID ntiMarketId) {
-    return ntiMarketRepository.findById(ntiMarketId)
-        .orElseThrow(() -> new NtiMarketNotFoundException(ntiMarketId));
-  }
-
-  @Override
   public List<NTIMarket> getNtiMarkets(List<UUID> ids) {
-    return ntiMarketRepository.findAllById(ids);
+    var ntiMarkets = ntiMarketRepository.findAllById(ids);
+    if (ntiMarkets.isEmpty()) {
+      throw new NtiMarketNotFoundException(ids);
+    }
+    return ntiMarkets;
   }
 }

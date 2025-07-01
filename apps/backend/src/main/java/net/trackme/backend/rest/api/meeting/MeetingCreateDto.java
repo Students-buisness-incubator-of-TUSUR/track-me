@@ -1,8 +1,8 @@
 package net.trackme.backend.rest.api.meeting;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import net.trackme.backend.models.MeetingStatus;
 
@@ -11,10 +11,8 @@ import java.time.OffsetDateTime;
 @Builder
 @Schema(description = "DTO создания встречи команды")
 public record MeetingCreateDto(
+        @Nullable
         @Schema(description = "Ссылка на встречу")
-        @Pattern(regexp = "^(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})([/\\w .-]*)*/?$",
-                message = "Ссылка должна быть в правильном формате URL",
-                flags = Pattern.Flag.CASE_INSENSITIVE)
         String link,
         @Schema(description = "Номер встречи")
         String number,
