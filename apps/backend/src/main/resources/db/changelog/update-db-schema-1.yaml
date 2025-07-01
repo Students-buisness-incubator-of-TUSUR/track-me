@@ -79,3 +79,23 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   defaultValue: true
+  - changeSet:
+      id: update-db-schema-5
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: average_grade
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: average_grade
+                  type: decimal(3,2)
+                  constraints:
+                    nullable: true

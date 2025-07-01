@@ -3,11 +3,9 @@ package net.trackme.backend.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import net.trackme.backend.models.TeamCardStatus;
-import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 @Getter
@@ -71,27 +69,16 @@ public class TeamCard {
     @Builder.Default
     private Set<Stream> streams = new HashSet<>();
 
-    @Formula("""
-            (SELECT AVG(
-                            CASE m.status
-                                WHEN 'OK' THEN 1.0
-                                WHEN 'WITH_ISSUES' THEN 0.5
-                                WHEN 'MANY_ISSUES' THEN 0.25
-                                ELSE 0.0
-                                END)
-             FROM meeting m
-             WHERE m.team_id = id)
-            """)
-    private BigDecimal averageGrade;
+    @Column(name = "average_grade", precision = 3, scale = 2)
+    private BigDecimal averageGrade = BigDecimal.ZERO;
 
     public void addStream(Stream stream) {
         streams.clear();
         streams.add(stream);
     }
 
-    public BigDecimal getAverageGrade() {
-        return averageGrade != null
-                ? averageGrade.setScale(2, RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
+    public boolean isActive() {
+        return streams.stream()
+                .allMatch(Stream::isActive);
     }
 }

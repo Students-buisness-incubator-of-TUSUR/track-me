@@ -28,4 +28,6 @@ databaseChangeLog:
       file: db/changelog/stream-add-active-column.yaml
   - include:
       file: db/changelog/meeting-add-image-column.yaml
+  - include:
+      file: db/changelog/team_card_average_grade_trigger.sql
 

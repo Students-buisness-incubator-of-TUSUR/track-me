@@ -12,8 +12,9 @@ import java.time.OffsetDateTime;
 @Schema(description = "DTO создания встречи команды")
 public record MeetingCreateDto(
         @Schema(description = "Ссылка на встречу")
-        @Pattern(regexp = "^(http|https)://.*$",
-                message = "Ссылка на встречу должна начинаться с http:// или https://")
+        @Pattern(regexp = "^(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})([/\\w .-]*)*/?$",
+                message = "Ссылка должна быть в правильном формате URL",
+                flags = Pattern.Flag.CASE_INSENSITIVE)
         String link,
         @Schema(description = "Номер встречи")
         String number,

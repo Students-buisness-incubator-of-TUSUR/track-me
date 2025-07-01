@@ -8,9 +8,10 @@ import net.trackme.backend.models.MeetingStatus;
 @Builder
 @Schema(description = "DTO обновления встречи команды")
 public record MeetingUpdateDto(
-        @Pattern(regexp = "^(http|https)://.*$",
-                message = "Ссылка на встречу должна начинаться с http:// или https://")
         @Schema(description = "Ссылка на встречу")
+        @Pattern(regexp = "^(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})([/\\w .-]*)*/?$",
+                message = "Ссылка должна быть в правильном формате URL",
+                flags = Pattern.Flag.CASE_INSENSITIVE)
         String link,
         @Schema(description = "Номер встречи")
         String number,
