@@ -378,7 +378,10 @@
     background-color: #D34F4F;
     color: white;
 }
-
+.unique-status.не_указано {
+    background-color: #D34F4F;
+    color: white;
+}
 .unique-screenshot-placeholder {
     background: #d1d5db;
     border-radius: 30px;

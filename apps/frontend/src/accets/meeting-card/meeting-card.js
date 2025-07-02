@@ -26,7 +26,7 @@ const MeetingCard = () => {
         link: "",
         tasksCurrentMeeting: "",
         tasksNextMeeting: "",
-        status: "OK",
+        status: "",
     });
     const [isEditing, setIsEditing] = useState(isNewMeeting);
 
@@ -55,7 +55,7 @@ const MeetingCard = () => {
                         link: meeting.link || "",
                         tasksCurrentMeeting: meeting.tasksCurrentMeeting || "",
                         tasksNextMeeting: meeting.tasksNextMeeting || "",
-                        status: meeting.status || "OK",
+                        status: meeting.status || "Не указано",
                     });
                 } else {
                     throw new Error('Встреча не найдена');
@@ -80,7 +80,7 @@ const MeetingCard = () => {
             const meetingPayload = {
                 link: meetingData.link || "",
                 number: meetingData.number || "",
-                status: meetingData.status || "OK",
+                status: meetingData.status || "Не указано",
                 tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
                 tasksNextMeeting: meetingData.tasksNextMeeting || ""
             };
@@ -196,6 +196,7 @@ const MeetingCard = () => {
         {meetingData.status === "OK" && "Всё ок"}
         {meetingData.status === "WITH_ISSUES" && "Есть проблемы"}
         {meetingData.status === "MANY_ISSUES" && "Есть большие проблемы"}
+        {meetingData.status === "Не указано" && "Не указано"} {/* Добавлено */}
         <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
       </div>
 
@@ -236,7 +237,9 @@ const MeetingCard = () => {
       {meetingData.status === "OK" && "Всё ок"}
       {meetingData.status === "WITH_ISSUES" && "Есть проблемы"}
       {meetingData.status === "MANY_ISSUES" && "Есть большие проблемы"}
+      
     </div>
+    
   )}
 </div>
 
