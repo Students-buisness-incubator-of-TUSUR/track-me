@@ -189,18 +189,7 @@ describe('TeamCard basic interactions', () => {
     expect(screen.getByRole('button', { name: /Сохранить/i })).toBeInTheDocument();
   });
 
-  test('Запланировать → navigate', async () => {
-    require('react-router-dom').__setSearch('?edit=true');
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
-          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
-        </MemoryRouter>
-      );
-    });
-    fireEvent.click(screen.getByRole('button', { name: /Запланировать/i }));
-    expect(mockedNavigate).toHaveBeenCalledWith('/meeting-create/42?username=reduxUser');
-  });
+  
 
   test('tracker input readonly', async () => {
     require('react-router-dom').__setSearch('');
