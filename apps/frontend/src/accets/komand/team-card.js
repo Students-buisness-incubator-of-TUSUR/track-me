@@ -3,7 +3,7 @@ import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./team-card.css";
 import {useSelector} from "react-redux";
 import penIcon from "./pen.png";
-
+import MeetingCreate from "../meeting-card/MeetingCreate.js";
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
 const TeamCard = () => {
@@ -11,7 +11,7 @@ const TeamCard = () => {
     const {id} = useParams();
     
     
-   
+   const [showMeetingCreate, setShowMeetingCreate] = useState(false);
     const location = useLocation();
     const passedUsername = location.state?.username;
     const query = new URLSearchParams(location.search);
@@ -810,20 +810,27 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
   </div>
 ))}
                     </div>
-                        <button className="team-meeting-add" onClick={() => navigate(`/meeting-create/${id}?username=${username}`)}>
-                            Запланировать   
-                        </button>
-                    
+                        <button 
+                        className="team-meeting-add" 
+                        onClick={() => setShowMeetingCreate(true)}
+                    >
+                        Запланировать
+                    </button>
+                    {showMeetingCreate && (
+                        <MeetingCreate 
+                            teamId={id}
+                            onClose={() => setShowMeetingCreate(false)}
+                        />
+                    )}
                 </div>
             </div>
             {isEditing ? (
                 <div className="red-button-container">
-                <button className="red-button-widget" onClick={handleDeactivate}>
-                    <span>Деактивировать</span>
-                </button>
-            </div>
-            ) : (null)}
-            
+                    <button className="red-button-widget" onClick={handleDeactivate}>
+                        <span>Деактивировать</span>
+                    </button>
+                </div>
+            ) : null}
         </div>
     );
 };

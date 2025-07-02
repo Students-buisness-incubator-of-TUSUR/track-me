@@ -1,28 +1,20 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./meeting-card.css";
-import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
-import pencilIcon from "./pen.png";
 
 const backendHost = process.env.REACT_APP_BACKEND_URI + '/backend';
 
-const MeetingCreate = () => {
-    const { teamId } = useParams();
+const MeetingCreate = ({ onClose, teamId }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const query = new URLSearchParams(location.search);
     const userId = query.get("userId");
     const [error, setError] = useState(null);
-    const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-
     const [meetingData, setMeetingData] = useState({
         number: "1",
         startDate: new Date().toISOString(),
-        link: "",
-        tasksCurrentMeeting: "",
-        tasksNextMeeting: "",
-        status: "",
     });
+    const popupRef = useRef(null);
 
     useEffect(() => {
         const fetchMeetings = async () => {
@@ -63,6 +55,17 @@ const MeetingCreate = () => {
         fetchMeetings();
     }, [teamId]);
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (popupRef.current && !popupRef.current.contains(event.target)) {
+                onClose();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [onClose]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setMeetingData(prev => ({ ...prev, [name]: value }));
@@ -74,14 +77,9 @@ const MeetingCreate = () => {
                 throw new Error("Номер встречи должен быть числом");
             }
 
-            // Подготовка данных для отправки
             const requestData = {
                 number: meetingData.number,
                 startDate: new Date(meetingData.startDate).toISOString(),
-                link: meetingData.link,
-                tasksCurrentMeeting: meetingData.tasksCurrentMeeting,
-                tasksNextMeeting: meetingData.tasksNextMeeting,
-                status: meetingData.status, // статус берется из состояния
             };
 
             const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${teamId}`, {
@@ -100,167 +98,35 @@ const MeetingCreate = () => {
             }
 
             const result = await response.json();
-            navigate(`/meeting/${result.id}?teamId=${teamId}`);
+            onClose();
+            navigate(`/meeting/${result.id}?teamId=${teamId}&username=${userId}`);
         } catch (error) {
             console.error("Ошибка при создании:", error);
             setError(error.message || "Произошла ошибка при создании. Проверьте консоль для подробностей.");
         }
     };
+
     return (
-        <div className="unique-meeting-container">
-            <div className="unique-meeting-card">
-                <button className="unique-close-button" onClick={() => navigate(`/teamcard/${teamId}?userId=${userId}`)}>
-                    <img src={closeIcon} alt="Закрыть" className="close-icon" />
-                </button>
-
-                <button onClick={handleCreate} className="unique-edit-button">
-                    Создать 
-                </button>
-
+        <div className="meeting-create-popup" ref={popupRef}>
+            <button className="popup-close-button" onClick={onClose}>
+                ×
+            </button>
+            <div className="popup-content">
+                <h3>Запланировать встречу #{meetingData.number}</h3>
                 {error && <div className="error-message">{error}</div>}
-
-                <div className="unique-meeting-info">
-                    <span className="unique-meeting-number">Новая встреча #{meetingData.number}</span>
-                </div>
-
-                <div className="unique-meeting-info-row unique-date-row">
-    <span className="unique-label">Дата:</span>
-
-    {/* Скрытый input */}
-    <input
-        type="datetime-local"
-        name="startDate"
-        value={meetingData.startDate.slice(0, 16)}
-        onChange={handleChange}
-        className="hidden-date-input"
-        ref={(el) => { window.hiddenDateInput = el; }}
-    />
-
-    {/* Красивый видимый блок */}
-    <div className="fancy-date-display" onClick={() => window.hiddenDateInput?.showPicker()}>
-        {new Date(meetingData.startDate).toLocaleString('ru-RU', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        })}
-    </div>
-    <img src={pencilIcon} alt="Редактировать" className="edit-icon2334" />
-</div>
-
-
-                <div className="unique-meeting-info-row">
-                    <span className="unique-label">Задачи к следующей встрече:</span>
-                    <textarea
-                        name="tasksCurrentMeeting"
-                        value={meetingData.tasksCurrentMeeting}
-                        onChange={handleChange}
-                        className="unique-textarea"
-                        placeholder="Введите задачи для следующей встречи"
-                    />
-                    <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
-                </div>
-
-                <div className="unique-meeting-info-row">
-                    <span className="unique-label">Выполнили задачи прошлой встречи или нет, общая информация по команде:</span>
-                    <textarea
-                        name="tasksNextMeeting"
-                        value={meetingData.tasksNextMeeting}
-                        onChange={handleChange}
-                        className="unique-textarea"
-                        placeholder="Опишите выполнение задач и общее состояние команды"
-                    />
-                    <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
-                </div>
-
-                <div className="unique-meeting-info-row">
-  <span className="unique-label">Текущий статус команды:</span>
-  <div className="status-dropdown-wrapper">
-    <div 
-      className="status-selected" 
-      onClick={() => setShowStatusDropdown(prev => !prev)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          setShowStatusDropdown(prev => !prev);
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-expanded={showStatusDropdown}
-      aria-label="Выбрать статус команды"
-    >
-      {meetingData.status === "OK" && "Всё ок"}
-      {meetingData.status === "WITH_ISSUES" && "Есть проблемы"}
-      {meetingData.status === "MANY_ISSUES" && "Есть большие проблемы"}
-      <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
-    </div>
-    {showStatusDropdown && (
-      <div className="status-options">
-        <div 
-          className="status-option ok" 
-          onClick={() => { setMeetingData(prev => ({ ...prev, status: "OK" })); setShowStatusDropdown(false); }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              setMeetingData(prev => ({ ...prev, status: "OK" }));
-              setShowStatusDropdown(false);
-            }
-          }}
-          tabIndex={0}
-          role="button"
-        >
-          Всё ок
-        </div>
-        <div 
-          className="status-option problems" 
-          onClick={() => { setMeetingData(prev => ({ ...prev, status: "WITH_ISSUES" })); setShowStatusDropdown(false); }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              setMeetingData(prev => ({ ...prev, status: "WITH_ISSUES" }));
-              setShowStatusDropdown(false);
-            }
-          }}
-          tabIndex={0}
-          role="button"
-        >
-          Есть проблемы
-        </div>
-        <div 
-          className="status-option major-problems" 
-          onClick={() => { setMeetingData(prev => ({ ...prev, status: "MANY_ISSUES" })); setShowStatusDropdown(false); }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              setMeetingData(prev => ({ ...prev, status: "MANY_ISSUES" }));
-              setShowStatusDropdown(false);
-            }
-          }}
-          tabIndex={0}
-          role="button"
-        >
-          Есть большие проблемы
-        </div>
-      </div>
-    )}
-  </div>
-</div>
-
-                <div className="unique-meeting-info-row">
-                    <span className="unique-label">Скриншот встречи:</span>
-                    <div className="unique-screenshot-placeholder" />
-                </div>
-
-                <div className="unique-meeting-info-row">
-                    <span className="unique-label">Запись встречи:</span>
+                <div className="date-selection">
+                    <span className="date-label">Дата:</span>
                     <input
-                        type="text"
-                        name="link"
-                        value={meetingData.link}
+                        type="datetime-local"
+                        name="startDate"
+                        value={meetingData.startDate.slice(0, 16)}
                         onChange={handleChange}
-                        className="unique-input"
-                        placeholder="Введите ссылку на запись встречи"
+                        className="date-input"
                     />
-                    <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
                 </div>
+                <button onClick={handleCreate} className="create-button">
+                    Создать
+                </button>
             </div>
         </div>
     );

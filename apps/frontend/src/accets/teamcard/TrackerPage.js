@@ -171,7 +171,7 @@ useEffect(() => {
         : `${backendHost}/api/v1/team-cards`;
 
     const sortParams = (userRole === "TRACKER")
-        ? "sort=enabled,desc&sort=streams.startDate,desc&sort=name,asc"
+        ? "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc&sort=name,asc"
         : "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc";
 
     fetch(`${endpoint}?page=${page}&size=${pageSize}&${sortParams}`, {
