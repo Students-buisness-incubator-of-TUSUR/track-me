@@ -1,4 +1,4 @@
-// MeetingCard.js
+// meeting-card.js
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./meeting-card.css";
