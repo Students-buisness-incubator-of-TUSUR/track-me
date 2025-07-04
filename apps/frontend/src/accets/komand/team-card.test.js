@@ -1586,3 +1586,75 @@ describe('Meetings list and navigation', () => {
     expect(mockedNavigate).toHaveBeenCalledWith('/meeting/100?teamId=42&username=reduxUser');
   });
 });
+describe('handleSave validation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    require('react-router-dom').__setSearch('?edit=true');
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: ['ADMIN'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+    );
+  });
+
+  test('shows error when name is empty', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Clear name field
+    fireEvent.change(screen.getByPlaceholderText(/Карточка команды/i), { 
+      target: { value: '' } 
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('сохранении карточки'),
+        expect.objectContaining({
+          message: 'Пожалуйста, заполните все обязательные поля'
+        })
+      );
+    });
+    consoleSpy.mockRestore();
+  });
+
+  test('shows error when description is empty', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Clear description field
+    fireEvent.change(screen.getByPlaceholderText(/Описание карточки/i), { 
+      target: { value: '' } 
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('сохранении карточки'),
+        expect.objectContaining({
+          message: 'Пожалуйста, заполните все обязательные поля'
+        })
+      );
+    });
+    consoleSpy.mockRestore();
+  });
+
+  
+});
