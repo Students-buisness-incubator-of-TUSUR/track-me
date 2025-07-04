@@ -165,4 +165,97 @@ describe('ProfilePage Tooltip', () => {
     const countElement = await screen.findByText('(0)');
     expect(countElement).toBeInTheDocument();
   });
+  test('should handle team cards fetch error and show zero count', async () => {
+  // Mock successful user data fetch
+  fetch.mockImplementation((url) => {
+    if (url.includes('/account/info')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(mockUserData)
+      });
+    }
+    if (url.includes('/team-cards')) {
+      // Simulate a failed response
+      return Promise.reject(new Error("Ошибка при загрузке карточек команд"));
+    }
+    if (url.includes('/account/photo')) {
+      return Promise.reject(new Error('Photo not found'));
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+
+  // Spy on console.error to verify the error is logged
+  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+  render(
+    <BrowserRouter>
+      <ProfilePage />
+    </BrowserRouter>
+  );
+
+  // Wait for the component to render
+  await screen.findByText('Карточки команд');
+
+  // Verify that the error was logged
+  expect(consoleErrorSpy).toHaveBeenCalledWith(
+    "Ошибка при загрузке карточек:",
+    expect.any(Error)
+  );
+
+  // Verify that the team count shows 0 when there's an error
+  const countElement = await screen.findByText('(0)');
+  expect(countElement).toBeInTheDocument();
+
+  // Clean up the spy
+  consoleErrorSpy.mockRestore();
+});
+test('should throw error when team cards request fails', async () => {
+  // 1. Мокаем успешный запрос данных пользователя
+  fetch.mockImplementationOnce(() => 
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({
+        ...mockUserData,
+        roles: ["TRACKER"] // Важно для выполнения условия
+      })
+    })
+  );
+
+  // 2. Мокаем запрос фото (необязательно, но для полноты)
+  fetch.mockImplementationOnce(() => 
+    Promise.reject(new Error("Photo not found"))
+  );
+
+  // 3. Мокаем НЕуспешный запрос карточек команд
+  fetch.mockImplementationOnce(() => 
+    Promise.resolve({
+      ok: false, // Именно это вызовет throw new Error
+      status: 500
+    })
+  );
+
+  // 4. Спи на console.error чтобы проверить лог
+  const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+  render(
+    <BrowserRouter>
+      <ProfilePage />
+    </BrowserRouter>
+  );
+
+  // 5. Ждем пока компонент обработает ошибку
+  await waitFor(() => {
+    // Проверяем что ошибка была залогирована
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Ошибка при загрузке карточек:",
+      expect.any(Error)
+    );
+    
+    // Проверяем что счетчик команд = 0 (обработка ошибки)
+    expect(screen.getByText("(0)")).toBeInTheDocument();
+  });
+
+  // 6. Восстанавливаем console.error
+  consoleErrorSpy.mockRestore();
+});
 });

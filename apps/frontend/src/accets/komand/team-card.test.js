@@ -1,13 +1,22 @@
 // src/accets/komand/team-card.test.js
 import React from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TeamCard from './team-card.js';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import * as redux from 'react-redux';
 
 const mockedNavigate = jest.fn();
-
+jest.mock('../meeting-card/MeetingCreate.js', () => {
+  return function MockMeetingCreate({ onClose }) {
+    return (
+      <div role="dialog" data-testid="meeting-create-modal">
+        <button onClick={onClose}>×</button>
+        <div>Meeting Create Modal Content</div>
+      </div>
+    );
+  };
+});
 jest.mock('react-router-dom', () => {
   const original = jest.requireActual('react-router-dom');
   let searchValue = '';
@@ -1655,6 +1664,51 @@ describe('handleSave validation', () => {
     });
     consoleSpy.mockRestore();
   });
+test('clicking "Запланировать" button sets showMeetingCreate to true', async () => {
+  // Рендерим компонент
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
 
+  // Проверяем, что модальное окно изначально скрыто
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+  // Находим и кликаем кнопку "Запланировать"
+  const planButton = screen.getByRole('button', { name: /Запланировать/i });
+  fireEvent.click(planButton);
+
+  // Проверяем, что модальное окно появилось
+  expect(screen.getByRole('dialog')).toBeInTheDocument();
+});
+test('closing MeetingCreate modal sets showMeetingCreate to false', async () => {
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  // Open the modal
+  const planButton = screen.getByRole('button', { name: /Запланировать/i });
+  fireEvent.click(planButton);
+
+  // Verify modal is open
+  const modal = screen.getByTestId('meeting-create-modal');
+  expect(modal).toBeInTheDocument();
+
+  // Close the modal
+  const closeButton = within(modal).getByRole('button', { name: '×' });
+  fireEvent.click(closeButton);
+
+  // Modal should be closed
+  await waitFor(() => {
+    expect(screen.queryByTestId('meeting-create-modal')).not.toBeInTheDocument();
+  });
+});
   
 });
