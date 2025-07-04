@@ -5,9 +5,10 @@ import "./meeting-card.css";
 import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
 
-const backendHost = process.env.REACT_APP_BACKEND_URI + '/backend';
+
 
 const MeetingCard = () => {
+    const backendHost = (process.env.REACT_APP_BACKEND_URI || '') + '/backend';
     const { meetingId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
