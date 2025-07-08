@@ -1,34 +1,41 @@
 import { Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { setUser, clearUser } from '../../store/userSlice';
 import LoginService from '../../services/login-service';
 
 const ProtectedRoute = ({ children }) => {
     const user = useSelector(state => state.user.user);
     const dispatch = useDispatch();
-    const { getUserInfo } = LoginService();
+    const { getUserInfo } = useMemo(() => LoginService(), []);
+
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const userInfo = await getUserInfo();
-                if (userInfo) {
-                    dispatch(setUser(userInfo));
-                } else {
-                    dispatch(clearUser());
-                }
-            } catch (error) {
-                console.error("Auth check failed:", error);
+    const checkAuth = useCallback(async () => {
+        try {
+            const userInfo = await getUserInfo();
+            if (userInfo) {
+                dispatch(setUser(userInfo));
+            } else {
                 dispatch(clearUser());
-            } finally {
-                setIsCheckingAuth(false);
             }
-        };
-
-        checkAuth();
+        } catch (error) {
+            console.error("Auth check failed:", error);
+            dispatch(clearUser());
+        } finally {
+            setIsCheckingAuth(false);
+        }
     }, [getUserInfo, dispatch]);
+
+    useEffect(() => {
+        checkAuth();
+
+        const interval = setInterval(() => {
+            checkAuth();
+        }, 30000);
+
+        return () => clearInterval(interval);
+    }, [checkAuth]); // ✅ Без предупреждений теперь
 
     if (isCheckingAuth) {
         return <div>Loading...</div>;
