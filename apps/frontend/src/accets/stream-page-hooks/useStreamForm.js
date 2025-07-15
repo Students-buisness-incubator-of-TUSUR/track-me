@@ -33,7 +33,17 @@ export const useStreamForm = (streamId = null) => {
       setError('Не удалось загрузить данные для чекбоксов.');
     }
   }, [backendHost]);
-
+const fetchStreamImage = useCallback(async (id) => {
+    try {
+      const response = await axios.get(`${backendHost}/api/v1/streams/${id}/image`, {
+        responseType: 'blob',
+        withCredentials: true,
+      });
+      return URL.createObjectURL(response.data);
+    } catch (error) {
+      return null;
+    }
+  }, [backendHost]);
   const fetchStreamData = useCallback(async () => {
     if (!streamId) return;
     try {
@@ -57,19 +67,9 @@ export const useStreamForm = (streamId = null) => {
     } catch (error) {
       setError('Не удалось загрузить данные потока.');
     }
-  }, [backendHost, streamId]);
+  }, [backendHost, streamId, fetchStreamImage]);
 
-  const fetchStreamImage = useCallback(async (id) => {
-    try {
-      const response = await axios.get(`${backendHost}/api/v1/streams/${id}/image`, {
-        responseType: 'blob',
-        withCredentials: true,
-      });
-      return URL.createObjectURL(response.data);
-    } catch (error) {
-      return null;
-    }
-  }, [backendHost]);
+  
 
   useEffect(() => {
     fetchCheckboxesData();
