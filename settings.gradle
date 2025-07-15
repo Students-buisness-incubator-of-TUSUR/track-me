@@ -15,3 +15,6 @@ project(':trackme-sso').projectDir = file('services/trackme-sso')
 include ':commons'
 findProject(':commons').projectDir = file('libs/commons')
 
+include ':meeting-service'
+findProject(':meeting-service').projectDir = file('services/meeting-service')
+
