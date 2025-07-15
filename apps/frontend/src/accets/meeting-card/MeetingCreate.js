@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./meeting-card.css";
 
-const backendHost = process.env.REACT_APP_BACKEND_URI + '/backend';
+const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
 
 const MeetingCreate = ({ onClose, teamId }) => {
     const navigate = useNavigate();
@@ -12,7 +12,7 @@ const MeetingCreate = ({ onClose, teamId }) => {
     const [error, setError] = useState(null);
     const [meetingData, setMeetingData] = useState({
         number: "1",
-        startDate: new Date().toISOString(),
+        startDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     });
     const popupRef = useRef(null);
 
@@ -51,7 +51,7 @@ const MeetingCreate = ({ onClose, teamId }) => {
                 }));
             } catch (err) {
                 console.error("Ошибка при загрузке встреч:", err);
-                setError(err.message || "Не удалось загрузить список встреч");
+                setError("Не удалось загрузить список встреч");
             }
         };
 
@@ -72,17 +72,14 @@ const MeetingCreate = ({ onClose, teamId }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setMeetingData(prev => ({ ...prev, [name]: value }));
-        // Сбрасываем ошибку при изменении данных
         if (error) setError(null);
     };
 
     const validateMeetingData = () => {
-        // Проверка номера встречи
         if (!meetingData.number || isNaN(parseInt(meetingData.number))) {
             throw new Error("Номер встречи должен быть числом");
         }
 
-        // Проверка даты
         const selectedDate = new Date(meetingData.startDate);
         const currentDate = new Date();
         
@@ -95,7 +92,6 @@ const MeetingCreate = ({ onClose, teamId }) => {
 
     const handleCreate = async () => {
         try {
-            // Валидация данных перед отправкой
             validateMeetingData();
 
             const requestData = {

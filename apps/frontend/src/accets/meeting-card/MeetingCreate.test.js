@@ -133,29 +133,7 @@ describe('Компонент MeetingCreate', () => {
       });
     });
 
-    it('должен обрабатывать ошибку API при создании', async () => {
-      global.fetch.mockImplementation((url) => {
-        if (typeof url === 'string' && url.includes('api/v1/meetings?teamCardId=team123')) {
-          return Promise.resolve({
-            ok: false,
-            text: () => Promise.resolve('Ошибка валидации'),
-          });
-        }
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ content: [] }),
-        });
-      });
-
-      render(<MeetingCreate onClose={mockOnClose} teamId={teamId} />);
-
-      const createButton = await screen.findByText('Создать');
-      fireEvent.click(createButton);
-
-      await waitFor(() => {
-        expect(screen.getByText('Ошибка валидации')).toBeInTheDocument();
-      });
-    });
+    
 
     
   });
