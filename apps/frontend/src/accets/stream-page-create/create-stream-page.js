@@ -73,10 +73,22 @@ export default function CreateStream() {
           </div>
           <div className="Stream-bb Stream-header-chosefrom-buttw2323131">
             <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
-              <div className="Stream-header-chosefrom-butt-cont" onClick={handleShowCheckboxes2}>
-                <b className="Stream-header-chosefrom-butt-label">Рынок</b>
-                <div className="Stream-header-chosefrom-butt-pic"></div>
-              </div>
+              <div
+  className="Stream-header-chosefrom-butt-cont"
+  onClick={handleShowCheckboxes2}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleShowCheckboxes2();
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Выбрать рынок"
+>
+  <b className="Stream-header-chosefrom-butt-label">Рынок</b>
+  <div className="Stream-header-chosefrom-butt-pic"></div>
+</div>
               {showCheckboxes2 && (
                 <div className="Stream-header-checkboxes">
                   {checkboxesData2.map((item, index) => (
@@ -101,10 +113,19 @@ export default function CreateStream() {
         </div>
         <div className="create-stream-cont-right">
           <div
-            className="create-stream-input-pic"
-            onClick={() => document.getElementById('image-upload').click()}
-            title="Поддерживаемые форматы: JPEG, PNG, GIF"
-          >
+  className="create-stream-input-pic"
+  onClick={() => document.getElementById('image-upload').click()}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      document.getElementById('image-upload').click();
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Загрузить изображение"
+  title="Поддерживаемые форматы: JPEG, PNG, GIF"
+>
             {image ? (
               <img src={image} alt="Uploaded" className="create-stream-uploaded-image" />
             ) : (
