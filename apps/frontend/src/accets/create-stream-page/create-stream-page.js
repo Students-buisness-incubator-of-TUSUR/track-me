@@ -16,8 +16,12 @@ export default function CreateStream() {
     const [imageFile, setImageFile] = useState(null);
     const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
     const checkboxesRef = useRef(null);
-
-    // Фетчим данные для чекбоксов рынков как на stream-page.js (без проверки токена)
+    const errorRef = useRef(null);
+    useEffect(() => {
+        if (error && errorRef.current) {
+            errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [error]);
     const fetchCheckboxesData = useCallback(async () => {
         try {
             const response = await axios.get(`${backendHost}/api/v1/streams/nti-markets`, {
@@ -110,6 +114,12 @@ export default function CreateStream() {
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
+            // Проверка типа файла
+            if (!file.type.match('image.*')) {
+                setError('Пожалуйста, выберите файл изображения (JPEG, PNG, GIF)');
+                return;
+            }
+            
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImage(reader.result);
@@ -119,12 +129,18 @@ export default function CreateStream() {
         }
     };
 
-    // Переписанное создание потока — убран accessToken, юзер инфо есть в redux store (но серверу не посылается)
     const handleCreateButtonClick = async () => {
         setError('');
 
+        // Проверка заполнения всех обязательных полей
         if (!name || !startDate || !endDate) {
-            setError('Пожалуйста, заполните все поля.');
+            setError('Пожалуйста, заполните все обязательные поля.');
+            return;
+        }
+
+        // Проверка выбора рынков НТИ
+        if (selectedCheckboxes.length === 0) {
+            setError('Пожалуйста, укажите хотя бы один рынок НТИ.');
             return;
         }
 
@@ -150,11 +166,9 @@ export default function CreateStream() {
             endDate: formatDate(endDate),
             ntiMarketIds: selectedCheckboxes,
             description: "useless описание",
-            // Можно передавать user.id или user.name, если это согласовано с бекендом
         };
 
         try {
-            // Создать поток
             const createStreamResponse = await axios.post(
                 `${backendHost}/api/v1/admin/stream`,
                 requestData,
@@ -166,7 +180,7 @@ export default function CreateStream() {
                 }
             );
             const streamResult = createStreamResponse.data;
-            // Загрузка изображения
+            
             if (imageFile) {
                 const formData = new FormData();
                 formData.append('file', imageFile);
@@ -205,8 +219,21 @@ export default function CreateStream() {
 
     return (
         <div className="create-stream">
+            {error && (
+                <div className="stream-error-message" ref={errorRef}>
+                    <div className="stream-error-content">
+                        {error}
+                        <button 
+                            className="stream-error-close"
+                            onClick={() => setError(null)}
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="create-stream-cont">
-            <button className="create-stream-close" onClick={() => navigate(-1)}>×</button>
+                <button className="create-stream-close" onClick={() => navigate(-1)}>×</button>
                 <div className="create-stream-cont-left">
                     <label className="create-stream-title">Создание потока</label>
                     <div className="create-stream-row">
@@ -256,7 +283,7 @@ export default function CreateStream() {
                                                 onChange={() => handleCheckboxChange(item.id)}
                                             />
                                             <label className="Stream-header-checkbox-label" htmlFor={`checkbox-${item.id}`}>
-                                            {item.displayName || item.name}
+                                                {item.displayName || item.name}
                                             </label>
                                         </div>
                                     ))}
@@ -264,11 +291,14 @@ export default function CreateStream() {
                             )}
                         </div>
                     </div>
-                    {error && <p className="create-stream-error-message">{error}</p>}
+                    
                 </div>
                 <div className="create-stream-cont-right">
-                    <div className="create-stream-input-pic"
-                         onClick={() => document.getElementById('image-upload').click()}>
+                    <div 
+                        className="create-stream-input-pic"
+                        onClick={() => document.getElementById('image-upload').click()}
+                        title="Поддерживаемые форматы: JPEG, PNG, GIF"
+                    >
                         {image ? (
                             <img src={image} alt="Uploaded"
                                  className="create-stream-uploaded-image"/>
@@ -278,7 +308,7 @@ export default function CreateStream() {
                         <input
                             type="file"
                             id="image-upload"
-                            accept="image/*"
+                            accept="image/jpeg, image/png, image/gif"
                             style={{display: 'none'}}
                             onChange={handleImageUpload}
                         />

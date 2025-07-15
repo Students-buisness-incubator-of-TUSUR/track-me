@@ -373,7 +373,16 @@
     background-color: #DBD76C;
     color: white;
 }
-
+.error-close {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #721c24;
+    font-size: 16px;
+}
 .unique-status.many_issues {
     background-color: #D34F4F;
     color: white;

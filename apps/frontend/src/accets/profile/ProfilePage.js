@@ -155,23 +155,31 @@ function ProfilePage() {
 
     // Функция валидации email и телефона
     const validateForm = () => {
-        const emailPattern = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
-        if (!emailPattern.test(editedData.email)) {
-            setError("Некорректный формат email");
-            return false;
-        }
+    if (!editedData.fullName || editedData.fullName.trim() === "") {
+        setError("Поле 'ФИО' обязательно для заполнения");
+        return false;
+    }
 
-        // Убираем все нецифровые символы для проверки телефона
-        const phoneDigits = editedData.phoneNumber.replace(/\D/g, "");
-        if (phoneDigits.length < 11) {
-            setError("Некорректный формат телефона");
-            return false;
-        }
+    const emailPattern = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!editedData.email || !emailPattern.test(editedData.email)) {
+        setError("Некорректный формат email");
+        return false;
+    }
 
-        setError(null);
-        return true;
-    };
+    const phoneDigits = editedData.phoneNumber?.replace(/\D/g, "") || "";
+    if (phoneDigits.length < 11) {
+        setError("Некорректный формат телефона");
+        return false;
+    }
 
+    if (!editedData.username || editedData.username.trim() === "") {
+        setError("Поле 'Телеграм' обязательно для заполнения");
+        return false;
+    }
+
+    setError(null);
+    return true;
+};
     const handleSaveClick = () => {
         if (!validateForm()) {
             return; // Если данные невалидны, не отправляем запрос
