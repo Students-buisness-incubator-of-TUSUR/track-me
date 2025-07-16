@@ -1,6 +1,8 @@
 server:
   port: 8082
 spring:
+  main:
+    allow-bean-definition-overriding: true
   profiles:
     active: development
   application:
@@ -36,6 +38,7 @@ spring:
     liquibase-schema: ${MEETING_DB_SCHEMA:meeting_service}
     password: ${DB_PASSWORD:project-place}
     user: ${DB_USERNAME:project-place}
+    change-log: classpath:db.changelog-master.yaml
   security:
     oauth2:
       resourceserver:
