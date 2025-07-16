@@ -495,5 +495,180 @@ it('не валидирует неправильную дату', () => {
 
   expect(result.current.error).toBe('Некорректный формат даты. Используйте формат ДД.ММ.ГГГГ.');
 });
+it('fetchCheckboxesData устанавливает данные чекбоксов при успешном ответе', async () => {
+    // Строки 42-45: fetchCheckboxesData с сетевым запросом и установкой setCheckboxesData2
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ id: 1, name: 'Market 1' }, { id: 2, name: 'Market 2' }],
+    });
 
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+    // Ждем, пока асинхронные данные загрузятся и состояние обновится
+    await waitFor(() => expect(result.current.checkboxesData2.length).toBe(2));
+    expect(result.current.error).toBeNull();
+  });
+
+  it('fetchCheckboxesData устанавливает ошибку при неуспешном ответе', async () => {
+    // Строки 42-45: обработка ошибки fetchCheckboxesData
+    global.fetch.mockRejectedValueOnce(new Error('Network error'));
+
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('Не удалось загрузить данные для чекбоксов.');
+    });
+  });
+
+
+  it('fetchStreamData устанавливает ошибку при неуспешном ответе', async () => {
+    global.fetch
+      .mockResolvedValueOnce({ // fetchCheckboxesData
+        ok: true,
+        json: async () => [],
+      })
+      .mockResolvedValueOnce({ // fetchStreamData — ошибка
+        ok: false,
+      });
+
+    const { result } = renderHook(() => useStreamForm(123, mockNavigate));
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('Не удалось загрузить данные потока.');
+    });
+  });
+  
+describe('useStreamForm — покрытие конкретных строк', () => {
+  const mockNavigate = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('fetchCheckboxesData устанавливает данные чекбоксов при успешном ответе (строки 42-45)', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ id: 1, name: 'Market 1' }, { id: 2, name: 'Market 2' }],
+    });
+
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+    // Ждем, пока данные загрузятся
+    await waitFor(() => expect(result.current.checkboxesData2.length).toBe(2));
+    expect(result.current.checkboxesData2).toEqual([{ id: 1, name: 'Market 1' }, { id: 2, name: 'Market 2' }]);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('fetchCheckboxesData устанавливает ошибку при неуспешном ответе (строки 65-66)', async () => {
+    global.fetch.mockRejectedValueOnce(new Error('Network error'));
+
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+    await waitFor(() => {
+      expect(result.current.error).toBe('Не удалось загрузить данные для чекбоксов.');
+    });
+  });
+
+  
+});
+
+  describe('useStreamForm specific line tests', () => {
+  const mockNavigate = jest.fn();
+
+  // Тесты для строк 42-45 (fetchCheckboxesData)
+  describe('fetchCheckboxesData (lines 42-45)', () => {
+    it('should fetch and set checkboxes data successfully', async () => {
+      const mockData = [{ id: 1, name: 'Market 1' }, { id: 2, name: 'Market 2' }];
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockData),
+      });
+
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+      await waitFor(() => {
+        expect(result.current.checkboxesData2).toEqual(mockData);
+        expect(result.current.error).toBeNull();
+      });
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/v1/streams/nti-markets'),
+        expect.objectContaining({ credentials: 'include' })
+      );
+    });
+
+    it('should set error when fetch fails', async () => {
+      global.fetch.mockRejectedValueOnce(new Error('Network error'));
+
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Не удалось загрузить данные для чекбоксов.');
+        expect(result.current.checkboxesData2).toEqual([]);
+      });
+    });
+  });
+
+  
+  // Тесты для строки 98 (handleClickOutside effect)
+  describe('handleClickOutside effect (line 98)', () => {
+    it('should close checkboxes when clicking outside', () => {
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+      // Создаем mock элемент для checkboxesRef
+      const checkboxElement = document.createElement('div');
+      document.body.appendChild(checkboxElement);
+
+      act(() => {
+        result.current.checkboxesRef.current = checkboxElement;
+        result.current.handleShowCheckboxes2(); // Открываем чекбоксы
+      });
+
+      // Кликаем вне элемента
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      });
+
+      expect(result.current.showCheckboxes2).toBe(false);
+
+      // Убираем элемент
+      document.body.removeChild(checkboxElement);
+    });
+
+    it('should not close checkboxes when clicking inside', () => {
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+      // Создаем mock элемент для checkboxesRef
+      const checkboxElement = document.createElement('div');
+      document.body.appendChild(checkboxElement);
+
+      act(() => {
+        result.current.checkboxesRef.current = checkboxElement;
+        result.current.handleShowCheckboxes2(); // Открываем чекбоксы
+      });
+
+      // Кликаем внутри элемента
+      act(() => {
+        checkboxElement.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+      });
+
+      expect(result.current.showCheckboxes2).toBe(true);
+
+      // Убираем элемент
+      document.body.removeChild(checkboxElement);
+    });
+
+    it('should clean up event listener on unmount', () => {
+      const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
+      const { unmount } = renderHook(() => useStreamForm(null, mockNavigate));
+
+      unmount();
+
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'mousedown',
+        expect.any(Function)
+      );
+      removeEventListenerSpy.mockRestore();
+    });
+  });
+});
 });
