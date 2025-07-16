@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+const { useCallback, useEffect, useRef, useState } = require('react');
 
-export const useStreamForm = (streamId = null) => {
+const useStreamForm = (streamId = null, navigate = () => {}) => {
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -13,7 +11,6 @@ export const useStreamForm = (streamId = null) => {
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
-  const navigate = useNavigate();
   const checkboxesRef = useRef(null);
   const errorRef = useRef(null);
 
@@ -25,32 +22,38 @@ export const useStreamForm = (streamId = null) => {
 
   const fetchCheckboxesData = useCallback(async () => {
     try {
-      const response = await axios.get(`${backendHost}/api/v1/streams/nti-markets`, {
-        withCredentials: true,
+      const response = await fetch(`${backendHost}/api/v1/streams/nti-markets`, {
+        credentials: 'include',
       });
-      setCheckboxesData2(response.data);
+      if (!response.ok) throw new Error('Network error');
+      const data = await response.json();
+      setCheckboxesData2(data);
     } catch (error) {
       setError('Не удалось загрузить данные для чекбоксов.');
     }
   }, [backendHost]);
-const fetchStreamImage = useCallback(async (id) => {
+
+  const fetchStreamImage = useCallback(async (id) => {
     try {
-      const response = await axios.get(`${backendHost}/api/v1/streams/${id}/image`, {
-        responseType: 'blob',
-        withCredentials: true,
+      const response = await fetch(`${backendHost}/api/v1/streams/${id}/image`, {
+        credentials: 'include',
       });
-      return URL.createObjectURL(response.data);
+      if (!response.ok) return null;
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
     } catch (error) {
       return null;
     }
   }, [backendHost]);
+
   const fetchStreamData = useCallback(async () => {
     if (!streamId) return;
     try {
-      const response = await axios.get(`${backendHost}/api/v1/admin/stream/${streamId}`, {
-        withCredentials: true,
+      const response = await fetch(`${backendHost}/api/v1/admin/stream/${streamId}`, {
+        credentials: 'include',
       });
-      const result = response.data;
+      if (!response.ok) throw new Error('Network error');
+      const result = await response.json();
       setName(result.name);
       const formatForDisplay = (dateStr) => {
         const [year, month, day] = dateStr.split('T')[0].split('-');
@@ -68,8 +71,6 @@ const fetchStreamImage = useCallback(async (id) => {
       setError('Не удалось загрузить данные потока.');
     }
   }, [backendHost, streamId, fetchStreamImage]);
-
-  
 
   useEffect(() => {
     fetchCheckboxesData();
@@ -191,39 +192,44 @@ const fetchStreamImage = useCallback(async (id) => {
       const url = isEditMode
         ? `${backendHost}/api/v1/admin/stream/${streamId}`
         : `${backendHost}/api/v1/admin/stream`;
-      const method = isEditMode ? axios.patch : axios.post;
+      const method = isEditMode ? 'PATCH' : 'POST';
 
-      const response = await method(url, requestData, {
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        withCredentials: true,
+        credentials: 'include',
+        body: JSON.stringify(requestData),
       });
-
-      const streamResult = response.data;
+      if (!response.ok) throw new Error('Network error');
+      const streamResult = await response.json();
 
       if (imageFile) {
         const formData = new FormData();
         formData.append('file', imageFile);
-        await axios.post(
+        const imageResponse = await fetch(
           `${backendHost}/api/v1/streams/${isEditMode ? streamId : streamResult.id}/image`,
-          formData,
           {
-            headers: { 'Content-Type': 'multipart/form-data' },
-            withCredentials: true,
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
           }
         );
+        if (!imageResponse.ok) throw new Error('Image upload failed');
       } else if (!isEditMode) {
         const defaultImageResponse = await fetch('rabbit.png');
+        if (!defaultImageResponse.ok) throw new Error('Default image fetch failed');
         const defaultImageBlob = await defaultImageResponse.blob();
         const formData = new FormData();
         formData.append('file', defaultImageBlob, 'rabbit.png');
-        await axios.post(
+        const imageResponse = await fetch(
           `${backendHost}/api/v1/streams/${streamResult.id}/image`,
-          formData,
           {
-            headers: { 'Content-Type': 'multipart/form-data' },
-            withCredentials: true,
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
           }
         );
+        if (!imageResponse.ok) throw new Error('Image upload failed');
       }
 
       alert(isEditMode ? 'Поток успешно обновлен!' : 'Поток успешно создан!');
@@ -257,3 +263,5 @@ const fetchStreamImage = useCallback(async (id) => {
     handleSubmit,
   };
 };
+
+module.exports = { useStreamForm };
