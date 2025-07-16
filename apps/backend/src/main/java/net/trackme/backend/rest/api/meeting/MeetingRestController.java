@@ -19,19 +19,19 @@ import java.util.UUID;
 @RequestMapping("/api/v1/meetings")
 public interface MeetingRestController {
 
-    @Operation(summary = "Создание встречи команды")
+    @Operation(summary = "Создание встречи команды", deprecated = true)
     @PostMapping(consumes = "application/json",
             produces = "application/json")
     ResponseEntity<MeetingDto> createMeeting(
             @RequestParam UUID teamCardId,
             @Valid @RequestBody MeetingCreateDto meetingCreateDto);
 
-    @Operation(summary = "Получение списка встреч команды")
+    @Operation(summary = "Получение списка встреч команды", deprecated = true)
     @GetMapping(produces = "application/json")
     PagedModel<MeetingDto> getMeetings(@RequestParam UUID teamCardId,
                                        @ParameterObject @PageableDefault Pageable pageable);
 
-    @Operation(summary = "Обновление встречи команды")
+    @Operation(summary = "Обновление встречи команды", deprecated = true)
     @PatchMapping(value = "/{meetingId}",
             consumes = "application/json",
             produces = "application/json")
@@ -40,15 +40,15 @@ public interface MeetingRestController {
                                              @Valid @RequestBody MeetingUpdateDto meetingCreateDto);
 
     @DeleteMapping(value = "/{meetingId}")
-    @Operation(summary = "Удаление встречи команды")
+    @Operation(summary = "Удаление встречи команды", deprecated = true)
     ResponseEntity<Void> deleteMeeting(@PathVariable UUID meetingId);
 
-    @Operation(summary = "Добавление изображения к встрече")
+    @Operation(summary = "Добавление изображения к встрече", deprecated = true)
     @PostMapping(value = "/{meetingId}/image",
             consumes = "multipart/form-data")
     ResponseEntity<Void> addImage(@PathVariable UUID meetingId, @RequestParam MultipartFile file);
 
-    @Operation(summary = "Получение изображения встречи")
+    @Operation(summary = "Получение изображения встречи", deprecated = true)
     @GetMapping(value = "/{meetingId}/image",
             produces = "image/png")
     ResponseEntity<Resource> getImage(@PathVariable UUID meetingId);
