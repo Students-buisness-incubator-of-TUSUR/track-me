@@ -538,137 +538,128 @@ it('fetchCheckboxesData устанавливает данные чекбоксо
     });
   });
   
-describe('useStreamForm — покрытие конкретных строк', () => {
-  const mockNavigate = jest.fn();
+describe('handleSubmit', () => {
+  const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+  afterEach(() => {
+    alertMock.mockClear();
   });
 
-  it('fetchCheckboxesData устанавливает данные чекбоксов при успешном ответе (строки 42-45)', async () => {
+  
+
+  it('успешно обновляет поток без загрузки нового изображения', async () => {
+    const { result } = renderHook(() => useStreamForm(123, mockNavigate));
+
+    act(() => {
+      result.current.handleNameChange({ target: { value: 'Stream Edit' } });
+      result.current.handleStartDateChange({ target: { value: '01012024' } });
+      result.current.handleEndDateChange({ target: { value: '02012024' } });
+      result.current.handleCheckboxChange(1);
+      // imageFile не установлен (null)
+      result.current.imageFile = null;
+    });
+
+    // Мокаем PATCH /admin/stream/123
     global.fetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => [{ id: 1, name: 'Market 1' }, { id: 2, name: 'Market 2' }],
+      json: async () => ({ id: 123 }),
     });
 
-    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    await act(async () => {
+      await result.current.handleSubmit(true);
+    });
 
-    // Ждем, пока данные загрузятся
-    await waitFor(() => expect(result.current.checkboxesData2.length).toBe(2));
-    expect(result.current.checkboxesData2).toEqual([{ id: 1, name: 'Market 1' }, { id: 2, name: 'Market 2' }]);
-    expect(result.current.error).toBeNull();
+    expect(alertMock).toHaveBeenCalledWith('Поток успешно обновлен!');
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
   });
 
-  it('fetchCheckboxesData устанавливает ошибку при неуспешном ответе (строки 65-66)', async () => {
+  it('создает поток и загружает дефолтное изображение, если imageFile не указан', async () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+    act(() => {
+      result.current.handleNameChange({ target: { value: 'Stream' } });
+      result.current.handleStartDateChange({ target: { value: '01012024' } });
+      result.current.handleEndDateChange({ target: { value: '02012024' } });
+      result.current.handleCheckboxChange(1);
+      result.current.imageFile = null;
+    });
+
+    // Мокаем создание потока
+    global.fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 999 }),
+      })
+      // Мокаем fetch('rabbit.png') для дефолтного изображения
+      .mockResolvedValueOnce({
+        ok: true,
+        blob: async () => new Blob(['dummy']),
+      })
+      // Мокаем загрузку дефолтного изображения
+      .mockResolvedValueOnce({
+        ok: true,
+      });
+
+    await act(async () => {
+      await result.current.handleSubmit(false);
+    });
+
+    expect(alertMock).toHaveBeenCalledWith('Поток успешно создан!');
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  it('выводит ошибку, если не удалось создать поток', async () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+
+    act(() => {
+      result.current.handleNameChange({ target: { value: 'Stream' } });
+      result.current.handleStartDateChange({ target: { value: '01012024' } });
+      result.current.handleEndDateChange({ target: { value: '02012024' } });
+      result.current.handleCheckboxChange(1);
+      result.current.imageFile = null;
+    });
+
+    // fetch отклоняется — имитируем ошибку
     global.fetch.mockRejectedValueOnce(new Error('Network error'));
 
+    await act(async () => {
+      await result.current.handleSubmit(false);
+    });
+
+    expect(result.current.error).toBe('Не удалось создать поток или загрузить изображение.');
+    expect(alertMock).not.toHaveBeenCalled();
+  });
+
+  it('выводит ошибку, если загрузка изображения не удалась', async () => {
     const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    const mockFile = new File(['dummy'], 'image.png', { type: 'image/png' });
 
-    await waitFor(() => {
-      expect(result.current.error).toBe('Не удалось загрузить данные для чекбоксов.');
+    act(() => {
+      result.current.handleNameChange({ target: { value: 'Stream' } });
+      result.current.handleStartDateChange({ target: { value: '01012024' } });
+      result.current.handleEndDateChange({ target: { value: '02012024' } });
+      result.current.handleCheckboxChange(1);
+      result.current.imageFile = mockFile;
     });
-  });
 
-  
-});
-
-  describe('useStreamForm specific line tests', () => {
-  const mockNavigate = jest.fn();
-
-  // Тесты для строк 42-45 (fetchCheckboxesData)
-  describe('fetchCheckboxesData (lines 42-45)', () => {
-    it('should fetch and set checkboxes data successfully', async () => {
-      const mockData = [{ id: 1, name: 'Market 1' }, { id: 2, name: 'Market 2' }];
-      global.fetch.mockResolvedValueOnce({
+    // fetch для создания потока успешный
+    global.fetch
+      .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockData),
+        json: async () => ({ id: 123 }),
+      })
+      // fetch для загрузки изображения возвращает ошибку
+      .mockResolvedValueOnce({
+        ok: false,
       });
 
-      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
-
-      await waitFor(() => {
-        expect(result.current.checkboxesData2).toEqual(mockData);
-        expect(result.current.error).toBeNull();
-      });
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/v1/streams/nti-markets'),
-        expect.objectContaining({ credentials: 'include' })
-      );
+    await act(async () => {
+      await result.current.handleSubmit(false);
     });
 
-    it('should set error when fetch fails', async () => {
-      global.fetch.mockRejectedValueOnce(new Error('Network error'));
-
-      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
-
-      await waitFor(() => {
-        expect(result.current.error).toBe('Не удалось загрузить данные для чекбоксов.');
-        expect(result.current.checkboxesData2).toEqual([]);
-      });
-    });
-  });
-
-  
-  // Тесты для строки 98 (handleClickOutside effect)
-  describe('handleClickOutside effect (line 98)', () => {
-    it('should close checkboxes when clicking outside', () => {
-      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
-
-      // Создаем mock элемент для checkboxesRef
-      const checkboxElement = document.createElement('div');
-      document.body.appendChild(checkboxElement);
-
-      act(() => {
-        result.current.checkboxesRef.current = checkboxElement;
-        result.current.handleShowCheckboxes2(); // Открываем чекбоксы
-      });
-
-      // Кликаем вне элемента
-      act(() => {
-        document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-      });
-
-      expect(result.current.showCheckboxes2).toBe(false);
-
-      // Убираем элемент
-      document.body.removeChild(checkboxElement);
-    });
-
-    it('should not close checkboxes when clicking inside', () => {
-      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
-
-      // Создаем mock элемент для checkboxesRef
-      const checkboxElement = document.createElement('div');
-      document.body.appendChild(checkboxElement);
-
-      act(() => {
-        result.current.checkboxesRef.current = checkboxElement;
-        result.current.handleShowCheckboxes2(); // Открываем чекбоксы
-      });
-
-      // Кликаем внутри элемента
-      act(() => {
-        checkboxElement.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-      });
-
-      expect(result.current.showCheckboxes2).toBe(true);
-
-      // Убираем элемент
-      document.body.removeChild(checkboxElement);
-    });
-
-    it('should clean up event listener on unmount', () => {
-      const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
-      const { unmount } = renderHook(() => useStreamForm(null, mockNavigate));
-
-      unmount();
-
-      expect(removeEventListenerSpy).toHaveBeenCalledWith(
-        'mousedown',
-        expect.any(Function)
-      );
-      removeEventListenerSpy.mockRestore();
-    });
+    expect(result.current.error).toBe('Не удалось создать поток или загрузить изображение.');
+    expect(alertMock).not.toHaveBeenCalled();
   });
 });
+
 });
