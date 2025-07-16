@@ -1,5 +1,13 @@
 rootProject.name = 'trackme'
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
+include 'platform'
+
 include ':backend'
 project(':backend').projectDir = file('apps/backend')
 
@@ -17,4 +25,3 @@ findProject(':commons').projectDir = file('libs/commons')
 
 include ':meeting-service'
 findProject(':meeting-service').projectDir = file('services/meeting-service')
-

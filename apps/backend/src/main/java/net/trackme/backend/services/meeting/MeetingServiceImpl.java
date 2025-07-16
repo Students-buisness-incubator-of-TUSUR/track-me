@@ -6,9 +6,9 @@ import net.trackme.backend.domain.TeamCard;
 import net.trackme.backend.repos.MeetingRepository;
 import net.trackme.backend.rest.api.meeting.MeetingEmptyImageException;
 import net.trackme.backend.rest.api.meeting.MeetingLargeImageSizeException;
-import net.trackme.backend.services.acl.AclService;
 import net.trackme.backend.services.exceptions.ImageUploadException;
 import net.trackme.backend.services.exceptions.MeetingNotFoundException;
+import net.trackme.commons.acl.AclService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -24,7 +24,6 @@ import java.util.UUID;
 
 import static net.trackme.backend.domain.spec.MeetingSpecification.meetingIdEquals;
 import static net.trackme.backend.domain.spec.MeetingSpecification.teamCardIdEquals;
-import static org.springframework.data.jpa.domain.Specification.where;
 
 @Service
 @RequiredArgsConstructor
@@ -56,7 +55,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Transactional
     @PreAuthorize("hasPermission(#teamCardId, 'net.trackme.backend.domain.TeamCard', 'READ') or hasRole('ADMIN')")
     public Meeting updateMeeting(UUID meetingId, UUID teamCardId, Meeting updateMeeting) {
-        var meeting = meetingRepository.findOne(where(teamCardIdEquals(teamCardId))
+        var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
         updateEntity(meeting, updateMeeting);
@@ -85,7 +84,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Transactional
     @PreAuthorize("hasPermission(#meetingId, 'net.trackme.backend.domain.Meeting', 'DELETE') or hasRole('ADMIN')")
     public void deleteMeeting(UUID meetingId) {
-        var meeting = meetingRepository.findOne(where(meetingIdEquals(meetingId)))
+        var meeting = meetingRepository.findOne(meetingIdEquals(meetingId))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
         meetingRepository.delete(meeting);
         aclService.deleteAcl(meeting);
@@ -117,7 +116,7 @@ public class MeetingServiceImpl implements MeetingService {
             }
         }
 
-        var meeting = meetingRepository.findOne(where(meetingIdEquals(meetingId)))
+        var meeting = meetingRepository.findOne(meetingIdEquals(meetingId))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
         try {
             meeting.setImageBytes(file.getBytes());

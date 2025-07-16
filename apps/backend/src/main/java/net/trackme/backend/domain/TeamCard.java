@@ -70,6 +70,7 @@ public class TeamCard {
     private Set<Stream> streams = new HashSet<>();
 
     @Column(name = "average_grade", precision = 3, scale = 2)
+    @Builder.Default
     private BigDecimal averageGrade = BigDecimal.ZERO;
 
     public void addStream(Stream stream) {

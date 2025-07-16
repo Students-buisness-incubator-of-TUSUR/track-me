@@ -10,13 +10,13 @@ ext {
 }
 
 dependencies {
+    implementation platform(project(':platform'))
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.7.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'io.projectreactor:reactor-test'

@@ -1,7 +1,8 @@
 package net.trackme.backend.configuration;
 
 import lombok.RequiredArgsConstructor;
-import net.trackme.backend.services.acl.PostgresJdbcMutableAclService;
+import net.trackme.commons.acl.AclService;
+import net.trackme.commons.acl.PostgresJdbcMutableAclService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.annotation.Bean;
@@ -45,7 +46,16 @@ public class MethodSecurityConfiguration {
 
     @Bean
     public MutableAclService mutableAclService(RoleHierarchy roleHierarchy) {
-        return new PostgresJdbcMutableAclService(dataSource, lookupStrategy(roleHierarchy), aclCache(roleHierarchy), properties);
+        return new PostgresJdbcMutableAclService(dataSource,
+                lookupStrategy(roleHierarchy),
+                aclCache(roleHierarchy),
+                properties.getClassIdentityQuery(),
+                properties.getSidIdentityQuery());
+    }
+
+    @Bean
+    AclService aclService(MutableAclService mutableAclService) {
+        return new AclService(mutableAclService);
     }
 
     @Bean

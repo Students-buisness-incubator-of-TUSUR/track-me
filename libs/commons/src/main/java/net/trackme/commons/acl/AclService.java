@@ -1,20 +1,16 @@
-package net.trackme.backend.services.acl;
+package net.trackme.commons.acl;
 
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.*;
-import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Slf4j
-@Service
-@RequiredArgsConstructor
 @Transactional
 public class AclService {
     private static final List<Permission> FULL_PERMISSIONS = List.of(
@@ -27,6 +23,10 @@ public class AclService {
     private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     private final MutableAclService mutableAclService;
+
+    public AclService(MutableAclService mutableAclService) {
+        this.mutableAclService = mutableAclService;
+    }
 
     public void createAclForUser(Object identity, String ownerUsername) {
         log.info("Создание ACL для пользователя '{}' и объекта '{}'", ownerUsername, identity);

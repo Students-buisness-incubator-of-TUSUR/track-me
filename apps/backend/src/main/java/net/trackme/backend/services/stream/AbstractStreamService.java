@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import static net.trackme.backend.domain.spec.StreamSpecification.byId;
 import static net.trackme.backend.domain.spec.StreamSpecification.currentlyActive;
-import static org.springframework.data.jpa.domain.Specification.where;
 
 
 @RequiredArgsConstructor
@@ -48,7 +47,7 @@ public abstract class AbstractStreamService implements StreamService {
 
     @Override
     public Stream findActive(UUID id) {
-        return streamRepository.findOne(where(currentlyActive())
+        return streamRepository.findOne(currentlyActive()
                         .and(byId(id)))
                 .orElseThrow(() -> new ActiveStreamNotFoundException(id));
     }
