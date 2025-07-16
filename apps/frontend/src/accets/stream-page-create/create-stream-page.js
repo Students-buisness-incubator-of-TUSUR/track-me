@@ -97,13 +97,15 @@ export default function CreateStream() {
                       className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}
                     >
                       <input
-                        type="checkbox"
-                        checked={selectedCheckboxes.includes(item.id)}
-                        onChange={() => handleCheckboxChange(item.id)}
-                      />
-                      <label className="Stream-header-checkbox-label" htmlFor={`checkbox-${item.id}`}>
-                        {item.displayName || item.name}
-                      </label>
+  type="checkbox"
+  id={`checkbox-${item.id}`} // ← вот это нужно
+  checked={selectedCheckboxes.includes(item.id)}
+  onChange={() => handleCheckboxChange(item.id)}
+/>
+<label className="Stream-header-checkbox-label" htmlFor={`checkbox-${item.id}`}>
+  {item.displayName || item.name}
+</label>
+
                     </div>
                   ))}
                 </div>

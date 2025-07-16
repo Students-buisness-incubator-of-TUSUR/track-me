@@ -104,4 +104,37 @@ describe('EditStream Component', () => {
     fireEvent.change(endDateInput, { target: { value: '02.01.2025' } });
     expect(mockUseStreamForm.handleEndDateChange).toHaveBeenCalled();
   });
+  test('should render checkboxes and handle checkbox interactions', () => {
+  // Включаем отображение чекбоксов
+  mockUseStreamForm.showCheckboxes2 = true;
+  useStreamForm.mockReturnValue(mockUseStreamForm);
+
+  render(<EditStream />);
+
+  // Проверяем наличие чекбоксов
+  const checkbox1 = screen.getByLabelText(/Market One/i);
+  const checkbox2 = screen.getByLabelText(/Market Two/i);
+
+  expect(checkbox1).toBeInTheDocument();
+  expect(checkbox2).toBeInTheDocument();
+
+  // Кликаем по чекбоксам
+  fireEvent.click(checkbox1);
+  expect(mockUseStreamForm.handleCheckboxChange).toHaveBeenCalledWith('1');
+
+  fireEvent.click(checkbox2);
+  expect(mockUseStreamForm.handleCheckboxChange).toHaveBeenCalledWith('2');
+});
+test('should clear error when close error button is clicked', () => {
+  mockUseStreamForm.error = 'Произошла ошибка';
+  useStreamForm.mockReturnValue(mockUseStreamForm);
+
+  render(<EditStream />);
+  
+  const buttons = screen.getAllByRole('button', { name: '×' });
+  const closeErrorButton = buttons.find(btn => btn.className.includes('stream-error-close'));
+
+  fireEvent.click(closeErrorButton);
+  expect(mockUseStreamForm.setError).toHaveBeenCalledWith(null);
+});
 });

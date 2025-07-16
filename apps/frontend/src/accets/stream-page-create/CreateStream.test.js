@@ -132,5 +132,50 @@ describe('CreateStream Component', () => {
   });
 
   // Test form submission
+  // Проверка закрытия ошибки при нажатии на кнопку закрытия
+test('should clear error when close error button is clicked', () => {
+  mockUseStreamForm.error = 'Произошла ошибка';
+  useStreamForm.mockReturnValue(mockUseStreamForm);
+
+  render(<CreateStream />);
   
+  const buttons = screen.getAllByRole('button', { name: '×' });
+  const closeErrorButton = buttons.find(btn => btn.className.includes('stream-error-close'));
+
+  fireEvent.click(closeErrorButton);
+  expect(mockUseStreamForm.setError).toHaveBeenCalledWith(null);
+});
+
+
+// Проверка вызова handleSubmit при нажатии на кнопку "Создать"
+test('should call handleSubmit when create button is clicked', () => {
+  render(<CreateStream />);
+  
+  const createButton = screen.getByRole('button', { name: /Создать/i });
+  fireEvent.click(createButton);
+  
+  expect(mockUseStreamForm.handleSubmit).toHaveBeenCalled();
+});
+test('should render checkboxes and handle checkbox interactions', () => {
+  // Активируем отображение чекбоксов
+  mockUseStreamForm.showCheckboxes2 = true;
+  useStreamForm.mockReturnValue(mockUseStreamForm);
+
+  render(<CreateStream />);
+
+  // Проверка наличия чекбоксов
+  const checkbox1 = screen.getByLabelText(/Market One/i);
+  const checkbox2 = screen.getByLabelText(/Market Two/i);
+
+  expect(checkbox1).toBeInTheDocument();
+  expect(checkbox2).toBeInTheDocument();
+
+  // Клик по чекбоксу
+  fireEvent.click(checkbox1);
+  expect(mockUseStreamForm.handleCheckboxChange).toHaveBeenCalledWith('1');
+
+  fireEvent.click(checkbox2);
+  expect(mockUseStreamForm.handleCheckboxChange).toHaveBeenCalledWith('2');
+});
+
 });

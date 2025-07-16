@@ -87,6 +87,7 @@ export default function EditStream() { //NOSONAR
                     > {/* NOSONAR */}
                       <input //NOSONAR
                         type="checkbox" //NOSONAR
+                        id={`checkbox-${item.id}`}
                         checked={selectedCheckboxes.includes(item.id)} //NOSONAR
                         onChange={() => handleCheckboxChange(item.id)} //NOSONAR
                       /> {/* NOSONAR */}
