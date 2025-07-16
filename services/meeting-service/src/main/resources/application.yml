@@ -56,15 +56,9 @@ springdoc:
   swagger-ui:
     enabled: false
 app:
-  name: ${APP_NAME:track-me-meeting-service}
-  mail:
-    from: ${MAIL_FROM}
   acl:
     sid-identity-query: "select currval(pg_get_serial_sequence('acl_sid', 'id'))"
     class-identity-query: "select currval(pg_get_serial_sequence('acl_class', 'id'))"
-  api-url: ${BACKEND_URI:http://127.0.0.1:8081}/meetings/
-  app-url: ${FRONTEND_URI:http://127.0.0.1:3000}
-
 ---
 spring:
   config:
