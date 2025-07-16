@@ -57,15 +57,14 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           pwd; ls -l .
-          JACOCO_PATH1="$GITHUB_WORKSPACE/apps/backend/build/reports/jacoco/test/jacocoTestReport.xml"
-          JACOCO_PATH2="$GITHUB_WORKSPACE/services/trackme-sso/build/reports/jacoco/test/jacocoTestReport.xml"
           ./gradlew build sonar \
             -Dsonar.projectKey=${{ secrets.SONAR_BACKEND_PROJECT_KEY }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
-            -Dsonar.coverage.jacoco.xmlReportPaths=$JACOCO_PATH1,$JACOCO_PATH2 \
+            -Dsonar.log.level=DEBUG \
+            -Dsonar.sources=apps/*/src/main/java,apps/*/src/main/resources,services/*/src/main/java,services/*/src/main/resources
 
   frontend-sonar:
     runs-on: ubuntu-latest
@@ -108,7 +107,7 @@ jobs:
             -Dsonar.exclusions="src/**/*.test.js,src/**/*.spec.js,src/**/__tests__/**" \
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }}

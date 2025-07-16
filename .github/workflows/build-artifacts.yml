@@ -100,6 +100,34 @@ jobs:
             ghcr.io/${{ github.repository }}/gateway:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  trackme-report-service-build-push:
+    needs: changes
+    if: needs.changes.outputs.gateway == 'true' || github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+      - name: Build and Push trackme-report-service Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/trackme-report-service/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/report-service:latest
+            ghcr.io/${{ github.repository }}/report-service:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/report-service:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   trackme-sso-build-push:
     needs: changes
