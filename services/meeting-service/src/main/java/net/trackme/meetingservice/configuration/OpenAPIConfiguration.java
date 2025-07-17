@@ -32,16 +32,17 @@ public class OpenAPIConfiguration {
     @Bean
     public OpenAPI openApi() {
         return new OpenAPI()
-                .info(new Info()
-                        .title(buildProperties.getName())
-                        .description("API сервиса управления встречами TrackMe")
-                        .version(buildProperties.getVersion())).addSecurityItem(
-                        new SecurityRequirement().addList(XSRF_TOKEN)).components(
-                        new Components().addSecuritySchemes(
-                                XSRF_TOKEN,
-                                new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(
-                                        SecurityScheme.In.HEADER).name(XSRF_TOKEN)))
-                .servers(List.of(new Server()
-                        .url(appProperties.getApiUrl())));
+                .info(
+                        new Info()
+                                .title(buildProperties.getName())
+                                .description("API сервиса управления встречами TrackMe")
+                                .version(buildProperties.getVersion()))
+                .addSecurityItem(new SecurityRequirement().addList(XSRF_TOKEN))
+                .components(new Components()
+                        .addSecuritySchemes(
+                                XSRF_TOKEN, new SecurityScheme()
+                                        .type(SecurityScheme.Type.APIKEY)
+                                        .in(SecurityScheme.In.HEADER).name(XSRF_TOKEN)))
+                .servers(List.of(new Server().url(appProperties.getApiUrl())));
     }
 }
