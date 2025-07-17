@@ -36,6 +36,13 @@ spring:
           filters:
             - TokenRelay
             - StripPrefix=1
+        - id: trackme-meeting-service
+          uri: http://trackme-meeting-service:8082
+          predicates:
+            - Path=/meeting/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
         - id: trackme-sso
           uri: http://trackme-sso:9000
           predicates:
@@ -77,6 +84,9 @@ springdoc:
       - name: TrackMe Backend
         display-name: TrackMe Backend
         url: ${BACKEND_URI:http://127.0.0.1:8081}/backend/v3/api-docs
+      - name: TrackMe Meeting Service
+        display-name: TrackMe Meeting Service
+        url: ${BACKEND_URI:http://127.0.1:8081}/meeting/v3/api-docs
     with-credentials: true
     csrf:
       enabled: true
@@ -96,6 +106,13 @@ spring:
           uri: http://localhost:8080
           predicates:
             - Path=/backend/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
+        - id: trackme-meeting-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/meeting/**
           filters:
             - TokenRelay
             - StripPrefix=1
@@ -141,6 +158,13 @@ spring:
           uri: http://host.docker.internal:9000
           predicates:
             - Path=/sso/**
+          filters:
+            - TokenRelay
+            - StripPrefix=1
+        - id: trackme-meeting-service
+          uri: http://host.docker.internal:8082
+          predicates:
+            - Path=/meeting/**
           filters:
             - TokenRelay
             - StripPrefix=1
@@ -193,6 +217,9 @@ springdoc:
       - name: TrackMe Backend
         display-name: TrackMe Backend
         url: http://127.0.0.1:8081/backend/v3/api-docs
+      - name: TrackMe Meeting Service
+        display-name: TrackMe Meeting Service
+        url: http://127.0.1:8081/meeting/v3/api-docs
     with-credentials: true
     csrf:
       enabled: true
