@@ -14,13 +14,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
-@Tag(name = "Meeting API",
+@Tag(
+        name = "Meeting API",
         description = "API для работы с встречами команды")
-@RequestMapping("/api/v1/")
+@RequestMapping("/api/v1")
 public interface MeetingRestController {
 
     @Operation(summary = "Создание встречи команды")
-    @PostMapping(consumes = "application/json",
+    @PostMapping(
+            value = "/create-meeting",
+            consumes = "application/json",
             produces = "application/json")
     ResponseEntity<MeetingDto> createMeeting(
             @RequestParam UUID teamCardId,
@@ -32,7 +35,8 @@ public interface MeetingRestController {
                                        @ParameterObject @PageableDefault Pageable pageable);
 
     @Operation(summary = "Обновление встречи команды")
-    @PatchMapping(value = "/{meetingId}",
+    @PatchMapping(
+            value = "/{meetingId}",
             consumes = "application/json",
             produces = "application/json")
     ResponseEntity<MeetingDto> updateMeeting(@PathVariable UUID meetingId,
@@ -44,12 +48,14 @@ public interface MeetingRestController {
     ResponseEntity<Void> deleteMeeting(@PathVariable UUID meetingId);
 
     @Operation(summary = "Добавление изображения к встрече")
-    @PostMapping(value = "/{meetingId}/image",
+    @PostMapping(
+            value = "/{meetingId}/image",
             consumes = "multipart/form-data")
     ResponseEntity<Void> addImage(@PathVariable UUID meetingId, @RequestParam MultipartFile file);
 
     @Operation(summary = "Получение изображения встречи")
-    @GetMapping(value = "/{meetingId}/image",
+    @GetMapping(
+            value = "/{meetingId}/image",
             produces = "image/png")
     ResponseEntity<Resource> getImage(@PathVariable UUID meetingId);
 }

@@ -16,43 +16,43 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MeetingRestControllerImpl implements MeetingRestController {
 
-    private final MeetingService teamCardMeetingUseCase;
+    private final MeetingService meetingService;
 
     @Override
     public ResponseEntity<MeetingDto> createMeeting(UUID teamCardId,
                                                     MeetingCreateDto meetingCreateDto) {
-        var meeting = teamCardMeetingUseCase.createMeeting(teamCardId, meetingCreateDto);
+        var meeting = meetingService.createMeeting(teamCardId, meetingCreateDto);
         return ResponseEntity.ok(meeting);
     }
 
     @Override
     public PagedModel<MeetingDto> getMeetings(UUID teamCardId, Pageable pageable) {
-        var meetings = teamCardMeetingUseCase.getMeetings(teamCardId, pageable);
+        var meetings = meetingService.getMeetings(teamCardId, pageable);
         return new PagedModel<>(meetings);
     }
 
     @Override
     public ResponseEntity<MeetingDto> updateMeeting(UUID meetingId, UUID teamCardId,
                                                     MeetingUpdateDto meetingCreateDto) {
-        var meeting = teamCardMeetingUseCase.updateMeeting(meetingId, teamCardId, meetingCreateDto);
+        var meeting = meetingService.updateMeeting(meetingId, teamCardId, meetingCreateDto);
         return ResponseEntity.ok(meeting);
     }
 
     @Override
     public ResponseEntity<Void> deleteMeeting(UUID meetingId) {
-        teamCardMeetingUseCase.deleteMeeting(meetingId);
+        meetingService.deleteMeeting(meetingId);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Void> addImage(UUID meetingId, MultipartFile file) {
-        teamCardMeetingUseCase.addMeetingImage(meetingId, file);
+        meetingService.addMeetingImage(meetingId, file);
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Resource> getImage(UUID meetingId) {
-        var image = teamCardMeetingUseCase.getMeetingImage(meetingId);
+        var image = meetingService.getMeetingImage(meetingId);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
                 .body(image);
