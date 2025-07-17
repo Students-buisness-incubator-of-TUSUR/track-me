@@ -13,17 +13,6 @@ subprojects {
     repositories {
         mavenCentral()
     }
-
-    tasks.withType(JavaCompile).configureEach {
-        options.encoding = 'UTF-8'
-        sourceCompatibility = '21'
-        targetCompatibility = '21'
-    }
-
-    tasks.withType(Test).configureEach {
-        useJUnitPlatform()
-        finalizedBy jacocoTestReport
-    }
 }
 
 sonarqube {
