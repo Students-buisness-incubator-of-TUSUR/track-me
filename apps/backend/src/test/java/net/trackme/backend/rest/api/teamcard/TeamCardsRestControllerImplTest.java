@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -60,6 +61,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .toList();
 
         mockMvc.perform(post("/api/v1/team-card")
+                        .with(csrf())
                         .param("streamId", stream.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -85,6 +87,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             roles = "TRACKER")
     void createTeamCard_validationError() throws Exception {
         mockMvc.perform(post("/api/v1/team-card")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andDo(print())
@@ -106,6 +109,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
 
         mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("teamCardId", teamCard.getId().toString())
                         .content("""
@@ -181,6 +185,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -217,6 +222,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -245,6 +251,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             roles = "TRACKER")
     void getTeamCards_withFilters_emptyResult() throws Exception {
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -267,6 +274,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             roles = "TRACKER")
     void getTeamCards_withFilters_validationError() throws Exception {
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andDo(print())
@@ -298,6 +306,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .param("sort", "name,asc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -346,6 +355,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .param("sort", "name,asc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -394,6 +404,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -428,6 +439,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             roles = "TRACKER")
     void getTeamCards_withFilters_withInvalidField() throws Exception {
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -469,6 +481,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -517,6 +530,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -547,6 +561,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/team-card")
+                        .with(csrf())
                         .param("streamId", stream.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -566,6 +581,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.status", is(TeamCardStatus.OK.name())));
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -596,6 +612,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/team-card")
+                        .with(csrf())
                         .param("streamId", stream.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -615,6 +632,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.status", is(TeamCardStatus.OK.name())));
 
         mockMvc.perform(post("/api/v1/team-cards")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -647,6 +665,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/team-card")
+                        .with(csrf())
                         .param("streamId", stream.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -669,6 +688,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/team-card")
+                        .with(csrf())
                         .param("streamId", stream.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -715,6 +735,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         mockMvc.perform(post("/api/v1/admin/team-card")
+                        .with(csrf())
                         .param("streamId", stream.getId().toString())
                         .param("username", "otherUser")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -737,6 +758,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
         mockMvc.perform(post("/api/v1/team-cards")
                         .param("id", "Test")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

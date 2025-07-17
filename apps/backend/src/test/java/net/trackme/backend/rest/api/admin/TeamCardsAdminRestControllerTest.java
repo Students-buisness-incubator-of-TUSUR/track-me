@@ -18,6 +18,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -59,6 +60,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 "tracker1");
 
         mockMvc.perform(get("/api/v1/team-card")
+                        .with(csrf())
                         .param("id", teamCard.getId().toString())
                         .with(user("tracker1").roles("TRACKER")))
                 .andExpect(status().isOk())
@@ -67,6 +69,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
         mockMvc.perform(patch("/api/v1/admin/team-card")
                         .param("teamCardId", teamCard.getId().toString())
                         .param("username", "tracker2")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {

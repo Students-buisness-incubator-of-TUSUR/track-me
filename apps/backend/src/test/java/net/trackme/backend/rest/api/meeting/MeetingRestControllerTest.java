@@ -24,6 +24,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -98,6 +99,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
                 .build();
 
         mockMvc.perform(post("/api/v1/meetings")
+                        .with(csrf())
                         .param("teamCardId", teamCard.getId().toString())
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(meetingCreateDto)))
@@ -121,6 +123,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
                 .build();
 
         mockMvc.perform(post("/api/v1/meetings")
+                        .with(csrf())
                         .param("teamCardId", "00000000-0000-0000-0000-000000000000")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(meetingCreateDto)))
@@ -132,6 +135,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
     @Test
     void getMeetings_success() throws Exception {
         mockMvc.perform(get("/api/v1/meetings")
+                        .with(csrf())
                         .param("teamCardId", teamCard.getId().toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -143,6 +147,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER, roles = {"SUPER_ADMIN"})
     void getMeetings_success_superAdmin() throws Exception {
         mockMvc.perform(get("/api/v1/meetings")
+                        .with(csrf())
                         .param("teamCardId", teamCard.getId().toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -161,6 +166,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         var teamCardId = teamCard.getId().toString();
         var meetingId = meetingRepository.findAll().getFirst().getId().toString();
         mockMvc.perform(patch("/api/v1/meetings/" + meetingId)
+                        .with(csrf())
                         .param("teamCardId", teamCardId)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(meetingUpdateDto)))
@@ -184,6 +190,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         var teamCardId = teamCard.getId().toString();
         var meetingId = meetingRepository.findAll().getFirst().getId().toString();
         mockMvc.perform(patch("/api/v1/meetings/" + meetingId)
+                        .with(csrf())
                         .param("teamCardId", teamCardId)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(meetingUpdateDto)))
@@ -202,6 +209,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         var mockMultipartFile = new MockMultipartFile("file", "test.png", contentType, "test".getBytes());
         mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
                         .file(mockMultipartFile)
+                        .with(csrf())
                         .contentType("multipart/form-data"))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -215,6 +223,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         var mockMultipartFile = new MockMultipartFile("file", "test.txt", "text/plain", "test".getBytes());
         mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
                         .file(mockMultipartFile)
+                        .with(csrf())
                         .contentType("multipart/form-data"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -226,6 +235,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         var mockMultipartFile = new MockMultipartFile("file", "test.png", "image/png", new byte[MeetingService.MAX_FILE_SIZE + 1]);
         mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
                         .file(mockMultipartFile)
+                        .with(csrf())
                         .contentType("multipart/form-data"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -237,6 +247,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         var mockMultipartFile = new MockMultipartFile("file", "test.png", "image/png", new byte[0]);
         mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
                         .file(mockMultipartFile)
+                        .with(csrf())
                         .contentType("multipart/form-data"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -248,6 +259,7 @@ class MeetingRestControllerTest extends BaseApplicationTest {
         var mockMultipartFile = new MockMultipartFile("file", "test.txt", "image/png", "test".getBytes());
         mockMvc.perform(multipart("/api/v1/meetings/" + meetingId + "/image")
                         .file(mockMultipartFile)
+                        .with(csrf())
                         .contentType("multipart/form-data"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -257,7 +269,8 @@ class MeetingRestControllerTest extends BaseApplicationTest {
     void testGetImage_success() throws Exception {
         var meetingId = meetingRepository.findAll().getFirst().getId();
         meetingService.addImage(meetingId, new MockMultipartFile("file", "test.png", "image/png", "test".getBytes()));
-        mockMvc.perform(get("/api/v1/meetings/" + meetingId + "/image"))
+        mockMvc.perform(get("/api/v1/meetings/" + meetingId + "/image")
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("image/png"));
