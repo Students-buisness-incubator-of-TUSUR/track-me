@@ -30,13 +30,15 @@ public interface MeetingRestController {
             @Valid @RequestBody MeetingCreateDto meetingCreateDto);
 
     @Operation(summary = "Получение списка встреч команды")
-    @GetMapping(produces = "application/json")
+    @GetMapping(
+            produces = "application/json",
+            value = "/meetings")
     PagedModel<MeetingDto> getMeetings(@RequestParam UUID teamCardId,
                                        @ParameterObject @PageableDefault Pageable pageable);
 
     @Operation(summary = "Обновление встречи команды")
     @PatchMapping(
-            value = "/{meetingId}",
+            value = "update-meeting/{meetingId}",
             consumes = "application/json",
             produces = "application/json")
     ResponseEntity<MeetingDto> updateMeeting(@PathVariable UUID meetingId,
@@ -49,13 +51,13 @@ public interface MeetingRestController {
 
     @Operation(summary = "Добавление изображения к встрече")
     @PostMapping(
-            value = "/{meetingId}/image",
+            value = "image/{meetingId}",
             consumes = "multipart/form-data")
     ResponseEntity<Void> addImage(@PathVariable UUID meetingId, @RequestParam MultipartFile file);
 
     @Operation(summary = "Получение изображения встречи")
     @GetMapping(
-            value = "/{meetingId}/image",
+            value = "image/{meetingId}",
             produces = "image/png")
     ResponseEntity<Resource> getImage(@PathVariable UUID meetingId);
 }

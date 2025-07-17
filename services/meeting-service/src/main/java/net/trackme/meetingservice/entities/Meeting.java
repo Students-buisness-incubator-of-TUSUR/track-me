@@ -31,11 +31,6 @@ public class Meeting {
     @Column(nullable = false)
     private OffsetDateTime startDate;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @Column
-    private byte[] screenshot;
-
     @Enumerated(EnumType.STRING)
     @Column(length = 32)
     private MeetingStatus status;

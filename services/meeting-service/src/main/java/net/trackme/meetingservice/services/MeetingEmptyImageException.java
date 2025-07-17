@@ -1,4 +1,4 @@
-package net.trackme.meetingservice.api;
+package net.trackme.meetingservice.services;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

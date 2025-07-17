@@ -2,7 +2,9 @@ package net.trackme.meetingservice.services;
 
 import lombok.RequiredArgsConstructor;
 import net.trackme.commons.acl.AclService;
-import net.trackme.meetingservice.api.*;
+import net.trackme.meetingservice.api.MeetingCreateDto;
+import net.trackme.meetingservice.api.MeetingDto;
+import net.trackme.meetingservice.api.MeetingUpdateDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.mapping.MeetingMapper;
@@ -99,7 +101,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         var meeting = getMeeting(meetingId);
         try {
-            meeting.setScreenshot(file.getBytes());
+            meeting.setImageBytes(file.getBytes());
             meetingRepository.save(meeting);
         } catch (Exception e) {
             throw new MeetingImageUploadException(meetingId, e);
@@ -111,7 +113,7 @@ public class MeetingServiceImpl implements MeetingService {
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN')")
     public Resource getMeetingImage(UUID meetingId) {
         var meeting = getMeeting(meetingId);
-        return new ByteArrayResource(meeting.getScreenshot());
+        return new ByteArrayResource(meeting.getImageBytes());
     }
 
     private Meeting getMeeting(UUID meetingId) {
