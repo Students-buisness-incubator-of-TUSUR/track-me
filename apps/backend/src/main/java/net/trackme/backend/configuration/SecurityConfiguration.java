@@ -25,60 +25,60 @@ import static net.trackme.backend.models.UserRole.*;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-  /**
-   * Устонавливает фильтры безопасности.
-   *
-   * @param http объект {@link HttpSecurity}
-   * @return объект {@link SecurityFilterChain}
-   * @throws Exception возможное исключение.
-   */
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(AbstractHttpConfigurer::disable)
-        .cors(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(request -> request
-            .requestMatchers("/api/v1/auth/**").permitAll()
-            .requestMatchers(
-                "/swagger-ui/**",
-                "/swagger-resources/*",
-                "/actuator/**",
-                "/v3/api-docs/**",
-                "/v3/api-docs.yaml/**",
-                "/api/v1/users/register",
-                "/v3/api-docs.yaml").permitAll()
-            .requestMatchers("/api/v1/admin/**").hasRole(ADMIN.toString())
-            .requestMatchers("/api/v1/**").hasRole(TRACKER.toString())
-            .requestMatchers("/api/v1/super-admin/**").hasRole(SUPER_ADMIN.toString())
-            .anyRequest().authenticated())
-        .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .oauth2ResourceServer(rs ->
-            rs.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
-    return http.build();
-  }
+    /**
+     * Устонавливает фильтры безопасности.
+     *
+     * @param http объект {@link HttpSecurity}
+     * @return объект {@link SecurityFilterChain}
+     * @throws Exception возможное исключение.
+     */
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-resources/*",
+                                "/actuator/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml/**",
+                                "/api/v1/users/register",
+                                "/v3/api-docs.yaml").permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole(ADMIN.toString())
+                        .requestMatchers("/api/v1/**").hasRole(TRACKER.toString())
+                        .requestMatchers("/api/v1/super-admin/**").hasRole(SUPER_ADMIN.toString())
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer(rs ->
+                        rs.jwt(jwt -> jwt.jwtAuthenticationConverter(
+                                jwtAuthenticationConverter())));
+        return http.build();
+    }
 
-  /**
-   * Конструирует {@link RoleHierarchy}.
-   *
-   * @return Иерархия ролей.
-   */
-  @Bean
-  public RoleHierarchy roleHierarchy() {
-    String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
-                       "ROLE_ADMIN > ROLE_TRACKER";
-    return RoleHierarchyImpl.fromHierarchy(hierarchy);
-  }
+    /**
+     * Конструирует {@link RoleHierarchy}.
+     *
+     * @return Иерархия ролей.
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
+                           "ROLE_ADMIN > ROLE_TRACKER";
+        return RoleHierarchyImpl.fromHierarchy(hierarchy);
+    }
 
-  @Bean
-  public JwtAuthenticationConverter jwtAuthenticationConverter() {
-    JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
-        new JwtGrantedAuthoritiesConverter();
-    grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_"); // Добавляем префикс "ROLE_"
-    grantedAuthoritiesConverter.setAuthoritiesClaimName("roles"); // Читаем роли из "roles"
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
+                new JwtGrantedAuthoritiesConverter();
+        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_"); // Добавляем префикс "ROLE_"
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("roles"); // Читаем роли из "roles"
 
-    JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-    jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-    return jwtConverter;
-  }
+        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        jwtConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+        return jwtConverter;
+    }
 }
