@@ -67,7 +67,7 @@ const MeetingCard = () => {
                 setError("Не удалось загрузить данные встречи");
             });
         }
-    }, [meetingId, teamId, isNewMeeting]);
+    }, [meetingId, teamId, isNewMeeting, backendHost]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

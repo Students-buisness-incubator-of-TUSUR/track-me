@@ -133,19 +133,50 @@ describe('Компонент MeetingCreate', () => {
       });
     });
 
-    it('должен обрабатывать ошибку API при создании', async () => {
-      global.fetch.mockImplementation((url) => {
-        if (typeof url === 'string' && url.includes('api/v1/meetings?teamCardId=team123')) {
-          return Promise.resolve({
-            ok: false,
-            text: () => Promise.resolve('Ошибка валидации'),
-          });
-        }
+    it('должен обрабатывать ошибку API при создании встречи с сообщением', async () => {
+    global.fetch.mockImplementation((url) => {
+      if (typeof url === 'string' && url.includes('api/v1/meetings?teamCardId=team123')) {
         return Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({ message: 'Не удалось создать встречу' }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [] }),
+      });
+    });
+
+    render(<MeetingCreate onClose={mockOnClose} teamId={teamId} />);
+
+    const createButton = await screen.findByText('Создать');
+    fireEvent.click(createButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Не удалось создать встречу')).toBeInTheDocument();
+      expect(mockOnClose).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  
+  
+
+    
+  });
+  describe('Error handling for meeting creation (lines 98-110)', () => {
+    it('should handle server error when creating meeting', async () => {
+      global.fetch.mockImplementationOnce(() =>
+        Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ content: [] }),
-        });
-      });
+        })
+      ).mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({ message: 'Creation failed' }),
+        })
+      );
 
       render(<MeetingCreate onClose={mockOnClose} teamId={teamId} />);
 
@@ -153,10 +184,85 @@ describe('Компонент MeetingCreate', () => {
       fireEvent.click(createButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Ошибка валидации')).toBeInTheDocument();
+        expect(screen.getByText('Creation failed')).toBeInTheDocument();
       });
     });
 
-    
+    it('should show default error when no message from server on creation', async () => {
+      global.fetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [] }),
+        })
+      ).mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({}),
+        })
+      );
+
+      render(<MeetingCreate onClose={mockOnClose} teamId={teamId} />);
+
+      const createButton = await screen.findByText('Создать');
+      fireEvent.click(createButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('Ошибка при создании встречи')).toBeInTheDocument();
+      });
+    });
   });
+  describe('Валидация данных встречи', () => {
+  
+
+  it('должен показывать ошибку если дата встречи в прошлом', async () => {
+    render(<MeetingCreate onClose={mockOnClose} teamId={teamId} />);
+
+    // Simulate a past date
+    const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+    const dateInput = screen.getByDisplayValue(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+    fireEvent.change(dateInput, { target: { value: pastDate, name: 'startDate' } });
+
+    const createButton = await screen.findByText('Создать');
+    fireEvent.click(createButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Дата встречи должна быть в будущем')).toBeInTheDocument();
+    });
+  });
+});
+it('должен очищать ошибку при изменении поля ввода', async () => {
+  global.fetch.mockImplementation((url) => {
+    if (typeof url === 'string' && url.includes('api/v1/meetings?teamCardId=team123')) {
+      return Promise.resolve({
+        ok: false,
+        json: () => Promise.resolve({ message: 'Не удалось создать встречу' }),
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [] }),
+    });
+  });
+
+  render(<MeetingCreate onClose={mockOnClose} teamId={teamId} />);
+
+  // Trigger an error by attempting to create a meeting
+  const createButton = await screen.findByText('Создать');
+  fireEvent.click(createButton);
+
+  await waitFor(() => {
+    expect(screen.getByText('Не удалось создать встречу')).toBeInTheDocument();
+  });
+
+  // Change the date input
+  const dateInput = screen.getByDisplayValue(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+  fireEvent.change(dateInput, {
+    target: { value: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16), name: 'startDate' },
+  });
+
+  await waitFor(() => {
+    expect(screen.queryByText('Не удалось создать встречу')).not.toBeInTheDocument();
+  });
+});
+
 });

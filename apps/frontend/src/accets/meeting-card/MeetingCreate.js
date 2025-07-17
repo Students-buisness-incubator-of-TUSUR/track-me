@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./meeting-card.css";
 
-const backendHost = process.env.REACT_APP_BACKEND_URI + '/backend';
+const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
 
 const MeetingCreate = ({ onClose, teamId }) => {
     const navigate = useNavigate();
@@ -12,7 +12,7 @@ const MeetingCreate = ({ onClose, teamId }) => {
     const [error, setError] = useState(null);
     const [meetingData, setMeetingData] = useState({
         number: "1",
-        startDate: new Date().toISOString(),
+        startDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     });
     const popupRef = useRef(null);
 
@@ -29,7 +29,10 @@ const MeetingCreate = ({ onClose, teamId }) => {
                     credentials: 'include',
                 });
 
-                if (!response.ok) throw new Error('Ошибка загрузки встреч');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Ошибка загрузки встреч');
+                }
 
                 const data = await response.json();
                 let maxNumber = 0;
@@ -69,13 +72,27 @@ const MeetingCreate = ({ onClose, teamId }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setMeetingData(prev => ({ ...prev, [name]: value }));
+        if (error) setError(null);
+    };
+
+    const validateMeetingData = () => {
+        if (!meetingData.number || isNaN(parseInt(meetingData.number))) {
+            throw new Error("Номер встречи должен быть числом");
+        }
+
+        const selectedDate = new Date(meetingData.startDate);
+        const currentDate = new Date();
+        
+        if (selectedDate <= currentDate) {
+            throw new Error("Дата встречи должна быть в будущем");
+        }
+
+        return true;
     };
 
     const handleCreate = async () => {
         try {
-            if (!meetingData.number || isNaN(parseInt(meetingData.number))) {
-                throw new Error("Номер встречи должен быть числом");
-            }
+            validateMeetingData();
 
             const requestData = {
                 number: meetingData.number,
@@ -93,8 +110,8 @@ const MeetingCreate = ({ onClose, teamId }) => {
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "Ошибка при создании встречи");
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Ошибка при создании встречи");
             }
 
             const result = await response.json();
@@ -102,7 +119,7 @@ const MeetingCreate = ({ onClose, teamId }) => {
             navigate(`/meeting/${result.id}?teamId=${teamId}&username=${userId}`);
         } catch (error) {
             console.error("Ошибка при создании:", error);
-            setError(error.message || "Произошла ошибка при создании. Проверьте консоль для подробностей.");
+            setError(error.message || "Произошла ошибка при создании встречи");
         }
     };
 
@@ -113,15 +130,21 @@ const MeetingCreate = ({ onClose, teamId }) => {
             </button>
             <div className="popup-content">
                 <h3>Запланировать встречу #{meetingData.number}</h3>
-                {error && <div className="error-message">{error}</div>}
+                {error && (
+                    <div className="error-message">
+                        {error}
+                        <button className="error-close" onClick={() => setError(null)}>×</button>
+                    </div>
+                )}
                 <div className="date-selection">
-                    <span className="date-label">Дата:</span>
+                    <span className="date-label">Дата и время:</span>
                     <input
                         type="datetime-local"
                         name="startDate"
                         value={meetingData.startDate.slice(0, 16)}
                         onChange={handleChange}
                         className="date-input"
+                        min={new Date().toISOString().slice(0, 16)}
                     />
                 </div>
                 <button onClick={handleCreate} className="create-button">

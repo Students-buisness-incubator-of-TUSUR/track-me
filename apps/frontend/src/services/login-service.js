@@ -1,6 +1,7 @@
 import axios from "axios";
-import {setUser} from "../store/userSlice";
+
 import {useDispatch} from "react-redux";
+import { setUser, clearUser } from '../store/userSlice';
 
 function LoginService() {
     const backendUrl = process.env.REACT_APP_BACKEND_URI || "http://localhost:8081";
@@ -11,6 +12,17 @@ function LoginService() {
         baseURL: backendUrl,
         withCredentials: true,
     });
+    axiosWithCredentials.interceptors.response.use(
+        response => response,
+        error => {
+            if (error.response && [401, 302].includes(error.response.status)) {
+                // Если получили 401 Unauthorized - сессия истекла
+                dispatch(clearUser());
+                window.location.href = '/'; // Перенаправляем на страницу входа
+            }
+            return Promise.reject(error);
+        }
+    );
 
     const register = async (userData) => {
         try {
