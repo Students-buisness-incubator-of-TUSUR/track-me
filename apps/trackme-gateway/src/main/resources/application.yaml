@@ -7,7 +7,8 @@ app:
   allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
   session-cookie:
     same-site: ${SESSION_COOKIE_SAME_SITE:Lax}
-    secure: ${SESSION_COOKIE_SECURE:true}
+    secure: ${SESSION_COOKIE_SECURE:false}
+    domain: ${SESSION_COOKIE_DOMAIN:}
 
 spring:
   application:

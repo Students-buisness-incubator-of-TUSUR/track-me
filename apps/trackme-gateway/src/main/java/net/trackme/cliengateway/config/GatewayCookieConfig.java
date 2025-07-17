@@ -18,13 +18,16 @@ public class GatewayCookieConfig {
         var resolver = new CookieWebSessionIdResolver();
         // Настроить параметры cookie
         resolver.setCookieName("SESSION");
-        resolver.addCookieInitializer((builder) -> {
+        resolver.addCookieInitializer(builder -> {
             builder.sameSite(cookieProperties.getSameSite());
             builder.secure(cookieProperties.isSecure());
             builder.path("/");
             builder.httpOnly(true);
+            // Добавляем домен для корректной работы с CSRF
+            if (cookieProperties.getDomain() != null) {
+                builder.domain(cookieProperties.getDomain());
+            }
         });
         return resolver;
-
     }
 }

@@ -31,5 +31,6 @@ public class AppProperties {
     public static class SessionCookieProperties {
         private String sameSite = "Lax";
         private boolean secure = true;
+        private String domain;
     }
 }

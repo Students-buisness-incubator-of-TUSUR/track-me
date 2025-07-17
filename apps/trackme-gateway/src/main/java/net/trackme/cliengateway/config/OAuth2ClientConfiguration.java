@@ -17,79 +17,86 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.csrf.ServerCsrfTokenRequestAttributeHandler;
 
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
+import static org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository.withHttpOnlyFalse;
 
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
 @EnableConfigurationProperties({AppProperties.class})
 public class OAuth2ClientConfiguration {
-  private final ReactiveClientRegistrationRepository clientRegistrationRepository;
+    private final ReactiveClientRegistrationRepository clientRegistrationRepository;
 
-  private final AppProperties appProperties;
+    private final AppProperties appProperties;
 
-  private ServerLogoutSuccessHandler logoutSuccessHandler;
+    private ServerLogoutSuccessHandler logoutSuccessHandler;
 
-  private ServerAuthenticationSuccessHandler authenticationSuccessHandler;
+    private ServerAuthenticationSuccessHandler authenticationSuccessHandler;
 
-  @Bean
-  SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-    http
-        .csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .authorizeExchange(exchange ->
-            exchange.pathMatchers(OPTIONS, "/**").permitAll()
-                .pathMatchers("/actuator/**").permitAll()
-                .anyExchange().authenticated())
-        .oauth2Login(oauth2Login ->
-            oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler))
-        .oauth2Client(withDefaults())
-        .logout(logout -> logout
-            .logoutSuccessHandler(logoutSuccessHandler));
-    return http.build();
-  }
+    @Bean
+    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        http
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new ServerCsrfTokenRequestAttributeHandler())
+                )
+                .authorizeExchange(exchange ->
+                        exchange.pathMatchers(OPTIONS, "/**").permitAll()
+                                .pathMatchers("/actuator/**").permitAll()
+                                .pathMatchers("/csrf").permitAll()
+                                .anyExchange().authenticated())
+                .oauth2Login(oauth2Login ->
+                        oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler))
+                .oauth2Client(withDefaults())
+                .logout(logout -> logout
+                        .logoutSuccessHandler(logoutSuccessHandler));
+        return http.build();
+    }
 
-  @Bean
-  ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
-      ReactiveClientRegistrationRepository clientRegistrationRepository,
-      ServerOAuth2AuthorizedClientRepository clientRepository) {
-    var authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
-        .authorizationCode()
-        .refreshToken()
-        .build();
-    var authorizedClientManager =
-        new DefaultReactiveOAuth2AuthorizedClientManager
-            (clientRegistrationRepository, clientRepository);
-    authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
-    return authorizedClientManager;
-  }
+    @Bean
+    ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
+            ReactiveClientRegistrationRepository clientRegistrationRepository,
+            ServerOAuth2AuthorizedClientRepository clientRepository) {
+        var authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
+                .authorizationCode()
+                .refreshToken()
+                .build();
+        var authorizedClientManager =
+                new DefaultReactiveOAuth2AuthorizedClientManager
+                        (clientRegistrationRepository, clientRepository);
+        authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+        return authorizedClientManager;
+    }
 
-  @PostConstruct
-  private void initializeHandlers() {
-    var serverLogoutSuccessHandler =
-        new OidcClientInitiatedServerLogoutSuccessHandler(this.clientRegistrationRepository);
-    serverLogoutSuccessHandler.setPostLogoutRedirectUri(appProperties.getAfterLogoutUri());
-    this.logoutSuccessHandler = serverLogoutSuccessHandler;
+    @PostConstruct
+    private void initializeHandlers() {
+        var serverLogoutSuccessHandler =
+                new OidcClientInitiatedServerLogoutSuccessHandler(
+                        this.clientRegistrationRepository);
+        serverLogoutSuccessHandler.setPostLogoutRedirectUri(appProperties.getAfterLogoutUri());
+        this.logoutSuccessHandler = serverLogoutSuccessHandler;
 
-    this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
-      var exchange = webFilterExchange.getExchange();
+        this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
+            var exchange = webFilterExchange.getExchange();
 
-      // Получаем redirect_uri из параметров
-      String redirectUri = exchange.getRequest().getQueryParams().getFirst("redirect_uri");
-      if (redirectUri != null && isValidRedirectUri(redirectUri)) {
-        return new RedirectServerAuthenticationSuccessHandler(redirectUri)
-            .onAuthenticationSuccess(webFilterExchange, authentication);
-      }
-      // Фолбэк на старое поведение
-      return new RedirectServerAuthenticationSuccessHandler(appProperties.getAfterLoginUrl())
-          .onAuthenticationSuccess(webFilterExchange, authentication);
-    };
-  }
+            // Получаем redirect_uri из параметров
+            String redirectUri = exchange.getRequest().getQueryParams().getFirst("redirect_uri");
+            if (redirectUri != null && isValidRedirectUri(redirectUri)) {
+                return new RedirectServerAuthenticationSuccessHandler(redirectUri)
+                        .onAuthenticationSuccess(webFilterExchange, authentication);
+            }
+            // Фолбэк на старое поведение
+            return new RedirectServerAuthenticationSuccessHandler(appProperties.getAfterLoginUrl())
+                    .onAuthenticationSuccess(webFilterExchange, authentication);
+        };
+    }
 
-  private boolean isValidRedirectUri(String redirectUri) {
-    return appProperties.getAllowedOrigins().stream()
-        .anyMatch(redirectUri::startsWith);
+    private boolean isValidRedirectUri(String redirectUri) {
+        return appProperties.getAllowedOrigins().stream()
+                .anyMatch(redirectUri::startsWith);
 
-  }
+    }
 }
