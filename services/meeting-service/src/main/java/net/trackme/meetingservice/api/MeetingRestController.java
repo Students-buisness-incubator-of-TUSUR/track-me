@@ -45,7 +45,7 @@ public interface MeetingRestController {
                                              @RequestParam UUID teamCardId,
                                              @Valid @RequestBody MeetingUpdateDto meetingCreateDto);
 
-    @DeleteMapping(value = "/{meetingId}")
+    @DeleteMapping(value = "delete-meeting/{meetingId}")
     @Operation(summary = "Удаление встречи команды")
     ResponseEntity<Void> deleteMeeting(@PathVariable UUID meetingId);
 
