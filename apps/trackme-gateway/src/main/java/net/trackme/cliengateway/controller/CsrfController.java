@@ -8,17 +8,8 @@ import reactor.core.publisher.Mono;
 
 @RestController
 public class CsrfController {
-
-    @GetMapping("/csrf")
-    public Mono<CsrfTokenResponse> csrf(ServerWebExchange exchange) {
-        Mono<CsrfToken> csrfToken = exchange.getAttribute(CsrfToken.class.getName());
-        if (csrfToken == null) {
-            return Mono.empty();
-        }
-        return csrfToken.map(
-                token -> new CsrfTokenResponse(token.getToken(), token.getHeaderName()));
-    }
-
-    public record CsrfTokenResponse(String token, String headerName) {
+    @GetMapping(path = "/csrf", produces = "application/json")
+    public Mono<CsrfToken> csrf(ServerWebExchange exchange) {
+        return exchange.getAttribute(CsrfToken.class.getName());
     }
 }

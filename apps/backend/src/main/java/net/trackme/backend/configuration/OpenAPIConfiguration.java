@@ -1,34 +1,41 @@
-package net.trackme.sso.config;
+package net.trackme.backend.configuration;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import java.util.List;
 
+/**
+ * Конфигурация Swagger.
+ *
+ * @see <a href="https://springdoc.org">SpringDoc</a>
+ */
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties({AppProperties.class})
-@EnableJpaRepositories(basePackages = "net.trackme.sso.dao.repository")
-public class AppConfiguration {
+@EnableConfigurationProperties(AppProperties.class)
+public class OpenAPIConfiguration {
 
     public static final String XSRF_TOKEN = "X-XSRF-TOKEN";
     private final AppProperties appProperties;
 
     private final BuildProperties buildProperties;
 
-
     @Bean
-    OpenAPI openApi() {
+    public OpenAPI openApi() {
         return new OpenAPI()
+                .info(new Info()
+                        .title(buildProperties.getName())
+                        .description("Основной API проекта TrackMe")
+                        .version(buildProperties.getVersion()))
                 .addSecurityItem(new SecurityRequirement().addList(XSRF_TOKEN))
                 .components(new Components().addSecuritySchemes(
                         XSRF_TOKEN,
@@ -37,12 +44,7 @@ public class AppConfiguration {
                                 .in(SecurityScheme.In.HEADER)
                                 .name(XSRF_TOKEN)
                 ))
-                .servers(List.of(new io.swagger.v3.oas.models.servers.Server()
-                        .url(appProperties.getApiUrl())))
-                .info(new Info()
-                        .title(buildProperties.getName())
-                        .version(buildProperties.getVersion())
-                        .description("Единая точка входа в сервисы TrackMe.")
-                );
+                .servers(List.of(new Server()
+                        .url(appProperties.getApiUrl())));
     }
 }

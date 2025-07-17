@@ -89,8 +89,6 @@ springdoc:
         display-name: TrackMe Meeting Service
         url: ${BACKEND_URI:http://127.0.1:8081}/meeting/v3/api-docs
     with-credentials: true
-    csrf:
-      enabled: true
     use-root-path: true
   api-docs:
     enabled: true
@@ -222,8 +220,6 @@ springdoc:
         display-name: TrackMe Meeting Service
         url: http://127.0.1:8081/meeting/v3/api-docs
     with-credentials: true
-    csrf:
-      enabled: true
     use-root-path: true
   api-docs:
     enabled: true

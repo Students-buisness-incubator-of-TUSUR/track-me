@@ -15,7 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class OAuth2ResourceServerConfiguration {
   @Bean
-  @Order
+  @Order(2)
   public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
     http
         .securityMatcher("/api/**")
