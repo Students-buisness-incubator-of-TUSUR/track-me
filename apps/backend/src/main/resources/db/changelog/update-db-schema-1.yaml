@@ -116,7 +116,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: track_start_date
-                  type: timestamp
+                  type: date
                   constraints:
                     nullable: true
   - changeSet:

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.trackme.meetingservice.AbstractIntegrationTest;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
+import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.services.MeetingService;
 import org.junit.jupiter.api.AfterEach;
@@ -58,18 +59,20 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .teamCardId(TEAM_CARD_ID)
                 .link("https://example.com/meeting")
                 .number("12345")
+                .status(MeetingStatus.SCHEDULED)
                 .startDate(OffsetDateTime.now().plusDays(1))
-                .status(TeamStatus.OK)
+                .teamStatus(TeamStatus.OK)
                 .tasksCurrentMeeting("tasksCurrentMeeting")
                 .tasksNextMeeting("tasksNextMeeting")
                 .build());
 
         meetingRepository.save(Meeting.builder()
                 .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.SCHEDULED)
                 .link("https://example.com/meeting")
                 .number("12343")
                 .startDate(OffsetDateTime.now().plusDays(1))
-                .status(TeamStatus.OK)
+                .teamStatus(TeamStatus.OK)
                 .tasksCurrentMeeting("tasksCurrentMeeting")
                 .tasksNextMeeting("tasksNextMeeting")
                 .build());
@@ -132,7 +135,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         var meetingUpdateDto = MeetingUpdateDto.builder()
                 .link("https://example.com/meeting")
                 .number("12345")
-                .status(TeamStatus.MANY_ISSUES)
+                .teamStatus(TeamStatus.MANY_ISSUES)
                 .build();
 
         var meetingId = meetingRepository.findAll().getFirst().getId().toString();
@@ -155,7 +158,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         var meetingUpdateDto = MeetingUpdateDto.builder()
                 .link("https://example.com/meeting")
                 .number("123456")
-                .status(TeamStatus.OK)
+                .teamStatus(TeamStatus.OK)
                 .build();
 
         var meetingId = meetingRepository.findAll().getFirst().getId().toString();

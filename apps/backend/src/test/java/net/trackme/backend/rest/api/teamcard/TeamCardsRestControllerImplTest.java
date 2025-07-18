@@ -1,15 +1,12 @@
 package net.trackme.backend.rest.api.teamcard;
 
 import net.trackme.backend.BaseApplicationTest;
-import net.trackme.backend.domain.Meeting;
 import net.trackme.backend.domain.NTIMarket;
 import net.trackme.backend.domain.ReadinessLevel;
 import net.trackme.backend.domain.TeamCard;
-import net.trackme.backend.models.MeetingStatus;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.repos.NtiMarketRepository;
 import net.trackme.backend.repos.TeamCardsRepository;
-import net.trackme.backend.services.meeting.MeetingService;
 import net.trackme.backend.services.teamcard.TeamCardsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.time.Year;
 import java.util.List;
 import java.util.UUID;
@@ -41,9 +37,6 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
     @Autowired
     private NtiMarketRepository ntiMarketRepository;
-
-    @Autowired
-    private MeetingService meetingService;
 
     @AfterEach
     void tearDown() {
@@ -139,16 +132,6 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
-                .build());
-
-        meetingService.createMeeting(teamCard, Meeting.builder()
-                .status(MeetingStatus.OK)
-                .startDate(OffsetDateTime.now())
-                .build());
-
-        meetingService.createMeeting(teamCard, Meeting.builder()
-                .status(MeetingStatus.WITH_ISSUES)
-                .startDate(OffsetDateTime.now().plusDays(1))
                 .build());
 
         mockMvc.perform(get("/api/v1/team-card")

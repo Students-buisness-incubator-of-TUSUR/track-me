@@ -42,6 +42,7 @@ public class Stream {
     private String description;
 
     @Column(name = "meetings_count")
+    @Builder.Default
     private Integer meetingsCount = 10;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)

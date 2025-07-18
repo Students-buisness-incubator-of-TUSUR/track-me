@@ -7,6 +7,7 @@ import net.trackme.meetingservice.api.MeetingDto;
 import net.trackme.meetingservice.api.MeetingUpdateDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
+import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.mapping.MeetingMapper;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -35,9 +36,11 @@ public class MeetingServiceImpl implements MeetingService {
     private final AclService aclService;
 
     @Override
+    @Transactional
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         var meeting = meetingMapper.mapToEntity(createDto);
         meeting.setTeamCardId(teamCardId);
+        meeting.setStatus(MeetingStatus.SCHEDULED);
         meeting = meetingRepository.save(meeting);
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         aclService.createAclForUser(meeting, username);
