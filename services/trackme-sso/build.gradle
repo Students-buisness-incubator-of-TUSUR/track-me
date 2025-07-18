@@ -4,6 +4,7 @@ plugins {
     id 'jacoco'
     id 'com.github.node-gradle.node' version '7.0.2'
     id 'io.freefair.lombok'
+    id "org.sonarqube" version "6.2.0.5505"
 }
 
 version = '1.0.0'
@@ -74,6 +75,14 @@ springBoot {
     buildInfo()
 }
 
+sonar {
+    properties {
+        property "sonar.language", "java"
+        property "sonar.projectKey", "trackme-sso"
+        property "sonar.organization", "akarmanov2022"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
 
 node {
     version = '23.10.0'

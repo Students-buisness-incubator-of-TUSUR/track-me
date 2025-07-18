@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  backend-sonar:
+  backend-check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -57,14 +57,13 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           pwd; ls -l .
-          ./gradlew build sonar \
-            -Dsonar.projectKey=${{ secrets.SONAR_BACKEND_PROJECT_KEY }} \
+          ./gradlew :backend:check :backend:sonar \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
 
-  frontend-sonar:
+  frontend-check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -145,9 +144,50 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           pwd; ls -l .
-          ./gradlew :meeting-service:build sonar \
+          ./gradlew :meeting-service:check :meeting-service:sonar \
             -Dsonar.projectKey=trackme-meeting-service
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
+
+  sso-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: ${{ runner.os }}-gradle
+          restore-keys: |
+            ${{ runner.os }}-gradle
+      - name: Cache SonarQube
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: |
+            ${{ runner.os }}-sonar
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          pwd; ls -l .
+          ./gradlew :trackme-sso:check :trackme-sso:sonar \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }} \
+          
