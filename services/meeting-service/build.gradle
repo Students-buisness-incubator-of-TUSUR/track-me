@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot'
     id 'jacoco'
     id 'io.freefair.lombok'
+    id "org.sonarqube"
 }
 
 version = '1.0.0'
@@ -67,5 +68,14 @@ sourceSets {
         resources {
             srcDirs = ['src/main/resources', 'database']
         }
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.language", "java"
+        property "sonar.projectKey", "trackme-meeting-service"
+        property "sonar.organization", "akarmanov2022"
+        property "sonar.host.url", "https://sonarcloud.io"
     }
 }
