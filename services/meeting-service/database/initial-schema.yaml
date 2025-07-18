@@ -44,8 +44,13 @@ databaseChangeLog:
                   constraints:
                     nullable: true
               - column:
-                  name: status
+                  name: team_status
                   type: VARCHAR(32)
                   constraints:
                     nullable: true
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
 

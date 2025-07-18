@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Future;
 import lombok.Builder;
-import net.trackme.meetingservice.entities.MeetingStatus;
 
 import java.time.OffsetDateTime;
 
@@ -22,8 +21,6 @@ public record MeetingCreateDto(
         @Schema(description = "Задачи на текущую встречу")
         String tasksCurrentMeeting,
         @Schema(description = "Задачи на следующую встречу")
-        String tasksNextMeeting,
-        @Schema(description = "Статус встречи")
-        MeetingStatus status
+        String tasksNextMeeting
 ) {
 }

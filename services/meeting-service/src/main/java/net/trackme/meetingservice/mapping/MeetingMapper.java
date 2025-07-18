@@ -14,6 +14,8 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface MeetingMapper {
 
+    @Mapping(target = "teamStatus", ignore = true)
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "teamCardId", ignore = true)
     @Mapping(target = "imageBytes", ignore = true)
     @Mapping(target = "id",
@@ -22,6 +24,7 @@ public interface MeetingMapper {
 
     MeetingDto mapToDto(Meeting meeting);
 
+    @Mapping(target = "status", ignore = true)
     @Mapping(target = "teamCardId", ignore = true)
     @Mapping(target = "startDate", ignore = true)
     @Mapping(target = "imageBytes", ignore = true)

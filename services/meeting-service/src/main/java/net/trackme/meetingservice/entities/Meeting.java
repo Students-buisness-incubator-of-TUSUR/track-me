@@ -16,7 +16,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Meeting {
     @Id
-    @Column(nullable = false,
+    @Column(
+            nullable = false,
             updatable = false)
     @GeneratedValue
     @UuidGenerator
@@ -30,6 +31,10 @@ public class Meeting {
 
     @Column(nullable = false)
     private OffsetDateTime startDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 32)
+    private TeamStatus teamStatus;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 32)
