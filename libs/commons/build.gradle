@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'io.freefair.lombok'
+    id "org.sonarqube" version "6.2.0.5505"
 }
 
 group = 'net.trackme.commons'
@@ -41,5 +42,14 @@ jacocoTestReport {
     reports {
         xml.required = true
         html.required = true
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.language", "java"
+        property "sonar.projectKey", "trackme-libs-commons"
+        property "sonar.organization", "akarmanov2022"
+        property "sonar.host.url", "https://sonarcloud.io"
     }
 }

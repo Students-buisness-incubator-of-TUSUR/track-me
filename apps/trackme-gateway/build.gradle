@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot'
     id 'jacoco'
     id 'io.spring.dependency-management'
+    id "org.sonarqube" version "6.2.0.5505"
 }
 
 ext {
@@ -44,5 +45,14 @@ jacocoTestReport {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.language", "java"
+        property "sonar.projectKey", "trackme-gateway"
+        property "sonar.organization", "akarmanov2022"
+        property "sonar.host.url", "https://sonarcloud.io"
     }
 }
