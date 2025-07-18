@@ -145,7 +145,7 @@ jobs:
         run: |
           pwd; ls -l .
           ./gradlew :meeting-service:check :meeting-service:sonar \
-            -Dsonar.projectKey=trackme-meeting-service
+            -Dsonar.projectKey=trackme-meeting-service \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
