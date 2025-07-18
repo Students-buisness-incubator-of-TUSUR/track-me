@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import net.trackme.backend.rest.api.dto.NTIMarketDto;
-import net.trackme.backend.rest.api.dto.StreamDto;
 import net.trackme.commons.filters.FilterRequest;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.core.io.Resource;

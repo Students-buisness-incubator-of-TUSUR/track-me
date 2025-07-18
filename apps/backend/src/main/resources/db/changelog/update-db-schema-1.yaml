@@ -99,3 +99,43 @@ databaseChangeLog:
                   type: decimal(3,2)
                   constraints:
                     nullable: true
+  - changeSet:
+      id: stream-add-trackStartDate-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: trackStartDate
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columns:
+              - column:
+                  name: track_start_date
+                  type: timestamp
+                  constraints:
+                    nullable: true
+  - changeSet:
+      id: stream-add-meetingsCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: meetings_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columns:
+              - column:
+                  name: meetings_count
+                  type: integer
+                  constraints:
+                    nullable: true

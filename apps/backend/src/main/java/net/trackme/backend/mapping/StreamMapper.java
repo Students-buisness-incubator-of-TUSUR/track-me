@@ -1,9 +1,9 @@
 package net.trackme.backend.mapping;
 
 import net.trackme.backend.domain.Stream;
-import net.trackme.backend.rest.api.dto.StreamCreateDto;
-import net.trackme.backend.rest.api.dto.StreamDto;
-import net.trackme.backend.rest.api.dto.StreamUpdateDto;
+import net.trackme.backend.rest.api.stream.StreamCreateDto;
+import net.trackme.backend.rest.api.stream.StreamDto;
+import net.trackme.backend.rest.api.stream.StreamUpdateDto;
 import org.mapstruct.*;
 
 import java.util.List;

@@ -5,7 +5,7 @@ import net.trackme.backend.domain.spec.StreamSpecification;
 import net.trackme.backend.mapping.NtiMarketMapper;
 import net.trackme.backend.mapping.StreamMapper;
 import net.trackme.backend.rest.api.dto.NTIMarketDto;
-import net.trackme.backend.rest.api.dto.StreamDto;
+import net.trackme.backend.rest.api.stream.StreamDto;
 import net.trackme.backend.services.stream.MutableStreamService;
 import net.trackme.commons.filters.Filter;
 import org.springframework.data.domain.Page;

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.rest.api.dto.NTIMarketDto;
-import net.trackme.backend.rest.api.dto.StreamDto;
+import net.trackme.backend.rest.api.stream.StreamDto;
 
 import java.math.BigDecimal;
 import java.util.List;

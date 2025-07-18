@@ -2,7 +2,6 @@ package net.trackme.backend.rest.api.stream;
 
 import lombok.RequiredArgsConstructor;
 import net.trackme.backend.rest.api.dto.NTIMarketDto;
-import net.trackme.backend.rest.api.dto.StreamDto;
 import net.trackme.backend.usecases.StreamUseCase;
 import net.trackme.commons.filters.FilterRequest;
 import org.springframework.core.io.ByteArrayResource;

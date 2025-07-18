@@ -1,4 +1,4 @@
-package net.trackme.backend.rest.api.dto;
+package net.trackme.backend.rest.api.stream;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Future;

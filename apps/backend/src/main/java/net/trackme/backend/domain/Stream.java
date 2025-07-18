@@ -20,7 +20,8 @@ import java.util.UUID;
 public class Stream {
 
     @Id
-    @Column(nullable = false,
+    @Column(
+            nullable = false,
             updatable = false)
     @GeneratedValue
     @UuidGenerator
@@ -35,6 +36,14 @@ public class Stream {
     @Column
     private LocalDate endDate;
 
+    @Column(name = "track_start_date")
+    private LocalDate trackStartDate;
+
+    private String description;
+
+    @Column(name = "meetings_count")
+    private Integer meetingsCount = 10;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(
             name = "stream_nti_market",
@@ -43,8 +52,6 @@ public class Stream {
     )
     @Builder.Default
     private Set<NTIMarket> ntiMarkets = new HashSet<>();
-
-    private String description;
 
     @Lob
     @Basic(fetch = FetchType.LAZY)
@@ -67,6 +74,6 @@ public class Stream {
     public boolean isActive() {
         var today = LocalDate.now();
         return (startDate == null || startDate.isBefore(today)) &&
-                (endDate == null || endDate.isAfter(today));
+               (endDate == null || endDate.isAfter(today));
     }
 }
