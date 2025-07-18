@@ -145,7 +145,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           pwd; ls -l .
-          ./gradlew :meeting-service:build :meeting-service:sonar \
+          ./gradlew :meeting-service:build sonar \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
