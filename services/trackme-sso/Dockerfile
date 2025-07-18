@@ -13,6 +13,7 @@ RUN --mount=type=cache,target=/root/.gradle gradle dependencies
 
 # 3. Копируем исходники приложения
 COPY libs/commons /app/libs/commons
+COPY platform /app/platform
 COPY services/trackme-sso /app/services/trackme-sso
 
 # 4. Собираем проект

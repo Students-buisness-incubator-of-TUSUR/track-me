@@ -18,7 +18,7 @@ spring:
       minimum-idle: 10
       initialization-fail-timeout: 1
       leak-detection-threshold: 0
-      pool-name: "HikariPool-track-me-sso"
+      pool-name: "HikariPool-trackme-meeting-service"
       register-mbeans: true
       schema: ${MEETING_DB_SCHEMA:meeting_service}
   jpa:

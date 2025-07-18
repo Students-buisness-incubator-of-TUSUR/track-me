@@ -13,10 +13,11 @@ RUN --mount=type=cache,target=/root/.gradle gradle dependencies
 
 # 3. Копируем исходники приложения
 COPY libs/commons /app/libs/commons
+COPY platform /app/platform
 COPY services/meeting-service /app/services/meeting-service
 
 # 4. Собираем проект
-RUN --mount=type=cache,target=/root/.gradle gradle trackme-sso:bootJar -Pprod
+RUN --mount=type=cache,target=/root/.gradle gradle :meeting-service:bootJar -Pprod
 
 FROM eclipse-temurin:21-jre-alpine
 

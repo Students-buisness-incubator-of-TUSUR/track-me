@@ -11,6 +11,7 @@ COPY apps/trackme-gateway/build.gradle /app/apps/trackme-gateway/
 RUN --mount=type=cache,target=/root/.gradle gradle :trackme-gateway:dependencies --no-daemon
 
 # 3. Копируем исходники только нужного приложения и его зависимости
+COPY platform /app/platform
 COPY apps/trackme-gateway /app/apps/trackme-gateway
 
 # 4. Сборка JAR (кешируется благодаря шагам выше)
