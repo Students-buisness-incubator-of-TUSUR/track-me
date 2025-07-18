@@ -149,8 +149,4 @@ public class AclService {
         log.debug("ACL '{}' обновлён с новыми разрешениями для SID '{}'", acl.getObjectIdentity(), sid);
     }
 
-    public void createAclForUserWithParent(Object identity, String username, Object parent) {
-        log.info("Создание ACL для пользователя '{}' с родителем '{}'", username, parent);
-        createAclForUserWithParent(identity, username, username, parent);
-    }
 }
