@@ -118,7 +118,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -344,13 +343,11 @@ jobs:
           
           # Check if any job was required and failed
           backend_needed="${{ needs.detect-changes.outputs.backend }}"
-          frontend_needed="${{ needs.detect-changes.outputs.frontend }}"
           meeting_service_needed="${{ needs.detect-changes.outputs.meeting-service }}"
           sso_needed="${{ needs.detect-changes.outputs.sso }}"
           gateway_needed="${{ needs.detect-changes.outputs.gateway }}"
           
           backend_result="${{ needs.backend-check.result }}"
-          frontend_result="${{ needs.frontend-check.result }}"
           meeting_service_result="${{ needs.meeting-service-check.result }}"
           sso_result="${{ needs.sso-check.result }}"
           gateway_result="${{ needs.gateway-check.result }}"
@@ -359,10 +356,6 @@ jobs:
           
           if [[ "$backend_needed" == "true" && "$backend_result" == "failure" ]]; then
             failed_jobs="$failed_jobs backend-check"
-          fi
-          
-          if [[ "$frontend_needed" == "true" && "$frontend_result" == "failure" ]]; then
-            failed_jobs="$failed_jobs frontend-check"
           fi
           
           if [[ "$meeting_service_needed" == "true" && "$meeting_service_result" == "failure" ]]; then
