@@ -90,6 +90,8 @@ springdoc:
         url: ${BACKEND_URI:http://127.0.1:8081}/meeting/v3/api-docs
     with-credentials: true
     use-root-path: true
+    csrf:
+      enabled: true
   api-docs:
     enabled: true
 
@@ -221,5 +223,7 @@ springdoc:
         url: http://127.0.1:8081/meeting/v3/api-docs
     with-credentials: true
     use-root-path: true
+    csrf:
+      enabled: true
   api-docs:
     enabled: true
