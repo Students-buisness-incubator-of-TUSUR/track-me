@@ -20,6 +20,7 @@ import org.springframework.security.web.server.authentication.logout.ServerLogou
 
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
+import static org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository.withHttpOnlyFalse;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -37,7 +38,8 @@ public class OAuth2ClientConfiguration {
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
-                .csrf(withDefaults())
+                .csrf(csrfSpec -> csrfSpec
+                        .csrfTokenRepository(withHttpOnlyFalse()))
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
