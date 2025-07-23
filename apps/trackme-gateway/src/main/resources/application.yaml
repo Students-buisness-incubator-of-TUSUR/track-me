@@ -4,11 +4,15 @@ server:
 app:
   after-login-url: ${AFTER_LOGIN_URL:http://127.0.0.1:8081}
   after-logout-uri: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
-  allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
   session-cookie:
     same-site: ${SESSION_COOKIE_SAME_SITE:Lax}
     secure: ${SESSION_COOKIE_SECURE:false}
     domain: ${SESSION_COOKIE_DOMAIN:}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
 
 spring:
   application:

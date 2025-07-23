@@ -1,36 +1,36 @@
 package net.trackme.cliengateway.config;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
 @Validated
 @ConfigurationProperties(prefix = "app")
-public class AppProperties {
-    @NotBlank
-    private String afterLoginUrl;
+public record AppProperties(
+        @NotBlank String afterLoginUrl,
+        @NotBlank String afterLogoutUri,
+        CorsProperties cors,
+        SessionCookieProperties sessionCookie) {
 
-    @NotBlank
-    private String afterLogoutUri;
+    public record SessionCookieProperties(
+            String sameSite,
+            Boolean secure,
+            String domain
+    ) {
+        public SessionCookieProperties {
+            if (sameSite == null) sameSite = "Lax";
+        }
+    }
 
-    private List<String> allowedOrigins = new ArrayList<>();
+    public record CorsProperties(
+            @NotNull List<String> allowedOrigins,
+            @NotNull List<String> allowedMethods,
+            @NotNull List<String> allowedHeaders,
+            @NotNull Boolean allowCredentials
+    ) {
 
-    @NestedConfigurationProperty
-    private SessionCookieProperties sessionCookie = new SessionCookieProperties();
-
-    @Setter
-    @Getter
-    public static class SessionCookieProperties {
-        private String sameSite = "Lax";
-        private boolean secure = true;
-        private String domain;
     }
 }

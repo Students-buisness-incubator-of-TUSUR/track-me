@@ -19,8 +19,6 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 
-import java.util.List;
-
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -39,13 +37,14 @@ public class OAuth2ClientConfiguration {
 
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        var corsConfig = appProperties.cors();
         return http
                 .cors(corsSpec -> corsSpec.configurationSource(exchange -> {
                     var config = new CorsConfiguration();
-                    config.setAllowedOrigins(appProperties.getAllowedOrigins());
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    config.setAllowedHeaders(List.of("*"));
-                    config.setAllowCredentials(true);
+                    config.setAllowedOrigins(corsConfig.allowedOrigins());
+                    config.setAllowedMethods(corsConfig.allowedMethods());
+                    config.setAllowedHeaders(corsConfig.allowedHeaders());
+                    config.setAllowCredentials(corsConfig.allowCredentials());
                     return config;
                 }))
                 .authorizeExchange(exchange ->
@@ -81,7 +80,7 @@ public class OAuth2ClientConfiguration {
         var serverLogoutSuccessHandler =
                 new OidcClientInitiatedServerLogoutSuccessHandler(
                         this.clientRegistrationRepository);
-        serverLogoutSuccessHandler.setPostLogoutRedirectUri(appProperties.getAfterLogoutUri());
+        serverLogoutSuccessHandler.setPostLogoutRedirectUri(appProperties.afterLogoutUri());
         this.logoutSuccessHandler = serverLogoutSuccessHandler;
 
         this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
@@ -89,19 +88,13 @@ public class OAuth2ClientConfiguration {
 
             // Получаем redirect_uri из параметров
             String redirectUri = exchange.getRequest().getQueryParams().getFirst("redirect_uri");
-            if (redirectUri != null && isValidRedirectUri(redirectUri)) {
+            if (redirectUri != null) {
                 return new RedirectServerAuthenticationSuccessHandler(redirectUri)
                         .onAuthenticationSuccess(webFilterExchange, authentication);
             }
             // Фолбэк на старое поведение
-            return new RedirectServerAuthenticationSuccessHandler(appProperties.getAfterLoginUrl())
+            return new RedirectServerAuthenticationSuccessHandler(appProperties.afterLoginUrl())
                     .onAuthenticationSuccess(webFilterExchange, authentication);
         };
-    }
-
-    private boolean isValidRedirectUri(String redirectUri) {
-        return appProperties.getAllowedOrigins().stream()
-                .anyMatch(redirectUri::startsWith);
-
     }
 }
