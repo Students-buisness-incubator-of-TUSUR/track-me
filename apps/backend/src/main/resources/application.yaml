@@ -111,4 +111,4 @@ spring:
           issuer-uri: http://host.docker.internal:9000
 
 app:
-  api-url: http://localhost:8081/backend
+  api-url: http://127.0.0.1:8081/backend
