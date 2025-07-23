@@ -132,12 +132,12 @@ services:
     platform: linux/amd64
     restart: always
     depends_on:
-      - trackme-backend
       - trackme-sso
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
       - SESSION_COOKIE_SAME_SITE=None
       - SESSION_COOKIE_SECURE=True
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
     env_file:
       - .env
