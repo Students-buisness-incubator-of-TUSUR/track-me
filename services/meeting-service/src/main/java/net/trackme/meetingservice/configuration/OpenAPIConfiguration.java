@@ -24,7 +24,7 @@ import java.util.List;
 @EnableConfigurationProperties(AppProperties.class)
 public class OpenAPIConfiguration {
 
-    public static final String XSRF_TOKEN = "X-XSRF-TOKEN";
+    public static final String XSRF_TOKEN = "X-CSRF-TOKEN";
     private final AppProperties appProperties;
 
     private final BuildProperties buildProperties;
