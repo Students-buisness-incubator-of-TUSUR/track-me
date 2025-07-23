@@ -8,24 +8,24 @@ import org.springframework.web.server.session.WebSessionIdResolver;
 
 @Configuration
 @RequiredArgsConstructor
-public class GatewayCookieConfig {
+public class GatewayCookieConfiguration {
 
     private final AppProperties appProperties;
 
     @Bean
     WebSessionIdResolver webSessionIdResolver() {
-        var cookieProperties = appProperties.getSessionCookie();
+        var cookieProperties = appProperties.sessionCookie();
         var resolver = new CookieWebSessionIdResolver();
         // Настроить параметры cookie
         resolver.setCookieName("SESSION");
         resolver.addCookieInitializer(builder -> {
-            builder.sameSite(cookieProperties.getSameSite());
-            builder.secure(cookieProperties.isSecure());
+            builder.sameSite(cookieProperties.sameSite());
+            builder.secure(cookieProperties.secure());
             builder.path("/");
             builder.httpOnly(true);
             // Добавляем домен для корректной работы с CSRF
-            if (cookieProperties.getDomain() != null) {
-                builder.domain(cookieProperties.getDomain());
+            if (cookieProperties.domain() != null) {
+                builder.domain(cookieProperties.domain());
             }
         });
         return resolver;
