@@ -17,10 +17,12 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
-import static org.springframework.security.web.server.csrf.CookieServerCsrfTokenRepository.withHttpOnlyFalse;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -38,8 +40,14 @@ public class OAuth2ClientConfiguration {
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
-                .csrf(csrfSpec -> csrfSpec
-                        .csrfTokenRepository(withHttpOnlyFalse()))
+                .cors(corsSpec -> corsSpec.configurationSource(exchange -> {
+                    var config = new CorsConfiguration();
+                    config.setAllowedOrigins(appProperties.getAllowedOrigins());
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setAllowCredentials(true);
+                    return config;
+                }))
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()

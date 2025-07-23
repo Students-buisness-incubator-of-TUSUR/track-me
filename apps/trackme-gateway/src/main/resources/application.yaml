@@ -15,20 +15,6 @@ spring:
     name: track-me-gateway
   cloud:
     gateway:
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: ${CORS_ORIGINS:http://localhost:3000}
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-              - PATCH
-            allowedHeaders:
-              - "*"
-            allowCredentials: true
       routes:
         - id: trackme-backend
           uri: http://trackme-backend:8080
@@ -87,7 +73,7 @@ springdoc:
         url: ${BACKEND_URI:http://127.0.0.1:8081}/backend/v3/api-docs
       - name: TrackMe Meeting Service
         display-name: TrackMe Meeting Service
-        url: ${BACKEND_URI:http://127.0.1:8081}/meeting/v3/api-docs
+        url: ${BACKEND_URI:http://127.0.0.1:8081}/meeting/v3/api-docs
     with-credentials: true
     use-root-path: true
   api-docs:
@@ -122,22 +108,6 @@ spring:
           filters:
             - TokenRelay
             - StripPrefix=1
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - ${FRONTEND_URI:http://localhost:3000}
-              - http://127.0.0.1:8081
-              - http://127.0.0.1:3000
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders:
-              - "*"
-            allowCredentials: true
 ---
 spring:
   config:
@@ -167,21 +137,6 @@ spring:
           filters:
             - TokenRelay
             - StripPrefix=1
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins:
-              - http://localhost:3000
-              - http://localhost:8081
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders:
-              - "*"
-            allowCredentials: true
   security:
     oauth2:
       client:
