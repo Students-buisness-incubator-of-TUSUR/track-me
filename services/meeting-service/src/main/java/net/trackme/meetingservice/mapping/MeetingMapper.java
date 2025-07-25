@@ -26,7 +26,6 @@ public interface MeetingMapper {
 
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "teamCardId", ignore = true)
-    @Mapping(target = "startDate", ignore = true)
     @Mapping(target = "imageBytes", ignore = true)
     @Mapping(target = "id", ignore = true)
     void updateEntityFromDto(MeetingUpdateDto updateDto, @MappingTarget Meeting meeting);

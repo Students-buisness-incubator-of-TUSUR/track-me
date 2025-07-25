@@ -5,6 +5,8 @@ import jakarta.annotation.Nullable;
 import lombok.Builder;
 import net.trackme.meetingservice.entities.TeamStatus;
 
+import java.time.OffsetDateTime;
+
 @Builder
 @Schema(description = "DTO обновления встречи команды")
 public record MeetingUpdateDto(
@@ -18,6 +20,9 @@ public record MeetingUpdateDto(
         @Schema(description = "Задачи на текущую встречу")
         String tasksCurrentMeeting,
         @Schema(description = "Задачи на следующую встречу")
-        String tasksNextMeeting
+        String tasksNextMeeting,
+        @Nullable
+        @Schema(description = "Дата начала встречи")
+        OffsetDateTime startDate
 ) {
 }
