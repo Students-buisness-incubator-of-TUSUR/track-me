@@ -20,7 +20,7 @@ import java.util.List;
 @EnableJpaRepositories(basePackages = "net.trackme.sso.dao.repository")
 public class AppConfiguration {
 
-    public static final String XSRF_TOKEN = "X-XSRF-TOKEN";
+    public static final String XSRF_TOKEN = "X-CSRF-TOKEN";
     private final AppProperties appProperties;
 
     private final BuildProperties buildProperties;
