@@ -24,7 +24,7 @@ import java.util.List;
 @EnableConfigurationProperties(AppProperties.class)
 public class OpenAPIConfiguration {
 
-    public static final String XSRF_TOKEN = "X-CSRF-TOKEN";
+    public static final String CSRF_TOKEN = "X-CSRF-TOKEN";
     private final AppProperties appProperties;
 
     private final BuildProperties buildProperties;
@@ -37,12 +37,12 @@ public class OpenAPIConfiguration {
                                 .title(buildProperties.getName())
                                 .description("API сервиса управления встречами TrackMe")
                                 .version(buildProperties.getVersion()))
-                .addSecurityItem(new SecurityRequirement().addList(XSRF_TOKEN))
+                .addSecurityItem(new SecurityRequirement().addList(CSRF_TOKEN))
                 .components(new Components()
                         .addSecuritySchemes(
-                                XSRF_TOKEN, new SecurityScheme()
+                                CSRF_TOKEN, new SecurityScheme()
                                         .type(SecurityScheme.Type.APIKEY)
-                                        .in(SecurityScheme.In.HEADER).name(XSRF_TOKEN)))
+                                        .in(SecurityScheme.In.HEADER).name(CSRF_TOKEN)))
                 .servers(List.of(new Server().url(appProperties.getApiUrl())));
     }
 }
