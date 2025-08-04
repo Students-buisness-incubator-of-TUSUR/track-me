@@ -3,6 +3,7 @@ import {Link} from "react-router-dom";
 import axios from 'axios';
 import './stream-page.css';
 import ProfileIcon from "./personal_account_1.png";
+import { getCsrfConfig } from '../../utils/csrf-utils'; // Импортируем функцию для CSRF конфигурации
 
 export default function Stream() {
     const [isVisible, setIsVisible] = useState(false);
@@ -45,9 +46,11 @@ const toggleProfileMenu = () => {
         try {
             const response = await axios.post(`${backendHost}/api/v1/admin/streams?page=${page}&size=6`,
                 filters,
-                {
+                {   
+                    ...getCsrfConfig(),
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        ...getCsrfConfig().headers
                     },
                     withCredentials: true
                 }
@@ -267,15 +270,15 @@ const toggleProfileMenu = () => {
         });
     };
     const handleLogout = async () => {
-    // 1. Удаление данных из localStorage
-    localStorage.removeItem("user");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("streamName");
-    localStorage.removeItem("streamId");
-    localStorage.removeItem("streamSDate");
-    localStorage.removeItem("streamEDate");
-    
-    }
+        localStorage.removeItem("user");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("streamName");
+        localStorage.removeItem("streamId");
+        localStorage.removeItem("streamSDate");
+        localStorage.removeItem("streamEDate");
+        localStorage.removeItem("csrfToken");
+        localStorage.removeItem("csrfHeaderName");
+    };
     const handleApplyFilters = () => {
         setpage(0);
         const newFilters = {

@@ -629,7 +629,44 @@ select.team-input-widget option {
     left: 149px;
     bottom: 40px;
 }
+.date-edit-container {
+  display: flex;
+  right: 10px;
+  gap: 8px;
+}
 
+.date-input {
+    margin-left: 20px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.save-date-button, .cancel-date-button {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-date-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.cancel-date-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.meeting-date {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.meeting-date:hover {
+  color: #0066cc;
+}
 .red-button-widget {
     background: #D34F4F;
     color: white;

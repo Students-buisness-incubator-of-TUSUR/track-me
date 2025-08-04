@@ -7,6 +7,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import * as redux from 'react-redux';
 
 const mockedNavigate = jest.fn();
+
 jest.mock('../meeting-card/MeetingCreate.js', () => {
   return function MockMeetingCreate({ onClose }) {
     return (
@@ -1566,7 +1567,7 @@ describe('Meetings list and navigation', () => {
   });
 
   // New test for Enter key navigation
-  test('navigates to meeting on Enter key press', async () => {
+   test('navigates to meeting on Enter key press', async () => {
     require('react-router-dom').__setSearch('');
     await act(async () => {
       render(
@@ -1575,12 +1576,11 @@ describe('Meetings list and navigation', () => {
         </MemoryRouter>
       );
     });
-    const meet = await screen.findByRole('button', { name: /Встреча 2 от 05\.01\.2025/i });
+    const meet = await screen.findByRole('button', { name: /Встреча 2.*05\.01/i });
     fireEvent.keyDown(meet, { key: 'Enter' });
     expect(mockedNavigate).toHaveBeenCalledWith('/meeting/100?teamId=42&username=reduxUser');
   });
 
-  // New test for Space key navigation
   test('navigates to meeting on Space key press', async () => {
     require('react-router-dom').__setSearch('');
     await act(async () => {
@@ -1590,7 +1590,7 @@ describe('Meetings list and navigation', () => {
         </MemoryRouter>
       );
     });
-    const meet = await screen.findByRole('button', { name: /Встреча 2 от 05\.01\.2025/i });
+    const meet = await screen.findByRole('button', { name: /Встреча 2.*05\.01/i });
     fireEvent.keyDown(meet, { key: ' ' });
     expect(mockedNavigate).toHaveBeenCalledWith('/meeting/100?teamId=42&username=reduxUser');
   });

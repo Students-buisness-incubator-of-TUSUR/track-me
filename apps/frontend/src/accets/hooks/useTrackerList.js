@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useState } from "react";
-
+import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 export function useTrackerList(endpoint) {
   const [trackers, setTrackers] = useState([]);
   const [error, setError] = useState(null);
@@ -28,7 +28,7 @@ export function useTrackerList(endpoint) {
 
       const response = await fetch(`${ssoServiceUri}${endpoint}?page=${currentPage}&size=${currentSize}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch()},
         credentials: "include",
         body: JSON.stringify({ filters }),
       });
@@ -76,7 +76,7 @@ export function useTrackerList(endpoint) {
       const url = `${ssoServiceUri}/api/v1/users/enable?username=${username}`;
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",  ...getCsrfConfigForFetch() },
         credentials: "include",
       });
 
@@ -97,7 +97,7 @@ export function useTrackerList(endpoint) {
       const url = `${ssoServiceUri}/api/v1/users/disable?username=${username}`;
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",  ...getCsrfConfigForFetch() },
         credentials: "include",
       });
 

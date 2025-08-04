@@ -4,8 +4,11 @@ import "./team-card.css";
 import {useSelector} from "react-redux";
 import penIcon from "./pen.png";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
+import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
+
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
+const backendHost2 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/meeting';
 const TeamCard = () => {
     const navigate = useNavigate();
     const {id} = useParams();
@@ -43,7 +46,8 @@ const [teamCardsCount, setTeamCardsCount] = useState(0);
     const [selectedTRL, setSelectedTRL] = useState(null);
     const [selectedStreamId, setSelectedStreamId] = useState(null);
 const [showStreams, setShowStreams] = useState(false);
-
+  const [editingMeetingId, setEditingMeetingId] = useState(null);
+const [newMeetingDate, setNewMeetingDate] = useState('');
 
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState(null); // eslint-disable-line no-unused-vars
@@ -177,21 +181,22 @@ useEffect(() => {
     };
 
     useEffect(() => {
-        const loadMeetings = async () => {
-            try {
-                const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000`, {
-                    credentials: 'include',
-                });
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const data = await response.json();
-                setMeetings(data.content || []);
-                setTotalPages(data.totalPages || 1);
-            } catch (error) {
-                handleApiError(error, "загрузке встреч");
-            }
-        };
-        loadMeetings();
-    }, [id, currentPage]);
+    const loadMeetings = async () => {
+        try {
+            const response = await fetch(
+                `${backendHost2}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000&sort=number,asc`, // Добавляем сортировку
+                { credentials: 'include' }
+            );
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            setMeetings(data.content || []);
+            setTotalPages(data.totalPages || 1);
+        } catch (error) {
+            handleApiError(error, "загрузке встреч");
+        }
+    };
+    loadMeetings();
+}, [id, currentPage]);
     
 
      useEffect(() => {
@@ -207,7 +212,8 @@ useEffect(() => {
     fetch(endpoint, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json", 
+            ...getCsrfConfigForFetch()
         },
         credentials: "include",
         body: JSON.stringify(payload)
@@ -240,7 +246,8 @@ useEffect(() => {
         fetch(`${backendHost1}/api/v1/users/trackers`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json", 
+                ...getCsrfConfigForFetch()
             },
             credentials: 'include',
             body: JSON.stringify({
@@ -272,7 +279,8 @@ useEffect(() => {
             fetch(`${backendHost}/api/v1/streams?page=0&size=1500`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    ...getCsrfConfigForFetch()
                 },
                 credentials: 'include',
                 body: JSON.stringify({filters: []}),
@@ -405,7 +413,7 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
       `${baseEndpoint}?${params.toString()}`,
       {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch() },
         credentials: "include",
         body: JSON.stringify(patchData),
       }
@@ -429,7 +437,57 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
 };
 
 
+const handleDateChange = (meetingId, currentDate) => {
+  try {
+    // Конвертируем дату в формат, понятный для input[type="datetime-local"]
+    const localDate = new Date(currentDate);
+    const offset = localDate.getTimezoneOffset() * 60000; // коррекция часового пояса
+    const localISOTime = new Date(localDate - offset).toISOString().slice(0, 16);
+    
+    setEditingMeetingId(meetingId);
+    setNewMeetingDate(localISOTime);
+  } catch (error) {
+    handleApiError(error, "изменении даты встречи");
+  }
+};
 
+const saveMeetingDate = async () => {
+    if (!editingMeetingId || !newMeetingDate || !id) return;
+
+    try {
+        const isoDate = new Date(newMeetingDate).toISOString();
+
+        const response = await fetch(
+            `${backendHost2}/api/v1/update-meeting/${editingMeetingId}?teamCardId=${id}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getCsrfConfigForFetch()
+                },
+                credentials: 'include',
+                body: JSON.stringify({ startDate: isoDate })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Ошибка при обновлении даты');
+        }
+
+        // Обновляем только измененную встречу, сохраняя порядок
+        setMeetings(prevMeetings => 
+            prevMeetings.map(meeting => 
+                meeting.id === editingMeetingId 
+                    ? { ...meeting, startDate: isoDate } 
+                    : meeting
+            )
+        );
+        
+        setEditingMeetingId(null);
+    } catch (error) {
+        handleApiError(error, "сохранении даты встречи");
+    }
+};
     const handleDeactivate = async () => {
   const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
 
@@ -452,6 +510,7 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
   try {
     const response = await fetch(`${baseEndpoint}?${params.toString()}`, {
       method: "DELETE",
+      headers: {  ...getCsrfConfigForFetch() },
       credentials: "include",
     });
 
@@ -784,32 +843,80 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
             <div className="right-panel">
             <div className="team-meetings-block">
                     <div className="team-meetings-exist">
-                        {meetings.map((meeting) => (
-  <div
-    key={meeting.id}
-    className="team-meeting"
-    onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
-    onKeyDown={(e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`);
-      }
-    }}
-    tabIndex={0}
-    role="button"
-    aria-label={`Встреча ${meeting.number || "Без номера"} от ${new Date(meeting.startDate).toLocaleDateString('ru-RU')}`}
-  >
-    <span className="meeting-date">
-      {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit'
-      })}
-    </span>
-    <span className="meeting-title">
-      Встреча {meeting.number || "Без номера"}
-    </span>
-  </div>
-))}
-                    </div>
+  {meetings.map((meeting) => (
+    <div
+      key={meeting.id}
+      className="team-meeting"
+      onClick={(e) => {
+        // Переход если кликнули на саму карточку или на название, но не на дату
+        if (e.target === e.currentTarget || 
+            e.target.classList.contains('meeting-title')) {
+          navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`);
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`Встреча ${meeting.number} от ${new Date(meeting.startDate).toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })}`}
+    >
+      {editingMeetingId === meeting.id ? (
+        <div className="date-edit-container">
+          <input
+  type="datetime-local"
+  value={newMeetingDate}
+  onChange={(e) => setNewMeetingDate(e.target.value)}
+  className="date-input"
+  min={new Date().toISOString().slice(0, 16)} // запрет выбора прошедших дат
+/>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              saveMeetingDate();
+            }}
+            className="save-date-button"
+          >
+            Сохранить
+          </button>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditingMeetingId(null);
+            }}
+            className="cancel-date-button"
+          >
+            Отмена
+          </button>
+        </div>
+      ) : (
+        <>
+          <span 
+            className="meeting-date"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDateChange(meeting.id, meeting.startDate);
+            }}
+          >
+            {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
+              day: '2-digit',
+              month: '2-digit'
+            })}
+          </span>
+          <span className="meeting-title">
+            Встреча {meeting.number || "Без номера"}
+          </span>
+        </>
+      )}
+    </div>
+  ))}
+</div>
                         <button 
                         className="team-meeting-add" 
                         onClick={() => setShowMeetingCreate(true)}

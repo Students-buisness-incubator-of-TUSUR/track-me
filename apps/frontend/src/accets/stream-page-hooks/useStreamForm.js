@@ -1,5 +1,5 @@
 const { useCallback, useEffect, useRef, useState } = require('react');
-
+const { getCsrfConfigForFetch } = require('../../utils/csrf-utils');
 const useStreamForm = (streamId = null, navigate = () => {}) => {
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -196,7 +196,7 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getCsrfConfigForFetch()},
         credentials: 'include',
         body: JSON.stringify(requestData),
       });
@@ -210,6 +210,7 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
           `${backendHost}/api/v1/streams/${isEditMode ? streamId : streamResult.id}/image`,
           {
             method: 'POST',
+            headers: {...getCsrfConfigForFetch()},
             credentials: 'include',
             body: formData,
           }
@@ -225,6 +226,7 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
           `${backendHost}/api/v1/streams/${streamResult.id}/image`,
           {
             method: 'POST',
+            headers: {...getCsrfConfigForFetch()},
             credentials: 'include',
             body: formData,
           }

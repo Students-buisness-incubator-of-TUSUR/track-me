@@ -1,13 +1,33 @@
 import {useEffect} from "react";
 import loginService from "../../services/login-service";
 import {useNavigate} from "react-router-dom";
+import axios from "axios";
 
 function AfterLogin() {
     let service = loginService();
     const navigate = useNavigate();
 
     useEffect(() => {
-        service.getUserInfo()
+        // Сначала получаем CSRF-токен
+        const fetchCsrfToken = async () => {
+            try {
+                const response = await axios.get('https://api.trackme.test.startup-poligon.com/csrf', {
+                    withCredentials: true
+                });
+                
+                // Сохраняем токен в localStorage или в памяти
+                localStorage.setItem('csrfToken', response.data.token);
+                localStorage.setItem('csrfHeaderName', response.data.headerName);
+                
+                // После получения токена запрашиваем информацию о пользователе
+                return service.getUserInfo();
+            } catch (error) {
+                console.error("Error fetching CSRF token:", error);
+                throw error;
+            }
+        };
+
+        fetchCsrfToken()
             .then((data) => {
                 let roles = data.roles;
                 let isAdmin = roles.includes("ADMIN");

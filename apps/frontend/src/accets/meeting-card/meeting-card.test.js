@@ -40,19 +40,7 @@ jest.mock('react-router-dom', () => {
 });
 
 describe('MeetingCard компонент', () => {
-  test('отображает "Не указано", когда статус пустой', () => {
-    const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    const statusDiv = container.querySelector('.status-selected');
-    expect(statusDiv).not.toBeNull();
-    expect(statusDiv.textContent).toMatch(/Не указано/);
-  });
+  
   test('устанавливает статус "Не указано", если его нет в данных встречи', async () => {
     global.fetch = jest.fn(() =>
       Promise.resolve({

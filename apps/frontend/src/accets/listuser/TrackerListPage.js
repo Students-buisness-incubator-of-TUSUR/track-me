@@ -34,14 +34,16 @@ function TrackerListPage({ endpoint }) {
 
   const toggleProfileMenu = () => setIsProfileMenuOpen((prev) => !prev);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("streamName");
-    localStorage.removeItem("streamId");
-    localStorage.removeItem("streamSDate");
-    localStorage.removeItem("streamEDate");
-  };
+  const handleLogout = async () => {
+        localStorage.removeItem("user");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("streamName");
+        localStorage.removeItem("streamId");
+        localStorage.removeItem("streamSDate");
+        localStorage.removeItem("streamEDate");
+        localStorage.removeItem("csrfToken");
+        localStorage.removeItem("csrfHeaderName");
+    };
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);

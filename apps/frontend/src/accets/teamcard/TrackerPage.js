@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import {Link, useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
 import ProfileIcon from "./personal_account_1.png";
+import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 
 function TrackerPage() {
     const [cards, setCards] = useState([]);
@@ -178,6 +179,7 @@ useEffect(() => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            ...getCsrfConfigForFetch()
         },
         credentials: "include",
         body: JSON.stringify({ filters: allFilters }),
@@ -229,6 +231,7 @@ useEffect(() => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getCsrfConfigForFetch()
     },
     credentials: "include",
     body: JSON.stringify({ filters: [] }),
@@ -317,6 +320,7 @@ const options = {
     method: "POST", // Всегда POST
     headers: {
         "Content-Type": "application/json",
+        ...getCsrfConfigForFetch()
     },
     credentials: "include",
     body: JSON.stringify({ filters: [] }), // Отправляем пустые фильтры для всех
@@ -444,15 +448,15 @@ const options = {
 
     };
     const handleLogout = async () => {
-    // 1. Удаление данных из localStorage
-    localStorage.removeItem("user");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("streamName");
-    localStorage.removeItem("streamId");
-    localStorage.removeItem("streamSDate");
-    localStorage.removeItem("streamEDate");
-    
-    }
+        localStorage.removeItem("user");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("streamName");
+        localStorage.removeItem("streamId");
+        localStorage.removeItem("streamSDate");
+        localStorage.removeItem("streamEDate");
+        localStorage.removeItem("csrfToken");
+        localStorage.removeItem("csrfHeaderName");
+    };
     useEffect(() => {
     if (userRole && username && streamName) {
         fetchCards([]);

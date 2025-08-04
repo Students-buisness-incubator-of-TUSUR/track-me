@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./meeting-card.css";
+import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 
-const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
+const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/meeting';
 
 const MeetingCreate = ({ onClose, teamId }) => {
     const navigate = useNavigate();
@@ -99,11 +100,12 @@ const MeetingCreate = ({ onClose, teamId }) => {
                 startDate: new Date(meetingData.startDate).toISOString(),
             };
 
-            const response = await fetch(`${backendHost}/api/v1/meetings?teamCardId=${teamId}`, {
+            const response = await fetch(`${backendHost}/api/v1/create-meeting?teamCardId=${teamId}`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
-                    "Accept": "application/json"
+                    "Accept": "application/json", 
+                    ...getCsrfConfigForFetch()
                 },
                 credentials: 'include',
                 body: JSON.stringify(requestData),

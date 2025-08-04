@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import "./ProfilePage.css";
-
+import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 // Импорт иконок
 import penIcon from "./pen.png";
 import uploadIcon from "./upload.png";
@@ -94,7 +94,7 @@ function ProfilePage() {
     
     fetch(`${backendHost}/api/v1/team-cards?page=0&size=1000`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch() },
         credentials: "include",
         body: JSON.stringify({
             filters: [
@@ -189,6 +189,7 @@ function ProfilePage() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                ...getCsrfConfigForFetch()
             },
             credentials: "include",
             body: JSON.stringify(editedData),
@@ -258,7 +259,7 @@ function ProfilePage() {
 
         fetch(`${ssoHost}/api/v1/account/photo`, {
             method: "POST",
-            headers: {},
+            headers: { ...getCsrfConfigForFetch() },
             credentials: "include",
             body: formData,
         })

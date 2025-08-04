@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import "./team-card-create.css";
 import penIcon from "./pen.png";
-
+import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 const backendHost = process.env.REACT_APP_BACKEND_URI + '/backend';
 const backendHost1 = process.env.REACT_APP_BACKEND_URI + '/sso';
 const TeamCard = () => {
@@ -81,7 +81,8 @@ const TeamCard = () => {
     fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json", 
+            ...getCsrfConfigForFetch()
         },
         body: JSON.stringify({filters: []}),
         credentials: "include"
@@ -124,6 +125,7 @@ useEffect(() => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...getCsrfConfigForFetch()
       },
       credentials: "include",
       body: JSON.stringify({ filters: [] })
@@ -226,6 +228,7 @@ if (isAdmin && !selectedTracker) {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    ...getCsrfConfigForFetch()
                 },
                 credentials: "include",
                 body: JSON.stringify(payload),
