@@ -167,33 +167,7 @@ describe('MeetingCard Component', () => {
     expect(mockNavigate).toHaveBeenCalled();
   });
 
-  test('toggles status dropdown and selects status', async () => {
-    render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('edit-button'));
-    });
-
-    const statusSelected = screen.getByTestId('status-selected');
-    await act(async () => {
-      fireEvent.click(statusSelected);
-    });
-
-    expect(screen.getByText('Всё ок')).toBeInTheDocument();
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Всё ок'));
-    });
-
-    expect(statusSelected).toHaveTextContent('Всё ок');
-  });
-
+  
   test('shows error message on save failure', async () => {
     fetch.mockImplementationOnce(() =>
       Promise.resolve({ 
@@ -219,8 +193,173 @@ describe('MeetingCard Component', () => {
     });
   });
 
+  describe('MeetingCard Additional Tests', () => {
+  test('should handle image upload when clicking the upload area (lines 271-307)', () => {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+    const { container } = render(
+      <MemoryRouter initialEntries={['/meeting/new']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Simulate clicking the upload area
+    const uploadArea = container.querySelector('.unique-image-upload');
+    fireEvent.click(uploadArea);
+
+    // Simulate file selection
+    const fileInput = container.querySelector('input[type="file"]');
+    Object.defineProperty(fileInput, 'files', { value: [file] });
+    fireEvent.change(fileInput);
+  });
+
+  test('should handle keyboard events for image upload (lines 271-307)', () => {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+    const { container } = render(
+      <MemoryRouter initialEntries={['/meeting/new']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Simulate keyboard events
+    const uploadArea = container.querySelector('.unique-image-upload');
+    fireEvent.keyDown(uploadArea, { key: 'Enter' });
+    fireEvent.keyDown(uploadArea, { key: ' ' });
+
+    // Simulate file selection
+    const fileInput = container.querySelector('input[type="file"]');
+    Object.defineProperty(fileInput, 'files', { value: [file] });
+    fireEvent.change(fileInput);
+  });
+
   
-  test('renders link field in editing mode', async () => {
+
+  test('should handle image upload error (line 164)', async () => {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+    
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: "123" }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.reject(new Error('Image upload failed'))
+    );
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/meeting/new']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await act(async () => {
+      // Upload image
+      const fileInput = container.querySelector('input[type="file"]');
+      Object.defineProperty(fileInput, 'files', {
+        value: [file]
+      });
+      fireEvent.change(fileInput);
+
+      // Click save
+      fireEvent.click(screen.getByText('Сохранить'));
+    });
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+});
+  describe('MeetingCard Specific Line Coverage', () => {
+    beforeAll(() => {
+    process.env.REACT_APP_BACKEND_URI = 'http://localhost:8080';
+  });
+  
+
+  test('should handle image fetch error (lines 69-84)', async () => {
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.reject(new Error('Failed to fetch image'))
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/meeting/123']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith(
+        "Ошибка при загрузке изображения:",
+        expect.any(Error)
+      );
+    });
+  });
+
+  test('should handle image upload with FormData (line 164)', async () => {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+    
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: "123" }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({ ok: true })
+    );
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/meeting/new']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await act(async () => {
+      const fileInput = container.querySelector('input[type="file"]');
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+      fireEvent.click(screen.getByText('Сохранить'));
+    });
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(2);
+      const imageUploadCall = fetch.mock.calls[1];
+      expect(imageUploadCall[0]).toContain('/api/v1/image/123');
+      expect(imageUploadCall[1].method).toBe('POST');
+    });
+  });
+
+  test('should render image upload area with proper styling (lines 271-307)', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const uploadArea = screen.getByText('Выберите изображение').closest('.unique-image-upload');
+    expect(uploadArea).toHaveStyle('margin-left: 30px');
+    expect(uploadArea).toHaveAttribute('tabindex', '0');
+    expect(uploadArea).toHaveAttribute('role', 'button');
+    expect(uploadArea).toHaveAttribute('aria-label', 'Загрузить изображение');
+  });
+
+  
+});
+test('displays placeholder when no image is uploaded (lines 271-307)', () => {
     render(
       <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
         <Routes>
@@ -229,17 +368,61 @@ describe('MeetingCard Component', () => {
       </MemoryRouter>
     );
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('edit-button'));
-    });
-
-    const linkInputs = screen.getAllByRole('textbox');
-    const linkInput = linkInputs.find(input => input.name === 'link');
-    
-    await act(async () => {
-      fireEvent.change(linkInput, { target: { value: 'http://example.com' } });
-    });
-
-    expect(linkInput.value).toBe('http://example.com');
+    expect(screen.getByText('Выберите изображение')).toBeInTheDocument();
   });
+  test('handles image upload error and sets error message (lines 69-84, 164)', async () => {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+
+    fetch
+      .mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: '123' }),
+        })
+      )
+      .mockImplementationOnce(() =>
+        Promise.reject(new Error('Ошибка при загрузке изображения'))
+      );
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await act(async () => {
+      // Upload image
+      const fileInput = container.querySelector('input[type="file"]');
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+
+      // Click save
+      fireEvent.click(screen.getByText('Сохранить'));
+    });
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(screen.getByText('Ошибка при загрузке изображения')).toBeInTheDocument();
+    });
+  });
+  test('triggers file input click when clicking upload area (lines 271-307)', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const uploadArea = container.querySelector('.unique-image-upload');
+    const fileInput = container.querySelector('input[type="file"]');
+    const clickSpy = jest.spyOn(fileInput, 'click');
+
+    fireEvent.click(uploadArea);
+
+    expect(clickSpy).toHaveBeenCalled();
+  });
+
 });

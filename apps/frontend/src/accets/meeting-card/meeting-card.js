@@ -187,7 +187,6 @@ if (image && savedMeetingId) {
                 <button
                     onClick={isEditing ? handleSave : () => setIsEditing(true)}
                     className="unique-edit-button"
-                     data-testid="edit-button"
                 >
                     {isEditing ? "Сохранить" : "Редактировать"}
                 </button>
@@ -247,7 +246,7 @@ if (image && savedMeetingId) {
                     <span className="unique-label">Текущий статус команды:</span>
                     {isEditing ? (
                         <div className="status-dropdown-wrapper">
-                            <div className="status-selected" data-testid="status-selected" onClick={() => setShowStatusDropdown(prev => !prev)}>
+                            <div className="status-selected" onClick={() => setShowStatusDropdown(prev => !prev)}>
                                 {meetingData.teamStatus === "OK" && "Всё ок"}
                                 {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
                                 {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
