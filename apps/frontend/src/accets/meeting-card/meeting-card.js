@@ -298,24 +298,35 @@ if (image && savedMeetingId) {
                 <div className="unique-meeting-info-row">
     <span className="unique-label">Скриншот встречи:</span>
     {isEditing ? (
-        <div className="unique-image-upload" onClick={() => fileInputRef.current.click()}
-     style={{ marginLeft: '30px' }}> 
-            <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="unique-image-input"
-                ref={fileInputRef}
-            />
-            {imagePreview ? (
-                <img src={imagePreview} alt="Превью" className="unique-meeting-image" />
-            ) : (
-                <div className="unique-screenshot-placeholder">
-                    <span>Выберите изображение</span>
-                </div>
-            )}
-            <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
-        </div>
+        <div 
+  className="unique-image-upload" 
+  onClick={() => fileInputRef.current.click()}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      fileInputRef.current.click();
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Загрузить изображение"
+  style={{ marginLeft: '30px' }}
+> 
+  <input
+    type="file"
+    accept="image/*"
+    onChange={handleImageChange}
+    className="unique-image-input"
+    ref={fileInputRef}
+  />
+  {imagePreview ? (
+    <img src={imagePreview} alt="Превью" className="unique-meeting-image" />
+  ) : (
+    <div className="unique-screenshot-placeholder">
+      <span>Выберите изображение</span>
+    </div>
+  )}
+  <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
+</div>
     ) : imagePreview ? (
         <img src={imagePreview} alt="Скриншот встречи" className="unique-meeting-image" />
     ) : (

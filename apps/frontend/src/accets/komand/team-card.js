@@ -898,17 +898,26 @@ const saveMeetingDate = async () => {
       ) : (
         <>
           <span 
-            className="meeting-date"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDateChange(meeting.id, meeting.startDate);
-            }}
-          >
-            {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
-              day: '2-digit',
-              month: '2-digit'
-            })}
-          </span>
+  className="meeting-date"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleDateChange(meeting.id, meeting.startDate);
+  }}
+  tabIndex={0} // Make it focusable
+  role="button" // Indicate it's interactive
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.stopPropagation();
+      handleDateChange(meeting.id, meeting.startDate);
+    }
+  }}
+  aria-label={`Изменить дату встречи ${meeting.number}`}
+>
+  {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit'
+  })}
+</span>
           <span className="meeting-title">
             Встреча {meeting.number || "Без номера"}
           </span>

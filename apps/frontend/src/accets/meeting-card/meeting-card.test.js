@@ -1,68 +1,110 @@
-process.env.REACT_APP_BACKEND_URI = 'http://localhost:8080';
-
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import MeetingCard from './meeting-card';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-// Подменим useState, чтобы задать статус "Не указано"
-jest.mock('react', () => {
-  const actualReact = jest.requireActual('react');
-  return {
-    ...actualReact,
-    useState: (initial) => {
-      if (typeof initial === 'object' && initial !== null && 'status' in initial) {
-        return [
-          { ...initial, status: "Не указано" }, // подменяем статус
-          jest.fn(),
-        ];
-      }
-      return [initial, jest.fn()];
-    },
-  };
-});
-jest.mock('./meeting-card', () => {
-  const originalModule = jest.requireActual('./meeting-card');
-  process.env.REACT_APP_BACKEND_URI = 'http://localhost:8080';
-  return originalModule;
-});
+// Mock fetch globally
+global.fetch = jest.fn();
 
-// Мокаем react-router-dom
-jest.mock('react-router-dom', () => {
-  const original = jest.requireActual('react-router-dom');
-  return {
-    ...original,
-    useNavigate: () => jest.fn(),
-    useLocation: () => ({
-      search: '?teamId=1&username=test&userId=1',
-    }),
-  };
-});
+// Mock react-router-dom hooks
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => jest.fn(),
+  useLocation: () => ({
+    search: '?teamId=1&username=test&userId=1',
+  }),
+}));
 
-describe('MeetingCard компонент', () => {
+describe('MeetingCard Component', () => {
+  const mockMeetingData = {
+    id: "123",
+    number: "10",
+    startDate: "2023-01-01T00:00:00.000Z",
+    link: "http://example.com",
+    tasksCurrentMeeting: "Task 1",
+    tasksNextMeeting: "Task 2",
+    teamStatus: "OK"
+  };
+
+  beforeEach(() => {
+    fetch.mockClear();
+  });
+
   
-  test('устанавливает статус "Не указано", если его нет в данных встречи', async () => {
-    global.fetch = jest.fn(() =>
+
+  
+
+  
+
+  test('handles save with image upload', async () => {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+    
+    fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({
-          content: [{ id: "123", number: "10", startDate: "2023-01-01" }] // без status
-        }),
+        json: () => Promise.resolve({ id: "123" }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
       })
     );
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/123']}>
+      <MemoryRouter initialEntries={['/meeting/new']}>
         <Routes>
           <Route path="/meeting/:meetingId" element={<MeetingCard />} />
         </Routes>
       </MemoryRouter>
     );
 
+    // Upload image first
+    const fileInput = container.querySelector('input[type="file"]');
+    Object.defineProperty(fileInput, 'files', {
+      value: [file]
+    });
+    fireEvent.change(fileInput);
+
+    // Click save
+    fireEvent.click(screen.getByText('Сохранить'));
+
     await waitFor(() => {
-      const status = container.querySelector('.unique-status');
-      expect(status).not.toBeNull();
-      expect(status.textContent).toBe(""); // вне режима редактирования "Не указано" не выводится
+      expect(fetch).toHaveBeenCalledTimes(2); // One for meeting save, one for image upload
+    });
+  });
+
+  test('handles error during image upload', async () => {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+    
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: "123" }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.reject(new Error('Image upload failed'))
+    );
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/meeting/new']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Upload image
+    const fileInput = container.querySelector('input[type="file"]');
+    Object.defineProperty(fileInput, 'files', {
+      value: [file]
+    });
+    fireEvent.change(fileInput);
+
+    // Click save
+    fireEvent.click(screen.getByText('Сохранить'));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(2);
     });
   });
 });
