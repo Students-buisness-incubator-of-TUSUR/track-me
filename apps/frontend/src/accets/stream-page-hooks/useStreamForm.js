@@ -266,4 +266,4 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
   };
 };
 
-module.exports = { useStreamForm };
+export { useStreamForm };
