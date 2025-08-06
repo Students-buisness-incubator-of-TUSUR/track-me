@@ -2144,3 +2144,150 @@ describe('Stream selection functionality (lines 455-488)', () => {
   });
 });
 });
+describe('Meeting date editing', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    require('react-router-dom').__setSearch('');
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: ['ADMIN'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+    );
+    global.fetch = jest.fn((url, opts = {}) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ id: 100, startDate: '2025-01-05T00:00:00Z', number: 2 }],
+            totalPages: 1
+          })
+        });
+      }
+      if (url.includes('/api/v1/update-meeting/100') && opts.method === 'PATCH') {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 100, startDate: JSON.parse(opts.body).startDate, number: 2 })
+        });
+      }
+      if (url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: 42,
+              name: 'OldName',
+              description: 'OldDesc',
+              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+              readinessLevel: '0-2',
+              streams: [{ id: 1, name: 'Stream1' }],
+              username: 'reduxUser'
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+  });
+
+  // Fixed test for line 450 (and 875): handleApiError in handleDateChange
+  test('handleDateChange triggers handleApiError on invalid date', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ id: 100, startDate: 'invalid-date', number: 2 }],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    const meetingDate = await screen.findByText('Invalid Date');
+    fireEvent.click(meetingDate);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('изменении даты встречи'),
+        expect.any(Error)
+      );
+    });
+    consoleSpy.mockRestore();
+  });
+
+  // Fixed test for lines 478-480 and 486: setMeetings update and setEditingMeetingId(null)
+  test('saveMeetingDate updates meeting date and closes editor', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    const meetingDate = await screen.findByText(/05\.01/i);
+    fireEvent.click(meetingDate);
+
+    // Account for timezone offset (assuming test environment might adjust UTC to local)
+    const dateInput = screen.getByDisplayValue(/2025-01-05T\d{2}:\d{2}/);
+    fireEvent.change(dateInput, { target: { value: '2025-01-06T12:00' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /Сохранить/i })).not.toBeInTheDocument(); // Editor closed (line 486)
+      expect(screen.getByText(/06\.01/i)).toBeInTheDocument(); // Date updated (lines 478-480)
+    });
+  });
+
+  // Test for lines 909-911: Enter key on meeting date
+  test('pressing Enter on meeting date opens date editor', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    const meetingDate = await screen.findByRole('button', { name: /Изменить дату встречи 2/i });
+    fireEvent.keyDown(meetingDate, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Сохранить/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Отмена/i })).toBeInTheDocument();
+    });
+  });
+
+  // Test for lines 909-911: Space key on meeting date
+  test('pressing Space on meeting date opens date editor', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    const meetingDate = await screen.findByRole('button', { name: /Изменить дату встречи 2/i });
+    fireEvent.keyDown(meetingDate, { key: ' ' });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Сохранить/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Отмена/i })).toBeInTheDocument();
+    });
+  });
+});
