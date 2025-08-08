@@ -103,3 +103,26 @@ describe('LoginService axios interceptor', () => {
     expect(window.location.href).toBe('');
   });
 });
+test('calls axiosWithCredentials.post with correct arguments in register', async () => {
+  const mockPost = jest.fn().mockResolvedValue({ status: 200 });
+  const axiosInstanceWithPost = {
+    interceptors: { response: { use: jest.fn() } },
+    post: mockPost,
+  };
+  require('axios').create.mockReturnValue(axiosInstanceWithPost);
+
+  const { register } = LoginService();
+
+  const userData = { username: 'test', password: '123' };
+  await register(userData);
+
+  expect(mockPost).toHaveBeenCalledWith(
+    '/register',
+    userData,
+    expect.objectContaining({
+      headers: expect.objectContaining({
+        'Content-Type': 'application/json',
+      }),
+    })
+  );
+});
