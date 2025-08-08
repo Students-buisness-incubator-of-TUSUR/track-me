@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { getCsrfConfig } from '../utils/csrf-utils';
 import {useDispatch} from "react-redux";
 import { setUser, clearUser } from '../store/userSlice';
 
@@ -27,7 +27,12 @@ function LoginService() {
     const register = async (userData) => {
         try {
             // Регистрация чаще всего не использует кук, но на всякий случай добавим
-            const response = await axiosWithCredentials.post("/register", userData);
+            const response = await axiosWithCredentials.post("/register", userData, {
+                headers: {
+                    "Content-Type": "application/json", // Обычно для регистрации используется JSON
+                    ...getCsrfConfig().headers // Добавляем CSRF-заголовки
+                }
+            });
             if (response.status === 200) {
                 console.log("Registration successful");
             } else {
@@ -44,6 +49,7 @@ function LoginService() {
             await axiosWithCredentials.post("/logout", {}, {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
+                    ...getCsrfConfig().headers
                 }
             });
             console.log("Logout successful");

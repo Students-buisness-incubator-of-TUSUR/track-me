@@ -56,7 +56,7 @@ const MeetingCard = () => {
                         link: meeting.link || "",
                         tasksCurrentMeeting: meeting.tasksCurrentMeeting || "",
                         tasksNextMeeting: meeting.tasksNextMeeting || "",
-                        teamStatus: meeting.teamStatus || "Не указано",
+                        teamStatus: meeting.teamStatus ,
                     });
                 } else {
                     throw new Error('Встреча не найдена');
@@ -87,9 +87,12 @@ const MeetingCard = () => {
     }, [meetingId, teamId, isNewMeeting, backendHost]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setMeetingData(prev => ({ ...prev, [name]: value }));
-    };
+    const { name, value } = e.target;
+    setMeetingData(prev => ({
+        ...prev,
+        [name]: name === 'startDate' ? new Date(value).toISOString() : value
+    }));
+};
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -108,12 +111,13 @@ const MeetingCard = () => {
             if (!teamId) throw new Error("Отсутствует идентификатор команды");
 
             const meetingPayload = {
-                link: meetingData.link || "",
-                number: meetingData.number || "",
-                teamStatus: meetingData.teamStatus || "Не указано",
-                tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
-                tasksNextMeeting: meetingData.tasksNextMeeting || ""
-            };
+    link: meetingData.link || "",
+    number: meetingData.number || "",
+    teamStatus: meetingData.teamStatus ,
+    tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
+    tasksNextMeeting: meetingData.tasksNextMeeting || "",
+    startDate: meetingData.startDate || new Date().toISOString()
+};
 
             const url = isNewMeeting 
                 ? `${backendHost}/api/v1/meetings?teamCardId=${teamId}`
@@ -200,13 +204,31 @@ if (image && savedMeetingId) {
                 </div>
 
                 <div className="unique-meeting-info-row unique-date-row">
-                    <span className="unique-label">Дата:</span>
-                    <span className="unique-meeting-date">
-                        {meetingData.startDate
-                            ? new Date(meetingData.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
-                            : 'Не указана'}
-                    </span>
-                </div>
+    <span className="unique-label">Дата:</span>
+    {isEditing ? (
+        <div className="unique-date-input-wrapper">
+            <input
+                type="date"
+                name="startDate"
+                value={meetingData.startDate ? new Date(meetingData.startDate).toISOString().split('T')[0] : ''}
+                onChange={handleChange}
+                className="unique-date-input"
+            />
+            <img 
+  src={pencilIcon} 
+  alt="Редактировать" 
+  style={{ marginTop: "-6px" }}  // Отрицательный margin поднимет вверх
+  className="edit-icon23" 
+/>
+        </div>
+    ) : (
+        <span className="unique-meeting-date">
+            {meetingData.startDate
+                ? new Date(meetingData.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
+                : 'Не указана'}
+        </span>
+    )}
+</div>
 
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Задачи к следующей встрече:</span>
@@ -245,7 +267,9 @@ if (image && savedMeetingId) {
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Текущий статус команды:</span>
                     {isEditing ? (
+                        
                         <div className="status-dropdown-wrapper">
+                            
                             <div className="status-selected" onClick={() => setShowStatusDropdown(prev => !prev)}>
                                 {meetingData.teamStatus === "OK" && "Всё ок"}
                                 {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
@@ -253,6 +277,7 @@ if (image && savedMeetingId) {
                                 {meetingData.teamStatus === "Не указано" && "Не указано"}
                                 <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
                             </div>
+                            
                             {showStatusDropdown && (
                                 <div className="status-options">
                                     <div
@@ -284,7 +309,9 @@ if (image && savedMeetingId) {
                                     </div>
                                 </div>
                             )}
+                            
                         </div>
+                        
                     ) : (
                         <div className={`unique-status ${meetingData.teamStatus?.toLowerCase() || ''}`}>
                             {meetingData.teamStatus === "OK" && "Всё ок"}

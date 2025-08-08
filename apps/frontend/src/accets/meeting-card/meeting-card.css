@@ -711,7 +711,24 @@
     color: #666;
     font-size: 16px;
 }
+.unique-date-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
 
+.unique-date-input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 150px;
+}
+
+.unique-date-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
 /* Responsive styles for image-related elements */
 @media (max-width: 1024px) {
     .unique-screenshot-placeholder,
