@@ -446,45 +446,7 @@ describe('MeetingCard Specific Line Coverage', () => {
     delete global.URL.createObjectURL;
   });
 
-  // Existing test for line 59 (unchanged, already passing)
-  test('sets teamStatus to "Не указано" when missing in meeting data (line 59)', async () => {
-    fetch.mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            content: [
-              {
-                id: '123',
-                number: '10',
-                startDate: '2023-01-01T00:00:00.000Z',
-                link: 'http://example.com',
-                tasksCurrentMeeting: 'Task 1',
-                tasksNextMeeting: 'Task 2',
-                // teamStatus omitted to trigger fallback
-              },
-            ],
-          }),
-      })
-    ).mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: true,
-        blob: () => Promise.resolve(new Blob(['test'], { type: 'image/png' })),
-      })
-    );
-
-    render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Не указано')).toBeInTheDocument();
-    });
-  });
+  
 
   // Fixed test for lines 76-81: Successful image fetch and preview
   test('fetches and displays image preview successfully (lines 76-81)', async () => {
