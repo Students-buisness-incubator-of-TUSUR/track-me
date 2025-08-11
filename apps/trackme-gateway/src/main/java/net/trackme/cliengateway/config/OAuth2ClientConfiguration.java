@@ -56,6 +56,7 @@ public class OAuth2ClientConfiguration {
                         oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler))
                 .oauth2Client(withDefaults())
                 .logout(logout -> logout
+                        .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutSuccessHandler))
                 .build();
     }
