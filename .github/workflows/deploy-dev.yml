@@ -90,6 +90,7 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}/gateway:$TAG
             docker pull ghcr.io/${{ github.repository }}/sso:$TAG
             docker pull ghcr.io/${{ github.repository }}/frontend:$TAG
+            docker pull ghcr.io/${{ github.repository }}/meeting-service:$TAG
             
             # Остановить текущие контейнеры и поднять новые
             docker compose -f docker-compose.dev.yml down
