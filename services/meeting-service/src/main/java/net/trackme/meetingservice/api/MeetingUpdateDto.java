@@ -3,6 +3,7 @@ package net.trackme.meetingservice.api;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
 import lombok.Builder;
+import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
 
 import java.time.OffsetDateTime;
@@ -23,6 +24,9 @@ public record MeetingUpdateDto(
         String tasksNextMeeting,
         @Nullable
         @Schema(description = "Дата начала встречи")
-        OffsetDateTime startDate
+        OffsetDateTime startDate,
+        @Nullable
+        @Schema(description = "Статус встречи")
+        MeetingStatus status
 ) {
 }

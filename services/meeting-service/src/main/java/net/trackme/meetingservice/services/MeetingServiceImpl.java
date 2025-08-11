@@ -22,8 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
-import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
-import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardIdEquals;
+import static net.trackme.meetingservice.entities.MeetingSpecification.*;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +57,8 @@ public class MeetingServiceImpl implements MeetingService {
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting','READ') or hasRole('ADMIN')")
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
-                        .and(meetingIdEquals(meetingId)))
+                        .and(meetingIdEquals(meetingId))
+                        .and(notCompleted()))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         meeting = meetingRepository.save(meeting);
