@@ -742,7 +742,121 @@
         height: 180px;
     }
 }
+.unique-meeting-info {
+    
+   
+    
+    margin-bottom: 20px;
+    gap: 15px;
+}
 
+/* Обновленные стили для кнопок статуса встречи */
+/* Обновленные стили для кнопок статуса встречи */
+.unique-meeting-status-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: -10px;
+}
+
+.unique-status-button {
+    padding: 10px 20px;
+    border-radius: 70px;
+    border: none;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 200px;
+    text-align: center;
+    opacity: 1;
+    transform: scale(1);
+}
+
+.unique-status-button:hover:not(:disabled) {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+/* Стили для всплывающей подсказки */
+.edit-button-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.edit-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0,0,0,0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 100;
+    margin-bottom: 5px;
+    font-size: 14px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.edit-button-wrapper:hover .edit-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+.unique-status-button:disabled {
+    
+    cursor: not-allowed;
+}
+.unique-status-button {
+    transition: all 0.3s ease;
+}
+
+.unique-status-button.hidden {
+    display: none;
+    opacity: 0;
+    transform: scale(0.9);
+    width: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+/* Зеленая кнопка "состоялась" */
+.unique-status-completed {
+    background: #0DB862;
+}
+
+/* Красная кнопка "не состоялась" */
+.unique-status-not-happened {
+    background: #d44444;
+}
+
+/* Стиль для неактивной кнопки (когда одна уже выбрана) */
+.unique-status-button.hidden {
+    display: none;
+}
+
+/* Адаптивные стили для кнопок статуса */
+@media (max-width: 768px) {
+    .unique-meeting-status-buttons {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .unique-status-button {
+        width: 100%;
+        min-width: unset;
+    }
+}
+
+@media (max-width: 480px) {
+    .unique-status-button {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
 @media (max-width: 768px) {
     .unique-screenshot-placeholder,
     .unique-meeting-image {

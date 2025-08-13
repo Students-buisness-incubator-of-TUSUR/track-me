@@ -436,7 +436,17 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
   }
 };
 
-
+const getMeetingStatusClass = (status) => {
+    switch(status) {
+        case "COMPLETED":
+            return "meeting-status-completed";
+        case "NOT_HAPPENED":
+        case "COMPLETED_AS_NOT_HAPPENED":
+            return "meeting-status-not-happened";
+        default:
+            return ""; // Для SCHEDULED оставляем без специального класса
+    }
+};
 const handleDateChange = (meetingId, currentDate) => {
   try {
     // Конвертируем дату в формат, понятный для input[type="datetime-local"]
@@ -846,7 +856,7 @@ const saveMeetingDate = async () => {
   {meetings.map((meeting) => (
     <div
       key={meeting.id}
-      className="team-meeting"
+      className={`team-meeting ${getMeetingStatusClass(meeting.status)}`}
       onClick={(e) => {
         // Переход если кликнули на саму карточку или на название, но не на дату
         if (e.target === e.currentTarget || 

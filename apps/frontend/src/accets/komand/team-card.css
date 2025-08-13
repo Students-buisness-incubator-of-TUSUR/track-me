@@ -634,7 +634,15 @@ select.team-input-widget option {
   right: 10px;
   gap: 8px;
 }
+.team-meeting.meeting-status-completed {
+  background-color: #348a5fd7; /* зеленый фон */
+  
+}
 
+.meeting-status-not-happened {
+  background-color: #bd2b2be3; /* красный фон */
+ 
+}
 .date-input {
     margin-left: 20px;
   padding: 4px;
