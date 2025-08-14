@@ -5,6 +5,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   global.fetch = jest.fn();
 });
+// Добавим в начало файла, после других импортов
+const mockNavigate = jest.fn();
 
 describe('useStreamForm', () => {
   const backendHost = 'http://localhost:8080/backend';
@@ -703,4 +705,117 @@ describe('handleSubmit', () => {
     expect(alertMock).not.toHaveBeenCalled();
   });
 });
+});
+
+
+describe('Track meeting date validation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([]),
+    });
+  });
+
+  it('should show error when track start date is before stream start date', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    act(() => {
+      result.current.handleNameChange({ target: { value: 'Stream' } });
+      result.current.handleStartDateChange({ target: { value: '02012024' } }); // 02.01.2024
+      result.current.handleEndDateChange({ target: { value: '03012024' } }); // 03.01.2024
+      result.current.handleTrackStartDateChange({ target: { value: '01012024' } }); // 01.01.2024 (before start)
+      result.current.handleMeetingsCountChange({ target: { value: '5' } });
+      result.current.handleCheckboxChange(1);
+    });
+
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    expect(result.current.error).toBe('Дата начала трекшен-митинга должна быть между датой начала и конца потока.');
+  });
+
+  it('should show error when track start date is after stream end date', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    act(() => {
+      result.current.handleNameChange({ target: { value: 'Stream' } });
+      result.current.handleStartDateChange({ target: { value: '01012024' } }); // 01.01.2024
+      result.current.handleEndDateChange({ target: { value: '02012024' } }); // 02.01.2024
+      result.current.handleTrackStartDateChange({ target: { value: '03012024' } }); // 03.01.2024 (after end)
+      result.current.handleMeetingsCountChange({ target: { value: '5' } });
+      result.current.handleCheckboxChange(1);
+    });
+
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    expect(result.current.error).toBe('Дата начала трекшен-митинга должна быть между датой начала и конца потока.');
+  });
+});
+
+describe('Meetings count validation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([]),
+    });
+  });
+
+ 
+
+  it('should accept valid meetings count between 1 and 100', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    act(() => {
+      result.current.handleMeetingsCountChange({ target: { value: '1' } });
+    });
+    expect(result.current.meetingsCount).toBe('1');
+
+    act(() => {
+      result.current.handleMeetingsCountChange({ target: { value: '50' } });
+    });
+    expect(result.current.meetingsCount).toBe('50');
+
+    act(() => {
+      result.current.handleMeetingsCountChange({ target: { value: '100' } });
+    });
+    expect(result.current.meetingsCount).toBe('100');
+  });
+});
+
+describe('Date formatting for partial input', () => {
+  it('should format partial date input correctly', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    // Test for lines 83-84 - partial date formatting
+    act(() => {
+      result.current.handleStartDateChange({ target: { value: '01' } });
+    });
+    expect(result.current.startDate).toBe('01');
+
+    act(() => {
+      result.current.handleStartDateChange({ target: { value: '0102' } });
+    });
+    expect(result.current.startDate).toBe('01.02');
+
+    act(() => {
+      result.current.handleStartDateChange({ target: { value: '010220' } });
+    });
+    expect(result.current.startDate).toBe('01.02.20');
+
+    // Same for track start date
+    act(() => {
+      result.current.handleTrackStartDateChange({ target: { value: '03' } });
+    });
+    expect(result.current.trackStartDate).toBe('03');
+
+    act(() => {
+      result.current.handleTrackStartDateChange({ target: { value: '0304' } });
+    });
+    expect(result.current.trackStartDate).toBe('03.04');
+  });
 });
