@@ -410,15 +410,24 @@ const MeetingCard = () => {
                     {isEditing ? (
                         <div className="status-dropdown-wrapper">
                             <div 
-                                className="status-selected" 
-                                onClick={() => !isMeetingCompleted && setShowStatusDropdown(prev => !prev)}
-                            >
-                                {meetingData.teamStatus === "OK" && "Всё ок"}
-                                {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
-                                {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
-                                {!meetingData.teamStatus && "Не указано"}
-                                <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
-                            </div>
+  className="status-selected" 
+  onClick={() => !isMeetingCompleted && setShowStatusDropdown(prev => !prev)}
+  onKeyDown={(e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && !isMeetingCompleted) {
+      setShowStatusDropdown(prev => !prev);
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-expanded={showStatusDropdown}
+  aria-haspopup="listbox"
+>
+  {meetingData.teamStatus === "OK" && "Всё ок"}
+  {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
+  {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
+  {!meetingData.teamStatus && "Не указано"}
+  <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
+</div>
                             
                             {showStatusDropdown && (
                                 <div className="status-options">
