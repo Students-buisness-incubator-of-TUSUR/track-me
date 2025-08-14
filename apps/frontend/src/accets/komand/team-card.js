@@ -9,6 +9,17 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
 const backendHost2 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/meeting';
+export const getMeetingStatusClass = (status) => {
+    switch(status) {
+        case "COMPLETED":
+            return "meeting-status-completed";
+        case "NOT_HAPPENED":
+        case "COMPLETED_AS_NOT_HAPPENED":
+            return "meeting-status-not-happened";
+        default:
+            return ""; // Для SCHEDULED оставляем без специального класса
+    }
+};
 const TeamCard = () => {
     const navigate = useNavigate();
     const {id} = useParams();
@@ -436,17 +447,7 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
   }
 };
 
-const getMeetingStatusClass = (status) => {
-    switch(status) {
-        case "COMPLETED":
-            return "meeting-status-completed";
-        case "NOT_HAPPENED":
-        case "COMPLETED_AS_NOT_HAPPENED":
-            return "meeting-status-not-happened";
-        default:
-            return ""; // Для SCHEDULED оставляем без специального класса
-    }
-};
+
 const handleDateChange = (meetingId, currentDate) => {
   try {
     // Конвертируем дату в формат, понятный для input[type="datetime-local"]
@@ -960,5 +961,6 @@ const saveMeetingDate = async () => {
         </div>
     );
 };
+
 
 export default TeamCard;
