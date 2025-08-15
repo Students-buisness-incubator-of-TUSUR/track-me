@@ -1,6 +1,5 @@
 server:
   port: 8081
-
 app:
   after-login-url: ${AFTER_LOGIN_URL:http://127.0.0.1:8081}
   after-logout-uri: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
@@ -19,6 +18,13 @@ spring:
     name: track-me-gateway
   cloud:
     gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: ${CORS_ORIGINS:http://localhost:3000}
+            allowedMethods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
+            allowedHeaders: ${CORS_ALLOWED_HEADERS:*}
+            allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
       routes:
         - id: trackme-backend
           uri: http://trackme-backend:8080
