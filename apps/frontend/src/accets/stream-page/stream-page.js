@@ -4,7 +4,7 @@ import axios from 'axios';
 import './stream-page.css';
 import ProfileIcon from "./personal_account_1.png";
 import { getCsrfConfig } from '../../utils/csrf-utils'; // Импортируем функцию для CSRF конфигурации
-
+// import LoginService from '../../services/login-service'; // Импортируем сервис для логина
 export default function Stream() {
     const [isVisible, setIsVisible] = useState(false);
     const [visibleCardsStart] = useState(0);
@@ -35,7 +35,7 @@ export default function Stream() {
     const numberOfCheckboxes = year - 2015;
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-
+    // const { logout } = LoginService();
 const toggleProfileMenu = () => {
     setIsProfileMenuOpen(prev => !prev);
 };
@@ -269,7 +269,12 @@ const toggleProfileMenu = () => {
             return newCheckedTRLs;
         });
     };
+    
     const handleLogout = async () => {
+    
+        // await logout();
+        
+        // Очистка localStorage
         localStorage.removeItem("user");
         localStorage.removeItem("userRole");
         localStorage.removeItem("streamName");
@@ -278,7 +283,13 @@ const toggleProfileMenu = () => {
         localStorage.removeItem("streamEDate");
         localStorage.removeItem("csrfToken");
         localStorage.removeItem("csrfHeaderName");
-    };
+        
+        // Перенаправление на главную страницу
+        // window.location.href = '/';
+    // } catch (error) {
+        // console.error("Logout failed:", error);
+    
+};
     const handleApplyFilters = () => {
         setpage(0);
         const newFilters = {
@@ -374,9 +385,9 @@ const toggleProfileMenu = () => {
     <Link to="/profile" className="ProfileDropdown-item">
       Личный кабинет
     </Link>
-    <Link onClick={handleLogout} to={logoutHost} className="ProfileDropdown-item logout">
-      Выход
-    </Link>
+    <Link onClick={handleLogout} to={logoutHost} /*to="/"*/ className="ProfileDropdown-item logout">
+  Выход
+</Link>
   </div>
 )}
                     </div>

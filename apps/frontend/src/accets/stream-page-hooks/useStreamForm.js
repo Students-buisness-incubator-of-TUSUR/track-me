@@ -13,6 +13,8 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
   const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
   const checkboxesRef = useRef(null);
   const errorRef = useRef(null);
+  const [trackStartDate, setTrackStartDate] = useState('');
+const [meetingsCount, setMeetingsCount] = useState('');
 
   useEffect(() => {
     if (error && errorRef.current) {
@@ -47,31 +49,48 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
   }, [backendHost]);
 
   const fetchStreamData = useCallback(async () => {
-    if (!streamId) return;
-    try {
-      const response = await fetch(`${backendHost}/api/v1/admin/stream/${streamId}`, {
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Network error');
-      const result = await response.json();
-      setName(result.name);
-      const formatForDisplay = (dateStr) => {
-        const [year, month, day] = dateStr.split('T')[0].split('-');
-        return `${day}.${month}.${year}`;
-      };
-      setStartDate(formatForDisplay(result.startDate));
-      setEndDate(formatForDisplay(result.endDate));
-      if (result.ntiMarkets && result.ntiMarkets.length > 0) {
-        const selectedMarketIds = result.ntiMarkets.map((market) => market.id);
-        setSelectedCheckboxes(selectedMarketIds);
-      }
-      const imageUrl = await fetchStreamImage(streamId);
-      if (imageUrl) setImage(imageUrl);
-    } catch (error) {
-      setError('Не удалось загрузить данные потока.');
+  if (!streamId) return;
+  try {
+    const response = await fetch(`${backendHost}/api/v1/admin/stream/${streamId}`, {
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Network error');
+    const result = await response.json();
+    setName(result.name);
+    const formatForDisplay = (dateStr) => {
+      const [year, month, day] = dateStr.split('T')[0].split('-');
+      return `${day}.${month}.${year}`;
+    };
+    setStartDate(formatForDisplay(result.startDate));
+    setEndDate(formatForDisplay(result.endDate));
+    setTrackStartDate(result.trackStartDate ? formatForDisplay(result.trackStartDate) : ''); // Новое поле
+    setMeetingsCount(result.meetingsCount ? String(result.meetingsCount) : ''); // Новое поле
+    if (result.ntiMarkets && result.ntiMarkets.length > 0) {
+      const selectedMarketIds = result.ntiMarkets.map((market) => market.id);
+      setSelectedCheckboxes(selectedMarketIds);
     }
-  }, [backendHost, streamId, fetchStreamImage]);
-
+    const imageUrl = await fetchStreamImage(streamId);
+    if (imageUrl) setImage(imageUrl);
+  } catch (error) {
+    setError('Не удалось загрузить данные потока.');
+  }
+}, [backendHost, streamId, fetchStreamImage]);
+const handleTrackStartDateChange = (e) => {
+  let value = e.target.value.replace(/\D/g, '');
+  if (value.length > 8) value = value.slice(0, 8);
+  if (value.length > 4) {
+    value = `${value.slice(0, 2)}.${value.slice(2, 4)}.${value.slice(4)}`;
+  } else if (value.length > 2) {
+    value = `${value.slice(0, 2)}.${value.slice(2)}`;
+  }
+  setTrackStartDate(value);
+}
+const handleMeetingsCountChange = (e) => {
+  const value = e.target.value;
+  if (value === '' || (/^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= 100)) {
+    setMeetingsCount(value);
+  }
+};
   useEffect(() => {
     fetchCheckboxesData();
     if (streamId) fetchStreamData();
@@ -123,15 +142,16 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
     setEndDate(value);
   };
 
-  const isValidDate = (date) => {
-    const [day, month, year] = date.split('.').map(Number);
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
-    if (month < 1 || month > 12) return false;
-    if (day < 1 || day > 31) return false;
-    const daysInMonth = new Date(year, month, 0).getDate();
-    if (day > daysInMonth) return false;
-    return true;
-  };
+ const isValidDate = (date) => {
+  if (!date) return true; // Пустая дата допустима для trackStartDate
+  const [day, month, year] = date.split('.').map(Number);
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if (day > daysInMonth) return false;
+  return true;
+};
 
   const formatDate = (date) => {
     const [day, month, year] = date.split('.').map(Number);
@@ -153,102 +173,116 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
   };
 
   const validateForm = () => {
-    if (!name || !startDate || !endDate) {
-      setError('Пожалуйста, заполните все обязательные поля.');
-      return false;
-    }
-    if (selectedCheckboxes.length === 0) {
-      setError('Пожалуйста, укажите хотя бы один рынок НТИ.');
-      return false;
-    }
-    if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      setError('Некорректный формат даты. Используйте формат ДД.ММ.ГГГГ.');
-      return false;
-    }
-    const [startDay, startMonth, startYear] = startDate.split('.').map(Number);
-    const [endDay, endMonth, endYear] = endDate.split('.').map(Number);
-    const startDateObj = new Date(startYear, startMonth - 1, startDay);
-    const endDateObj = new Date(endYear, endMonth - 1, endDay);
-    if (startDateObj > endDateObj) {
-      setError('Дата начала должна быть раньше даты конца.');
-      return false;
-    }
-    return true;
-  };
+  if (!name || !startDate || !endDate || !trackStartDate || !meetingsCount) {
+    setError('Пожалуйста, заполните все обязательные поля.');
+    return false;
+  }
+  if (selectedCheckboxes.length === 0) {
+    setError('Пожалуйста, укажите хотя бы один рынок НТИ.');
+    return false;
+  }
+  if (!isValidDate(startDate) || !isValidDate(endDate) || !isValidDate(trackStartDate)) {
+    setError('Некорректный формат даты. Используйте формат ДД.ММ.ГГГГ.');
+    return false;
+  }
+  const [startDay, startMonth, startYear] = startDate.split('.').map(Number);
+  const [endDay, endMonth, endYear] = endDate.split('.').map(Number);
+  const [trackDay, trackMonth, trackYear] = trackStartDate.split('.').map(Number);
+  const startDateObj = new Date(startYear, startMonth - 1, startDay);
+  const endDateObj = new Date(endYear, endMonth - 1, endDay);
+  const trackStartDateObj = new Date(trackYear, trackMonth - 1, trackDay);
+  if (startDateObj > endDateObj) {
+    setError('Дата начала должна быть раньше даты конца.');
+    return false;
+  }
+  if (trackStartDateObj < startDateObj || trackStartDateObj > endDateObj) {
+    setError('Дата начала трекшен-митинга должна быть между датой начала и конца потока.');
+    return false;
+  }
+  if (Number(meetingsCount) < 1 || Number(meetingsCount) > 100) {
+    setError('Количество встреч должно быть от 1 до 100.');
+    return false;
+  }
+  return true;
+};
 
   const handleSubmit = async (isEditMode = false) => {
-    setError('');
-    if (!validateForm()) return;
+  setError('');
+  if (!validateForm()) return;
 
-    const requestData = {
-      name,
-      startDate: formatDate(startDate),
-      endDate: formatDate(endDate),
-      ntiMarketIds: selectedCheckboxes,
-      description: 'useless описание',
-    };
-
-    try {
-      const url = isEditMode
-        ? `${backendHost}/api/v1/admin/stream/${streamId}`
-        : `${backendHost}/api/v1/admin/stream`;
-      const method = isEditMode ? 'PATCH' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', ...getCsrfConfigForFetch()},
-        credentials: 'include',
-        body: JSON.stringify(requestData),
-      });
-      if (!response.ok) throw new Error('Network error');
-      const streamResult = await response.json();
-
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append('file', imageFile);
-        const imageResponse = await fetch(
-          `${backendHost}/api/v1/streams/${isEditMode ? streamId : streamResult.id}/image`,
-          {
-            method: 'POST',
-            headers: {...getCsrfConfigForFetch()},
-            credentials: 'include',
-            body: formData,
-          }
-        );
-        if (!imageResponse.ok) throw new Error('Image upload failed');
-      } else if (!isEditMode) {
-        const defaultImageResponse = await fetch('rabbit.png');
-        if (!defaultImageResponse.ok) throw new Error('Default image fetch failed');
-        const defaultImageBlob = await defaultImageResponse.blob();
-        const formData = new FormData();
-        formData.append('file', defaultImageBlob, 'rabbit.png');
-        const imageResponse = await fetch(
-          `${backendHost}/api/v1/streams/${streamResult.id}/image`,
-          {
-            method: 'POST',
-            headers: {...getCsrfConfigForFetch()},
-            credentials: 'include',
-            body: formData,
-          }
-        );
-        if (!imageResponse.ok) throw new Error('Image upload failed');
-      }
-
-      alert(isEditMode ? 'Поток успешно обновлен!' : 'Поток успешно создан!');
-      navigate('/streams');
-    } catch (error) {
-      setError(
-        isEditMode
-          ? 'Не удалось обновить поток или загрузить изображение.'
-          : 'Не удалось создать поток или загрузить изображение.'
-      );
-    }
+  const requestData = {
+    name,
+    startDate: formatDate(startDate),
+    endDate: formatDate(endDate),
+    trackStartDate: formatDate(trackStartDate), // Новое поле
+    meetingsCount: Number(meetingsCount), // Новое поле
+    ntiMarketIds: selectedCheckboxes,
+    description: 'useless описание',
   };
+
+  try {
+    const url = isEditMode
+      ? `${backendHost}/api/v1/admin/stream/${streamId}`
+      : `${backendHost}/api/v1/admin/stream`;
+    const method = isEditMode ? 'PATCH' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', ...getCsrfConfigForFetch() },
+      credentials: 'include',
+      body: JSON.stringify(requestData),
+    });
+    if (!response.ok) throw new Error('Network error');
+    const streamResult = await response.json();
+
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append('file', imageFile);
+      const imageResponse = await fetch(
+        `${backendHost}/api/v1/streams/${isEditMode ? streamId : streamResult.id}/image`,
+        {
+          method: 'POST',
+          headers: { ...getCsrfConfigForFetch() },
+          credentials: 'include',
+          body: formData,
+        }
+      );
+      if (!imageResponse.ok) throw new Error('Image upload failed');
+    } else if (!isEditMode) {
+      const defaultImageResponse = await fetch('rabbit.png');
+      if (!defaultImageResponse.ok) throw new Error('Default image fetch failed');
+      const defaultImageBlob = await defaultImageResponse.blob();
+      const formData = new FormData();
+      formData.append('file', defaultImageBlob, 'rabbit.png');
+      const imageResponse = await fetch(
+        `${backendHost}/api/v1/streams/${streamResult.id}/image`,
+        {
+          method: 'POST',
+          headers: { ...getCsrfConfigForFetch() },
+          credentials: 'include',
+          body: formData,
+        }
+      );
+      if (!imageResponse.ok) throw new Error('Image upload failed');
+    }
+
+    alert(isEditMode ? 'Поток успешно обновлен!' : 'Поток успешно создан!');
+    navigate('/streams');
+  } catch (error) {
+    setError(
+      isEditMode
+        ? 'Не удалось обновить поток или загрузить изображение.'
+        : 'Не удалось создать поток или загрузить изображение.'
+    );
+  }
+};
 
   return {
     name,
     startDate,
     endDate,
+    trackStartDate, // Новое поле
+  meetingsCount,
     showCheckboxes2,
     error,
     checkboxesData2,
@@ -259,6 +293,8 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
     handleNameChange,
     handleStartDateChange,
     handleEndDateChange,
+    handleTrackStartDateChange, // Новый обработчик
+  handleMeetingsCountChange,
     handleShowCheckboxes2,
     handleCheckboxChange,
     handleImageUpload,

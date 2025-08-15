@@ -5,6 +5,7 @@ import '@testing-library/jest-dom';
 import TeamCard from './team-card.js';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import * as redux from 'react-redux';
+import { getMeetingStatusClass } from './team-card.js';
 
 const mockedNavigate = jest.fn();
 
@@ -2289,5 +2290,33 @@ describe('Meeting date editing', () => {
       expect(screen.getByRole('button', { name: /Сохранить/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Отмена/i })).toBeInTheDocument();
     });
+  });
+});
+// src/__tests__/getMeetingStatusClass.test.js
+
+describe('getMeetingStatusClass', () => {
+  it('returns "meeting-status-completed" for COMPLETED status', () => {
+    const result = getMeetingStatusClass('COMPLETED');
+    expect(result).toBe('meeting-status-completed');
+  });
+
+  it('returns "meeting-status-not-happened" for NOT_HAPPENED status', () => {
+    const result = getMeetingStatusClass('NOT_HAPPENED');
+    expect(result).toBe('meeting-status-not-happened');
+  });
+
+  it('returns "meeting-status-not-happened" for COMPLETED_AS_NOT_HAPPENED status', () => {
+    const result = getMeetingStatusClass('COMPLETED_AS_NOT_HAPPENED');
+    expect(result).toBe('meeting-status-not-happened');
+  });
+
+  it('returns empty string for SCHEDULED status', () => {
+    const result = getMeetingStatusClass('SCHEDULED');
+    expect(result).toBe('');
+  });
+
+  it('returns empty string for unknown status', () => {
+    const result = getMeetingStatusClass('UNKNOWN_STATUS');
+    expect(result).toBe('');
   });
 });

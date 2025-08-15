@@ -16,7 +16,7 @@
   display: flex;
   flex-direction: row;
   width: 1542px;
-  height: 612px;
+  height: 712px;
   border-radius: 70px;
   background-color: white;
   padding-bottom: 30px;
@@ -37,7 +37,7 @@
 
 .create-stream-cont-left,
 .create-stream-cont-right {
-    display: flex;
+    
     flex-direction: column;
     width: 50%;
     justify-content: center;
@@ -53,16 +53,23 @@
     align-self: center;
     width: 466px;
     height: 369px;
+    left: 200px;
+    top: -40px;
     border-radius: 70px;
     background-color: rgba(217, 217, 217, 1);
 }
 
 .create-stream-input-button {
-    margin-top: 43px;
+
     align-self: center;
     width: 217px;
     height: 70px;
+    font-size: 24px;
+    font-weight: 700;
     border-radius: 70px;
+    position: relative;
+    left: 330px;
+    top: 50px;
     background-color: rgba(131, 56, 235, 1);
     color: white;
     border: none;
@@ -81,6 +88,8 @@
     margin-bottom: 29px;
     font-weight: 400;
     font-size: 64px;
+    white-space: nowrap; /* Текст в одну строку */
+    overflow: hidden; /* Скрываем переполнение */
     color: rgba(131, 56, 235, 1);
 }
 
@@ -94,7 +103,7 @@
 
 .create-stream-input-date,
 .create-stream-input {
-    text-align-last: center;
+    text-align: center;
     align-self: center;
     min-width: 217px;
     height: 70px;
@@ -106,6 +115,59 @@
     font-size: 32px;
     margin-block-start: 0.67em;
     margin-block-end: 0.67em;
+    position: relative;
+    right: 270px;
+}
+.create-stream-input-date1,
+.create-stream-input1 {
+    text-align-last: center;
+    align-self: center;
+    min-width: 217px;
+    text-align: center;
+    height: 70px;
+    border-radius: 70px;
+    background-color: rgba(131, 56, 235, 1);
+    color: white;
+    border: none;
+    font-weight: 600;
+    font-size: 32px;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    position: relative;
+    top: 13px;
+    right: 40px;
+}
+.create-stream-input-date1::placeholder,
+.create-stream-input1::placeholder {
+    text-align-last: center;
+    color: white;
+}
+.create-stream-input-number {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+  position: relative;
+  top: 56px;
+right: 200px;
+}
+
+.create-stream-input-number::-webkit-inner-spin-button,
+.create-stream-input-number::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.create-stream-input-number:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.create-stream-input-number::placeholder {
+  color: #999;
 }
 
 .create-stream-input-date::placeholder,
@@ -165,12 +227,14 @@
 
 .create-stream-input-pic-placeholder {
     width: 100%;
+    position: relative;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ccc; /* Цвет текста или иконки */
     font-size: 16px;
+    
 }
 
 .create-stream-uploaded-image {
@@ -186,12 +250,14 @@
 }
 .Stream-header-chosefrom-buttw2323131
 {    
+    
   position: absolute;
   display: flex;
   flex-direction: column;
   margin-right: 39px;
   width: 268px;
-  bottom: 5%; 
+  bottom: 2%; 
+    left: 6%;
   height: min-content;
   border-radius: 31px;
   background-color: #CDAFF7;
@@ -238,7 +304,12 @@
         width: 90%;
         height: 60px;
     }
-
+    .create-stream-input1,
+    .create-stream-input-date1 {
+        font-size: 24px;
+        width: 90%;
+        height: 60px;
+    }
     .create-stream-input-button {
         width: 200px;
         height: 60px;
@@ -248,6 +319,7 @@
     .create-stream-input-pic {
         width: 466px;
         height: 369px;
+        
     }
 
     .Stream-b {

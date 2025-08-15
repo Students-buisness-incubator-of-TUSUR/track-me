@@ -540,3 +540,266 @@ describe('MeetingCard Specific Line Coverage', () => {
     });
   });
 });
+describe('MeetingCard Event Handlers', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  
+  test('should update teamStatus when status option is clicked (OK/WITH_ISSUES/MANY_ISSUES)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Open status dropdown
+    const statusDropdown = screen.getByText('Не указано').closest('.status-selected');
+    fireEvent.click(statusDropdown);
+
+    // Test OK status
+    fireEvent.click(screen.getByText('Всё ок'));
+    expect(screen.getByText('Всё ок')).toBeInTheDocument();
+
+    // Reopen dropdown
+    fireEvent.click(statusDropdown);
+    
+    // Test WITH_ISSUES status
+    fireEvent.click(screen.getByText('Есть проблемы'));
+    expect(screen.getByText('Есть проблемы')).toBeInTheDocument();
+
+    // Reopen dropdown
+    fireEvent.click(statusDropdown);
+    
+    // Test MANY_ISSUES status
+    fireEvent.click(screen.getByText('Есть большие проблемы'));
+    expect(screen.getByText('Есть большие проблемы')).toBeInTheDocument();
+  });
+});
+describe('MeetingCard Button Interactions', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    console.error.mockRestore();
+  });
+
+ 
+
+  
+
+  test('should set teamStatus to OK when clicked (team status dropdown)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Open dropdown
+    fireEvent.click(screen.getByText('Не указано'));
+    
+    // Click OK option
+    await act(async () => {
+      fireEvent.click(screen.getByText('Всё ок'));
+    });
+
+    expect(screen.getByText('Всё ок')).toBeInTheDocument();
+  });
+
+  test('should set teamStatus to WITH_ISSUES when clicked (team status dropdown)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Open dropdown
+    fireEvent.click(screen.getByText('Не указано'));
+    
+    // Click WITH_ISSUES option
+    await act(async () => {
+      fireEvent.click(screen.getByText('Есть проблемы'));
+    });
+
+    expect(screen.getByText('Есть проблемы')).toBeInTheDocument();
+  });
+
+  test('should set teamStatus to MANY_ISSUES when clicked (team status dropdown)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Open dropdown
+    fireEvent.click(screen.getByText('Не указано'));
+    
+    // Click MANY_ISSUES option
+    await act(async () => {
+      fireEvent.click(screen.getByText('Есть большие проблемы'));
+    });
+
+    expect(screen.getByText('Есть большие проблемы')).toBeInTheDocument();
+  });
+
+  
+});
+describe('MeetingCard Completion and Editing', () => {
+  const mockMeetingData = {
+    id: "123",
+    number: "10",
+    startDate: "2023-01-01T00:00:00.000Z",
+    link: "http://example.com",
+    tasksCurrentMeeting: "Task 1",
+    tasksNextMeeting: "Task 2",
+    teamStatus: "OK",
+    status: "SCHEDULED"
+  };
+
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // Mock successful fetch for meeting data
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [mockMeetingData] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      })
+    );
+  });
+
+  afterEach(() => {
+    console.error.mockRestore();
+  });
+
+  test('should complete meeting successfully (lines 186-230)', async () => {
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...mockMeetingData, status: "COMPLETED" }),
+      })
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Wait for initial load
+    await screen.findByText(/Встреча 10/i);
+
+    // Click "Встреча состоялась" button
+    await act(async () => {
+      fireEvent.click(screen.getByText('Встреча состоялась'));
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/update-meeting/123'),
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({
+          status: "COMPLETED",
+          link: "http://example.com",
+          number: "10",
+          teamStatus: "OK",
+          tasksCurrentMeeting: "Task 1",
+          tasksNextMeeting: "Task 2",
+          startDate: "2023-01-01T00:00:00.000Z"
+        })
+      })
+    );
+  });
+
+  test('should mark meeting as not happened successfully (lines 186-230)', async () => {
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...mockMeetingData, status: "NOT_HAPPENED" }),
+      })
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Wait for initial load
+    await screen.findByText(/Встреча 10/i);
+
+    // Click "Встреча не состоялась" button
+    await act(async () => {
+      fireEvent.click(screen.getByText('Встреча не состоялась'));
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/update-meeting/123'),
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({
+          status: "NOT_HAPPENED",
+          link: "http://example.com",
+          number: "10",
+          teamStatus: "OK",
+          tasksCurrentMeeting: "Task 1",
+          tasksNextMeeting: "Task 2",
+          startDate: "2023-01-01T00:00:00.000Z"
+        })
+      })
+    );
+  });
+
+  test('should handle error when completing meeting (lines 186-230)', async () => {
+    fetch.mockImplementationOnce(() =>
+      Promise.reject(new Error('Failed to update meeting'))
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Wait for initial load
+    await screen.findByText(/Встреча 10/i);
+
+    // Click "Встреча состоялась" button
+    await act(async () => {
+      fireEvent.click(screen.getByText('Встреча состоялась'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to update meeting/i)).toBeInTheDocument();
+    });
+  });
+
+  
+});
