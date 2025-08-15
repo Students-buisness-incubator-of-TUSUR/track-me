@@ -18,6 +18,8 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -37,16 +39,8 @@ public class OAuth2ClientConfiguration {
 
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        var corsConfig = appProperties.cors();
         return http
-                .cors(corsSpec -> corsSpec.configurationSource(exchange -> {
-                    var config = new CorsConfiguration();
-                    config.setAllowedOrigins(corsConfig.allowedOrigins());
-                    config.setAllowedMethods(corsConfig.allowedMethods());
-                    config.setAllowedHeaders(corsConfig.allowedHeaders());
-                    config.setAllowCredentials(corsConfig.allowCredentials());
-                    return config;
-                }))
+                .cors(corsSpec -> corsSpec.configurationSource(corsConfiguration()))
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
@@ -59,6 +53,20 @@ public class OAuth2ClientConfiguration {
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutSuccessHandler))
                 .build();
+    }
+
+    private CorsConfigurationSource corsConfiguration() {
+        var cors = appProperties.cors();
+        var corsConfiguration = new CorsConfiguration();
+
+        corsConfiguration.setAllowedOrigins(cors.allowedOrigins());
+        corsConfiguration.setAllowedMethods(cors.allowedMethods());
+        corsConfiguration.setAllowedHeaders(cors.allowedHeaders());
+        corsConfiguration.setAllowCredentials(cors.allowCredentials());
+
+        var config = new UrlBasedCorsConfigurationSource();
+        config.registerCorsConfiguration("/api/**", corsConfiguration);
+        return config;
     }
 
     @Bean

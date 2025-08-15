@@ -24,7 +24,7 @@ public class GatewayCookieConfiguration {
             builder.path("/");
             builder.httpOnly(true);
             // Добавляем домен для корректной работы с CSRF
-            if (cookieProperties.domain() != null) {
+            if (cookieProperties.domain() != null && !cookieProperties.domain().isBlank()) {
                 builder.domain(cookieProperties.domain());
             }
         });
