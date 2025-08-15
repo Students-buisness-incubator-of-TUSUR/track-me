@@ -25,6 +25,7 @@ spring:
             allowedMethods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
             allowedHeaders: ${CORS_ALLOWED_HEADERS:*}
             allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
+            maxAge: 3600
       routes:
         - id: trackme-backend
           uri: http://trackme-backend:8080
