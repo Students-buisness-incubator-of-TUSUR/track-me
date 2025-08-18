@@ -18,7 +18,7 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import static org.springframework.http.HttpMethod.OPTIONS;
@@ -30,17 +30,15 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableConfigurationProperties({AppProperties.class})
 public class OAuth2ClientConfiguration {
     private final ReactiveClientRegistrationRepository clientRegistrationRepository;
-
     private final AppProperties appProperties;
 
     private ServerLogoutSuccessHandler logoutSuccessHandler;
-
     private ServerAuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
-                .cors(corsSpec -> corsSpec.configurationSource(corsConfiguration()))
+                .cors(withDefaults()) // Enable CORS support
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
@@ -55,20 +53,21 @@ public class OAuth2ClientConfiguration {
                 .build();
     }
 
-    private CorsConfigurationSource corsConfiguration() {
-        var cors = appProperties.cors();
-        var corsConfiguration = new CorsConfiguration();
+    @Bean
+    public CorsWebFilter corsWebFilter() {
+        var corsProperties = appProperties.cors();
+        var configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(corsProperties.allowedOrigins());
+        configuration.setAllowedMethods(corsProperties.allowedMethods());
+        configuration.setAllowedHeaders(corsProperties.allowedHeaders());
+        configuration.setAllowCredentials(corsProperties.allowCredentials());
+        configuration.setMaxAge(3600L);
 
-        corsConfiguration.setAllowedOrigins(cors.allowedOrigins());
-        corsConfiguration.setAllowedMethods(cors.allowedMethods());
-        corsConfiguration.setAllowedHeaders(cors.allowedHeaders());
-        corsConfiguration.setAllowCredentials(cors.allowCredentials());
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
 
-        var config = new UrlBasedCorsConfigurationSource();
-        config.registerCorsConfiguration("/**", corsConfiguration);
-        return config;
+        return new CorsWebFilter(source);
     }
-
 
     @Bean
     ReactiveOAuth2AuthorizedClientManager authorizedClientManager(
@@ -96,13 +95,11 @@ public class OAuth2ClientConfiguration {
         this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
             var exchange = webFilterExchange.getExchange();
 
-            // Получаем redirect_uri из параметров
-            String redirectUri = exchange.getRequest().getQueryParams().getFirst("redirect_uri");
+            var redirectUri = exchange.getRequest().getQueryParams().getFirst("redirect_uri");
             if (redirectUri != null) {
                 return new RedirectServerAuthenticationSuccessHandler(redirectUri)
                         .onAuthenticationSuccess(webFilterExchange, authentication);
             }
-            // Фолбэк на старое поведение
             return new RedirectServerAuthenticationSuccessHandler(appProperties.afterLoginUrl())
                     .onAuthenticationSuccess(webFilterExchange, authentication);
         };

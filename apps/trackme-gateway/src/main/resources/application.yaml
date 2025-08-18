@@ -8,7 +8,7 @@ app:
     secure: ${SESSION_COOKIE_SECURE:false}
     domain: ${SESSION_COOKIE_DOMAIN:}
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
     allowed-headers: ${CORS_ALLOWED_HEADERS:*}
     allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
     allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
@@ -18,14 +18,6 @@ spring:
     name: track-me-gateway
   cloud:
     gateway:
-      globalcors:
-        corsConfigurations:
-          '[/**]':
-            allowedOrigins: ${CORS_ORIGINS:http://localhost:3000}
-            allowedMethods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
-            allowedHeaders: ${CORS_ALLOWED_HEADERS:*}
-            allowCredentials: ${CORS_ALLOW_CREDENTIALS:true}
-            maxAge: 3600
       routes:
         - id: trackme-backend
           uri: http://trackme-backend:8080
