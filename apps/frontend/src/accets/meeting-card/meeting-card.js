@@ -324,7 +324,7 @@ const MeetingCard = () => {
                 (meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED") ? "hidden" : ""
             }`}
         >
-            Встреча состоялась
+            Состоялась
         </button>
         <button 
             onClick={() => handleCompleteMeeting(false)}
@@ -334,7 +334,7 @@ const MeetingCard = () => {
                 meetingData.status === "COMPLETED" ? "hidden" : ""
             }`}
         >
-            Встреча не состоялась
+            Не состоялась
         </button>
     </div>
 )}
