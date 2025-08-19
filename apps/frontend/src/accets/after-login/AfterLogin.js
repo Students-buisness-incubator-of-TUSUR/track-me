@@ -3,22 +3,25 @@ import loginService from "../../services/login-service";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 
+const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080');
+
 function AfterLogin() {
     let service = loginService();
     const navigate = useNavigate();
+
 
     useEffect(() => {
         // Сначала получаем CSRF-токен
         const fetchCsrfToken = async () => {
             try {
-                const response = await axios.get('https://api.trackme.test.startup-poligon.com/csrf', {
+                const response = await axios.get(backendHost + '/csrf', {
                     withCredentials: true
                 });
-                
+
                 // Сохраняем токен в localStorage или в памяти
                 localStorage.setItem('csrfToken', response.data.token);
                 localStorage.setItem('csrfHeaderName', response.data.headerName);
-                
+
                 // После получения токена запрашиваем информацию о пользователе
                 return service.getUserInfo();
             } catch (error) {
