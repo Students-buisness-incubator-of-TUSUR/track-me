@@ -714,7 +714,7 @@ describe('MeetingCard Completion and Editing', () => {
 
     // Click "Встреча состоялась" button
     await act(async () => {
-      fireEvent.click(screen.getByText('Встреча состоялась'));
+      fireEvent.click(screen.getByText('Состоялась'));
     });
 
     expect(fetch).toHaveBeenCalledWith(
@@ -755,7 +755,7 @@ describe('MeetingCard Completion and Editing', () => {
 
     // Click "Встреча не состоялась" button
     await act(async () => {
-      fireEvent.click(screen.getByText('Встреча не состоялась'));
+      fireEvent.click(screen.getByText('Не состоялась'));
     });
 
     expect(fetch).toHaveBeenCalledWith(
@@ -793,7 +793,7 @@ describe('MeetingCard Completion and Editing', () => {
 
     // Click "Встреча состоялась" button
     await act(async () => {
-      fireEvent.click(screen.getByText('Встреча состоялась'));
+      fireEvent.click(screen.getByText('Состоялась'));
     });
 
     await waitFor(() => {
