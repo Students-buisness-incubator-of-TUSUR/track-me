@@ -142,7 +142,7 @@
     font-family: 'Montserrat', sans-serif;
      line-height: 100%;    /* или просто 1 */
   letter-spacing: 0;
-    padding: 10px 150px;
+    padding: 10px 75px;
     margin: 0 0 40px 0;
     border-radius: 70px;
     font-size: 24px;
@@ -758,10 +758,10 @@
     margin-top: -10px;
 }
 .unique-status-button.unique-status-completed {
-    padding: 7.5px 85px; 
+    padding: 7.5px 65px; 
 }
 .unique-status-button {
-    padding: 7.5px 67px;
+    padding: 7.5px 47px;
     border-radius: 70px;
     border: none;
     color: white;
