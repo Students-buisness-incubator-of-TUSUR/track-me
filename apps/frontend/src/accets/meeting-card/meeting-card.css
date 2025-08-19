@@ -335,9 +335,9 @@
 
 .unique-status {
     display: inline-block;
-    padding: 15px 115px;
+    padding: 14px 115px;
     border-radius: 70px;
-    font-size: 16px;
+    font-size: 20px;
     
     text-align: center;
 }
@@ -757,14 +757,16 @@
     gap: 15px;
     margin-top: -10px;
 }
-
+.unique-status-button.unique-status-completed {
+    padding: 7.5px 85px; 
+}
 .unique-status-button {
-    padding: 10px 20px;
+    padding: 7.5px 67px;
     border-radius: 70px;
     border: none;
     color: white;
     font-family: 'Montserrat', sans-serif;
-    font-size: 20px;
+    font-size: 24px;
     cursor: pointer;
     transition: all 0.2s;
     min-width: 200px;
