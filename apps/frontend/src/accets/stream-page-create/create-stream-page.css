@@ -9,7 +9,7 @@
     justify-content: center;
     align-content: center;
     flex-direction: column;
-    background-color: rgb(3, 1, 1);
+    background-color: rgba(68, 68, 68, 1);
 }
 
 
@@ -181,15 +181,7 @@
     margin-left: 15px;
     padding: 0 5px;
 }
-.create-stream-input-number {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  box-sizing: border-box;
-}
+
 
 .create-stream-input-number::-webkit-inner-spin-button,
 .create-stream-input-number::-webkit-outer-spin-button {

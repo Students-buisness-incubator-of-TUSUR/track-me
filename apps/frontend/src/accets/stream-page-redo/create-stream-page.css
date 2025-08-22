@@ -144,16 +144,112 @@
 }
 .create-stream-input-number {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
+ 
+  
   border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
+  
+  
   box-sizing: border-box;
-  position: relative;
-  top: 56px;
-right: 200px;
+  text-align-last: center;
+    
+    text-align: center;
+    height: 70px;
+    border-radius: 70px;
+    background-color: rgba(131, 56, 235, 1);
+    color: white;
+    border: none;
+    font-weight: 600;
+    font-size: 32px;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    position: relative;
+    top: 13px;
+    right: 200px;
+    
 }
+/* Стилизация стрелочек для поля ввода числа */
+
+/* Убираем стандартные стрелки в Chrome, Safari, Edge, Opera */
+.create-stream-input-number::-webkit-outer-spin-button,
+.create-stream-input-number::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 10;
+}
+
+
+/* Стили для выпадающего списка */
+.create-stream-select {
+  width: 100%;
+  text-align: center;
+  text-align-last: center;
+  height: 70px;
+  border-radius: 70px;
+  background-color: rgba(131, 56, 235, 1);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 32px;
+  margin-block-start: 0.67em;
+  margin-block-end: 0.67em;
+  position: relative;
+  top: 13px;
+  right: 200px;
+  padding: 0 20px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+.create-stream-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(167, 11, 206, 0.3);
+}
+
+.create-stream-select option {
+  background-color: rgba(131, 56, 235, 1);
+  color: white;
+  font-weight: 600;
+  font-size: 28px;
+  text-align: center;
+}
+
+/* Стрелка для select */
+.create-stream-select-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.create-stream-select-container::after {
+  content: "▼";
+  font-size: 20px;
+  color: white;
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Адаптивные стили для select */
+@media (max-width: 1280px) {
+  .create-stream-select {
+    font-size: 24px;
+    height: 60px;
+    right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-stream-select {
+    font-size: 18px;
+    height: 50px;
+    right: 0;
+  }
+}
+
 
 .create-stream-input-number::-webkit-inner-spin-button,
 .create-stream-input-number::-webkit-outer-spin-button {
@@ -163,11 +259,11 @@ right: 200px;
 .create-stream-input-number:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 5px rgba(167, 11, 206, 0.3);
 }
 
 .create-stream-input-number::placeholder {
-  color: #999;
+  color: white;
 }
 
 .create-stream-input-date::placeholder,

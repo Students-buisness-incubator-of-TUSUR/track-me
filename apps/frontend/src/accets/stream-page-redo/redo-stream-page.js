@@ -58,40 +58,48 @@ export default function EditStream() { //NOSONAR
             <h1 className="create-stream-h1">Количество встреч:</h1> {/* NOSONAR */}
           </div> {/* NOSONAR */}
           <div className="create-stream-col"> {/* NOSONAR */}
-            <input //NOSONAR
-              className="create-stream-input" //NOSONAR
-              placeholder="Текст названия" //NOSONAR
-              value={name} //NOSONAR
-              onChange={handleNameChange} //NOSONAR
-            /> {/* NOSONAR */}
-            <input //NOSONAR
-              className="create-stream-input-date" //NOSONAR
-              placeholder="__.__.____" //NOSONAR
-              value={startDate} //NOSONAR
-              onChange={handleStartDateChange} //NOSONAR
-            /> {/* NOSONAR */}
-            <input //NOSONAR
-              className="create-stream-input-date" //NOSONAR
-              placeholder="__.__.____" //NOSONAR
-              value={endDate} //NOSONAR
-              onChange={handleEndDateChange} //NOSONAR
-            /> {/* NOSONAR */}
-            <input //NOSONAR
-              className="create-stream-input-date1" //NOSONAR
-              placeholder="__.__.____" //NOSONAR
-              value={trackStartDate} //NOSONAR
-              onChange={handleTrackStartDateChange} //NOSONAR
-            /> {/* NOSONAR */}
-            <input //NOSONAR
-              type="number" //NOSONAR
-              className="create-stream-input-number" //NOSONAR
-              placeholder="1–100" //NOSONAR
-              value={meetingsCount} //NOSONAR
-              onChange={handleMeetingsCountChange} //NOSONAR
-              min="1" //NOSONAR
-              max="100" //NOSONAR
-            /> {/* NOSONAR */}
-          </div> {/* NOSONAR */}
+  <input //NOSONAR
+    className="create-stream-input" //NOSONAR
+    placeholder="Текст названия" //NOSONAR
+    value={name} //NOSONAR
+    onChange={handleNameChange} //NOSONAR
+  /> {/* NOSONAR */}
+  <input //NOSONAR
+    className="create-stream-input-date" //NOSONAR
+    placeholder="__.__.____" //NOSONAR
+    value={startDate} //NOSONAR
+    onChange={handleStartDateChange} //NOSONAR
+  /> {/* NOSONAR */}
+  <input //NOSONAR
+    className="create-stream-input-date" //NOSONAR
+    placeholder="__.__.____" //NOSONAR
+    value={endDate} //NOSONAR
+    onChange={handleEndDateChange} //NOSONAR
+  /> {/* NOSONAR */}
+  <input //NOSONAR
+    className="create-stream-input-date1" //NOSONAR
+    placeholder="__.__.____" //NOSONAR
+    value={trackStartDate} //NOSONAR
+    onChange={handleTrackStartDateChange} //NOSONAR
+  /> {/* NOSONAR */}
+
+  {/* Заменяем input на красивый select */}
+  <div className="create-stream-select-container"> {/* NOSONAR */}
+    <select
+      className="create-stream-select" //NOSONAR
+      value={meetingsCount} //NOSONAR
+      onChange={handleMeetingsCountChange} //NOSONAR
+    >
+      <option value="">Выберите количество</option> {/* NOSONAR */}
+      {[5, 10, 15, 20].map(option => ( //NOSONAR
+        <option key={option} value={option}> {/* NOSONAR */}
+          {option} {/* NOSONAR */}
+        </option> //NOSONAR
+      ))} {/* NOSONAR */}
+    </select> {/* NOSONAR */}
+  </div> {/* NOSONAR */}
+</div>
+
         </div> {/* NOSONAR */}
         <div className="Stream-bb Stream-header-chosefrom-buttw2323131"> {/* NOSONAR */}
           <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}> {/* NOSONAR */}

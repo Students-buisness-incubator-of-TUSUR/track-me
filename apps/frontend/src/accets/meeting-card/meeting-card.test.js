@@ -693,7 +693,10 @@ describe('MeetingCard Completion and Editing', () => {
     console.error.mockRestore();
   });
 
-  test('should complete meeting successfully (lines 186-230)', async () => {
+   test('should complete meeting successfully (lines 186-230)', async () => {
+    // Mock image preview URL to satisfy areAllFieldsFilled() check
+    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
+    
     fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -709,8 +712,10 @@ describe('MeetingCard Completion and Editing', () => {
       </MemoryRouter>
     );
 
-    // Wait for initial load
-    await screen.findByText(/Встреча 10/i);
+    // Wait for initial load and image preview to be set
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
+    });
 
     // Click "Встреча состоялась" button
     await act(async () => {
@@ -733,7 +738,6 @@ describe('MeetingCard Completion and Editing', () => {
       })
     );
   });
-
   test('should mark meeting as not happened successfully (lines 186-230)', async () => {
     fetch.mockImplementationOnce(() =>
       Promise.resolve({
@@ -776,6 +780,9 @@ describe('MeetingCard Completion and Editing', () => {
   });
 
   test('should handle error when completing meeting (lines 186-230)', async () => {
+    // Mock image preview URL to satisfy areAllFieldsFilled() check
+    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
+    
     fetch.mockImplementationOnce(() =>
       Promise.reject(new Error('Failed to update meeting'))
     );
@@ -788,8 +795,10 @@ describe('MeetingCard Completion and Editing', () => {
       </MemoryRouter>
     );
 
-    // Wait for initial load
-    await screen.findByText(/Встреча 10/i);
+    // Wait for initial load and image preview to be set
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
+    });
 
     // Click "Встреча состоялась" button
     await act(async () => {
