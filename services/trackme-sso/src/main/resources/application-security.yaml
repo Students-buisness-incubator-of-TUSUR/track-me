@@ -28,6 +28,17 @@ spring:
               redirect-uris:
                 - ${BACKEND_URI:http://127.0.0.1:8081}/login/oauth2/code/track-me-client
                 - http://127.0.0.1:8081/login/oauth2/code/track-me-client
+          meetings-service:
+            token:
+              access-token-time-to-live: 15m
+            registration:
+              client-name: TrackMe Meeting Service
+              authorization-grant-types:
+                - client_credentials
+              client-id: ${MEETING_CLIENT_ID:meeting-service}
+              client-secret: ${MEETING_CLIENT_SECRET:password}
+              scopes:
+                - meeting.read
       resourceserver:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}
