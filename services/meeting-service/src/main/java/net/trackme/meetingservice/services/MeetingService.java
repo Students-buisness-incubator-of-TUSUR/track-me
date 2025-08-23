@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface MeetingService {
@@ -24,4 +25,6 @@ public interface MeetingService {
     void addMeetingImage(UUID meetingId, MultipartFile file);
 
     Resource getMeetingImage(UUID meetingId);
+
+    List<Double> getGradesByTeamCardId(UUID teamCardId);
 }

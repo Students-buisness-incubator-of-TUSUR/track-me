@@ -274,4 +274,13 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         Assertions.assertFalse(meetingRepository.existsById(UUID.fromString(meetingId)));
     }
 
+    @Test
+    void testGetGradesByTeamCardId_success() throws Exception {
+        mockMvc.perform(get("/api/v1/{teamCardId}/grades", TEAM_CARD_ID)
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$").isArray());
+    }
 }
