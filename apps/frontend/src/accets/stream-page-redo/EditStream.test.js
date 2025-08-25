@@ -55,7 +55,7 @@ describe('EditStream Component', () => {
     render(<EditStream />);
     expect(useParams).toHaveBeenCalled();
     expect(useNavigate).toHaveBeenCalled();
-    expect(useStreamForm).toHaveBeenCalledWith('123');
+    expect(useStreamForm).toHaveBeenCalledWith('123', mockNavigate);
   });
 
   

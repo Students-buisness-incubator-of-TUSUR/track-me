@@ -2,6 +2,7 @@ import React from 'react';
 import './create-stream-page.css';
 import { useNavigate } from 'react-router-dom';
 import { useStreamForm } from '../stream-page-hooks/useStreamForm';
+import CustomSelect from './CustomSelect'; // Импортируем новый компонент
 
 export default function CreateStream() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function CreateStream() {
     endDate,
     trackStartDate,
     meetingsCount,
+    customMeetingsCount,
     showCheckboxes2,
     error,
     setError,
@@ -24,10 +26,13 @@ export default function CreateStream() {
     handleEndDateChange,
     handleTrackStartDateChange,
     handleMeetingsCountChange,
+    handleCustomMeetingsCountChange,
     handleShowCheckboxes2,
     handleCheckboxChange,
     handleImageUpload,
     handleSubmit,
+    showCustomInput,
+    setShowCustomInput,
   } = useStreamForm();
 
   // Варианты для выпадающего списка
@@ -84,18 +89,15 @@ export default function CreateStream() {
                 value={trackStartDate}
                 onChange={handleTrackStartDateChange}
               />
-              <select
-                className="create-stream-select"
+              <CustomSelect
                 value={meetingsCount}
                 onChange={handleMeetingsCountChange}
-              >
-                <option value="">Выберите количество</option>
-                {meetingOptions.map(option => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                options={meetingOptions}
+                customValue={customMeetingsCount}
+                onCustomChange={handleCustomMeetingsCountChange}
+                showCustomInput={showCustomInput}
+                setShowCustomInput={setShowCustomInput}
+              />
             </div>
           </div>
           <div className="Stream-bb Stream-header-chosefrom-buttw2323131">
