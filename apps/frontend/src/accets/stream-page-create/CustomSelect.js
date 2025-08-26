@@ -79,32 +79,55 @@ const CustomSelect = ({
       {isOpen && !showCustomInput && (
         <div className="create-stream-select-dropdown">
           <div
-            className="create-stream-select-option"
-            onClick={() => handleOptionClick('')}
-            role="option"
-            aria-selected={value === ''}
-          >
-            Выберите количество
-          </div>
-          {options.map((option) => (
-            <div
-              key={option}
-              className="create-stream-select-option"
-              onClick={() => handleOptionClick(option)}
-              role="option"
-              aria-selected={value === option}
-            >
-              {option}
-            </div>
-          ))}
-          <div
-            className="create-stream-select-option"
-            onClick={() => handleOptionClick('custom')}
-            role="option"
-            aria-selected={value === 'custom'}
-          >
-            Свое значение
-          </div>
+  className="create-stream-select-option"
+  onClick={() => handleOptionClick('')}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleOptionClick('');
+    }
+  }}
+  role="option"
+  tabIndex={0}
+  aria-selected={value === ''}  
+>
+  Выберите количество
+</div>
+
+{options.map((option) => (
+  <div
+    key={option}
+    className="create-stream-select-option"
+    onClick={() => handleOptionClick(option)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleOptionClick(option);
+      }
+    }}
+    role="option"
+    tabIndex={0}
+    aria-selected={value === option}
+  >
+    {option}
+  </div>
+))}
+
+<div
+  className="create-stream-select-option"
+  onClick={() => handleOptionClick('custom')}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleOptionClick('custom');
+    }
+  }}
+  role="option"
+  tabIndex={0}
+  aria-selected={value === 'custom'}
+>
+  Свое значение
+</div>
         </div>
       )}
     </div>
