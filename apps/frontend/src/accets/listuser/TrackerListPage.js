@@ -54,10 +54,34 @@ const navigate = useNavigate();
     <div className="tracker-container">
       <header className="Stream-header">
         <div className="Stream-header-cont">
-          <div className="Stream-header-logo" onClick={() => navigate("/streams")}
-  style={{ cursor: "pointer" }}/>
-          <h1 className="Stream-title" onClick={() => navigate("/streams")}
-  style={{ cursor: "pointer" }}>TrackMe</h1>
+          <div 
+  className="Stream-header-logo" 
+  onClick={() => navigate("/streams")}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      navigate("/streams");
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Вернуться на главную страницу"
+  style={{ cursor: "pointer" }}
+/>
+<h1 
+  className="Stream-title" 
+  onClick={() => navigate("/streams")}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      navigate("/streams");
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Вернуться на главную страницу"
+  style={{ cursor: "pointer" }}
+>
+  TrackMe
+</h1>
           <div className="Stream-buttons">
             {location.pathname === "/list-trackers" && (
               <Link to="/list-admins">

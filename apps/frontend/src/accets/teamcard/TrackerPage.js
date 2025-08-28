@@ -476,15 +476,42 @@ const options = {
       : "/team-cards";
     navigate(targetPath);
   }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+        ? "/streams" 
+        : "/team-cards";
+      navigate(targetPath);
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Вернуться на главную страницу"
   style={{ cursor: "pointer" }}
 />
-                    <h1 className="Stream-title" onClick={() => {
+<h1 
+  className="Stream-title" 
+  onClick={() => {
     const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
       ? "/streams" 
       : "/team-cards";
     navigate(targetPath);
   }}
-  style={{ cursor: "pointer" }}>TrackMe</h1>
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+        ? "/streams" 
+        : "/team-cards";
+      navigate(targetPath);
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Вернуться на главную страницу"
+  style={{ cursor: "pointer" }}
+>
+  TrackMe
+</h1>
                     <div className="Stream-header-cont-cont">
     {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && !showAllCards ? (
         <h1 className="Stream-title11">
