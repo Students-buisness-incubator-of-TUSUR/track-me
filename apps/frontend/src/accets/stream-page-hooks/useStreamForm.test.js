@@ -819,3 +819,185 @@ describe('Date formatting for partial input', () => {
     expect(result.current.trackStartDate).toBe('03.04');
   });
 });
+describe('Meetings count functionality', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([]),
+    });
+  });
+
+  // Тест для строк 82-90: Установка meetingsCount при загрузке данных потока
+  describe('fetchStreamData meetings count handling', () => {
+    it('should set meetingsCount from predefined options', async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) }) // fetchCheckboxesData
+        .mockResolvedValueOnce({ 
+          ok: true, 
+          json: () => Promise.resolve({
+            name: 'Test Stream',
+            startDate: '2024-01-01T00:00:00Z',
+            endDate: '2024-01-10T00:00:00Z',
+            trackStartDate: '2024-01-05T00:00:00Z',
+            meetingsCount: 5,
+            ntiMarkets: []
+          })
+        });
+
+      const { result } = renderHook(() => useStreamForm(1, mockNavigate));
+      
+      await waitFor(() => {
+        expect(result.current.meetingsCount).toBe('5');
+        expect(result.current.showCustomInput).toBe(false);
+        expect(result.current.customMeetingsCount).toBe('');
+      });
+    });
+
+    it('should set custom meetingsCount when value not in predefined options', async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
+        .mockResolvedValueOnce({ 
+          ok: true, 
+          json: () => Promise.resolve({
+            name: 'Test Stream',
+            startDate: '2024-01-01T00:00:00Z',
+            endDate: '2024-01-10T00:00:00Z',
+            trackStartDate: '2024-01-05T00:00:00Z',
+            meetingsCount: 7, // 7 нет в [5, 10, 15, 20]
+            ntiMarkets: []
+          })
+        });
+
+      const { result } = renderHook(() => useStreamForm(1, mockNavigate));
+      
+      await waitFor(() => {
+        expect(result.current.meetingsCount).toBe('custom');
+        expect(result.current.showCustomInput).toBe(true);
+        expect(result.current.customMeetingsCount).toBe('7');
+      });
+    });
+
+    it('should handle empty meetingsCount', async () => {
+      global.fetch
+        .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) })
+        .mockResolvedValueOnce({ 
+          ok: true, 
+          json: () => Promise.resolve({
+            name: 'Test Stream',
+            startDate: '2024-01-01T00:00:00Z',
+            endDate: '2024-01-10T00:00:00Z',
+            trackStartDate: '2024-01-05T00:00:00Z',
+            meetingsCount: null,
+            ntiMarkets: []
+          })
+        });
+
+      const { result } = renderHook(() => useStreamForm(1, mockNavigate));
+      
+      await waitFor(() => {
+        expect(result.current.meetingsCount).toBe('');
+        expect(result.current.showCustomInput).toBe(false);
+        expect(result.current.customMeetingsCount).toBe('');
+      });
+    });
+  });
+
+  // Тест для строк 121-122: Обработка изменения meetingsCount
+  describe('handleMeetingsCountChange', () => {
+    it('should show custom input when "custom" is selected', () => {
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+      
+      act(() => {
+        result.current.handleMeetingsCountChange({ target: { value: 'custom' } });
+      });
+      
+      expect(result.current.showCustomInput).toBe(true);
+      expect(result.current.customMeetingsCount).toBe('');
+    });
+
+    it('should hide custom input when predefined option is selected', () => {
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+      
+      // Сначала установим custom
+      act(() => {
+        result.current.handleMeetingsCountChange({ target: { value: 'custom' } });
+      });
+      
+      // Затем выбираем предопределенное значение
+      act(() => {
+        result.current.handleMeetingsCountChange({ target: { value: '5' } });
+      });
+      
+      expect(result.current.showCustomInput).toBe(false);
+      expect(result.current.customMeetingsCount).toBe('');
+      expect(result.current.meetingsCount).toBe('5');
+    });
+  });
+
+  // Тест для строк 147-149: Автофокус на custom input
+  describe('Custom input autofocus', () => {
+    it('should focus on custom input when shown', () => {
+      const focusMock = jest.fn();
+      const querySelectorMock = jest.spyOn(document, 'querySelector').mockReturnValue({
+        focus: focusMock
+      });
+
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+      
+      act(() => {
+        result.current.setShowCustomInput(true);
+      });
+
+      expect(querySelectorMock).toHaveBeenCalledWith('.create-stream-custom-input');
+      expect(focusMock).toHaveBeenCalled();
+
+      querySelectorMock.mockRestore();
+    });
+
+    it('should not try to focus if input element not found', () => {
+      const querySelectorMock = jest.spyOn(document, 'querySelector').mockReturnValue(null);
+      const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+      
+      act(() => {
+        result.current.setShowCustomInput(true);
+      });
+
+      // Не должно быть ошибок, даже если элемент не найден
+      expect(consoleErrorMock).not.toHaveBeenCalled();
+
+      querySelectorMock.mockRestore();
+      consoleErrorMock.mockRestore();
+    });
+  });
+
+  // Тест для строк 247-248, 252-253: Валидация meetingsCount
+  describe('Meetings count validation', () => {
+    
+    it('should show error when custom meetingsCount is empty', () => {
+      const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+      
+      act(() => {
+        result.current.handleNameChange({ target: { value: 'Stream' } });
+        result.current.handleStartDateChange({ target: { value: '01012024' } });
+        result.current.handleEndDateChange({ target: { value: '02012024' } });
+        result.current.handleTrackStartDateChange({ target: { value: '01012024' } });
+        result.current.handleMeetingsCountChange({ target: { value: 'custom' } }); // custom выбран
+        result.current.handleCheckboxChange(1);
+        // customMeetingsCount не установлен
+      });
+
+      act(() => {
+        result.current.handleSubmit();
+      });
+
+      expect(result.current.error).toBe('Пожалуйста, заполните количество встреч.');
+    });
+
+    
+
+    
+  });
+});

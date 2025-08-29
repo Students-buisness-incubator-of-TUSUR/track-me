@@ -1359,3 +1359,193 @@ test('fetchCards добавляет фильтр по username для роли T
   });
   
 });
+// Добавьте эти тесты в ваш существующий test файл
+
+describe('TrackerPage - Logo and Title Navigation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+  });
+
+  test('logo navigates to /streams for ADMIN role', async () => {
+    localStorage.setItem('user', JSON.stringify({ username: 'admin', roles: ['ADMIN'] }));
+    
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'admin', roles: ['ADMIN'] },
+      roles: ['ADMIN'],
+      username: 'admin',
+    }));
+
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
+    }));
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    const logo = document.querySelector('.Stream-header-logo');
+    fireEvent.click(logo);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('logo navigates to /team-cards for TRACKER role', async () => {
+    localStorage.setItem('user', JSON.stringify({ username: 'tracker', roles: ['TRACKER'] }));
+    
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'tracker', roles: ['TRACKER'] },
+      roles: ['TRACKER'],
+      username: 'tracker',
+    }));
+
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
+    }));
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    const logo = document.querySelector('.Stream-header-logo');
+    fireEvent.click(logo);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/team-cards');
+  });
+
+  test('title navigates to correct path on Enter key press', async () => {
+    localStorage.setItem('user', JSON.stringify({ username: 'admin', roles: ['ADMIN'] }));
+    
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'admin', roles: ['ADMIN'] },
+      roles: ['ADMIN'],
+      username: 'admin',
+    }));
+
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
+    }));
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    const title = screen.getByText('TrackMe');
+    fireEvent.keyDown(title, { key: 'Enter' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('logo navigates to correct path on Space key press', async () => {
+    localStorage.setItem('user', JSON.stringify({ username: 'tracker', roles: ['TRACKER'] }));
+    
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'tracker', roles: ['TRACKER'] },
+      roles: ['TRACKER'],
+      username: 'tracker',
+    }));
+
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
+    }));
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    const logo = document.querySelector('.Stream-header-logo');
+    fireEvent.keyDown(logo, { key: ' ' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/team-cards');
+  });
+
+  test('logo has correct accessibility attributes', async () => {
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
+    }));
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    const logo = document.querySelector('.Stream-header-logo');
+    expect(logo).toHaveAttribute('tabIndex', '0');
+    expect(logo).toHaveAttribute('role', 'button');
+    expect(logo).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
+    expect(logo).toHaveStyle('cursor: pointer');
+  });
+
+  test('title has correct accessibility attributes', async () => {
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
+    }));
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    const title = screen.getByText('TrackMe');
+    expect(title).toHaveAttribute('tabIndex', '0');
+    expect(title).toHaveAttribute('role', 'button');
+    expect(title).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
+    expect(title).toHaveStyle('cursor: pointer');
+  });
+
+  test('logo ignores other key presses', async () => {
+    localStorage.setItem('user', JSON.stringify({ username: 'admin', roles: ['ADMIN'] }));
+    
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'admin', roles: ['ADMIN'] },
+      roles: ['ADMIN'],
+      username: 'admin',
+    }));
+
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
+    }));
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    const logo = document.querySelector('.Stream-header-logo');
+    fireEvent.keyDown(logo, { key: 'Escape' });
+    
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});

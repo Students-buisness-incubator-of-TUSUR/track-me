@@ -812,3 +812,228 @@ describe('MeetingCard Completion and Editing', () => {
 
   
 });
+describe('MeetingCard Missing Fields Validation', () => {
+  const mockMeetingData = {
+    id: "123",
+    number: "10",
+    startDate: "2023-01-01T00:00:00.000Z",
+    link: "http://example.com",
+    tasksCurrentMeeting: "Task 1",
+    tasksNextMeeting: "Task 2",
+    teamStatus: "OK",
+    status: "SCHEDULED"
+  };
+
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.useFakeTimers();
+    
+    // Mock successful fetch for meeting data
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [mockMeetingData] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      })
+    );
+  });
+
+  afterEach(() => {
+    console.error.mockRestore();
+    jest.useRealTimers();
+  });
+
+  
+    
+
+  // Test completion validation
+  describe('handleCompleteMeeting validation', () => {
+    
+
+    test('should allow "NOT_HAPPENED" status without validation', async () => {
+      render(
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      await screen.findByText(/Встреча 10/i);
+
+      // Mock successful API call for "NOT_HAPPENED"
+      fetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ...mockMeetingData, status: "NOT_HAPPENED" }),
+        })
+      );
+
+      const notHappenedButton = screen.getByText('Не состоялась');
+      fireEvent.click(notHappenedButton);
+
+      // Should not show validation errors
+      expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
+    });
+
+    test('should disable complete button for completed meetings', async () => {
+      const completedMeeting = {
+        ...mockMeetingData,
+        status: "COMPLETED"
+      };
+
+      fetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [completedMeeting] }),
+        })
+      ).mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob()),
+        })
+      );
+
+      render(
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      await screen.findByText(/Встреча 10/i);
+
+      const completeButton = screen.getByText('Состоялась');
+      expect(completeButton).toBeDisabled();
+    });
+  });
+
+
+
+  // Test successful completion
+  test('should allow completion when all fields are valid', async () => {
+    // Mock successful image upload
+    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
+    
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByText(/Встреча 10/i);
+
+    // Mock successful API call
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...mockMeetingData, status: "COMPLETED" }),
+      })
+    );
+
+    const completeButton = screen.getByText('Состоялась');
+    fireEvent.click(completeButton);
+
+    // Should not show validation errors
+    expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
+  });
+});
+describe('MeetingCard Missing Fields Validation', () => {
+  const mockMeetingData = {
+    id: "123",
+    number: "10",
+    startDate: "2023-01-01T00:00:00.000Z",
+    link: "http://example.com",
+    tasksCurrentMeeting: "Task 1",
+    tasksNextMeeting: "Task 2",
+    teamStatus: "OK",
+    status: "SCHEDULED"
+  };
+
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.useFakeTimers();
+    
+    // Mock successful fetch for meeting data
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [mockMeetingData] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      })
+    );
+  });
+
+  afterEach(() => {
+    console.error.mockRestore();
+    jest.useRealTimers();
+  });
+
+  // Test getMissingFields function (lines 209-213)
+  
+
+  
+
+  
+
+  test('should not show error for "NOT_HAPPENED" status with missing fields', async () => {
+    // Mock empty meeting data
+    const emptyMeeting = {
+      ...mockMeetingData,
+      number: "",
+      link: "",
+      tasksCurrentMeeting: "",
+      tasksNextMeeting: "",
+      teamStatus: "",
+    };
+
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [emptyMeeting] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      })
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByText(/Встреча/i);
+
+    // Mock successful API call for "NOT_HAPPENED"
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...emptyMeeting, status: "NOT_HAPPENED" }),
+      })
+    );
+
+    const notHappenedButton = screen.getByText('Не состоялась');
+    fireEvent.click(notHappenedButton);
+
+    // Should not show validation errors for "NOT_HAPPENED"
+    expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
+  });
+});
