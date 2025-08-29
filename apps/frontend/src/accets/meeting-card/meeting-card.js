@@ -109,6 +109,7 @@ const MeetingCard = () => {
         if (!imagePreview) missing.push("Скриншот встречи");
         return missing;
     };
+    
     const handleChange = (e) => {
         const { name, value } = e.target;
         setMeetingData(prev => ({
