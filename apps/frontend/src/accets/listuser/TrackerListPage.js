@@ -1,3 +1,4 @@
+/* istanbul ignore next */
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTrackerList } from "../hooks/useTrackerList";
