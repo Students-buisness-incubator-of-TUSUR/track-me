@@ -1000,4 +1000,202 @@ describe('Meetings count functionality', () => {
 
     
   });
+  describe('handleCustomMeetingsCountChange', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([]),
+    });
+  });
+
+  it('should set customMeetingsCount for empty string', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe('');
+  });
+
+  it('should set customMeetingsCount for valid numeric input (1)', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '1' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe('1');
+  });
+
+  it('should set customMeetingsCount for valid numeric input (100)', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '100' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe('100');
+  });
+
+  it('should set customMeetingsCount for valid numeric input (middle value)', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '50' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe('50');
+  });
+
+  it('should NOT set customMeetingsCount for non-numeric input', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    // Сохраняем начальное значение
+    const initialValue = result.current.customMeetingsCount;
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: 'abc' } 
+      });
+    });
+    
+    // Значение не должно измениться
+    expect(result.current.customMeetingsCount).toBe(initialValue);
+  });
+
+  it('should NOT set customMeetingsCount for negative number', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    const initialValue = result.current.customMeetingsCount;
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '-5' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe(initialValue);
+  });
+
+  it('should NOT set customMeetingsCount for zero', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    const initialValue = result.current.customMeetingsCount;
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '0' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe(initialValue);
+  });
+
+  it('should NOT set customMeetingsCount for number greater than 100', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    const initialValue = result.current.customMeetingsCount;
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '101' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe(initialValue);
+  });
+
+  it('should NOT set customMeetingsCount for decimal number', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    const initialValue = result.current.customMeetingsCount;
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '5.5' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe(initialValue);
+  });
+
+  it('should NOT set customMeetingsCount for alphanumeric input', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    const initialValue = result.current.customMeetingsCount;
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '10abc' } 
+      });
+    });
+    
+    expect(result.current.customMeetingsCount).toBe(initialValue);
+  });
+
+  it('should handle multiple valid inputs sequentially', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '10' } 
+      });
+    });
+    expect(result.current.customMeetingsCount).toBe('10');
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '' } 
+      });
+    });
+    expect(result.current.customMeetingsCount).toBe('');
+    
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '25' } 
+      });
+    });
+    expect(result.current.customMeetingsCount).toBe('25');
+  });
+
+  it('should handle multiple invalid inputs sequentially without changing value', () => {
+    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    
+    // Сначала устанавливаем валидное значение
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '30' } 
+      });
+    });
+    expect(result.current.customMeetingsCount).toBe('30');
+    
+    // Пытаемся установить невалидное значение
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: 'invalid' } 
+      });
+    });
+    // Значение должно остаться прежним
+    expect(result.current.customMeetingsCount).toBe('30');
+    
+    // Пытаемся установить другое невалидное значение
+    act(() => {
+      result.current.handleCustomMeetingsCountChange({ 
+        target: { value: '150' } 
+      });
+    });
+    // Значение должно остаться прежним
+    expect(result.current.customMeetingsCount).toBe('30');
+  });
+});
 });
