@@ -13,38 +13,55 @@ import java.util.UUID;
 @Builder
 @Schema(description = "DTO для карточки команды")
 public record TeamCardDto(
-        @Schema(description = "Идентификатор карточки команды",
+        @Schema(
+                description = "Идентификатор карточки команды",
                 example = "123e4567-e89b-12d3-a456-426614174000")
         UUID id,
-        @Schema(description = "Название карточки команды",
+        @Schema(
+                description = "Название карточки команды",
                 example = "Карточка команды")
         String name,
-        @Schema(description = "Описание карточки команды",
+        @Schema(
+                description = "Описание карточки команды",
                 example = "Описание карточки команды")
         String description,
-        @Schema(description = "Статус карточки команды",
+        @Schema(
+                description = "Статус карточки команды",
                 example = "Все ок")
         TeamCardStatus status,
-        @Schema(description = "Имя пользователя, которому принадлежит карточка команды",
+        @Schema(
+                description = "Имя пользователя, которому принадлежит карточка команды",
                 example = "ivanov")
         String username,
-        @Schema(description = "Включена ли карточка команды",
+        @Schema(
+                description = "Включена ли карточка команды",
                 example = "true", defaultValue = "true")
         Boolean enabled,
 
         @Schema(description = "Рынок НТИ")
         List<NTIMarketDto> ntiMarkets,
 
-        @Schema(description = "Уровень готовности технологии",
+        @Schema(
+                description = "Уровень готовности технологии",
                 allowableValues = {"0-2", "3-5", "6-8", "9-10"})
         String readinessLevel,
 
-        @Schema(description = "Средняя оценка команды",
+        @Schema(
+                description = "Средняя оценка команды",
                 example = "4.5")
         BigDecimal averageGrade,
 
-        @Schema(description = "Список потоков, к которым относится карточка команды",
+        @Schema(
+                description = "Список потоков, к которым относится карточка команды",
                 implementation = StreamDto.class)
-        List<StreamDto> streams
+        List<StreamDto> streams,
+
+        Integer meetingsCount,
+
+        Integer meetingsCompletedCount,
+
+        Integer meetingsNotHappenedCount,
+
+        Integer meetingsCompletedAsNotHappenedCount
 ) {
 }

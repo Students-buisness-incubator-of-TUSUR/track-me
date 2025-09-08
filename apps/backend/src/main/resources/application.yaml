@@ -55,6 +55,16 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: trackme-backend
+    listener:
+      missing-topics-fatal: false
+      concurrency: 3
+      ack-mode: record
+      poll-timeout: 3000
+      auto-startup: true
 error:
   handling:
     http-status-in-json-response: true

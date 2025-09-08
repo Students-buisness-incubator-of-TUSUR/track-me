@@ -139,3 +139,87 @@ databaseChangeLog:
                   type: integer
                   constraints:
                     nullable: true
+  - changeSet:
+      id: team-card-add-meetingsCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meetings_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meetings_count
+                  type: integer
+                  constraints:
+                    nullable: true
+                  defaultValue: 0
+  - changeSet:
+      id: team-card-add-meetingsCompletedCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meetings_completed_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meetings_completed_count
+                  type: integer
+                  constraints:
+                    nullable: true
+                  defaultValue: 0
+  - changeSet:
+      id: team-card-add-meetingsNotHappenedCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meetings_not_happened_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meetings_not_happened_count
+                  type: integer
+                  constraints:
+                    nullable: true
+                  defaultValue: 0
+  - changeSet:
+      id: team-card-add-meetingsCompletedAsNotHappenedCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meetings_completed_as_not_happened_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meetings_completed_as_not_happened_count
+                  type: integer
+                  constraints:
+                    nullable: true
+                  defaultValue: 0

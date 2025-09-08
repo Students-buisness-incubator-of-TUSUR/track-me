@@ -41,6 +41,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.apache.commons:commons-lang3'
     implementation 'org.mapstruct:mapstruct'
+    implementation 'org.springframework.kafka:spring-kafka'
 
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
 

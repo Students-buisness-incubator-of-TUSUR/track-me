@@ -18,7 +18,8 @@ import java.util.*;
 public class TeamCard {
 
     @Id
-    @Column(nullable = false,
+    @Column(
+            nullable = false,
             updatable = false)
     @GeneratedValue
     @UuidGenerator
@@ -41,7 +42,8 @@ public class TeamCard {
     @Column(nullable = false)
     private String username;
 
-    @ManyToMany(fetch = FetchType.EAGER,
+    @ManyToMany(
+            fetch = FetchType.EAGER,
             cascade = CascadeType.DETACH)
     @JoinTable(
             name = "team_card_nti_market",
@@ -54,7 +56,8 @@ public class TeamCard {
     @Enumerated(EnumType.STRING)
     private ReadinessLevel readinessLevel;
 
-    @OneToMany(mappedBy = "teamCard",
+    @OneToMany(
+            mappedBy = "teamCard",
             cascade = CascadeType.ALL)
     @Builder.Default
     private Set<Meeting> teamMeetings = new HashSet<>();
@@ -73,6 +76,14 @@ public class TeamCard {
     @Builder.Default
     private BigDecimal averageGrade = BigDecimal.ZERO;
 
+    private Integer meetingsCount = 0;
+
+    private Integer meetingsCompletedCount = 0;
+
+    private Integer meetingsNotHappenedCount = 0;
+
+    private Integer meetingsCompletedAsNotHappenedCount = 0;
+
     public void addStream(Stream stream) {
         streams.clear();
         streams.add(stream);
@@ -81,5 +92,12 @@ public class TeamCard {
     public boolean isActive() {
         return streams.stream()
                 .allMatch(Stream::isActive);
+    }
+
+    public void increaseMeetingCount() {
+        if (meetingsCount == null) {
+            meetingsCount = 0;
+        }
+        meetingsCount++;
     }
 }

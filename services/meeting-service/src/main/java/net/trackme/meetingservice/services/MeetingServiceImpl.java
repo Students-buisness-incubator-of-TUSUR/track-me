@@ -9,6 +9,8 @@ import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
+import net.trackme.meetingservice.events.MeetingCreatedEvent;
+import net.trackme.meetingservice.events.MeetingUpdatedEvent;
 import net.trackme.meetingservice.mapping.MeetingMapper;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -37,6 +39,8 @@ public class MeetingServiceImpl implements MeetingService {
 
     private final AclService aclService;
 
+    private final MeetingEventsProducer meetingEventsProducer;
+
     @Override
     @Transactional
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
@@ -46,6 +50,7 @@ public class MeetingServiceImpl implements MeetingService {
         meeting = meetingRepository.save(meeting);
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         aclService.createAclForUser(meeting, username);
+        sendMeetingCreatedEvent(meeting);
         return meetingMapper.mapToDto(meeting);
     }
 
@@ -62,8 +67,10 @@ public class MeetingServiceImpl implements MeetingService {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
+        var oldStatus = meeting.getStatus();
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         meeting = meetingRepository.save(meeting);
+        sendMeetingUpdatedEvent(meeting, oldStatus);
         return meetingMapper.mapToDto(meeting);
     }
 
@@ -131,5 +138,30 @@ public class MeetingServiceImpl implements MeetingService {
     private Meeting getMeeting(UUID meetingId) {
         return meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+    }
+
+    private void sendMeetingUpdatedEvent(Meeting meeting, MeetingStatus oldStatus) {
+        var eventBuilder = MeetingUpdatedEvent.builder()
+                .meetingId(meeting.getId())
+                .oldStatus(oldStatus)
+                .teamCardId(meeting.getTeamCardId());
+
+        if (meeting.getStatus() != null) {
+            eventBuilder.newStatus(meeting.getStatus());
+        }
+        if (meeting.getTeamStatus() != null) {
+            eventBuilder.teamStatus(meeting.getTeamStatus());
+            eventBuilder.teamGrade(meeting.getTeamStatus().getValue());
+        }
+
+        meetingEventsProducer.sendMeetingUpdatedEvent(eventBuilder.build());
+    }
+
+    private void sendMeetingCreatedEvent(Meeting meeting) {
+        var event = MeetingCreatedEvent.builder()
+                .meetingId(meeting.getId())
+                .teamCardId(meeting.getTeamCardId())
+                .build();
+        meetingEventsProducer.sendMeetingCreatedEvent(event);
     }
 }
