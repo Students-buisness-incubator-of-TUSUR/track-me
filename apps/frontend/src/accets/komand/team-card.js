@@ -59,10 +59,10 @@ const [teamCardsCount, setTeamCardsCount] = useState(0);
 const [showStreams, setShowStreams] = useState(false);
   const [editingMeetingId, setEditingMeetingId] = useState(null);
 const [newMeetingDate, setNewMeetingDate] = useState('');
-
+const [meetingError, setMeetingError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState(null); // eslint-disable-line no-unused-vars
-
+const [maxMeetingsCount, setMaxMeetingsCount] = useState(0);
     const trlLevels = useMemo(() => [
         {id: 1, label: "0-2"},
         {id: 2, label: "3-5"},
@@ -129,7 +129,20 @@ useEffect(() => {
 
   fetchFullName();
 }, [role, passedUsername, teamData.username]);
-
+useEffect(() => {
+  if (streamInfo?.meetingsCount) {
+    setMaxMeetingsCount(streamInfo.meetingsCount);
+  }
+}, [streamInfo]);
+const checkMeetingCreation = () => {
+  if (meetings.length >= maxMeetingsCount) {
+    setMeetingError(`Невозможно создать новую встречу. Максимальное количество встреч в потоке: ${maxMeetingsCount}`);
+    setTimeout(() => setMeetingError(""), 3000); // Автоскрытие через 3 секунды
+    return false;
+  }
+  setMeetingError(""); // Сбрасываем ошибку если все ок
+  return true;
+};
 
 
     useEffect(() => {
@@ -852,6 +865,12 @@ const saveMeetingDate = async () => {
             </div>
 
             <div className="right-panel">
+  {/* Сообщение об ошибке */}
+  {meetingError && (
+    <div className="error-message">
+      {meetingError}
+    </div>
+  )}
             <div className="team-meetings-block">
                     <div className="team-meetings-exist">
   {meetings.map((meeting) => (
@@ -938,11 +957,15 @@ const saveMeetingDate = async () => {
   ))}
 </div>
                         <button 
-                        className="team-meeting-add" 
-                        onClick={() => setShowMeetingCreate(true)}
-                    >
-                        Запланировать
-                    </button>
+  className="team-meeting-add" 
+  onClick={() => {
+    if (checkMeetingCreation()) {
+      setShowMeetingCreate(true);
+    }
+  }}
+>
+  Запланировать
+</button>
                     {showMeetingCreate && (
                         <MeetingCreate 
                             teamId={id}

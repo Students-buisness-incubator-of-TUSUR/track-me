@@ -37,7 +37,7 @@ const MeetingCard = () => {
             const url = new URL(`${backendHost}/api/v1/meetings`);
             url.searchParams.append('teamCardId', teamId);
             url.searchParams.append('page', 0);
-            url.searchParams.append('size', 10);
+            url.searchParams.append('size', 1000);
 
             fetch(url, {
                 method: 'GET',
@@ -88,6 +88,28 @@ const MeetingCard = () => {
         }
     }, [meetingId, teamId, isNewMeeting, backendHost]);
 
+    const areAllFieldsFilled = () => {
+        return (
+            meetingData.number &&
+            meetingData.link &&
+            meetingData.tasksCurrentMeeting &&
+            meetingData.tasksNextMeeting &&
+            meetingData.teamStatus &&
+            imagePreview
+        );
+    };
+
+    const getMissingFields = () => {
+        const missing = [];
+        if (!meetingData.number) missing.push("Номер встречи");
+        if (!meetingData.link) missing.push("Ссылка на запись");
+        if (!meetingData.tasksCurrentMeeting) missing.push("Задачи текущей встречи");
+        if (!meetingData.tasksNextMeeting) missing.push("Задачи следующей встречи");
+        if (!meetingData.teamStatus) missing.push("Статус команды");
+        if (!imagePreview) missing.push("Скриншот встречи");
+        return missing;
+    };
+    
     const handleChange = (e) => {
         const { name, value } = e.target;
         setMeetingData(prev => ({
@@ -182,7 +204,16 @@ const MeetingCard = () => {
         }
     };
 
-    const handleCompleteMeeting = async (completed) => {
+   const handleCompleteMeeting = async (completed) => {
+    // Проверка заполненности полей только для кнопки "Состоялась"
+    if (completed && !areAllFieldsFilled()) {
+        const missingFields = getMissingFields().join(", ");
+        setError(`Нельзя завершить встречу. Заполните все поля: ${missingFields}`);
+        // Автоматическое скрытие ошибки через 5 секунд
+        setTimeout(() => setError(null), 5000);
+        return;
+    }
+
     try {
         const newStatus = completed ? "COMPLETED" : "NOT_HAPPENED";
         
@@ -204,7 +235,6 @@ const MeetingCard = () => {
             mode: 'cors',
             body: JSON.stringify({
                 status: newStatus,
-                // Можно добавить другие поля, если нужно
                 link: meetingData.link || "",
                 number: meetingData.number || "",
                 teamStatus: meetingData.teamStatus,
@@ -233,7 +263,6 @@ const MeetingCard = () => {
         }));
     }
 };
-
     const handleEditClick = () => {
     if (isMeetingLocked) {
         setError("Эту встречу нельзя редактировать, так как она завершена или не состоялась");
@@ -270,13 +299,14 @@ const MeetingCard = () => {
                     <img src={closeIcon} alt="Закрыть" className="close-icon" />
                 </button>
                 
-                <button
+               <button
     onClick={isEditing ? handleSave : handleEditClick}
     className="unique-edit-button"
     disabled={isMeetingLocked && !isEditing}
     style={{
         cursor: isMeetingLocked && !isEditing ? 'not-allowed' : 'pointer'
     }}
+    title={isMeetingLocked && !isEditing ? "Эту встречу нельзя редактировать, так как она завершена или не состоялась" : ""}
 >
     {isEditing ? "Сохранить" : "Редактировать"}
 </button>
@@ -290,7 +320,8 @@ const MeetingCard = () => {
         margin: '10px 0',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        paddingRight: '30px' // Просто добавляем отступ справа
     }}>
         {error}
         <button 
@@ -301,7 +332,8 @@ const MeetingCard = () => {
                 border: 'none',
                 color: '#d32f2f',
                 fontSize: '16px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                marginLeft: '10px' // Отступ слева от крестика
             }}
         >
             ×
@@ -318,11 +350,12 @@ const MeetingCard = () => {
     <div className="unique-meeting-status-buttons">
         <button 
             onClick={() => handleCompleteMeeting(true)}
-            disabled={isMeetingLocked || meetingData.status === "COMPLETED"}
+            disabled={isMeetingLocked || meetingData.status === "COMPLETED" || !areAllFieldsFilled()}
             className={`unique-status-button unique-status-completed ${
-                meetingData.status === "COMPLETED" ? "" : 
+                meetingData.status === "COMPLETED" ? "active-status" : 
                 (meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED") ? "hidden" : ""
             }`}
+            title={!areAllFieldsFilled() ? "Заполните все поля перед завершением встречи" : ""}
         >
             Состоялась
         </button>
@@ -330,7 +363,7 @@ const MeetingCard = () => {
             onClick={() => handleCompleteMeeting(false)}
             disabled={isMeetingLocked || meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED"}
             className={`unique-status-button unique-status-not-happened ${
-                meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "" : 
+                meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : 
                 meetingData.status === "COMPLETED" ? "hidden" : ""
             }`}
         >

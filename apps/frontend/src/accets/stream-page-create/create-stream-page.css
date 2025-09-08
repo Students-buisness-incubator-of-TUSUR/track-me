@@ -9,7 +9,7 @@
     justify-content: center;
     align-content: center;
     flex-direction: column;
-    background-color: rgb(3, 1, 1);
+    background-color: rgba(68, 68, 68, 1);
 }
 
 
@@ -79,11 +79,35 @@
     color: black;
 }
 
-
+.create-stream-custom-input {
+  width: 90%;
+    text-align: center;
+    text-align-last: center;
+    height: 70px;
+    border-radius: 70px;
+    background-color: rgba(131, 56, 235, 1);
+    color: white;
+    border: none;
+    font-weight: 600;
+    font-size: 32px;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    position: relative;
+    top: 13px;
+    right: 200px;
+    padding: 0 20px;
+    
+    
+}
+.create-stream-custom-input::-webkit-outer-spin-button,
+.create-stream-custom-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
 .create-stream-input-date:focus::placeholder,
 .create-stream-input:focus::placeholder {
-    color: transparent;
+    color: white;
 }
 
 .Stream-b {
@@ -96,6 +120,7 @@
     display: flex;
     align-items: center;
     gap: 8px; /* Расстояние между чекбоксом и текстом */
+    
 }
 
 .Stream-header-checkbox-label {
@@ -181,15 +206,7 @@
     margin-left: 15px;
     padding: 0 5px;
 }
-.create-stream-input-number {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  box-sizing: border-box;
-}
+
 
 .create-stream-input-number::-webkit-inner-spin-button,
 .create-stream-input-number::-webkit-outer-spin-button {
@@ -203,7 +220,7 @@
 }
 
 .create-stream-input-number::placeholder {
-  color: #999;
+  color: white;
 }
 /* Удаляем старый стиль ошибки */
 .create-stream-error-message {

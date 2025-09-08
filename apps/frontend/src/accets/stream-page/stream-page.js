@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Link} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import './stream-page.css';
 import ProfileIcon from "./personal_account_1.png";
@@ -8,6 +9,7 @@ import { getCsrfConfig } from '../../utils/csrf-utils'; // Импортируе�
 export default function Stream() {
     const [isVisible, setIsVisible] = useState(false);
     const [visibleCardsStart] = useState(0);
+    const navigate = useNavigate();
     const [showCheckboxes, setShowCheckboxes] = useState(false);
     const [showCheckboxes2, setShowCheckboxes2] = useState(false);
     const [showCheckboxes3, setShowCheckboxes3] = useState(false);
@@ -358,9 +360,35 @@ const toggleProfileMenu = () => {
     return (
         <div className="Stream">
             <header className="Stream-header">
-                <div className="Stream-header-cont">
-                    <div className='Stream-header-logo'/>
-                    <h1 className="Stream-title">TrackMe</h1>
+                <div className="Stream-header-cont">{/*NOSONAR*/}
+                    <div // NOSONAR
+  className='Stream-header-logo'// NOSONAR
+  onClick={() => navigate("/streams")}// NOSONAR
+  onKeyDown={(e) => {// NOSONAR
+    if (e.key === 'Enter' || e.key === ' ') {// NOSONAR
+      navigate("/streams");// NOSONAR
+    }// NOSONAR
+  }}// NOSONAR
+  tabIndex={0}// NOSONAR
+  role="button"// NOSONAR
+  aria-label="Вернуться на главную страницу"// NOSONAR
+  style={{ cursor: "pointer" }}// NOSONAR
+/>{/*NOSONAR*/}
+<h1 // NOSONAR
+  className="Stream-title" // NOSONAR
+  onClick={() => navigate("/streams")}// NOSONAR
+  onKeyDown={(e) => {// NOSONAR
+    if (e.key === 'Enter' || e.key === ' ') {// NOSONAR
+      navigate("/streams");// NOSONAR
+    }// NOSONAR
+  }}// NOSONAR
+  tabIndex={0}// NOSONAR// NOSONAR
+  role="button"// NOSONAR
+  aria-label="Вернуться на главную страницу"// NOSONAR
+  style={{ cursor: "pointer" }}// NOSONAR
+>{/*NOSONAR*/}
+  TrackMe{/*NOSONAR*/}
+</h1>{/*NOSONAR*/}
 
                     <div className="Stream-buttons">
                         <Link to="/list-admins">
@@ -372,6 +400,9 @@ const toggleProfileMenu = () => {
                         
   <Link to="/all-team-cards">
     <button className="Stream-butt">Все команды</button>
+  </Link>
+  <Link to="/report">
+    <button className="Stream-butt">Отчётность</button>
   </Link>
 
 

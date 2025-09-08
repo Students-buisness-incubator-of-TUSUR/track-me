@@ -144,16 +144,261 @@
 }
 .create-stream-input-number {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
+ 
+  
+  
+  
+  
   box-sizing: border-box;
-  position: relative;
-  top: 56px;
-right: 200px;
+  text-align-last: center;
+    
+    text-align: center;
+    height: 70px;
+    border-radius: 70px;
+    background-color: rgba(131, 56, 235, 1);
+    color: white;
+    border: none;
+    font-weight: 600;
+    font-size: 32px;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    position: relative;
+    top: 13px;
+    right: 200px;
+    
 }
+/* Стилизация стрелочек для поля ввода числа */
+
+/* Убираем стандартные стрелки в Chrome, Safari, Edge, Opera */
+.create-stream-input-number::-webkit-outer-spin-button,
+.create-stream-input-number::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 10;
+}
+
+
+/* Стили для выпадающего списка */
+.create-stream-select {
+  width: 100%;
+  text-align: center;
+  text-align-last: center;
+  height: 70px;
+  border-radius: 70px;
+  background-color: rgba(131, 56, 235, 1);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 32px;
+  margin-block-start: 0.67em;
+  margin-block-end: 0.67em;
+  position: relative;
+  top: 13px;
+  right: 200px;
+  padding: 0 20px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+.create-stream-select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(167, 11, 206, 0.3);
+}
+
+.create-stream-select option {
+  background-color: rgba(131, 56, 235, 1);
+  color: white;
+  font-weight: 600;
+  font-size: 28px;
+  text-align: center;
+}
+
+/* Стрелка для select */
+.create-stream-select-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}/* Контейнер для кастомного select */
+.create-stream-select {
+  width: 100%;
+  height: 70px;
+  border-radius: 70px;
+  background-color: rgba(131, 56, 235, 1);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 32px;
+  
+  text-align: center;
+  text-align-last: center;
+  padding: 0 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  right: 200px;
+  top: 13px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+/* Стрелка для кастомного select */
+.create-stream-select-arrow {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+/* Выпадающий список */
+.create-stream-select-dropdown {
+  position: absolute;
+  top: 310px; /* Отступ от select */
+  width: 470px;
+  background-color: rgba(131, 56, 235, 1);
+  border-radius: 35px;
+  
+  z-index: 1000;
+  overflow: hidden;
+  left: 479px;
+}
+
+/* Опции выпадающего списка */
+.create-stream-select-option {
+  padding: 10px 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 28px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.create-stream-select-option:hover {
+  background-color: rgba(167, 11, 206, 0.8);
+}
+/* Стили для кастомного ввода */
+.create-stream-custom-input {
+  width: 100%;
+  text-align: center;
+  height: 70px;
+  border-radius: 70px;
+  background-color: rgba(131, 56, 235, 1);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 32px;
+  margin-block-start: 0.67em;
+  margin-block-end: 0.67em;
+  position: relative;
+  top: 13px;
+  right: 200px;
+  padding: 0 20px;
+}
+
+.create-stream-custom-input::-webkit-outer-spin-button,
+.create-stream-custom-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.create-stream-custom-input:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(167, 11, 206, 0.3);
+}
+
+.create-stream-custom-input::placeholder {
+  color: white;
+}
+
+/* Адаптивные стили */
+@media (max-width: 1280px) {
+  .create-stream-select {
+    font-size: 24px;
+    height: 60px;
+    right: 0;
+  }
+
+  .create-stream-select-dropdown {
+    max-width: 200px;
+    right: 0;
+  }
+
+  .create-stream-select-option {
+    font-size: 22px;
+  }
+
+  .create-stream-custom-input {
+    font-size: 24px;
+    height: 60px;
+    right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-stream-select {
+    font-size: 18px;
+    height: 50px;
+    right: 0;
+    padding: 0 15px;
+  }
+
+  .create-stream-select-arrow {
+    width: 16px;
+    height: 16px;
+  }
+
+  .create-stream-select-dropdown {
+    max-width: 180px;
+    right: 0;
+    top: 60px;
+  }
+
+  .create-stream-select-option {
+    font-size: 18px;
+    padding: 8px 15px;
+  }
+
+  .create-stream-custom-input {
+    font-size: 18px;
+    height: 50px;
+    right: 0;
+    padding: 0 15px;
+  }
+}
+
+.create-stream-select-container::after {
+  content: "▼";
+  font-size: 20px;
+  color: white;
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Адаптивные стили для select */
+@media (max-width: 1280px) {
+  .create-stream-select {
+    font-size: 24px;
+    height: 60px;
+    right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-stream-select {
+    font-size: 18px;
+    height: 50px;
+    right: 0;
+  }
+}
+
 
 .create-stream-input-number::-webkit-inner-spin-button,
 .create-stream-input-number::-webkit-outer-spin-button {
@@ -163,11 +408,11 @@ right: 200px;
 .create-stream-input-number:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 5px rgba(167, 11, 206, 0.3);
 }
 
 .create-stream-input-number::placeholder {
-  color: #999;
+  color: white;
 }
 
 .create-stream-input-date::placeholder,
@@ -197,7 +442,17 @@ right: 200px;
 .Stream-header-checkbox-label {
     font-weight: 600;
     font-size: 13px;
+    display: inline-block;
+    max-width: 75px;
+    white-space: normal;   /* Разрешаем перенос строк */
+    word-break: keep-all;   /* не ломать слова */
+    overflow-wrap: anywhere;
+    hyphens: auto;
+    word-wrap: break-word; /* Переносим длинные слова */
+    overflow: visible;     /* Показываем весь текст */
+    cursor: pointer;
 }
+
 
 .custom-checkbox {
     width: 17px;

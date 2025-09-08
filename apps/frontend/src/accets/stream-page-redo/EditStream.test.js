@@ -55,7 +55,7 @@ describe('EditStream Component', () => {
     render(<EditStream />);
     expect(useParams).toHaveBeenCalled();
     expect(useNavigate).toHaveBeenCalled();
-    expect(useStreamForm).toHaveBeenCalledWith('123');
+    expect(useStreamForm).toHaveBeenCalledWith('123', mockNavigate);
   });
 
   
@@ -137,4 +137,30 @@ test('should clear error when close error button is clicked', () => {
   fireEvent.click(closeErrorButton);
   expect(mockUseStreamForm.setError).toHaveBeenCalledWith(null);
 });
+test('should toggle checkboxes on Enter and Space key press', () => {
+  render(<EditStream />);
+  const button = screen.getByRole('button', { name: 'Выбрать рынок' });
+
+  fireEvent.keyDown(button, { key: 'Enter' });
+  expect(mockUseStreamForm.handleShowCheckboxes2).toHaveBeenCalled();
+
+  fireEvent.keyDown(button, { key: ' ' });
+  expect(mockUseStreamForm.handleShowCheckboxes2).toHaveBeenCalledTimes(2);
 });
+
+test('should trigger image upload on Enter and Space key press', () => {
+  // Мокаем document.getElementById
+  const mockClick = jest.fn();
+  document.getElementById = jest.fn().mockReturnValue({ click: mockClick });
+
+  render(<EditStream />);
+  const uploadButton = screen.getByRole('button', { name: 'Загрузить изображение' });
+
+  fireEvent.keyDown(uploadButton, { key: 'Enter' });
+  expect(mockClick).toHaveBeenCalledTimes(1);
+
+  fireEvent.keyDown(uploadButton, { key: ' ' });
+  expect(mockClick).toHaveBeenCalledTimes(2);
+});
+});
+

@@ -107,7 +107,7 @@
     background: #8338EB;
     color: white;
     border: none;
-    width: 166px;
+    width: 190px;
     height: 40px;
     font-family: 'Montserrat', sans-serif;
     line-height: 100%;    /* или просто 1 */
@@ -130,11 +130,59 @@
 .error-message {
     color: #ef4444;
     background: white;
-    padding: 10px 20px;
+    padding: 10px 30px;
     border-radius: 20px;
     margin: 10px 0;
 }
+/* Применяем стили только для отключенных кнопок, которые НЕ являются активным статусом */
+.unique-status-button:disabled:not(.active-status) {
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+    position: relative;
+}
 
+.unique-status-button:disabled:not(.active-status):hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+}
+/* Стиль для всплывающей подсказки кнопки редактирования */
+.unique-edit-button:disabled:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 370;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+     cursor: not-allowed !important;
+    opacity: 0.8 !important;
+}
+
+
+
+/* Стили для кнопок с активным статусом (даже если они disabled) */
+.unique-status-button.active-status {
+    cursor: default !important;
+    opacity: 1 !important;
+}
 .unique-meeting-number {
     display: inline-block;
     background: #8338EB;

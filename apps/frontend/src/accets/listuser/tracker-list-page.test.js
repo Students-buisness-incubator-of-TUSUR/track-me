@@ -53,7 +53,11 @@ jest.mock('../hooks/useTrackerList', () => {
     }),
   };
 });
-
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
 const { setHoveredTracker, confirmUser, deleteUser, setSearchQuery, setPage } = require('../hooks/useTrackerList');
 
 const renderWithRouter = (ui, { route = '/' } = {}) => {
@@ -875,5 +879,177 @@ describe('TrackerListPage - Coverage for Lines 121, 139-140, 153-154, 179-180, 2
     expect(screen.getByRole('button', { name: 'Перейти на 2 страницы назад' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Следующая страница' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Перейти на 2 страницы вперед' })).not.toBeInTheDocument();
+  });
+});
+describe('Header Logo and Title Navigation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('логотип отображается и имеет правильные атрибуты', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const logoElement = document.querySelector('.Stream-header-logo');
+    expect(logoElement).toBeInTheDocument();
+    expect(logoElement).toHaveAttribute('role', 'button');
+    expect(logoElement).toHaveAttribute('tabindex', '0');
+    expect(logoElement).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
+    expect(logoElement).toHaveStyle('cursor: pointer');
+  });
+
+  test('заголовок отображается и имеет правильные атрибуты', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const titleElement = screen.getByText('TrackMe');
+    expect(titleElement).toBeInTheDocument();
+    expect(titleElement).toHaveClass('Stream-title');
+    expect(titleElement).toHaveAttribute('role', 'button');
+    expect(titleElement).toHaveAttribute('tabindex', '0');
+    expect(titleElement).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
+    expect(titleElement).toHaveStyle('cursor: pointer');
+  });
+
+  test('клик по логотипу вызывает navigate с путем "/streams"', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const logoElement = document.querySelector('.Stream-header-logo');
+    fireEvent.click(logoElement);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('клик по заголовку вызывает navigate с путем "/streams"', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const titleElement = screen.getByText('TrackMe');
+    fireEvent.click(titleElement);
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('нажатие Enter на логотипе вызывает navigate', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const logoElement = document.querySelector('.Stream-header-logo');
+    fireEvent.keyDown(logoElement, { key: 'Enter' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('нажатие Space на логотипе вызывает navigate', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const logoElement = document.querySelector('.Stream-header-logo');
+    fireEvent.keyDown(logoElement, { key: ' ' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('нажатие Enter на заголовке вызывает navigate', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const titleElement = screen.getByText('TrackMe');
+    fireEvent.keyDown(titleElement, { key: 'Enter' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('нажатие Space на заголовке вызывает navigate', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const titleElement = screen.getByText('TrackMe');
+    fireEvent.keyDown(titleElement, { key: ' ' });
+    
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('нажатие других клавиш на логотипе не вызывает navigate', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const logoElement = document.querySelector('.Stream-header-logo');
+    fireEvent.keyDown(logoElement, { key: 'Escape' });
+    fireEvent.keyDown(logoElement, { key: 'Tab' });
+    fireEvent.keyDown(logoElement, { key: 'a' });
+    
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  test('нажатие других клавиш на заголовке не вызывает navigate', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const titleElement = screen.getByText('TrackMe');
+    fireEvent.keyDown(titleElement, { key: 'Escape' });
+    fireEvent.keyDown(titleElement, { key: 'Tab' });
+    fireEvent.keyDown(titleElement, { key: 'a' });
+    
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  test('логотип и заголовок доступны для фокусировки', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const logoElement = document.querySelector('.Stream-header-logo');
+    const titleElement = screen.getByText('TrackMe');
+    
+    expect(logoElement).toHaveAttribute('tabindex', '0');
+    expect(titleElement).toHaveAttribute('tabindex', '0');
+  });
+
+  test('элементы имеют семантическую роль button', () => {
+    render(
+      <BrowserRouter>
+        <TrackerListPage endpoint="/trackers" />
+      </BrowserRouter>
+    );
+
+    const logoElement = document.querySelector('.Stream-header-logo');
+    const titleElement = screen.getByText('TrackMe');
+    
+    expect(logoElement).toHaveAttribute('role', 'button');
+    expect(titleElement).toHaveAttribute('role', 'button');
   });
 });

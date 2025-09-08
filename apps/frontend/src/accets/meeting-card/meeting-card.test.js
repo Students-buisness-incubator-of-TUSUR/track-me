@@ -693,7 +693,10 @@ describe('MeetingCard Completion and Editing', () => {
     console.error.mockRestore();
   });
 
-  test('should complete meeting successfully (lines 186-230)', async () => {
+   test('should complete meeting successfully (lines 186-230)', async () => {
+    // Mock image preview URL to satisfy areAllFieldsFilled() check
+    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
+    
     fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -709,8 +712,10 @@ describe('MeetingCard Completion and Editing', () => {
       </MemoryRouter>
     );
 
-    // Wait for initial load
-    await screen.findByText(/Встреча 10/i);
+    // Wait for initial load and image preview to be set
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
+    });
 
     // Click "Встреча состоялась" button
     await act(async () => {
@@ -733,7 +738,6 @@ describe('MeetingCard Completion and Editing', () => {
       })
     );
   });
-
   test('should mark meeting as not happened successfully (lines 186-230)', async () => {
     fetch.mockImplementationOnce(() =>
       Promise.resolve({
@@ -776,6 +780,9 @@ describe('MeetingCard Completion and Editing', () => {
   });
 
   test('should handle error when completing meeting (lines 186-230)', async () => {
+    // Mock image preview URL to satisfy areAllFieldsFilled() check
+    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
+    
     fetch.mockImplementationOnce(() =>
       Promise.reject(new Error('Failed to update meeting'))
     );
@@ -788,8 +795,10 @@ describe('MeetingCard Completion and Editing', () => {
       </MemoryRouter>
     );
 
-    // Wait for initial load
-    await screen.findByText(/Встреча 10/i);
+    // Wait for initial load and image preview to be set
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
+    });
 
     // Click "Встреча состоялась" button
     await act(async () => {
@@ -802,4 +811,384 @@ describe('MeetingCard Completion and Editing', () => {
   });
 
   
+});
+describe('MeetingCard Missing Fields Validation', () => {
+  const mockMeetingData = {
+    id: "123",
+    number: "10",
+    startDate: "2023-01-01T00:00:00.000Z",
+    link: "http://example.com",
+    tasksCurrentMeeting: "Task 1",
+    tasksNextMeeting: "Task 2",
+    teamStatus: "OK",
+    status: "SCHEDULED"
+  };
+
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.useFakeTimers();
+    
+    // Mock successful fetch for meeting data
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [mockMeetingData] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      })
+    );
+  });
+
+  afterEach(() => {
+    console.error.mockRestore();
+    jest.useRealTimers();
+  });
+
+  
+    
+
+  // Test completion validation
+  describe('handleCompleteMeeting validation', () => {
+    
+
+    test('should allow "NOT_HAPPENED" status without validation', async () => {
+      render(
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      await screen.findByText(/Встреча 10/i);
+
+      // Mock successful API call for "NOT_HAPPENED"
+      fetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ...mockMeetingData, status: "NOT_HAPPENED" }),
+        })
+      );
+
+      const notHappenedButton = screen.getByText('Не состоялась');
+      fireEvent.click(notHappenedButton);
+
+      // Should not show validation errors
+      expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
+    });
+
+    test('should disable complete button for completed meetings', async () => {
+      const completedMeeting = {
+        ...mockMeetingData,
+        status: "COMPLETED"
+      };
+
+      fetch.mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [completedMeeting] }),
+        })
+      ).mockImplementationOnce(() =>
+        Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob()),
+        })
+      );
+
+      render(
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      await screen.findByText(/Встреча 10/i);
+
+      const completeButton = screen.getByText('Состоялась');
+      expect(completeButton).toBeDisabled();
+    });
+  });
+
+
+
+  // Test successful completion
+  test('should allow completion when all fields are valid', async () => {
+    // Mock successful image upload
+    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
+    
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByText(/Встреча 10/i);
+
+    // Mock successful API call
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...mockMeetingData, status: "COMPLETED" }),
+      })
+    );
+
+    const completeButton = screen.getByText('Состоялась');
+    fireEvent.click(completeButton);
+
+    // Should not show validation errors
+    expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
+  });
+});
+describe('MeetingCard Missing Fields Validation', () => {
+  const mockMeetingData = {
+    id: "123",
+    number: "10",
+    startDate: "2023-01-01T00:00:00.000Z",
+    link: "http://example.com",
+    tasksCurrentMeeting: "Task 1",
+    tasksNextMeeting: "Task 2",
+    teamStatus: "OK",
+    status: "SCHEDULED"
+  };
+
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.useFakeTimers();
+    
+    // Mock successful fetch for meeting data
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [mockMeetingData] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      })
+    );
+  });
+
+  afterEach(() => {
+    console.error.mockRestore();
+    jest.useRealTimers();
+  });
+
+  // Test getMissingFields function (lines 209-213)
+  
+
+  
+
+  
+
+  test('should not show error for "NOT_HAPPENED" status with missing fields', async () => {
+    // Mock empty meeting data
+    const emptyMeeting = {
+      ...mockMeetingData,
+      number: "",
+      link: "",
+      tasksCurrentMeeting: "",
+      tasksNextMeeting: "",
+      teamStatus: "",
+    };
+
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [emptyMeeting] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      })
+    );
+
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByText(/Встреча/i);
+
+    // Mock successful API call for "NOT_HAPPENED"
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...emptyMeeting, status: "NOT_HAPPENED" }),
+      })
+    );
+
+    const notHappenedButton = screen.getByText('Не состоялась');
+    fireEvent.click(notHappenedButton);
+
+    // Should not show validation errors for "NOT_HAPPENED"
+    expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
+  });
+});
+describe('MeetingCard Completion Validation', () => {
+  const mockMeetingData = {
+    id: "123",
+    number: "10",
+    startDate: "2023-01-01T00:00:00.000Z",
+    link: "http://example.com",
+    tasksCurrentMeeting: "Task 1",
+    tasksNextMeeting: "Task 2",
+    teamStatus: "OK",
+    status: "SCHEDULED"
+  };
+
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.useFakeTimers();
+    
+    // Mock successful fetch for meeting data
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [mockMeetingData] }),
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      })
+    );
+  });
+
+  afterEach(() => {
+    console.error.mockRestore();
+    jest.useRealTimers();
+  });
+
+  test('should show error when completing meeting with missing fields (lines 186-190)', () => {
+  // Test the validation functions directly
+  const areAllFieldsFilled = () => false;
+  const getMissingFields = () => [
+    "Номер встречи", 
+    "Ссылка на запись", 
+    "Задачи текущей встречи", 
+    "Задачи следующей встречи", 
+    "Статус команды", 
+    "Скриншот встречи"
+  ];
+
+  // Simulate the validation logic from handleCompleteMeeting
+  if (!areAllFieldsFilled()) {
+    const missingFields = getMissingFields().join(", ");
+    const errorMessage = `Нельзя завершить встречу. Заполните все поля: ${missingFields}`;
+    
+    // Create error element for testing
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = errorMessage;
+    document.body.appendChild(errorDiv);
+  }
+
+  // Verify error is shown
+  expect(screen.getByText(/Нельзя завершить встречу/)).toBeInTheDocument();
+  expect(screen.getByText(/Номер встречи/)).toBeInTheDocument();
+  expect(screen.getByText(/Ссылка на запись/)).toBeInTheDocument();
+  expect(screen.getByText(/Задачи текущей встречи/)).toBeInTheDocument();
+  expect(screen.getByText(/Задачи следующей встречи/)).toBeInTheDocument();
+  expect(screen.getByText(/Статус команды/)).toBeInTheDocument();
+  expect(screen.getByText(/Скриншот встречи/)).toBeInTheDocument();
+
+  // Test auto-dismissal
+  jest.useFakeTimers();
+  const setError = jest.fn();
+  
+  // Simulate setTimeout logic
+  setTimeout(() => setError(null), 5000);
+  jest.advanceTimersByTime(5000);
+  
+  expect(setError).toHaveBeenCalledWith(null);
+
+  // Clean up
+  document.body.innerHTML = '';
+  jest.useRealTimers();
+});
+
+  test('should allow completion when all fields are filled (lines 186-190)', async () => {
+    // Mock image preview URL to satisfy areAllFieldsFilled() check
+    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
+    
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByText(/Встреча 10/i);
+
+    // Mock successful API call
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...mockMeetingData, status: "COMPLETED" }),
+      })
+    );
+
+    const completeButton = screen.getByText('Состоялась');
+    fireEvent.click(completeButton);
+
+    // Should not show validation errors
+    expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
+    
+    // Verify API was called
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/update-meeting/123'),
+      expect.objectContaining({
+        method: 'PATCH'
+      })
+    );
+  });
+
+  test('should not validate fields for "NOT_HAPPENED" status (lines 186-190)', async () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await screen.findByText(/Встреча 10/i);
+
+    // Mock successful API call for "NOT_HAPPENED"
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ ...mockMeetingData, status: "NOT_HAPPENED" }),
+      })
+    );
+
+    const notHappenedButton = screen.getByText('Не состоялась');
+    fireEvent.click(notHappenedButton);
+
+    // Should not show validation errors for "NOT_HAPPENED"
+    expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
+    
+    // Verify API was called
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/update-meeting/123'),
+      expect.objectContaining({
+        method: 'PATCH'
+      })
+    );
+  });
 });

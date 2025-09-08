@@ -46,7 +46,6 @@ beforeEach(() => {
   mockedNavigate.mockClear();
   jest.clearAllMocks();
 
-  // redux-пользователь по умолчанию — ADMIN
   redux.useSelector.mockImplementation(() => ({
     user: { username: 'reduxUser', roles: ['ADMIN'] }
   }));
@@ -66,10 +65,9 @@ beforeEach(() => {
           name: body.name,
           description: body.description,
           ntiMarkets: body.ntiMarketIds.map(id => ({
-  id,
-  displayName: id === 20 ? 'NewMarket' : 'OldMarket'
-})),
-
+            id,
+            displayName: id === 20 ? 'NewMarket' : 'OldMarket'
+          })),
           readinessLevel: body.readinessLevel,
           stream: { id: 1 },
           username: 'reduxUser'
@@ -79,51 +77,53 @@ beforeEach(() => {
 
     // 2) admin/team-cards (ADMIN)
     if (url.includes('/api/v1/admin/team-cards?page')) {
-  return Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({
-      content: [{
-        id: 42,
-        name: 'OldName',
-        description: 'OldDesc',
-        ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
-        readinessLevel: '0-2',
-        streams: [{ // Изменено с stream на streams
-          id: 1,
-          name: 'MyStream',
-          startDate: '2025-03-01T00:00:00Z',
-          endDate: '2025-03-10T00:00:00Z'
-        }],
-        username: 'reduxUser'
-      }],
-      totalPages: 1
-    })
-  });
-}
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{
+            id: 42,
+            name: 'OldName',
+            description: 'OldDesc',
+            ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+            readinessLevel: '0-2',
+            streams: [{
+              id: 1,
+              name: 'MyStream',
+              startDate: '2025-03-01T00:00:00Z',
+              endDate: '2025-03-10T00:00:00Z',
+              meetingsCount: 5 // Set meetingsCount to allow more meetings
+            }],
+            username: 'reduxUser'
+          }],
+          totalPages: 1
+        })
+      });
+    }
 
     // 2b) team-cards (TRACKER)
     if (url.includes('/api/v1/team-cards?page')) {
-  return Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({
-      content: [{
-        id: 42,
-        name: 'OldName',
-        description: 'OldDesc',
-        ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
-        readinessLevel: '0-2',
-        streams: [{ // Изменено с stream на streams
-          id: 1,
-          name: 'MyStream',
-          startDate: '2025-03-01T00:00:00Z',
-          endDate: '2025-03-10T00:00:00Z'
-        }],
-        username: 'reduxUser'
-      }],
-      totalPages: 1
-    })
-  });
-}
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{
+            id: 42,
+            name: 'OldName',
+            description: 'OldDesc',
+            ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+            readinessLevel: '0-2',
+            streams: [{
+              id: 1,
+              name: 'MyStream',
+              startDate: '2025-03-01T00:00:00Z',
+              endDate: '2025-03-10T00:00:00Z',
+              meetingsCount: 5 // Set meetingsCount to allow more meetings
+            }],
+            username: 'reduxUser'
+          }],
+          totalPages: 1
+        })
+      });
+    }
 
     // 3) Потоки
     if (url.includes('/api/v1/streams?page=0&size=150')) {
@@ -134,11 +134,13 @@ beforeEach(() => {
             id: 1,
             name: 'MyStream',
             startDate: '2025-03-01T00:00:00Z',
-            endDate: '2025-03-10T00:00:00Z'
+            endDate: '2025-03-10T00:00:00Z',
+            meetingsCount: 5 // Ensure consistency
           }]
         })
       });
     }
+
     // 4) NTI-рынки
     if (url.includes('/api/v1/streams/nti-markets')) {
       return Promise.resolve({
@@ -149,14 +151,17 @@ beforeEach(() => {
         ])
       });
     }
+
     // 5) Трекеры
     if (url.includes('/api/v1/users/trackers')) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [] }) });
     }
+
     // 6) Количество карточек
     if (url.includes('/api/v1/team-card/count')) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve(5) });
     }
+
     // 7) Встречи
     if (url.includes('/api/v1/meetings')) {
       return Promise.resolve({
@@ -167,10 +172,12 @@ beforeEach(() => {
         })
       });
     }
+
     // 8) Получение ФИО админа
     if (url.endsWith('/api/v1/users/reduxUser/info')) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ fullName: 'Admin FullName' }) });
     }
+
     // 9) Получение ФИО трекера
     if (url.endsWith('/api/v1/account/info')) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ fullName: 'Tracker FullName' }) });

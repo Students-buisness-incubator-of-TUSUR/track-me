@@ -1,4 +1,4 @@
-const { useCallback, useEffect, useRef, useState } = require('react');
+const { useCallback, useEffect, useRef, useState, useMemo } = require('react');
 const { getCsrfConfigForFetch } = require('../../utils/csrf-utils');
 const useStreamForm = (streamId = null, navigate = () => {}) => {
   const [name, setName] = useState('');
@@ -14,7 +14,19 @@ const useStreamForm = (streamId = null, navigate = () => {}) => {
   const checkboxesRef = useRef(null);
   const errorRef = useRef(null);
   const [trackStartDate, setTrackStartDate] = useState('');
+
 const [meetingsCount, setMeetingsCount] = useState('');
+const [customMeetingsCount, setCustomMeetingsCount] = useState('');
+const [showCustomInput, setShowCustomInput] = useState(false);
+
+// Добавьте в начало хука useStreamForm
+const meetingOptions = useMemo(() => [5, 10, 15, 20], []);
+const handleCustomMeetingsCountChange = (e) => {
+  const value = e.target.value;
+  if (value === '' || (/^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= 100)) {
+    setCustomMeetingsCount(value);
+  }
+};
 
   useEffect(() => {
     if (error && errorRef.current) {
@@ -63,8 +75,24 @@ const [meetingsCount, setMeetingsCount] = useState('');
     };
     setStartDate(formatForDisplay(result.startDate));
     setEndDate(formatForDisplay(result.endDate));
-    setTrackStartDate(result.trackStartDate ? formatForDisplay(result.trackStartDate) : ''); // Новое поле
-    setMeetingsCount(result.meetingsCount ? String(result.meetingsCount) : ''); // Новое поле
+    setTrackStartDate(result.trackStartDate ? formatForDisplay(result.trackStartDate) : '');
+    
+    // Исправляем установку meetingsCount
+    if (result.meetingsCount) {
+      const meetingsCountValue = String(result.meetingsCount);
+      // Проверяем, есть ли значение в предопределенных опциях
+      if (meetingOptions.includes(Number(meetingsCountValue))) {
+        setMeetingsCount(meetingsCountValue);
+      } else {
+        // Если значения нет в опциях, устанавливаем "custom" и заполняем customMeetingsCount
+        setMeetingsCount('custom');
+        setCustomMeetingsCount(meetingsCountValue);
+        setShowCustomInput(true);
+      }
+    } else {
+      setMeetingsCount('');
+    }
+    
     if (result.ntiMarkets && result.ntiMarkets.length > 0) {
       const selectedMarketIds = result.ntiMarkets.map((market) => market.id);
       setSelectedCheckboxes(selectedMarketIds);
@@ -74,7 +102,7 @@ const [meetingsCount, setMeetingsCount] = useState('');
   } catch (error) {
     setError('Не удалось загрузить данные потока.');
   }
-}, [backendHost, streamId, fetchStreamImage]);
+}, [backendHost, streamId, fetchStreamImage, meetingOptions]);
 const handleTrackStartDateChange = (e) => {
   let value = e.target.value.replace(/\D/g, '');
   if (value.length > 8) value = value.slice(0, 8);
@@ -87,10 +115,17 @@ const handleTrackStartDateChange = (e) => {
 }
 const handleMeetingsCountChange = (e) => {
   const value = e.target.value;
-  if (value === '' || (/^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= 100)) {
-    setMeetingsCount(value);
+  setMeetingsCount(value);
+  
+  if (value === 'custom') {
+    setShowCustomInput(true);
+    setCustomMeetingsCount('');
+  } else {
+    setShowCustomInput(false);
+    setCustomMeetingsCount('');
   }
 };
+
   useEffect(() => {
     fetchCheckboxesData();
     if (streamId) fetchStreamData();
@@ -105,7 +140,16 @@ const handleMeetingsCountChange = (e) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
+// В хуке добавьте автофокус при появлении поля ввода
+useEffect(() => {
+  if (showCustomInput) {
+    // Автофокус на поле ввода при его появлении
+    const input = document.querySelector('.create-stream-custom-input');
+    if (input) {
+      input.focus();
+    }
+  }
+}, [showCustomInput]);
   const handleShowCheckboxes2 = () => setShowCheckboxes2(!showCheckboxes2);
 
   const handleCheckboxChange = (id) => {
@@ -199,10 +243,15 @@ const handleMeetingsCountChange = (e) => {
     setError('Дата начала трекшен-митинга должна быть между датой начала и конца потока.');
     return false;
   }
-  if (Number(meetingsCount) < 1 || Number(meetingsCount) > 100) {
-    setError('Количество встреч должно быть от 1 до 100.');
-    return false;
-  }
+  if (!meetingsCount || (meetingsCount === 'custom' && !customMeetingsCount)) {
+  setError('Пожалуйста, заполните количество встреч.');
+  return false;
+}
+
+if (meetingsCount === 'custom' && (Number(customMeetingsCount) < 1 || Number(customMeetingsCount) > 100)) {
+  setError('Количество встреч должно быть от 1 до 100.');
+  return false;
+}
   return true;
 };
 
@@ -210,15 +259,17 @@ const handleMeetingsCountChange = (e) => {
   setError('');
   if (!validateForm()) return;
 
-  const requestData = {
-    name,
-    startDate: formatDate(startDate),
-    endDate: formatDate(endDate),
-    trackStartDate: formatDate(trackStartDate), // Новое поле
-    meetingsCount: Number(meetingsCount), // Новое поле
-    ntiMarketIds: selectedCheckboxes,
-    description: 'useless описание',
-  };
+  const finalMeetingsCount = meetingsCount === 'custom' ? Number(customMeetingsCount) : Number(meetingsCount);
+
+const requestData = {
+  name,
+  startDate: formatDate(startDate),
+  endDate: formatDate(endDate),
+  trackStartDate: formatDate(trackStartDate),
+  meetingsCount: finalMeetingsCount,
+  ntiMarketIds: selectedCheckboxes,
+  description: 'useless описание',
+};
 
   try {
     const url = isEditMode
@@ -278,28 +329,32 @@ const handleMeetingsCountChange = (e) => {
 };
 
   return {
-    name,
-    startDate,
-    endDate,
-    trackStartDate, // Новое поле
+  name,
+  startDate,
+  endDate,
+  trackStartDate,
   meetingsCount,
-    showCheckboxes2,
-    error,
-    checkboxesData2,
-    selectedCheckboxes,
-    image,
-    checkboxesRef,
-    errorRef,
-    handleNameChange,
-    handleStartDateChange,
-    handleEndDateChange,
-    handleTrackStartDateChange, // Новый обработчик
+  customMeetingsCount,
+  showCustomInput,
+  setShowCustomInput, // Добавляем в возвращаемые значения
   handleMeetingsCountChange,
-    handleShowCheckboxes2,
-    handleCheckboxChange,
-    handleImageUpload,
-    handleSubmit,
-  };
+  handleCustomMeetingsCountChange,
+  showCheckboxes2,
+  error,
+  checkboxesData2,
+  selectedCheckboxes,
+  image,
+  checkboxesRef,
+  errorRef,
+  handleNameChange,
+  handleStartDateChange,
+  handleEndDateChange,
+  handleTrackStartDateChange,
+  handleShowCheckboxes2,
+  handleCheckboxChange,
+  handleImageUpload,
+  handleSubmit,
+};
 };
 
 export { useStreamForm };

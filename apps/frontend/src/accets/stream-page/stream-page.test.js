@@ -2,16 +2,21 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Stream from "./stream-page";
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
+// Mock useNavigate на верхнем уровне
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+  Link: ({ children, to, ...rest }) => <a href={to} {...rest}>{children}</a>,
+}));
+
+// Mock axios на верхнем уровне
 jest.mock('axios', () => ({
   post: jest.fn(),
   get: jest.fn(),
-}));
-
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  Link: ({ children, to, ...rest }) => <a href={to} {...rest}>{children}</a>,
 }));
 
 describe('Stream Component', () => {
@@ -37,8 +42,8 @@ describe('Stream Component', () => {
   ];
 
   beforeEach(() => {
-    require('axios').post.mockResolvedValue({ data: mockData });
-    require('axios').get.mockImplementation((url) => {
+    axios.post.mockResolvedValue({ data: mockData });
+    axios.get.mockImplementation((url) => {
       if (url.includes('nti-markets')) {
         return Promise.resolve({ data: mockCheckboxesData2 });
       }
@@ -49,17 +54,20 @@ describe('Stream Component', () => {
 
     Storage.prototype.removeItem = jest.fn();
     Storage.prototype.setItem = jest.fn();
+    
+    // Сбрасываем mockNavigate перед каждым тестом
+    mockNavigate.mockClear();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should import all required dependencies (line 5)', () => {
+  it('should import all required dependencies', () => {
     expect(Stream).toBeDefined();
   });
 
-  it('should toggle profile menu (line 35)', async () => {
+  it('should toggle profile menu', async () => {
     render(
       <MemoryRouter>
         <Stream />
@@ -78,7 +86,7 @@ describe('Stream Component', () => {
     });
   });
 
-  it('should clear localStorage on logout (lines 37–40)', async () => {
+  it('should clear localStorage on logout', async () => {
     render(
       <MemoryRouter>
         <Stream />
@@ -101,7 +109,7 @@ describe('Stream Component', () => {
     expect(localStorage.removeItem).toHaveBeenCalledWith("streamEDate");
   });
 
-  it('should display stream cards (lines 273–282)', async () => {
+  it('should display stream cards', async () => {
     render(
       <MemoryRouter>
         <Stream />
@@ -114,7 +122,7 @@ describe('Stream Component', () => {
     });
   });
 
-  it('should handle pagination buttons (lines 367–381)', async () => {
+  it('should handle pagination buttons', async () => {
     render(
       <MemoryRouter>
         <Stream />
@@ -127,5 +135,181 @@ describe('Stream Component', () => {
     });
   });
 
-  
+  // Тесты для логотипа и заголовка
+  test('logo navigates to /streams on click', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const logo = document.querySelector('.Stream-header-logo');
+      expect(logo).toBeInTheDocument();
+      
+      fireEvent.click(logo);
+      expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    });
+  });
+
+  test('logo navigates to /streams on Enter key press', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const logo = document.querySelector('.Stream-header-logo');
+      expect(logo).toBeInTheDocument();
+      
+      fireEvent.keyDown(logo, { key: 'Enter' });
+      expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    });
+  });
+
+  test('logo navigates to /streams on Space key press', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const logo = document.querySelector('.Stream-header-logo');
+      expect(logo).toBeInTheDocument();
+      
+      fireEvent.keyDown(logo, { key: ' ' });
+      expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    });
+  });
+
+  test('logo ignores other key presses', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const logo = document.querySelector('.Stream-header-logo');
+      expect(logo).toBeInTheDocument();
+      
+      fireEvent.keyDown(logo, { key: 'Escape' });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  test('title navigates to /streams on click', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const title = screen.getByText('TrackMe');
+      expect(title).toBeInTheDocument();
+      
+      fireEvent.click(title);
+      expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    });
+  });
+
+  test('title navigates to /streams on Enter key press', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const title = screen.getByText('TrackMe');
+      expect(title).toBeInTheDocument();
+      
+      fireEvent.keyDown(title, { key: 'Enter' });
+      expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    });
+  });
+
+  test('title navigates to /streams on Space key press', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const title = screen.getByText('TrackMe');
+      expect(title).toBeInTheDocument();
+      
+      fireEvent.keyDown(title, { key: ' ' });
+      expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    });
+  });
+
+  test('title ignores other key presses', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const title = screen.getByText('TrackMe');
+      expect(title).toBeInTheDocument();
+      
+      fireEvent.keyDown(title, { key: 'Tab' });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  test('logo has correct accessibility attributes', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const logo = document.querySelector('.Stream-header-logo');
+      expect(logo).toHaveAttribute('tabIndex', '0');
+      expect(logo).toHaveAttribute('role', 'button');
+      expect(logo).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
+      expect(logo).toHaveStyle('cursor: pointer');
+    });
+  });
+
+  test('title has correct accessibility attributes', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const title = screen.getByText('TrackMe');
+      expect(title).toHaveAttribute('tabIndex', '0');
+      expect(title).toHaveAttribute('role', 'button');
+      expect(title).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
+      expect(title).toHaveStyle('cursor: pointer');
+    });
+  });
+
+  test('logo and title are rendered in the header', async () => {
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const logo = document.querySelector('.Stream-header-logo');
+      const title = screen.getByText('TrackMe');
+      
+      expect(logo).toBeInTheDocument();
+      expect(title).toBeInTheDocument();
+      expect(logo.closest('.Stream-header-cont')).toContainElement(title);
+    });
+  });
 });

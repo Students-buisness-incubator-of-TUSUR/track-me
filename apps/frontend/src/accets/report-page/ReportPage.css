@@ -1,0 +1,197 @@
+.report-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 100px;
+}
+
+.report-btn {
+  padding: 13px 30px;
+  border: 2px solid #44069A;
+  background: white;
+  color: #843AEB;
+  border-radius: 40px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 20px;
+
+}
+
+.report-btn:hover {
+  background: #ede9fe;
+}
+
+/* фильтры */
+.report-filters {
+  display: flex;
+  gap: 16px;
+}
+
+.dropdown1 {
+  position: absolute;
+  right: 400px;              
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  width: 369px;              /* как у колонок */
+  border-radius: 29px;
+  border: 2px solid #44069A;
+  background-color: white; /* фон общий */
+  box-sizing: border-box;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  overflow: hidden; /* ограничиваем содержимое */
+  z-index: 10;      /* чтобы меню было поверх всего */
+
+}
+.dropdown2 {
+  position: absolute;
+  right: 100px;              /* смещение от левого края */
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  width: 279px;              /* как у колонок */
+  border-radius: 29px;
+  border: 2px solid #44069A;
+  background-color: white; /* фон общий */
+  box-sizing: border-box;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  overflow: hidden; /* ограничиваем содержимое */
+  z-index: 10;      /* чтобы меню было поверх всего */
+}
+
+
+.dropdown-btn {
+  padding: 13px 18px;
+  border: none;                 /* убрали вторую обводку */
+  background: transparent;      /* фон берём у родителя */
+  color: #843AEB;
+  border-radius: 31px;          /* чтобы при закрытом состоянии была круглая */
+  font-weight: 700;
+  font-size: 20px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdown-btn:not(.open):hover {
+  background: #ede9fe;
+}
+
+.dropdown-menu {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 300px; /* чтобы меню не было бесконечным */
+  overflow-y: auto;  /* вертикальный скролл, если элементов много */
+  
+  box-sizing: border-box;
+  border-radius: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #843AEB #f0f0f0;
+}
+/* для Webkit браузеров (Chrome, Safari, Edge) */
+.dropdown-menu::-webkit-scrollbar {
+  width: 1px; /* ширина скролла */
+  
+}
+
+
+.dropdown-menu::-webkit-scrollbar-track {
+  background: #f0f0f0; /* фон дорожки */
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: #843AEB; /* цвет ползунка */
+  border-radius: 4px;        /* скругление ползунка */
+  border: 2px solid #f0f0f0; /* отступы, чтобы не сливался с дорожкой */
+  min-height: 5px; 
+  box-shadow: -2px 0 0 #843AEB inset;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background-color: #6d28d9; /* чуть темнее при наведении */
+}
+.dropdown-menu::-webkit-scrollbar-button {
+  display: none;
+}
+/* полосатые элементы */
+.dropdown-item:nth-child(odd) {
+  background-color: #843AEB4A;
+}
+.dropdown-item:nth-child(even) {
+  background-color: white; /* мягкий розовый */
+}
+.dropdown-icon img {
+        /* одинаковая высота */
+  object-fit: contain; /* не растягивает картинку */
+  vertical-align: middle;
+}
+.dropdown-icon1 {
+  margin-left: 210px; /* небольшой отступ от текста */
+ 
+}
+.dropdown-icon2 {
+  margin-left: 140px; /* небольшой отступ от текста */
+ 
+}
+.dropdown-item {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 400;
+  font-family: Montserrat, sans-serif;
+  color: black;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.dropdown-item:hover {
+  background: #ede9fe;
+  
+}
+/* первый и последний элемент ровные */
+.dropdown-item:first-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.dropdown-item:last-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* таблица */
+.report-table-container {
+  padding: 0px 100px 100px 100px;
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 14px;
+}
+
+.report-table th, .report-table td {
+  border: 1px solid #6d28d9;
+  font-size: 14px;
+  font-weight: 400;
+  padding: 14px 10px;
+  white-space: nowrap;
+}
+
+.report-table th {
+  background: #8338eb44;
+  font-size: 17px;
+  color: black;
+  font-weight: 700;
+  white-space: normal;   /* разрешаем перенос */
+  word-break: break-word;
+  line-height: 1.2;      /* компактнее строки */
+  padding: 12px 8px;
+}
+

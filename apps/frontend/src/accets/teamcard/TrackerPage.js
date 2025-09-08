@@ -468,8 +468,50 @@ const options = {
         <div className="tracker-container">
             <header className="Stream-header">
                 <div className="Stream-header-cont">
-                    <div className='Stream-header-logo'/>
-                    <h1 className="Stream-title">TrackMe</h1>
+                    <div 
+  className='Stream-header-logo'
+  onClick={() => {
+    const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+      ? "/streams" 
+      : "/team-cards";
+    navigate(targetPath);
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+        ? "/streams" 
+        : "/team-cards";
+      navigate(targetPath);
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Вернуться на главную страницу"
+  style={{ cursor: "pointer" }}
+/>
+<h1 
+  className="Stream-title" 
+  onClick={() => {
+    const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+      ? "/streams" 
+      : "/team-cards";
+    navigate(targetPath);
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
+        ? "/streams" 
+        : "/team-cards";
+      navigate(targetPath);
+    }
+  }}
+  tabIndex={0}
+  role="button"
+  aria-label="Вернуться на главную страницу"
+  style={{ cursor: "pointer" }}
+>
+  TrackMe
+</h1>
                     <div className="Stream-header-cont-cont">
     {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && !showAllCards ? (
         <h1 className="Stream-title11">

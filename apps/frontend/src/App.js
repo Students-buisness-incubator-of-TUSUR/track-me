@@ -17,6 +17,7 @@ import TeamCardCreate from "./accets/create-teamcard/team-card-create.js";
 import MeetingCreate from "./accets/meeting-card/MeetingCreate.js";
 import FeedbackWidget from "./accets/FeedbackWidget/FeedbackWidget.js";
 import ProtectedRoute from "./accets/ProtectedRoute/ProtectedRoute.js"; // Импортируем компонент защиты
+import ReportPage from "./accets/report-page/ReportPage.js";
 
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
@@ -121,6 +122,12 @@ function App() {
                             <MeetingCard />
                         </ProtectedRoute>
                     } />
+                    <Route path="/report" element={
+  <ProtectedRoute>
+    <ReportPage />
+  </ProtectedRoute>
+} />
+
                 </Routes>
                 <FeedbackWidget />
             </div>
