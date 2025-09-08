@@ -401,6 +401,9 @@ const toggleProfileMenu = () => {
   <Link to="/all-team-cards">
     <button className="Stream-butt">Все команды</button>
   </Link>
+  <Link to="/report">
+    <button className="Stream-butt">Отчётность</button>
+  </Link>
 
 
                         <button className="Stream-pic" onClick={toggleProfileMenu}>
