@@ -86,7 +86,7 @@
   width: 100%;
   max-height: 300px; /* чтобы меню не было бесконечным */
   overflow-y: auto;  /* вертикальный скролл, если элементов много */
-  border-radius: 31px;
+  
   box-sizing: border-box;
   border-radius: 0;
   scrollbar-width: thin;

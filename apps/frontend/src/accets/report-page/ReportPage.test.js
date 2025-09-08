@@ -1,0 +1,317 @@
+// __tests__/ReportPage.test.js
+import React from 'react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import ReportPage from '../report-page/ReportPage.js';
+import '@testing-library/jest-dom';
+
+// Мокаем useNavigate
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}));
+
+// Создаем мок для localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  clear: jest.fn(),
+  removeItem: jest.fn(),
+  length: 0,
+  key: jest.fn(),
+};
+
+// Переопределяем window.location для теста выхода
+const originalLocation = window.location;
+delete window.location;
+window.location = {
+  ...originalLocation,
+  href: '',
+};
+
+describe('ReportPage Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Настраиваем мок localStorage
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    });
+    window.location.href = '';
+  });
+
+  afterAll(() => {
+    window.location = originalLocation;
+  });
+
+  test('рендерит компонент без ошибок', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    expect(screen.getByText('TrackMe')).toBeInTheDocument();
+    expect(screen.getByText('Выгрузить отчет')).toBeInTheDocument();
+  });
+
+  test('открывает и закрывает меню профиля', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const profileButton = screen.getByAltText('Профиль');
+    fireEvent.click(profileButton);
+    
+    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
+    expect(screen.getByText('Выход')).toBeInTheDocument();
+    
+    fireEvent.click(profileButton);
+    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+  });
+
+  test('обрабатывает выход из системы', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const profileButton = screen.getByAltText('Профиль');
+    fireEvent.click(profileButton);
+    
+    const logoutLink = screen.getByText('Выход');
+    fireEvent.click(logoutLink);
+    
+    expect(localStorageMock.clear).toHaveBeenCalled();
+    expect(window.location.href).toBe('/');
+  });
+
+  test('открывает и закрывает фильтр трекеров', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const trackerFilterButton = screen.getByText('Трекеры');
+    fireEvent.click(trackerFilterButton);
+    
+    // Проверяем, что dropdown-menu появился
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    expect(dropdownMenu).toBeInTheDocument();
+    
+    // Проверяем, что в dropdown есть элементы
+    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    expect(dropdownItems.length).toBeGreaterThan(0);
+    
+    fireEvent.click(trackerFilterButton);
+    expect(document.querySelector('.dropdown-menu')).not.toBeInTheDocument();
+  });
+
+  test('открывает и закрывает фильтр потоков', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+    
+    // Проверяем, что dropdown-menu появился
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    expect(dropdownMenu).toBeInTheDocument();
+    
+    // Проверяем, что в dropdown есть элементы
+    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    expect(dropdownItems.length).toBeGreaterThan(0);
+    
+    fireEvent.click(streamFilterButton);
+    expect(document.querySelector('.dropdown-menu')).not.toBeInTheDocument();
+  });
+
+  test('рендерит таблицу с данными', () => {
+  render(
+    <Router>
+      <ReportPage />
+    </Router>
+  );
+
+  const table = screen.getByRole('table');
+  const rows = within(table).getAllByRole('row');
+
+  const firstRow = rows[1]; // первая строка данных
+  const cells = within(firstRow).getAllByRole('cell');
+
+  expect(cells[0]).toHaveTextContent('1'); // №
+  expect(cells[1]).toHaveTextContent('Поток называется вот так'); // Название потока
+  expect(cells[2]).toHaveTextContent('01.09.2025 – 12.12.2025'); // Сроки потока
+  expect(cells[3]).toHaveTextContent('Название команды очень длинное'); // Название команды
+  expect(cells[4]).toHaveTextContent('Александров Александр Александрович'); // Имя трекера
+  expect(cells[5]).toHaveTextContent('5'); // Средняя оценка команды
+  expect(cells[6]).toHaveTextContent('5'); // Средняя оценка трекера
+  expect(cells[7]).toHaveTextContent('1/3'); // Трекшн-митинг
+  expect(cells[8]).toHaveTextContent('HealthNet'); // Рынки НТИ
+  expect(cells[9]).toHaveTextContent('0-2'); // Уровень TRL
+});
+
+
+  test('навигация по клику на логотип и заголовок', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const logo = document.querySelector('.Stream-header-logo');
+    fireEvent.click(logo);
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    
+    const title = screen.getByText('TrackMe');
+    fireEvent.click(title);
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('навигация по клавиатуре на логотип и заголовок', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const logo = document.querySelector('.Stream-header-logo');
+    fireEvent.keyDown(logo, { key: 'Enter' });
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    
+    const title = screen.getByText('TrackMe');
+    fireEvent.keyDown(title, { key: ' ' });
+    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  });
+
+  test('отображает правильные иконки в фильтрах', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    // Проверяем начальное состояние иконок
+    const trackerIcons = document.querySelectorAll('.dropdown-icon-img');
+    expect(trackerIcons[0]).toHaveAttribute('alt', 'Открыто');
+    
+    // Открываем фильтр и проверяем изменение иконки
+    const trackerFilterButton = screen.getByText('Трекеры');
+    fireEvent.click(trackerFilterButton);
+    
+    const updatedIcons = document.querySelectorAll('.dropdown-icon-img');
+    expect(updatedIcons[0]).toHaveAttribute('alt', 'Закрыто');
+  });
+
+  test('рендерит правильное количество строк в таблице', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const tableRows = screen.getAllByRole('row');
+    // 1 строка заголовка + 30 строк данных
+    expect(tableRows).toHaveLength(31);
+  });
+
+  test('фильтры содержат правильное количество элементов', async () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    // Открываем фильтр трекеров
+    const trackerFilterButton = screen.getByText('Трекеры');
+    fireEvent.click(trackerFilterButton);
+    
+    await waitFor(() => {
+      const dropdownMenu = document.querySelector('.dropdown-menu');
+      const trackerItems = dropdownMenu.querySelectorAll('.dropdown-item');
+      expect(trackerItems).toHaveLength(12);
+    });
+    
+    // Закрываем фильтр трекеров
+    fireEvent.click(trackerFilterButton);
+    
+    // Открываем фильтр потоков
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+    
+    await waitFor(() => {
+      const dropdownMenu = document.querySelector('.dropdown-menu');
+      const streamItems = dropdownMenu.querySelectorAll('.dropdown-item');
+      expect(streamItems).toHaveLength(18);
+    });
+  });
+
+  test('кнопка "Выгрузить отчет" отображается и кликабельна', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const exportButton = screen.getByText('Выгрузить отчет');
+    expect(exportButton).toBeInTheDocument();
+    expect(exportButton).toBeEnabled();
+    
+    // Проверяем, что кнопка кликабельна
+    fireEvent.click(exportButton);
+  });
+
+  test('меню профиля содержит правильные ссылки', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const profileButton = screen.getByAltText('Профиль');
+    fireEvent.click(profileButton);
+    
+    const profileLink = screen.getByText('Личный кабинет');
+    const logoutLink = screen.getByText('Выход');
+    
+    expect(profileLink).toBeInTheDocument();
+    expect(logoutLink).toBeInTheDocument();
+    expect(profileLink.closest('a')).toHaveAttribute('href', '/profile');
+  });
+
+  test('переключение фильтров изменяет иконки', () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+    
+    const trackerFilterButton = screen.getByText('Трекеры');
+    const streamFilterButton = screen.getByText('Потоки');
+    
+    // Проверяем начальное состояние
+    const initialIcons = document.querySelectorAll('.dropdown-icon-img');
+    expect(initialIcons[0]).toHaveAttribute('alt', 'Открыто');
+    expect(initialIcons[1]).toHaveAttribute('alt', 'Открыто');
+    
+    // Открываем фильтр трекеров
+    fireEvent.click(trackerFilterButton);
+    const afterTrackerOpenIcons = document.querySelectorAll('.dropdown-icon-img');
+    expect(afterTrackerOpenIcons[0]).toHaveAttribute('alt', 'Закрыто');
+    expect(afterTrackerOpenIcons[1]).toHaveAttribute('alt', 'Открыто');
+    
+    // Закрываем фильтр трекеров
+    fireEvent.click(trackerFilterButton);
+    const afterTrackerCloseIcons = document.querySelectorAll('.dropdown-icon-img');
+    expect(afterTrackerCloseIcons[0]).toHaveAttribute('alt', 'Открыто');
+    expect(afterTrackerCloseIcons[1]).toHaveAttribute('alt', 'Открыто');
+  });
+});
