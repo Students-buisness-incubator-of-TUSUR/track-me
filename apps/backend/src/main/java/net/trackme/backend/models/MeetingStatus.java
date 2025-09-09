@@ -6,16 +6,14 @@ import lombok.Getter;
 @Getter
 @Schema(description = "Статус встречи")
 public enum MeetingStatus {
-  @Schema(description = "Все ок")
-  OK(1),
-  @Schema(description = "Есть проблемы")
-  WITH_ISSUES(0.5),
-  @Schema(description = "Много проблем")
-  MANY_ISSUES(0.25);
+    SCHEDULED("Запланирована"),
+    COMPLETED("Завершена"),
+    NOT_HAPPENED("Не состоялась"),
+    COMPLETED_AS_NOT_HAPPENED("Завершена как не состоявшаяся");
 
-  private final double value;
+    private final String value;
 
-  MeetingStatus(double value) {
+    MeetingStatus(String value) {
     this.value = value;
   }
 

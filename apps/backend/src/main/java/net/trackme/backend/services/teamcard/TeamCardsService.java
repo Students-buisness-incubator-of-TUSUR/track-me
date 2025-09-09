@@ -31,6 +31,4 @@ public interface TeamCardsService {
     TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username);
 
     Integer getTeamCardCount(UUID streamId);
-
-    void increaseMeetingCount(UUID uuid);
 }

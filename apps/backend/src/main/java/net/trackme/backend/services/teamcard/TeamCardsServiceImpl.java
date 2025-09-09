@@ -131,22 +131,6 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         return teamCardsRepository.countByStreamsIdIn(Collections.singletonList(streamId));
     }
 
-    @Override
-    @Transactional
-    public void increaseMeetingCount(UUID teamCardId) {
-        teamCardsRepository.findById(teamCardId)
-                .ifPresentOrElse(
-                        teamCard -> {
-                            teamCard.setMeetingsCount(teamCard.getMeetingsCount() + 1);
-                            teamCardsRepository.save(teamCard);
-                            log.info(
-                                    "Increased meeting count for team card {}. Current count: {}",
-                                    teamCardId,
-                                    teamCard.getMeetingsCount());
-                        },
-                        () -> log.warn("Team card {} not found", teamCardId));
-    }
-
     private TeamCard get(UUID teamCardId) {
         return teamCardsRepository.findById(teamCardId)
                 .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));

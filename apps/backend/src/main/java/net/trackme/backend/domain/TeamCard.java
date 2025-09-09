@@ -56,12 +56,6 @@ public class TeamCard {
     @Enumerated(EnumType.STRING)
     private ReadinessLevel readinessLevel;
 
-    @OneToMany(
-            mappedBy = "teamCard",
-            cascade = CascadeType.ALL)
-    @Builder.Default
-    private Set<Meeting> teamMeetings = new HashSet<>();
-
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(
             name = "stream_team_card",
@@ -76,13 +70,25 @@ public class TeamCard {
     @Builder.Default
     private BigDecimal averageGrade = BigDecimal.ZERO;
 
+    @Builder.Default
     private Integer meetingsCount = 0;
 
+    @Builder.Default
     private Integer meetingsCompletedCount = 0;
 
+    @Builder.Default
     private Integer meetingsNotHappenedCount = 0;
 
+    @Builder.Default
     private Integer meetingsCompletedAsNotHappenedCount = 0;
+
+    @Builder.Default
+    @OneToMany(
+            mappedBy = "teamCard",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
+    private Set<MeetingGrade> meetingGrades = new HashSet<>();
 
     public void addStream(Stream stream) {
         streams.clear();
@@ -99,5 +105,23 @@ public class TeamCard {
             meetingsCount = 0;
         }
         meetingsCount++;
+    }
+
+    public void increaseMeetingCompletedCount() {
+        if (meetingsCompletedCount == null) {
+            meetingsCompletedCount = 0;
+        }
+        meetingsCompletedCount++;
+    }
+
+    public void addMeetingGrade(MeetingGrade meetingGrade) {
+        this.meetingGrades.add(meetingGrade);
+        meetingGrade.setTeamCard(this);
+    }
+
+    public void addMeetingGrade(UUID meetingId) {
+        var meetingGrade = new MeetingGrade();
+        meetingGrade.setMeetingId(meetingId);
+        this.addMeetingGrade(meetingGrade);
     }
 }

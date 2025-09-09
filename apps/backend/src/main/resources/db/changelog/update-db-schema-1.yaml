@@ -138,7 +138,8 @@ databaseChangeLog:
                   name: meetings_count
                   type: integer
                   constraints:
-                    nullable: true
+                    nullable: false
+                  defaultValue: "0"
   - changeSet:
       id: team-card-add-meetingsCount-column
       author: akarmanov
@@ -158,8 +159,8 @@ databaseChangeLog:
                   name: meetings_count
                   type: integer
                   constraints:
-                    nullable: true
-                  defaultValue: 0
+                    nullable: false
+                  defaultValue: "0"
   - changeSet:
       id: team-card-add-meetingsCompletedCount-column
       author: akarmanov
@@ -179,8 +180,8 @@ databaseChangeLog:
                   name: meetings_completed_count
                   type: integer
                   constraints:
-                    nullable: true
-                  defaultValue: 0
+                    nullable: false
+                  defaultValue: "0"
   - changeSet:
       id: team-card-add-meetingsNotHappenedCount-column
       author: akarmanov
@@ -200,8 +201,8 @@ databaseChangeLog:
                   name: meetings_not_happened_count
                   type: integer
                   constraints:
-                    nullable: true
-                  defaultValue: 0
+                    nullable: false
+                  defaultValue: "0"
   - changeSet:
       id: team-card-add-meetingsCompletedAsNotHappenedCount-column
       author: akarmanov
@@ -221,5 +222,50 @@ databaseChangeLog:
                   name: meetings_completed_as_not_happened_count
                   type: integer
                   constraints:
-                    nullable: true
-                  defaultValue: 0
+                    nullable: false
+                  defaultValue: "0"
+  - changeSet:
+      id: add-meeting-grade-table
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                schemaName: ${db_schema}
+                tableName: meeting_grade
+      changes:
+        - createTable:
+            schemaName: ${db_schema}
+            tableName: meeting_grade
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: meeting_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: team_card_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: grade
+                  type: decimal(3,2)
+                  constraints:
+                    nullable: false
+                  defaultValue: "0.0"
+        - addForeignKeyConstraint:
+            baseTableName: meeting_grade
+            baseColumnNames: team_card_id
+            referencedTableName: team_card
+            referencedColumnNames: id
+            constraintName: fk_meeting_grade_team_card
+            baseTableSchemaName: ${db_schema}
+            referencedTableSchemaName: ${db_schema}
