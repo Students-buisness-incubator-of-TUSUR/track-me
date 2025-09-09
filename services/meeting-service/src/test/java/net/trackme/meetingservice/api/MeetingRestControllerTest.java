@@ -17,9 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.OffsetDateTime;
@@ -50,6 +52,9 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @BeforeEach
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
@@ -272,15 +277,5 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
 
         Assertions.assertFalse(meetingRepository.existsById(UUID.fromString(meetingId)));
-    }
-
-    @Test
-    void testGetGradesByTeamCardId_success() throws Exception {
-        mockMvc.perform(get("/api/v1/{teamCardId}/grades", TEAM_CARD_ID)
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$").isArray());
     }
 }

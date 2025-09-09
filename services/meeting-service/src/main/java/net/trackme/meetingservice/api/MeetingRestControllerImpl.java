@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -59,9 +58,4 @@ public class MeetingRestControllerImpl implements MeetingRestController {
                 .body(image);
     }
 
-    @Override
-    public ResponseEntity<List<Double>> teamCardGrades(UUID teamCardId) {
-        var grades = meetingService.getGradesByTeamCardId(teamCardId);
-        return ResponseEntity.ok(grades);
-    }
 }

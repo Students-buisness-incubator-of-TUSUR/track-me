@@ -8,7 +8,6 @@ import net.trackme.meetingservice.api.MeetingUpdateDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
-import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.events.MeetingCreatedEvent;
 import net.trackme.meetingservice.events.MeetingUpdatedEvent;
 import net.trackme.meetingservice.mapping.MeetingMapper;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
@@ -126,13 +124,6 @@ public class MeetingServiceImpl implements MeetingService {
     public Resource getMeetingImage(UUID meetingId) {
         var meeting = getMeeting(meetingId);
         return new ByteArrayResource(meeting.getImageBytes());
-    }
-
-    @Override
-    public List<Double> getGradesByTeamCardId(UUID teamCardId) {
-        return meetingRepository.findTeamStatusByTeamCardId(teamCardId).stream()
-                .map(TeamStatus::getValue)
-                .toList();
     }
 
     private Meeting getMeeting(UUID meetingId) {

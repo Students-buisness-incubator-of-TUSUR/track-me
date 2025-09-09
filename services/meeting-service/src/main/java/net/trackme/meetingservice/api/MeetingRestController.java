@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(
@@ -61,10 +60,4 @@ public interface MeetingRestController {
             value = "image/{meetingId}",
             produces = "image/png")
     ResponseEntity<Resource> getImage(@PathVariable UUID meetingId);
-
-    @Operation(summary = "Получение списка оценок команды")
-    @GetMapping(
-            value = "{teamCardId}/grades",
-            produces = "application/json")
-    ResponseEntity<List<Double>> teamCardGrades(@PathVariable UUID teamCardId);
 }
