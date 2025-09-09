@@ -8,10 +8,13 @@ import net.trackme.meetingservice.entities.TeamStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@ActiveProfiles("test")
 class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -19,6 +22,9 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
 
     @Autowired
     private MeetingRepository meetingRepository;
+
+    @MockitoBean
+    private MeetingEventsProducer meetingEventsProducer;
 
     @Test
     void updateMeetingStatuses_integrationTest() {
