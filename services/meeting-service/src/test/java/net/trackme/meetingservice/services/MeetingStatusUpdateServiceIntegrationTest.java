@@ -4,6 +4,7 @@ import net.trackme.meetingservice.AbstractIntegrationTest;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
+import net.trackme.meetingservice.entities.TeamStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
 
         var expiredMeeting = new Meeting();
         expiredMeeting.setStatus(MeetingStatus.SCHEDULED);
+        expiredMeeting.setTeamStatus(TeamStatus.MANY_ISSUES);
         expiredMeeting.setStartDate(pastDate);
         expiredMeeting.setTeamCardId(UUID.randomUUID());
         expiredMeeting.setLink(null); // unfilled field
