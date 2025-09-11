@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.UUID;
 
 public interface MeetingService {
-    Integer MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+    Integer MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
 
     MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto);
 
