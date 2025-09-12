@@ -80,27 +80,27 @@ describe('useTrackerList', () => {
   });
 
   it('должен обрабатывать массив без пагинации', async () => {
-    global.fetch.mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: true,
-        json: () =>
-          Promise.resolve([
-            { username: 'user1', enabled: false },
-            { username: 'user2', enabled: true },
-          ]),
-      })
-    );
+  global.fetch.mockImplementationOnce(() =>
+    Promise.resolve({
+      ok: true,
+      json: () =>
+        Promise.resolve([
+          { username: 'user1', enabled: false },
+          { username: 'user2', enabled: true },
+        ]),
+    })
+  );
 
-    const { result } = renderHook(() => useTrackerList(endpoint));
-    await waitFor(() =>
-      expect(result.current.trackers).toEqual([
-        { username: 'user1', enabled: false },
-        { username: 'user2', enabled: true },
-      ])
-    );
-    expect(result.current.totalPages).toBe(1);
-    expect(result.current.totalElements).toBe(2);
-  });
+  const { result } = renderHook(() => useTrackerList(endpoint));
+  await waitFor(() =>
+    expect(result.current.trackers).toEqual([
+      { username: 'user2', enabled: true }, // активный пользователь первый
+      { username: 'user1', enabled: false }, // неактивный пользователь второй
+    ])
+  );
+  expect(result.current.totalPages).toBe(1);
+  expect(result.current.totalElements).toBe(2);
+});
 
   it('confirmUser обновляет enabled', async () => {
     global.fetch

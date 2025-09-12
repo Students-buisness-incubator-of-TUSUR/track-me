@@ -4,7 +4,12 @@ import '@testing-library/jest-dom';
 import Stream from "./stream-page";
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useSelector } from 'react-redux';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 // Mock useNavigate на верхнем уровне
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
