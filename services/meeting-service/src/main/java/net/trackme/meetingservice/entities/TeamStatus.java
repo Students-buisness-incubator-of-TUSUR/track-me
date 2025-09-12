@@ -19,4 +19,9 @@ public enum TeamStatus {
         this.value = value;
     }
 
+
+    @Override
+    public String toString() {
+        return name();
+    }
 }

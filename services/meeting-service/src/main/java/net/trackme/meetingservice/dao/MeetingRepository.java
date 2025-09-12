@@ -11,4 +11,5 @@ import java.util.UUID;
 
 public interface MeetingRepository extends JpaRepository<Meeting, UUID>, JpaSpecificationExecutor<Meeting> {
     List<Meeting> findByStatusAndStartDateBefore(MeetingStatus status, OffsetDateTime before);
+
 }

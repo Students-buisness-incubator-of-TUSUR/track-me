@@ -18,7 +18,8 @@ import java.util.*;
 public class TeamCard {
 
     @Id
-    @Column(nullable = false,
+    @Column(
+            nullable = false,
             updatable = false)
     @GeneratedValue
     @UuidGenerator
@@ -41,7 +42,8 @@ public class TeamCard {
     @Column(nullable = false)
     private String username;
 
-    @ManyToMany(fetch = FetchType.EAGER,
+    @ManyToMany(
+            fetch = FetchType.EAGER,
             cascade = CascadeType.DETACH)
     @JoinTable(
             name = "team_card_nti_market",
@@ -53,11 +55,6 @@ public class TeamCard {
     @Column(nullable = false, name = "readiness_level")
     @Enumerated(EnumType.STRING)
     private ReadinessLevel readinessLevel;
-
-    @OneToMany(mappedBy = "teamCard",
-            cascade = CascadeType.ALL)
-    @Builder.Default
-    private Set<Meeting> teamMeetings = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(
@@ -73,6 +70,26 @@ public class TeamCard {
     @Builder.Default
     private BigDecimal averageGrade = BigDecimal.ZERO;
 
+    @Builder.Default
+    private Integer meetingsCount = 0;
+
+    @Builder.Default
+    private Integer meetingsCompletedCount = 0;
+
+    @Builder.Default
+    private Integer meetingsNotHappenedCount = 0;
+
+    @Builder.Default
+    private Integer meetingsCompletedAsNotHappenedCount = 0;
+
+    @Builder.Default
+    @OneToMany(
+            mappedBy = "teamCard",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
+    private Set<MeetingGrade> meetingGrades = new HashSet<>();
+
     public void addStream(Stream stream) {
         streams.clear();
         streams.add(stream);
@@ -81,5 +98,30 @@ public class TeamCard {
     public boolean isActive() {
         return streams.stream()
                 .allMatch(Stream::isActive);
+    }
+
+    public void increaseMeetingCount() {
+        if (meetingsCount == null) {
+            meetingsCount = 0;
+        }
+        meetingsCount++;
+    }
+
+    public void increaseMeetingCompletedCount() {
+        if (meetingsCompletedCount == null) {
+            meetingsCompletedCount = 0;
+        }
+        meetingsCompletedCount++;
+    }
+
+    public void addMeetingGrade(MeetingGrade meetingGrade) {
+        this.meetingGrades.add(meetingGrade);
+        meetingGrade.setTeamCard(this);
+    }
+
+    public void addMeetingGrade(UUID meetingId) {
+        var meetingGrade = new MeetingGrade();
+        meetingGrade.setMeetingId(meetingId);
+        this.addMeetingGrade(meetingGrade);
     }
 }
