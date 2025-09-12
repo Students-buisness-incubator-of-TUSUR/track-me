@@ -1,5 +1,5 @@
 /* istanbul ignore next */
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTrackerList } from "../hooks/useTrackerList";
 import "./TrackerList.css";
@@ -34,7 +34,7 @@ function TrackerListPage({ endpoint }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 const navigate = useNavigate();
   const toggleProfileMenu = () => setIsProfileMenuOpen((prev) => !prev);
-
+const [userRole, setUserRole] = useState('');
   const handleLogout = async () => {
         localStorage.removeItem("user");
         localStorage.removeItem("userRole");
@@ -45,7 +45,14 @@ const navigate = useNavigate();
         localStorage.removeItem("csrfToken");
         localStorage.removeItem("csrfHeaderName");
     };
-
+useEffect(() => {
+    // Проверяем данные пользователя в localStorage
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUserRole(userData.roles[0]);
+    }
+  }, []);
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
     setPage(0); // Reset page to 0 on search
@@ -84,17 +91,19 @@ const navigate = useNavigate();
   TrackMe {/*NOSONAR*/}
 </h1> {/*NOSONAR*/}
           <div className="Stream-buttons">
-            {location.pathname === "/list-trackers" && (
+            {userRole === 'SUPER_ADMIN' && location.pathname === "/list-trackers" && (
               <Link to="/list-admins">
                 <button className="Stream-butt">Администраторы</button>
               </Link>
             )}
-            {location.pathname === "/list-admins" && (
+            
+            {userRole === 'SUPER_ADMIN' && location.pathname === "/list-admins" && (
               <Link to="/list-trackers">
                 <button className="Stream-butt">Трекеры</button>
               </Link>
             )}
-            {location.pathname !== "/list-trackers" && location.pathname !== "/list-admins" && (
+            
+            {userRole === 'SUPER_ADMIN' && location.pathname !== "/list-trackers" && location.pathname !== "/list-admins" && (
               <>
                 <Link to="/list-admins">
                   <button className="Stream-butt">Администраторы</button>
@@ -104,6 +113,26 @@ const navigate = useNavigate();
                 </Link>
               </>
             )}
+            
+            {/* Для администраторов показываем только кнопку "Трекеры" */}
+            {userRole === 'ADMIN' && location.pathname === "/list-trackers" && (
+              <Link to="/list-trackers">
+                <button className="Stream-butt">Трекеры</button>
+              </Link>
+            )}
+            
+            {userRole === 'ADMIN' && location.pathname === "/list-admins" && (
+              <Link to="/list-trackers">
+                <button className="Stream-butt">Трекеры</button>
+              </Link>
+            )}
+            
+            {userRole === 'ADMIN' && location.pathname !== "/list-trackers" && location.pathname !== "/list-admins" && (
+              <Link to="/list-trackers">
+                <button className="Stream-butt">Трекеры</button>
+              </Link>
+            )}
+
             <Link to="/streams">
               <button className="Stream-butt">Потоки</button>
             </Link>

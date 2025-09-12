@@ -17,6 +17,7 @@ const MeetingCard = () => {
     const [showStatusDropdown, setShowStatusDropdown] = useState(false);
     const isNewMeeting = meetingId === "new";
     const [error, setError] = useState(null);
+    const [showDateTooltip, setShowDateTooltip] = useState(false);
     const [meetingData, setMeetingData] = useState({
         number: isNewMeeting ? "Новая встреча" : "",
         startDate: new Date().toISOString(),
@@ -203,7 +204,13 @@ const MeetingCard = () => {
             setError(error.message || "Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
         }
     };
-
+    // Проверяем, прошла ли дата встречи
+const isMeetingDatePassed = () => {
+    if (!meetingData.startDate) return false;
+    const meetingDate = new Date(meetingData.startDate);
+    const now = new Date();
+    return meetingDate < now;
+};
    const handleCompleteMeeting = async (completed) => {
     // Проверка заполненности полей только для кнопки "Состоялась"
     if (completed && !areAllFieldsFilled()) {
@@ -211,6 +218,15 @@ const MeetingCard = () => {
         setError(`Нельзя завершить встречу. Заполните все поля: ${missingFields}`);
         // Автоматическое скрытие ошибки через 5 секунд
         setTimeout(() => setError(null), 5000);
+        return;
+    }
+
+    // Проверка даты встречи - нельзя завершить как "Не состоялась", если дата еще не прошла
+    if (!completed && !isMeetingDatePassed()) {
+        setError("Завершение встречи как 'Не состоялась' возможно только после окончания даты встречи");
+        // Показываем подсказку
+        setShowDateTooltip(true);
+        setTimeout(() => setShowDateTooltip(false), 5000);
         return;
     }
 
@@ -348,28 +364,38 @@ const MeetingCard = () => {
                     </span>
                     {!isNewMeeting && !isEditing && (
     <div className="unique-meeting-status-buttons">
-        <button 
-            onClick={() => handleCompleteMeeting(true)}
-            disabled={isMeetingLocked || meetingData.status === "COMPLETED" || !areAllFieldsFilled()}
-            className={`unique-status-button unique-status-completed ${
-                meetingData.status === "COMPLETED" ? "active-status" : 
-                (meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED") ? "hidden" : ""
-            }`}
-            title={!areAllFieldsFilled() ? "Заполните все поля перед завершением встречи" : ""}
-        >
-            Состоялась
-        </button>
-        <button 
-            onClick={() => handleCompleteMeeting(false)}
-            disabled={isMeetingLocked || meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED"}
-            className={`unique-status-button unique-status-not-happened ${
-                meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : 
-                meetingData.status === "COMPLETED" ? "hidden" : ""
-            }`}
-        >
-            Не состоялась
-        </button>
-    </div>
+    <button 
+        onClick={() => handleCompleteMeeting(true)}
+        disabled={isMeetingLocked || meetingData.status === "COMPLETED" || !areAllFieldsFilled()}
+        className={`unique-status-button unique-status-completed ${
+            meetingData.status === "COMPLETED" ? "active-status" : 
+            (meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED") ? "hidden" : ""
+        }`}
+        title={!areAllFieldsFilled() ? "Заполните все поля перед завершением встречи" : ""}
+    >
+        Состоялась
+    </button>
+    <button 
+        onClick={() => handleCompleteMeeting(false)}
+        disabled={isMeetingLocked || meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED" || !isMeetingDatePassed()}
+        className={`unique-status-button unique-status-not-happened ${
+            meetingData.status === "NOT_HAPPENED" || meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : 
+            meetingData.status === "COMPLETED" ? "hidden" : ""
+        }`}
+        title={!isMeetingDatePassed() ? "Завершение встречи как 'Не состоялась' возможно только после окончания даты встречи" : ""}
+        onMouseEnter={() => !isMeetingDatePassed() && setShowDateTooltip(true)}
+        onMouseLeave={() => setShowDateTooltip(false)}
+    >
+        Не состоялась
+    </button>
+
+    {/* Подсказка о дате встречи */}
+    {showDateTooltip && (
+        <div className="date-tooltip">
+            Завершение встречи как "Не состоялась" возможно только после окончания даты встречи
+        </div>
+    )}
+</div>
 )}
                 </div>
 

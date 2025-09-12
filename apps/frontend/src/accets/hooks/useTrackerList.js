@@ -16,55 +16,72 @@ export function useTrackerList(endpoint) {
   const ssoServiceUri = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + "/sso";
 
   const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, currentSearchQuery = "") => {
-    try {
-      const filters = [];
-      if (currentSearchQuery) {
-        filters.push({
-          fieldName: "fullName",
-          type: "LIKE",
-          value: currentSearchQuery,
-        });
-      }
-
-      const response = await fetch(`${ssoServiceUri}${endpoint}?page=${currentPage}&size=${currentSize}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch()},
-        credentials: "include",
-        body: JSON.stringify({ filters }),
+  try {
+    const filters = [];
+    if (currentSearchQuery) {
+      filters.push({
+        fieldName: "fullName",
+        type: "LIKE",
+        value: currentSearchQuery,
       });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error("Ошибка авторизации! Пожалуйста, выполните вход заново.");
-        } else {
-          throw new Error(`Ошибка при загрузке пользователей. Статус: ${response.status}`);
-        }
-      }
-
-      const data = await response.json();
-      console.log("Backend response:", data);
-
-      // Обновленная проверка ответа с учетом пагинации
-      if (data.content && data.page) {
-        setTrackers(data.content);
-        setTotalPages(data.page.totalPages);
-        setTotalElements(data.page.totalElements);
-      } else if (Array.isArray(data)) {
-        // Если бэкенд возвращает просто массив без пагинации
-        setTrackers(data);
-        setTotalPages(1);
-        setTotalElements(data.length);
-      } else {
-        throw new Error("Неверный формат данных, полученных с сервера.");
-      }
-    } catch (err) {
-      console.error("Ошибка при загрузке пользователей:", err);
-      setError(err.message);
-      setTrackers([]);
-      setTotalPages(1);
-      setTotalElements(0);
     }
-  }, [ssoServiceUri, endpoint]);
+
+    // Добавляем сортировку по алфавиту на бэкенде
+    const sortParams = "sort=fullName,asc";
+
+    const response = await fetch(`${ssoServiceUri}${endpoint}?page=${currentPage}&size=${currentSize}&${sortParams}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch()},
+      credentials: "include",
+      body: JSON.stringify({ filters }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error("Ошибка авторизации! Пожалуйста, выполните вход заново.");
+      } else {
+        throw new Error(`Ошибка при загрузке пользователей. Статус: ${response.status}`);
+      }
+    }
+
+    const data = await response.json();
+    console.log("Backend response:", data);
+
+    // Функция для сортировки по активности на фронтенде
+    const sortByActiveStatus = (trackers) => {
+      return [...trackers].sort((a, b) => {
+        // Сначала активные (enabled = true), потом неактивные
+        if (a.enabled && !b.enabled) return -1;
+        if (!a.enabled && b.enabled) return 1;
+        
+        // Если статус одинаковый, оставляем порядок из бэкенда (уже отсортировано по алфавиту)
+        return 0;
+      });
+    };
+
+    // Обновленная проверка ответа с учетом пагинации
+    if (data.content && data.page) {
+      const sortedContent = sortByActiveStatus(data.content);
+      setTrackers(sortedContent);
+      setTotalPages(data.page.totalPages);
+      setTotalElements(data.page.totalElements);
+    } else if (Array.isArray(data)) {
+      // Если бэкенд возвращает просто массив без пагинации
+      const sortedData = sortByActiveStatus(data);
+      setTrackers(sortedData);
+      setTotalPages(1);
+      setTotalElements(data.length);
+    } else {
+      throw new Error("Неверный формат данных, полученных с сервера.");
+    }
+  } catch (err) {
+    console.error("Ошибка при загрузке пользователей:", err);
+    setError(err.message);
+    setTrackers([]);
+    setTotalPages(1);
+    setTotalElements(0);
+  }
+}, [ssoServiceUri, endpoint]);
 
   useEffect(() => {
     fetchTrackers(page, size, searchQuery);
