@@ -57,4 +57,5 @@ public class MeetingRestControllerImpl implements MeetingRestController {
                 .contentType(MediaType.IMAGE_PNG)
                 .body(image);
     }
+
 }

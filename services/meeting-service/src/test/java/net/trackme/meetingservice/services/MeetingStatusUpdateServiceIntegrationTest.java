@@ -4,13 +4,17 @@ import net.trackme.meetingservice.AbstractIntegrationTest;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
+import net.trackme.meetingservice.entities.TeamStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+@ActiveProfiles("test")
 class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
@@ -19,6 +23,9 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
     @Autowired
     private MeetingRepository meetingRepository;
 
+    @MockitoBean
+    private MeetingEventsProducer meetingEventsProducer;
+
     @Test
     void updateMeetingStatuses_integrationTest() {
         // given
@@ -26,6 +33,7 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
 
         var expiredMeeting = new Meeting();
         expiredMeeting.setStatus(MeetingStatus.SCHEDULED);
+        expiredMeeting.setTeamStatus(TeamStatus.MANY_ISSUES);
         expiredMeeting.setStartDate(pastDate);
         expiredMeeting.setTeamCardId(UUID.randomUUID());
         expiredMeeting.setLink(null); // unfilled field

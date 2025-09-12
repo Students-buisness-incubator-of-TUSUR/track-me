@@ -26,64 +26,66 @@ import static net.trackme.backend.domain.spec.TeamCardSpecification.withFilters;
 @RequiredArgsConstructor
 public class TeamCardsUseCase {
 
-  private final TeamCardsService teamCardsService;
+    private final TeamCardsService teamCardsService;
 
-  private final MutableStreamService streamService;
+    private final MutableStreamService streamService;
 
-  private final TeamCardMapper teamCardMapper;
+    private final TeamCardMapper teamCardMapper;
 
-  private final NtiMarketService ntiMarketService;
+    private final NtiMarketService ntiMarketService;
 
-  @Transactional
-  public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCardDto, UUID streamId,
-                                    Authentication authentication) {
-    var username = authentication.getName();
-    var ntiMarketIds = teamCardDto.ntiMarketIds();
+    @Transactional
+    public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCardDto, UUID streamId,
+                                      Authentication authentication) {
+        var username = authentication.getName();
+        var ntiMarketIds = teamCardDto.ntiMarketIds();
 
-    var stream = streamService.findActive(streamId);
-    var teamCardEntity = teamCardMapper.mapToEntity(teamCardDto);
-    var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
+        var stream = streamService.findActive(streamId);
+        var teamCardEntity = teamCardMapper.mapToEntity(teamCardDto);
+        var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
 
-    teamCardEntity.setUsername(username);
-    teamCardEntity.setNtiMarkets(ntiMarkets);
-    teamCardEntity.addStream(stream);
-    teamCardEntity.setStatus(TeamCardStatus.OK);
+        teamCardEntity.setUsername(username);
+        teamCardEntity.setNtiMarkets(ntiMarkets);
+        teamCardEntity.addStream(stream);
+        teamCardEntity.setStatus(TeamCardStatus.OK);
 
-    var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);
-    return teamCardMapper.mapToDto(createdTeamCard);
-  }
+        var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);
+        return teamCardMapper.mapToDto(createdTeamCard);
+    }
 
 
-  public TeamCardDto updateTeamCard(UUID teamCardId, TeamCardCreateOrUpdateDto createOrUpdateDto) {
-    var ntiMarketIds = createOrUpdateDto.ntiMarketIds();
-    var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
-    var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
+    public TeamCardDto updateTeamCard(UUID teamCardId,
+                                      TeamCardCreateOrUpdateDto createOrUpdateDto) {
+        var ntiMarketIds = createOrUpdateDto.ntiMarketIds();
+        var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
+        var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
 
-    teamCard.setNtiMarkets(ntiMarkets);
-    var updatedTeamCard = teamCardsService.updateTeamCard(teamCardId, teamCard);
-    return teamCardMapper.mapToDto(updatedTeamCard);
-  }
+        teamCard.setNtiMarkets(ntiMarkets);
+        var updatedTeamCard = teamCardsService.updateTeamCard(teamCardId, teamCard);
+        return teamCardMapper.mapToDto(updatedTeamCard);
+    }
 
-  public Page<TeamCardDto> getTeamCards(List<Filter> filters,
-                                        Authentication authentication,
-                                        Pageable pageable) {
-    var page = teamCardsService.getTeamCards(withFilters(filters)
-            .and(userEquals(authentication.getName())),
-        pageable);
-    return page.map(teamCardMapper::mapToDto);
-  }
+    public Page<TeamCardDto> getTeamCards(List<Filter> filters,
+                                          Authentication authentication,
+                                          Pageable pageable) {
+        var page = teamCardsService.getTeamCards(
+                withFilters(filters)
+                        .and(userEquals(authentication.getName())),
+                pageable);
+        return page.map(teamCardMapper::mapToDto);
+    }
 
-  @PreAuthorize("hasPermission(#teamCardId, 'net.trackme.backend.domain.TeamCard', 'READ')")
-  public TeamCardDto getTeamCard(UUID teamCardId) {
-    var teamCard = teamCardsService.getTeamCard(teamCardId);
-    return teamCardMapper.mapToDto(teamCard);
-  }
+    @PreAuthorize("hasPermission(#teamCardId, 'net.trackme.backend.domain.TeamCard', 'READ')")
+    public TeamCardDto getTeamCard(UUID teamCardId) {
+        var teamCard = teamCardsService.getTeamCard(teamCardId);
+        return teamCardMapper.mapToDto(teamCard);
+    }
 
-  public void deleteTeamCard(UUID id) {
-    teamCardsService.deleteTeamCard(id);
-  }
+    public void deleteTeamCard(UUID id) {
+        teamCardsService.deleteTeamCard(id);
+    }
 
-  public Integer getTeamCardCount(UUID streamId) {
-    return teamCardsService.getTeamCardCount(streamId);
-  }
+    public Integer getTeamCardCount(UUID streamId) {
+        return teamCardsService.getTeamCardCount(streamId);
+    }
 }

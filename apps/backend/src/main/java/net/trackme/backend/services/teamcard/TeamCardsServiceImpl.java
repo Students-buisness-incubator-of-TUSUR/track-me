@@ -2,6 +2,7 @@ package net.trackme.backend.services.teamcard;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.domain.TeamCard;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.repos.TeamCardsRepository;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -46,11 +48,6 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         return teamCardsRepository.save(teamCard);
     }
 
-    private TeamCard get(UUID teamCardId) {
-        return teamCardsRepository.findById(teamCardId)
-                .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
-    }
-
     @Override
     public Page<TeamCard> getTeamCards(Specification<TeamCard> specification,
                                        Pageable pageable) {
@@ -59,8 +56,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
 
     @Override
     public TeamCard getTeamCard(UUID id) {
-        return teamCardsRepository.findById(id)
-                .orElseThrow(() -> new TeamCardNotFoundException(id));
+        return get(id);
     }
 
     @Override
@@ -76,7 +72,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         create.setUsername(username);
         create.setStatus(TeamCardStatus.OK);
         create = teamCardsRepository.save(create);
-        aclService.createAclForUser(create, username, SecurityContextHolder.getContext().getAuthentication().getName());
+        aclService.createAclForUser(
+                create, username, SecurityContextHolder.getContext().getAuthentication().getName());
         return create;
     }
 
@@ -132,6 +129,11 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     @Override
     public Integer getTeamCardCount(UUID streamId) {
         return teamCardsRepository.countByStreamsIdIn(Collections.singletonList(streamId));
+    }
+
+    private TeamCard get(UUID teamCardId) {
+        return teamCardsRepository.findById(teamCardId)
+                .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
     }
 
     private TeamCard get(UUID teamCardId, String username) {
