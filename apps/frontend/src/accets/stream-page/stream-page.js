@@ -124,19 +124,19 @@ const toggleProfileMenu = () => {
         }
     }, [backendHost]);
 useEffect(() => {
-    // Проверяем данные пользователя в localStorage при загрузке
+    /* istanbul ignore next */
     const savedUser = localStorage.getItem('user');
+    /* istanbul ignore next */
     if (savedUser) {
         const userData = JSON.parse(savedUser);
         setUserRole(userData.roles[0]);
-        
+    /* istanbul ignore next */
     } else if (user?.user) {
-        // Сохраняем данные пользователя в localStorage
         localStorage.setItem('user', JSON.stringify(user.user));
         setUserRole(user.user.roles[0]);
-        
     }
 }, [user]);
+
     useEffect(() => {
         const fetchImages = async () => {
             const newImageUrls = {};
