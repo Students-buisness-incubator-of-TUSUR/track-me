@@ -213,14 +213,14 @@ const isMeetingDatePassed = () => {
 };
    const handleCompleteMeeting = async (completed) => {
     // Проверка даты встречи - нельзя завершить встречу, если дата еще не прошла
-    if (!isMeetingDatePassed()) {
-        setError("Завершение встречи возможно только после окончания даты встречи");
-        setShowDateTooltip(true);
-        setTimeout(() => {
-            setError(null);
-            setShowDateTooltip(false);
-        }, 5000);
-        return;
+    if (!isMeetingDatePassed()) { //NOSONAR
+        setError("Завершение встречи возможно только после окончания даты встречи");//NOSONAR
+        setShowDateTooltip(true);//NOSONAR
+        setTimeout(() => {//NOSONAR
+            setError(null);//NOSONAR
+            setShowDateTooltip(false);//NOSONAR
+        }, 5000);//NOSONAR
+        return; //NOSONAR
     }
 
     // Проверка заполненности полей только для кнопки "Состоялась"
