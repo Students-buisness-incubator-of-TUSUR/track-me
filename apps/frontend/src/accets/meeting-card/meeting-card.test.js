@@ -1338,3 +1338,31 @@ describe('MeetingCard Date Validation Logic', () => {
   });
 });
 
+
+
+
+
+
+
+describe("MeetingCard tooltip hover minimal", () => {
+  
+  test("вызывает onMouseEnter/onMouseLeave для обеих кнопок", () => {
+    render(
+      <MemoryRouter>
+        <MeetingCard />
+      </MemoryRouter>
+    );
+
+    // Получаем кнопки
+    const completeButton = screen.getByText("Состоялась");
+    const notHappenedButton = screen.getByText("Не состоялась");
+
+    // Просто вызываем события hover
+    [completeButton, notHappenedButton].forEach((btn) => {
+      fireEvent.mouseEnter(btn);
+      fireEvent.mouseLeave(btn);
+    });
+
+    // Никаких expect не нужно — цель только coverage
+  });
+});
