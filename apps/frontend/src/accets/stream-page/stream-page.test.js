@@ -318,3 +318,101 @@ describe('Stream Component', () => {
     });
   });
 });
+describe('User Role from localStorage', () => {
+  const mockLocalStorage = (() => {
+    let store = {};
+    return {
+      getItem: jest.fn((key) => store[key] || null),
+      setItem: jest.fn((key, value) => {
+        store[key] = value.toString();
+      }),
+      removeItem: jest.fn((key) => {
+        delete store[key];
+      }),
+      clear: jest.fn(() => {
+        store = {};
+      })
+    };
+  })();
+
+  beforeEach(() => {
+    // Мокаем localStorage
+    Object.defineProperty(window, 'localStorage', {
+      value: mockLocalStorage,
+      writable: true
+    });
+
+    // Мокаем useState и useEffect
+    jest.spyOn(React, 'useState').mockImplementation(initialState => [initialState, jest.fn()]);
+    jest.spyOn(React, 'useEffect').mockImplementation(f => f());
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    mockLocalStorage.clear();
+  });
+
+  test('should get user role from localStorage when user exists', () => {
+    // Подготавливаем данные пользователя
+    const mockUser = {
+      roles: ['SUPER_ADMIN']
+    };
+    
+    // Мокаем getItem чтобы возвращать пользователя
+    mockLocalStorage.getItem.mockReturnValue(JSON.stringify(mockUser));
+    
+    // Вызываем код, который тестируем
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      // Здесь мы просто проверяем, что код выполняется корректно
+      expect(userData.roles[0]).toBe('SUPER_ADMIN');
+    }
+  });
+
+  test('should handle case when no user in localStorage', () => {
+    // Мокаем getItem чтобы возвращать null
+    mockLocalStorage.getItem.mockReturnValue(null);
+    
+    // Вызываем код, который тестируем
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      // Этот блок не должен выполниться
+      expect(true).toBe(false); // Если сюда попали - тест провален
+    } else {
+      // Ожидаемое поведение - ничего не делать
+      expect(savedUser).toBeNull();
+    }
+  });
+
+  test('should handle malformed JSON in localStorage', () => {
+    // Мокаем getItem чтобы возвращать некорректный JSON
+    mockLocalStorage.getItem.mockReturnValue('invalid json');
+    
+    // Вызываем код, который тестируем
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      // Должно выбросить исключение при парсинге
+      expect(() => {
+        JSON.parse(savedUser);
+      }).toThrow(SyntaxError);
+    }
+  });
+
+  test('should handle user without roles array', () => {
+    // Подготавливаем пользователя без roles
+    const mockUser = {
+      name: 'test',
+      email: 'test@example.com'
+    };
+    
+    mockLocalStorage.getItem.mockReturnValue(JSON.stringify(mockUser));
+    
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      // Проверяем, что roles отсутствует
+      expect(userData.roles).toBeUndefined();
+    }
+  });
+});

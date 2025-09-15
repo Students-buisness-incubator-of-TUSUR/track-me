@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from "react-router-dom";
 import TrackerListPage from './TrackerListPage';
 
 // Моки статических ресурсов
@@ -12,7 +13,7 @@ jest.mock('./true2.png', () => 'true2.png');
 jest.mock('./false2.png', () => 'false2.png');
 jest.mock('./personal_account_1.png', () => 'personal_account_1.png');
 
-// Мок useTrackerList
+// Мок useTrackerListв
 jest.mock('../hooks/useTrackerList', () => {
   const confirmUser = jest.fn();
   const deleteUser = jest.fn();
@@ -1051,5 +1052,37 @@ describe('Header Logo and Title Navigation', () => {
     
     expect(logoElement).toHaveAttribute('role', 'button');
     expect(titleElement).toHaveAttribute('role', 'button');
+  });
+});
+describe("TrackerListPage userRole from localStorage", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  test("устанавливает роль SUPER_ADMIN из localStorage", () => {
+    localStorage.setItem(
+      "user",
+      JSON.stringify({ roles: ["SUPER_ADMIN"] })
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/list-trackers"]}>
+        <TrackerListPage endpoint="/test" />
+      </MemoryRouter>
+    );
+
+    // проверяем, что появилась кнопка "Администраторы"
+    expect(screen.getByRole("button", { name: /Администраторы/i })).toBeInTheDocument();
+  });
+
+  test("не устанавливает роль, если localStorage пустой", () => {
+    render(
+      <MemoryRouter initialEntries={["/list-trackers"]}>
+        <TrackerListPage endpoint="/test" />
+      </MemoryRouter>
+    );
+
+    // не должно быть кнопки "Администраторы", т.к. userRole не установлен
+    expect(screen.queryByRole("button", { name: /Администраторы/i })).not.toBeInTheDocument();
   });
 });
