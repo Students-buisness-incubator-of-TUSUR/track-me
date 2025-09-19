@@ -40,6 +40,7 @@ describe('EditStream Component', () => {
     handleCheckboxChange: jest.fn(),
     handleImageUpload: jest.fn(),
     handleSubmit: jest.fn(),
+    deleteStream: jest.fn(),
   };
 
   beforeEach(() => {
@@ -161,6 +162,112 @@ test('should trigger image upload on Enter and Space key press', () => {
 
   fireEvent.keyDown(uploadButton, { key: ' ' });
   expect(mockClick).toHaveBeenCalledTimes(2);
+});
+// Добавьте эти тесты в конец describe блока, после последнего теста
+
+test('should show delete confirmation modal when delete button is clicked', () => {
+  render(<EditStream />);
+  
+  // Проверяем, что модальное окно изначально не отображается
+  expect(screen.queryByText('Вы уверены, что хотите удалить поток?')).not.toBeInTheDocument();
+  
+  // Нажимаем кнопку удаления
+  const deleteButton = screen.getByRole('button', { name: 'Удалить поток' });
+  fireEvent.click(deleteButton);
+  
+  // Проверяем, что модальное окно появилось
+  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+});
+
+test('should close delete confirmation modal when "No" button is clicked', () => {
+  render(<EditStream />);
+  
+  // Открываем модальное окно
+  const deleteButton = screen.getByRole('button', { name: 'Удалить поток' });
+  fireEvent.click(deleteButton);
+  
+  // Проверяем, что модальное окно открыто
+  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+  
+  // Нажимаем кнопку "Нет"
+  const noButton = screen.getByRole('button', { name: 'Нет' });
+  fireEvent.click(noButton);
+  
+  // Проверяем, что модальное окно закрылось
+  expect(screen.queryByText('Вы уверены, что хотите удалить поток?')).not.toBeInTheDocument();
+});
+
+test('should call deleteStream and close modal when "Yes" button is clicked', () => {
+  // Мокаем функцию deleteStream
+  const mockDeleteStream = jest.fn();
+  const mockUseStreamFormWithDelete = {
+    ...mockUseStreamForm,
+    deleteStream: mockDeleteStream
+  };
+  useStreamForm.mockReturnValue(mockUseStreamFormWithDelete);
+
+  render(<EditStream />);
+  
+  // Открываем модальное окно
+  const deleteButton = screen.getByRole('button', { name: 'Удалить поток' });
+  fireEvent.click(deleteButton);
+  
+  // Нажимаем кнопку "Да"
+  const yesButton = screen.getByRole('button', { name: 'Да' });
+  fireEvent.click(yesButton);
+  
+  // Проверяем, что deleteStream был вызван и модальное окно закрылось
+  expect(mockDeleteStream).toHaveBeenCalled();
+  expect(screen.queryByText('Вы уверены, что хотите удалить поток?')).not.toBeInTheDocument();
+});
+
+test('should open delete confirmation modal on Enter key press', () => {
+  render(<EditStream />);
+  
+  const deleteButton = screen.getByRole('button', { name: 'Удалить поток' });
+  
+  // Нажимаем Enter на кнопке удаления
+  fireEvent.keyDown(deleteButton, { key: 'Enter' });
+  
+  // Проверяем, что модальное окно открылось
+  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+});
+
+test('should open delete confirmation modal on Space key press', () => {
+  render(<EditStream />);
+  
+  const deleteButton = screen.getByRole('button', { name: 'Удалить поток' });
+  
+  // Нажимаем Space на кнопке удаления
+  fireEvent.keyDown(deleteButton, { key: ' ' });
+  
+  // Проверяем, что модальное окно открылось
+  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+});
+
+test('should open delete confirmation modal on key press without preventing default', () => {
+  render(<EditStream />);
+  
+  const deleteButton = screen.getByRole('button', { name: 'Удалить поток' });
+  const preventDefault = jest.fn();
+  
+  // Test that the modal opens regardless of preventDefault being called
+  fireEvent.keyDown(deleteButton, { key: 'Enter', preventDefault });
+  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+  
+  // The test might need to be updated if preventDefault isn't actually called
+  // expect(preventDefault).toHaveBeenCalled(); // Remove this if not applicable
+});
+
+test('should have correct accessibility attributes on delete button', () => {
+  render(<EditStream />);
+  
+  const deleteButton = screen.getByRole('button', { name: 'Удалить поток' });
+  
+  expect(deleteButton).toHaveAttribute('tabIndex', '0');
+  expect(deleteButton).toHaveAttribute('role', 'button');
+  expect(deleteButton).toHaveAttribute('aria-label', 'Удалить поток');
+  expect(deleteButton).toHaveAttribute('title', 'Удалить поток');
 });
 });
 

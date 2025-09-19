@@ -7,7 +7,11 @@ beforeEach(() => {
 });
 // Добавим в начало файла, после других импортов
 const mockNavigate = jest.fn();
+jest.mock('../../utils/csrf-utils', () => ({
+  getCsrfConfigForFetch: jest.fn().mockReturnValue({ 'X-CSRF-Token': 'test-token' })
+}));
 
+const { getCsrfConfigForFetch } = require('../../utils/csrf-utils');
 describe('useStreamForm', () => {
   const backendHost = 'http://localhost:8080/backend';
   const mockNavigate = jest.fn();
@@ -1198,4 +1202,149 @@ describe('Meetings count functionality', () => {
     expect(result.current.customMeetingsCount).toBe('30');
   });
 });
+});
+describe('deleteStream', () => {
+  const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
+  const mockNavigate = jest.fn();
+  const backendHost = 'http://localhost:8080/backend';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn();
+    alertMock.mockClear();
+    mockNavigate.mockClear();
+    
+    // Сбрасываем мок перед каждым тестом
+    getCsrfConfigForFetch.mockReturnValue({ 'X-CSRF-Token': 'test-token' });
+    
+    // Мокаем успешную загрузку чекбоксов для всех тестов
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve([]),
+    });
+  });
+
+  afterAll(() => {
+    alertMock.mockRestore();
+  });
+
+  it('should successfully delete stream and navigate to streams page', async () => {
+  console.log('Starting test...');
+  
+  global.fetch
+    .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) }) // чекбоксы
+    .mockResolvedValueOnce({ ok: true }); // delete
+
+  const { result } = renderHook(() => useStreamForm(123, mockNavigate));
+
+  await waitFor(() => expect(result.current.checkboxesData2).toEqual([]));
+  console.log('Checkboxes loaded');
+
+  await act(async () => {
+    console.log('Calling deleteStream...');
+    await result.current.deleteStream();
+    console.log('deleteStream completed');
+  });
+
+  console.log('Fetch calls:', global.fetch.mock.calls.length);
+  console.log('Alert calls:', alertMock.mock.calls);
+  console.log('Navigate calls:', mockNavigate.mock.calls);
+
+  expect(alertMock).toHaveBeenCalledWith('Поток успешно удален!');
+  expect(mockNavigate).toHaveBeenCalledWith('/streams');
+});
+
+  it('should set error when network request fails', async () => {
+    global.fetch.mockRejectedValueOnce(new Error('Network error'));
+
+    const { result } = renderHook(() => useStreamForm(123, mockNavigate));
+
+    // Ждем завершения начальной загрузки
+    await waitFor(() => {
+      expect(result.current.checkboxesData2).toEqual([]);
+    });
+
+    await act(async () => {
+      await result.current.deleteStream();
+    });
+
+    expect(getCsrfConfigForFetch).toHaveBeenCalled();
+    expect(result.current.error).toBe('Не удалось удалить поток.');
+    expect(alertMock).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('should set error when response is not ok', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+    });
+
+    const { result } = renderHook(() => useStreamForm(123, mockNavigate));
+
+    // Ждем завершения начальной загрузки
+    await waitFor(() => {
+      expect(result.current.checkboxesData2).toEqual([]);
+    });
+
+    await act(async () => {
+      await result.current.deleteStream();
+    });
+
+    expect(getCsrfConfigForFetch).toHaveBeenCalled();
+    expect(result.current.error).toBe('Не удалось удалить поток.');
+    expect(alertMock).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('should include CSRF headers in the request', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+    });
+
+    const { result } = renderHook(() => useStreamForm(123, mockNavigate));
+
+    // Ждем завершения начальной загрузки
+    await waitFor(() => {
+      expect(result.current.checkboxesData2).toEqual([]);
+    });
+
+    await act(async () => {
+      await result.current.deleteStream();
+    });
+
+    expect(getCsrfConfigForFetch).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: { 'X-CSRF-Token': 'test-token' },
+      })
+    );
+  });
+
+  it('should use correct streamId in the URL', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+    });
+
+    const testStreamId = 456;
+    const { result } = renderHook(() => useStreamForm(testStreamId, mockNavigate));
+
+    // Ждем завершения начальной загрузки
+    await waitFor(() => {
+      expect(result.current.checkboxesData2).toEqual([]);
+    });
+
+    await act(async () => {
+      await result.current.deleteStream();
+    });
+
+    expect(getCsrfConfigForFetch).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledWith(
+      `${backendHost}/api/v1/admin/stream/${testStreamId}`,
+      expect.objectContaining({
+        method: 'DELETE',
+        headers: { 'X-CSRF-Token': 'test-token' },
+      })
+    );
+  });
 });
