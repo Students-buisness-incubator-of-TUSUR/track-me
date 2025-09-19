@@ -215,7 +215,22 @@ useEffect(() => {
       setImageFile(file);
     }
   };
-
+const deleteStream = async () => {
+  try {
+    const response = await fetch(`${backendHost}/api/v1/admin/stream/${streamId}`, {
+      method: 'DELETE',
+      headers: getCsrfConfigForFetch(),
+      credentials: 'include',
+    });
+    
+    if (!response.ok) throw new Error('Network error');
+    
+    alert('Поток успешно удален!');
+    navigate('/streams');
+  } catch (error) {
+    setError('Не удалось удалить поток.');
+  }
+};
   const validateForm = () => {
   if (!name || !startDate || !endDate || !trackStartDate || !meetingsCount) {
     setError('Пожалуйста, заполните все обязательные поля.');
@@ -354,6 +369,7 @@ const requestData = {
   handleCheckboxChange,
   handleImageUpload,
   handleSubmit,
+  deleteStream
 };
 };
 

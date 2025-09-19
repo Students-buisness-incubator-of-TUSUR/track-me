@@ -1,4 +1,5 @@
-import React from 'react'; //NOSONAR
+
+import React, { useState } from 'react';
 import './create-stream-page.css'; //NOSONAR
 import { useParams, useNavigate } from 'react-router-dom'; //NOSONAR
 import { useStreamForm } from '../stream-page-hooks/useStreamForm'; //NOSONAR
@@ -7,6 +8,8 @@ import CustomSelect from '../stream-page-create/CustomSelect'; //NOSONAR
 export default function EditStream() { //NOSONAR
   const { id } = useParams(); //NOSONAR
   const navigate = useNavigate(); //NOSONAR
+  // В начало компонента EditStream добавьте
+const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { //NOSONAR
     name, //NOSONAR
     startDate, //NOSONAR
@@ -34,6 +37,7 @@ export default function EditStream() { //NOSONAR
     handleCheckboxChange, //NOSONAR
     handleImageUpload, //NOSONAR
     handleSubmit, //NOSONAR
+    deleteStream, 
   } = useStreamForm(id, navigate); //NOSONAR
 
   const meetingOptions = [5, 10, 15, 20]; //NOSONAR
@@ -173,7 +177,48 @@ export default function EditStream() { //NOSONAR
             Обновить {/*NOSONAR*/}
           </button> {/*NOSONAR*/}
         </div> {/*NOSONAR*/}
-      </div> {/*NOSONAR*/}
-    </div> //NOSONAR
-  ); //NOSONAR
-} //NOSONAR
+      </div> {/*NOSONAR*/}      
+    {showDeleteConfirm && (
+        <div className="delete-confirm-modal">
+          <div className="delete-confirm-content">
+            <h3>Вы уверены, что хотите удалить поток?</h3>
+            <div className="delete-confirm-buttons">
+              <button 
+                className="delete-confirm-yes"
+                onClick={() => {
+                  deleteStream();
+                  setShowDeleteConfirm(false);
+                }}
+              >
+                Да
+              </button>
+              <button 
+                className="delete-confirm-no"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Нет
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div 
+        className="delete-stream-button"
+        onClick={() => setShowDeleteConfirm(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setShowDeleteConfirm(true);
+          }
+        }}
+        title="Удалить поток"
+        tabIndex={0}
+        role="button"
+        aria-label="Удалить поток"
+      >
+        ×
+      </div>
+    </div>
+  );
+}
