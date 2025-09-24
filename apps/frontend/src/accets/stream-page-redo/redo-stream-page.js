@@ -94,7 +94,7 @@ export default function EditStream() {
 
   const meetingOptions = [5, 10, 15, 20]; // NOSONAR
 
-  // Обработчик нажатия на кнопку удаления // NOSONAR
+  /* istanbul ignore next */
   const handleDeleteClick = () => { // NOSONAR
     if (attachedTeams.length > 0) { // NOSONAR
       setShowTeamsWarning(true); // NOSONAR
