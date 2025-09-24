@@ -1408,11 +1408,13 @@ describe('Stream Card Images', () => {
   });
 
   test('successful stream image load', async () => {
-    render(
-      <MemoryRouter>
-        <TrackerPage />
-      </MemoryRouter>
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
 
     const img = await screen.findByRole('img');
     expect(img).toBeInTheDocument();
@@ -1420,14 +1422,18 @@ describe('Stream Card Images', () => {
   });
 
   test('show placeholder on image load error', async () => {
-    render(
-      <MemoryRouter>
-        <TrackerPage />
-      </MemoryRouter>
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
 
     const img = await screen.findByRole('img');
-    fireEvent.error(img);
+    await act(async () => {
+      fireEvent.error(img);
+    });
     expect(img.src).toContain('stream-placeholder.png');
   });
 

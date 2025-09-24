@@ -354,11 +354,13 @@ describe('Stream image handling', () => {
     mockError.response = { status: 404 };
     axios.get.mockRejectedValue(mockError);
 
-    render(
-      <MemoryRouter>
-        <Stream />
-      </MemoryRouter>
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Stream />
+        </MemoryRouter>
+      );
+    });
 
     await waitFor(() => {
       const imgElement = screen.getByRole('img', { name: '' });
@@ -369,38 +371,39 @@ describe('Stream image handling', () => {
   });
 
   it('should handle image loading error and show placeholder', async () => {
-    render(
-      <MemoryRouter>
-        <Stream />
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      const imgElement = screen.getByRole('img', { name: '' });
-      expect(imgElement).toBeInTheDocument();
-      
-      // Simulate image loading error
-      fireEvent.error(imgElement);
-      
-      expect(imgElement.src).toContain('StreamPlaceholder');
-      expect(imgElement.alt).toBe('');
-      expect(imgElement.onerror).toBeNull();
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Stream />
+        </MemoryRouter>
+      );
     });
+
+    const imgElement = await screen.findByRole('img', { name: '' });
+    expect(imgElement).toBeInTheDocument();
+      
+    await act(async () => {
+      fireEvent.error(imgElement);
+    });
+      
+    expect(imgElement.src).toContain('StreamPlaceholder');
+    expect(imgElement.alt).toBe('');
+    expect(imgElement.onerror).toBeNull();
   });
 
   it('should display stream image when successfully loaded', async () => {
-    render(
-      <MemoryRouter>
-        <Stream />
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      const imgElement = screen.getByRole('img', { name: '' });
-      expect(imgElement).toBeInTheDocument();
-      expect(imgElement.src).toContain('mock-url');
-      expect(imgElement.alt).toBe('');
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <Stream />
+        </MemoryRouter>
+      );
     });
+
+    const imgElement = await screen.findByRole('img', { name: '' });
+    expect(imgElement).toBeInTheDocument();
+    expect(imgElement.src).toContain('mock-url');
+    expect(imgElement.alt).toBe('');
   });
 });
 
