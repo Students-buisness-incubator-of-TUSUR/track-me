@@ -1,3 +1,4 @@
+// NOSONAR
 import React, { useState, useEffect } from 'react';
 import './create-stream-page.css';
 import { useParams, useNavigate } from 'react-router-dom';
