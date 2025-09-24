@@ -167,8 +167,7 @@ useEffect(() => {
         }
     }, [backendHost]);
 
-    // ...
-    // Остальной код компонента остается прежним
+    
 
     const handleClick = () => {
         setIsVisible(!isVisible);
