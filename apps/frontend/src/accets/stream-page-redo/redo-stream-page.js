@@ -1,187 +1,177 @@
+import React, { useState, useEffect } from 'react';
+import './create-stream-page.css';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useStreamForm } from '../stream-page-hooks/useStreamForm';
+import CustomSelect from '../stream-page-create/CustomSelect';
+import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 
-import React, { useState } from 'react';
-import './create-stream-page.css'; //NOSONAR
-import { useParams, useNavigate } from 'react-router-dom'; //NOSONAR
-import { useStreamForm } from '../stream-page-hooks/useStreamForm'; //NOSONAR
-import CustomSelect from '../stream-page-create/CustomSelect'; //NOSONAR
+export default function EditStream() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showTeamsWarning, setShowTeamsWarning] = useState(false);
+  const [attachedTeams, setAttachedTeams] = useState([]);
+  const [allTeamCards, setAllTeamCards] = useState([]);
+  const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
 
-export default function EditStream() { //NOSONAR
-  const { id } = useParams(); //NOSONAR
-  const navigate = useNavigate(); //NOSONAR
-  // В начало компонента EditStream добавьте
-const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const { //NOSONAR
-    name, //NOSONAR
-    startDate, //NOSONAR
-    endDate, //NOSONAR
-    trackStartDate, //NOSONAR
-    meetingsCount, //NOSONAR
-    customMeetingsCount, //NOSONAR
-    showCustomInput, //NOSONAR
-    setShowCustomInput, //NOSONAR
-    showCheckboxes2, //NOSONAR
-    error, //NOSONAR
-    setError, //NOSONAR
-    checkboxesData2, //NOSONAR
-    selectedCheckboxes, //NOSONAR
-    image, //NOSONAR
-    checkboxesRef, //NOSONAR
-    errorRef, //NOSONAR
-    handleNameChange, //NOSONAR
-    handleStartDateChange, //NOSONAR
-    handleEndDateChange, //NOSONAR
-    handleTrackStartDateChange, //NOSONAR
-    handleMeetingsCountChange, //NOSONAR
-    handleCustomMeetingsCountChange, //NOSONAR
-    handleShowCheckboxes2, //NOSONAR
-    handleCheckboxChange, //NOSONAR
-    handleImageUpload, //NOSONAR
-    handleSubmit, //NOSONAR
-    deleteStream, 
-  } = useStreamForm(id, navigate); //NOSONAR
+  // Загрузка всех команд для проверки привязок
+  useEffect(() => {
+    const fetchAllTeams = async () => {
+      try {
+        const endpoint = `${backendHost}/api/v1/admin/team-cards?page=0&size=1000`;
+        const payload = { filters: [] };
+        
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getCsrfConfigForFetch()
+          },
+          credentials: "include",
+          body: JSON.stringify(payload)
+        });
 
-  const meetingOptions = [5, 10, 15, 20]; //NOSONAR
+        if (!response.ok) throw new Error("Ошибка при получении карточек команд");
+        
+        const data = await response.json();
+        setAllTeamCards(data.content || []);
+      } catch (error) {
+        console.error("Ошибка при загрузке команд:", error);
+      }
+    };
 
-  return ( //NOSONAR
-    <div className="create-stream"> {/*NOSONAR*/}
-      {error && ( //NOSONAR
-        <div className="stream-error-message" ref={errorRef}> {/*NOSONAR*/}
-          <div className="stream-error-content"> {/*NOSONAR*/}
-            {error} {/*NOSONAR*/}
-            <button className="stream-error-close" onClick={() => setError(null)}> {/*NOSONAR*/}
-              × {/*NOSONAR*/}
-            </button> {/*NOSONAR*/}
-          </div> {/*NOSONAR*/}
-        </div> //NOSONAR
-      )} {/*NOSONAR*/}
-      <div className="create-stream-cont"> {/*NOSONAR*/}
-        <button className="create-stream-close" onClick={() => navigate(-1)}> {/*NOSONAR*/}
-          × {/*NOSONAR*/}
-        </button> {/*NOSONAR*/}
-        <div className="create-stream-cont-left"> {/*NOSONAR*/}
-          <label className="create-stream-title">Редактирование потока</label> {/*NOSONAR*/}
-          <div className="create-stream-row"> {/*NOSONAR*/}
-            <div className="create-stream-col"> {/*NOSONAR*/}
-              <h1 className="create-stream-h1">Название потока:</h1> {/*NOSONAR*/}
-              <h1 className="create-stream-h1">Дата начала:</h1> {/*NOSONAR*/}
-              <h1 className="create-stream-h1">Дата конца:</h1> {/*NOSONAR*/}
-              <h1 className="create-stream-h1">Дата начала трекшен-митинга:</h1> {/*NOSONAR*/}
-              <h1 className="create-stream-h1">Количество встреч:</h1> {/*NOSONAR*/}
-            </div> {/*NOSONAR*/}
-            <div className="create-stream-col"> {/*NOSONAR*/}
-              <input //NOSONAR
-                className="create-stream-input" //NOSONAR
-                placeholder="Текст названия" //NOSONAR
-                value={name} //NOSONAR
-                onChange={handleNameChange} //NOSONAR
-              /> {/*NOSONAR*/}
-              <input //NOSONAR
-                className="create-stream-input-date" //NOSONAR
-                placeholder="__.__.____" //NOSONAR
-                value={startDate} //NOSONAR
-                onChange={handleStartDateChange} //NOSONAR
-              /> {/*NOSONAR*/}
-              <input //NOSONAR
-                className="create-stream-input-date" //NOSONAR
-                placeholder="__.__.____" //NOSONAR
-                value={endDate} //NOSONAR
-                onChange={handleEndDateChange} //NOSONAR
-              /> {/*NOSONAR*/}
-              <input //NOSONAR
-                className="create-stream-input-date1" //NOSONAR
-                placeholder="__.__.____" //NOSONAR
-                value={trackStartDate} //NOSONAR
-                onChange={handleTrackStartDateChange} //NOSONAR
-              /> {/*NOSONAR*/}
-              <CustomSelect //NOSONAR
-                value={meetingsCount} //NOSONAR
-                onChange={handleMeetingsCountChange} //NOSONAR
-                options={meetingOptions} //NOSONAR
-                customValue={customMeetingsCount} //NOSONAR
-                onCustomChange={handleCustomMeetingsCountChange} //NOSONAR
-                showCustomInput={showCustomInput} //NOSONAR
-                setShowCustomInput={setShowCustomInput} //NOSONAR
-              /> {/*NOSONAR*/}
-            </div> {/*NOSONAR*/}
-          </div> {/*NOSONAR*/}
-          <div className="Stream-bb Stream-header-chosefrom-buttw2323131"> {/*NOSONAR*/}
-            <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}> {/*NOSONAR*/}
-              <div //NOSONAR
-                className="Stream-header-chosefrom-butt-cont" //NOSONAR
-                onClick={handleShowCheckboxes2} //NOSONAR
-                onKeyDown={(e) => { //NOSONAR
-                  if (e.key === 'Enter' || e.key === ' ') { //NOSONAR
-                    e.preventDefault(); //NOSONAR
-                    handleShowCheckboxes2(); //NOSONAR
-                  } //NOSONAR
-                }} //NOSONAR
-                tabIndex={0} //NOSONAR
-                role="button" //NOSONAR
-                aria-label="Выбрать рынок" //NOSONAR
-              > {/*NOSONAR*/}
-                <b className="Stream-header-chosefrom-butt-label">Рынок</b> {/*NOSONAR*/}
-                <div className="Stream-header-chosefrom-butt-pic"></div> {/*NOSONAR*/}
-              </div> {/*NOSONAR*/}
-              {showCheckboxes2 && ( //NOSONAR
-                <div className="Stream-header-checkboxes"> {/*NOSONAR*/}
-                  {checkboxesData2.map((item, index) => ( //NOSONAR
-                    <div //NOSONAR
-                      key={item.id} //NOSONAR
-                      className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`} //NOSONAR
-                    > {/*NOSONAR*/}
-                      <input //NOSONAR
-                        type="checkbox" //NOSONAR
-                        id={`checkbox-${item.id}`} //NOSONAR
-                        checked={selectedCheckboxes.includes(item.id)} //NOSONAR
-                        onChange={() => handleCheckboxChange(item.id)} //NOSONAR
-                      /> {/*NOSONAR*/}
-                      <label className="Stream-header-checkbox-label" htmlFor={`checkbox-${item.id}`}> {/*NOSONAR*/}
-                        {item.displayName || item.name} {/*NOSONAR*/}
-                      </label> {/*NOSONAR*/}
-                    </div> //NOSONAR
-                  ))} {/*NOSONAR*/}
-                </div> //NOSONAR
-              )} {/*NOSONAR*/}
-            </div> {/*NOSONAR*/}
-          </div> {/*NOSONAR*/}
-        </div> {/*NOSONAR*/}
-        <div className="create-stream-cont-right"> {/*NOSONAR*/}
-          <div //NOSONAR
-            className="create-stream-input-pic" //NOSONAR
-            onClick={() => document.getElementById('image-upload').click()} //NOSONAR
-            onKeyDown={(e) => { //NOSONAR
-              if (e.key === 'Enter' || e.key === ' ') { //NOSONAR
-                e.preventDefault(); //NOSONAR
-                document.getElementById('image-upload').click(); //NOSONAR
-              } //NOSONAR
-            }} //NOSONAR
-            tabIndex={0} //NOSONAR
-            role="button" //NOSONAR
-            aria-label="Загрузить изображение" //NOSONAR
-            title="Поддерживаемые форматы: JPEG, PNG, GIF" //NOSONAR
-          > {/*NOSONAR*/}
-            {image ? ( //NOSONAR
-              <img src={image} alt="Uploaded" className="create-stream-uploaded-image" /> //NOSONAR
-            ) : ( //NOSONAR
-              <div className="create-stream-input-pic-placeholder"></div> //NOSONAR
-            )} {/*NOSONAR*/}
-            <input //NOSONAR
-              type="file" //NOSONAR
-              id="image-upload" //NOSONAR
-              accept="image/jpeg, image/png, image/gif" //NOSONAR
-              style={{ display: 'none' }} //NOSONAR
-              onChange={handleImageUpload} //NOSONAR
-            /> {/*NOSONAR*/}
-          </div> {/*NOSONAR*/}
-          <button className="create-stream-input-button" onClick={() => handleSubmit(true)}> {/*NOSONAR*/}
-            Обновить {/*NOSONAR*/}
-          </button> {/*NOSONAR*/}
-        </div> {/*NOSONAR*/}
-      </div> {/*NOSONAR*/}      
-    {showDeleteConfirm && (
+    fetchAllTeams();
+  }, [backendHost]);
+
+  // Получаем данные текущего потока для проверки
+  const { name: streamName } = useStreamForm(id, navigate);
+
+  // Проверяем, есть ли команды, привязанные к текущему потоку
+  useEffect(() => {
+    if (streamName && allTeamCards.length > 0) {
+      const teamsAttachedToThisStream = allTeamCards.filter(team => 
+        team.streams && team.streams.some(stream => stream.name === streamName)
+      );
+      
+      setAttachedTeams(teamsAttachedToThisStream.map(team => ({
+        id: team.id,
+        name: team.name || `Команда ${team.id}`,
+        isHyperlink: true
+      })));
+    }
+  }, [streamName, allTeamCards]);
+
+  const {
+    name,
+    startDate,
+    endDate,
+    trackStartDate,
+    meetingsCount,
+    customMeetingsCount,
+    showCustomInput,
+    setShowCustomInput,
+    showCheckboxes2,
+    error,
+    setError,
+    checkboxesData2,
+    selectedCheckboxes,
+    image,
+    checkboxesRef,
+    errorRef,
+    handleNameChange,
+    handleStartDateChange,
+    handleEndDateChange,
+    handleTrackStartDateChange,
+    handleMeetingsCountChange,
+    handleCustomMeetingsCountChange,
+    handleShowCheckboxes2,
+    handleCheckboxChange,
+    handleImageUpload,
+    handleSubmit,
+    deleteStream,
+  } = useStreamForm(id, navigate);
+
+  const meetingOptions = [5, 10, 15, 20];
+
+  // Обработчик нажатия на кнопку удаления
+  const handleDeleteClick = () => {
+    if (attachedTeams.length > 0) {
+      setShowTeamsWarning(true);
+    } else {
+      setShowDeleteConfirm(true);
+    }
+  };
+
+  // Обработчик перехода к карточке команды
+  const handleTeamClick = (teamId) => {
+    navigate(`/teamcard/${teamId}`, { 
+      state: { 
+        returnTo: `/edit-stream/${id}`, 
+        showTeamsWarning: true 
+      } 
+    });
+  };
+
+  // Проверка, все ли команды отвязаны
+  useEffect(() => {
+    if (attachedTeams.length === 0 && showTeamsWarning) {
+      setShowTeamsWarning(false);
+      setShowDeleteConfirm(true);
+    }
+  }, [attachedTeams, showTeamsWarning]);
+
+  return (
+    <div className="create-stream">
+      {error && (
+        <div className="stream-error-message" ref={errorRef}>
+          <div className="stream-error-content">
+            {error}
+            <button className="stream-error-close" onClick={() => setError(null)}>
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Модальное окно с предупреждением о привязанных командах */}
+      {showTeamsWarning && (
         <div className="delete-confirm-modal">
           <div className="delete-confirm-content">
-            <h3>Вы уверены, что хотите удалить поток?</h3>
+            <h3>К этому потоку привязаны следующие команды:</h3>
+            <ul className="attached-teams-list">
+              {attachedTeams.map(team => (
+                <li key={team.id}>
+                  <a 
+                    href={`/teamcard/${team.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleTeamClick(team.id);
+                    }}
+                    className="team-hyperlink"
+                  >
+                    {team.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p>Удалите или перепривяжите их перед удалением потока</p>
+            <div className="delete-confirm-buttons">
+              <button 
+                className="delete-confirm-no"
+                onClick={() => setShowTeamsWarning(false)}
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно подтверждения удаления */}
+      {showDeleteConfirm && (
+        <div className="delete-confirm-modal">
+          <div className="delete-confirm-content">
+            <h3>Вы уверены, что хотите безвозвратно удалить поток?</h3>
             <div className="delete-confirm-buttons">
               <button 
                 className="delete-confirm-yes"
@@ -203,13 +193,136 @@ const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
         </div>
       )}
 
-      <div 
+      <div className="create-stream-cont">
+        <button className="create-stream-close" onClick={() => navigate(-1)}>
+          ×
+        </button>
+        <div className="create-stream-cont-left">
+          <label className="create-stream-title">Редактирование потока</label>
+          <div className="create-stream-row">
+            <div className="create-stream-col">
+              <h1 className="create-stream-h1">Название потока:</h1>
+              <h1 className="create-stream-h1">Дата начала:</h1>
+              <h1 className="create-stream-h1">Дата конца:</h1>
+              <h1 className="create-stream-h1">Дата начала трекшен-митинга:</h1>
+              <h1 className="create-stream-h1">Количество встреч:</h1>
+            </div>
+            <div className="create-stream-col">
+              <input
+                className="create-stream-input"
+                placeholder="Текст названия"
+                value={name}
+                onChange={handleNameChange}
+              />
+              <input
+                className="create-stream-input-date"
+                placeholder="__.__.____"
+                value={startDate}
+                onChange={handleStartDateChange}
+              />
+              <input
+                className="create-stream-input-date"
+                placeholder="__.__.____"
+                value={endDate}
+                onChange={handleEndDateChange}
+              />
+              <input
+                className="create-stream-input-date1"
+                placeholder="__.__.____"
+                value={trackStartDate}
+                onChange={handleTrackStartDateChange}
+              />
+              <CustomSelect
+                value={meetingsCount}
+                onChange={handleMeetingsCountChange}
+                options={meetingOptions}
+                customValue={customMeetingsCount}
+                onCustomChange={handleCustomMeetingsCountChange}
+                showCustomInput={showCustomInput}
+                setShowCustomInput={setShowCustomInput}
+              />
+            </div>
+          </div>
+          <div className="Stream-bb Stream-header-chosefrom-buttw2323131">
+            <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
+              <div
+                className="Stream-header-chosefrom-butt-cont"
+                onClick={handleShowCheckboxes2}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleShowCheckboxes2();
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Выбрать рынок"
+              >
+                <b className="Stream-header-chosefrom-butt-label">Рынок</b>
+                <div className="Stream-header-chosefrom-butt-pic"></div>
+              </div>
+              {showCheckboxes2 && (
+                <div className="Stream-header-checkboxes">
+                  {checkboxesData2.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        id={`checkbox-${item.id}`}
+                        checked={selectedCheckboxes.includes(item.id)}
+                        onChange={() => handleCheckboxChange(item.id)}
+                      />
+                      <label className="Stream-header-checkbox-label" htmlFor={`checkbox-${item.id}`}>
+                        {item.displayName || item.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="create-stream-cont-right">
+          <div
+            className="create-stream-input-pic"
+            onClick={() => document.getElementById('image-upload').click()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('image-upload').click();
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Загрузить изображение"
+            title="Поддерживаемые форматы: JPEG, PNG, GIF"
+          >
+            {image ? (
+              <img src={image} alt="Uploaded" className="create-stream-uploaded-image" />
+            ) : (
+              <div className="create-stream-input-pic-placeholder"></div>
+            )}
+            <input
+              type="file"
+              id="image-upload"
+              accept="image/jpeg, image/png, image/gif"
+              style={{ display: 'none' }}
+              onChange={handleImageUpload}
+            />
+          </div>
+          <button className="create-stream-input-button" onClick={() => handleSubmit(true)}>
+            Обновить
+          </button>
+        </div>
+        <div 
         className="delete-stream-button"
-        onClick={() => setShowDeleteConfirm(true)}
+        onClick={handleDeleteClick}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            setShowDeleteConfirm(true);
+            handleDeleteClick();
           }
         }}
         title="Удалить поток"
@@ -219,6 +332,9 @@ const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
       >
         ×
       </div>
+      </div>
+
+      
     </div>
   );
 }

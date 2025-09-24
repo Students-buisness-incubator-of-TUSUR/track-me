@@ -169,14 +169,14 @@ test('should show delete confirmation modal when delete button is clicked', () =
   render(<EditStream />);
   
   // Проверяем, что модальное окно изначально не отображается
-  expect(screen.queryByText('Вы уверены, что хотите удалить поток?')).not.toBeInTheDocument();
+  expect(screen.queryByText('Вы уверены, что хотите безвозвратно удалить поток?')).not.toBeInTheDocument();
   
   // Нажимаем кнопку удаления
   const deleteButton = screen.getByRole('button', { name: 'Удалить поток' });
   fireEvent.click(deleteButton);
   
   // Проверяем, что модальное окно появилось
-  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+  expect(screen.getByText('Вы уверены, что хотите безвозвратно удалить поток?')).toBeInTheDocument();
 });
 
 test('should close delete confirmation modal when "No" button is clicked', () => {
@@ -187,14 +187,14 @@ test('should close delete confirmation modal when "No" button is clicked', () =>
   fireEvent.click(deleteButton);
   
   // Проверяем, что модальное окно открыто
-  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+  expect(screen.getByText('Вы уверены, что хотите безвозвратно удалить поток?')).toBeInTheDocument();
   
   // Нажимаем кнопку "Нет"
   const noButton = screen.getByRole('button', { name: 'Нет' });
   fireEvent.click(noButton);
   
   // Проверяем, что модальное окно закрылось
-  expect(screen.queryByText('Вы уверены, что хотите удалить поток?')).not.toBeInTheDocument();
+  expect(screen.queryByText('Вы уверены, что хотите безвозвратно удалить поток?')).not.toBeInTheDocument();
 });
 
 test('should call deleteStream and close modal when "Yes" button is clicked', () => {
@@ -218,7 +218,7 @@ test('should call deleteStream and close modal when "Yes" button is clicked', ()
   
   // Проверяем, что deleteStream был вызван и модальное окно закрылось
   expect(mockDeleteStream).toHaveBeenCalled();
-  expect(screen.queryByText('Вы уверены, что хотите удалить поток?')).not.toBeInTheDocument();
+  expect(screen.queryByText('Вы уверены, что хотите безвозвратно удалить поток?')).not.toBeInTheDocument();
 });
 
 test('should open delete confirmation modal on Enter key press', () => {
@@ -230,7 +230,7 @@ test('should open delete confirmation modal on Enter key press', () => {
   fireEvent.keyDown(deleteButton, { key: 'Enter' });
   
   // Проверяем, что модальное окно открылось
-  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+  expect(screen.getByText('Вы уверены, что хотите безвозвратно удалить поток?')).toBeInTheDocument();
 });
 
 test('should open delete confirmation modal on Space key press', () => {
@@ -242,7 +242,7 @@ test('should open delete confirmation modal on Space key press', () => {
   fireEvent.keyDown(deleteButton, { key: ' ' });
   
   // Проверяем, что модальное окно открылось
-  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+  expect(screen.getByText('Вы уверены, что хотите безвозвратно удалить поток?')).toBeInTheDocument();
 });
 
 test('should open delete confirmation modal on key press without preventing default', () => {
@@ -253,7 +253,7 @@ test('should open delete confirmation modal on key press without preventing defa
   
   // Test that the modal opens regardless of preventDefault being called
   fireEvent.keyDown(deleteButton, { key: 'Enter', preventDefault });
-  expect(screen.getByText('Вы уверены, что хотите удалить поток?')).toBeInTheDocument();
+  expect(screen.getByText('Вы уверены, что хотите безвозвратно удалить поток?')).toBeInTheDocument();
   
   // The test might need to be updated if preventDefault isn't actually called
   // expect(preventDefault).toHaveBeenCalled(); // Remove this if not applicable
