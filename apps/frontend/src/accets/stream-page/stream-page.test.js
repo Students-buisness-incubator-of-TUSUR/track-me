@@ -318,33 +318,41 @@ describe('Stream Component', () => {
     });
   });
 });
-describe('Обработка изображений потока', () => {
+describe('Stream image handling', () => {
   const mockStreamData = {
-    data: {
-      content: [{
+    content: [
+      {
         id: 1,
         name: 'Test Stream',
-        description: 'Test Description'
-      }],
-      page: {}
-    }
+        description: 'Test Description',
+      },
+    ],
+    page: {
+      totalPages: 1,
+    },
   };
 
   beforeEach(() => {
-    // Подготовка моков перед каждым тестом
+    // Reset mocks before each test
+    jest.clearAllMocks();
+    
+    // Mock URL.createObjectURL
     global.URL.createObjectURL = jest.fn(() => 'mock-url');
-    axios.post.mockResolvedValue(mockStreamData);
+
+    // Set up default axios responses
+    axios.post.mockResolvedValue({ data: mockStreamData });
+    axios.get.mockResolvedValue({ data: new Blob() });
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('должен отображать заглушку при отсутствии изображения потока', async () => {
-    // Подготавливаем ошибку загрузки изображения
-    const mockImageError = new Error('Image not found');
-    mockImageError.response = { status: 404 };
-    axios.get.mockRejectedValue(mockImageError);
+  it('should display placeholder when stream image is not found', async () => {
+    // Mock image loading error
+    const mockError = new Error('Image not found');
+    mockError.response = { status: 404 };
+    axios.get.mockRejectedValue(mockError);
 
     render(
       <MemoryRouter>
@@ -360,9 +368,7 @@ describe('Обработка изображений потока', () => {
     });
   });
 
-  it('должен заменять изображение на заглушку при ошибке загрузки', async () => {
-    axios.get.mockResolvedValue({ data: new Blob() });
-
+  it('should handle image loading error and show placeholder', async () => {
     render(
       <MemoryRouter>
         <Stream />
@@ -373,7 +379,7 @@ describe('Обработка изображений потока', () => {
       const imgElement = screen.getByRole('img', { name: '' });
       expect(imgElement).toBeInTheDocument();
       
-      // Имитируем ошибку загрузки изображения
+      // Simulate image loading error
       fireEvent.error(imgElement);
       
       expect(imgElement.src).toContain('StreamPlaceholder');
@@ -382,10 +388,7 @@ describe('Обработка изображений потока', () => {
     });
   });
 
-  it('должен корректно отображать успешно загруженное изображение потока', async () => {
-    // Подготавливаем успешный ответ для загрузки изображения
-    axios.get.mockResolvedValue({ data: new Blob() });
-
+  it('should display stream image when successfully loaded', async () => {
     render(
       <MemoryRouter>
         <Stream />

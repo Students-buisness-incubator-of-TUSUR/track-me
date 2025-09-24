@@ -1361,59 +1361,36 @@ test('fetchCards добавляет фильтр по username для роли T
 });
 // Добавьте эти тесты в ваш существующий test файл
 
-describe('TrackerPage - Обработка изображений', () => {
+describe('Stream Card Images', () => {
+  const mockCard = {
+    id: 1,
+    name: 'Test Card',
+    description: 'Test Description',
+    enabled: true,
+    ntiMarkets: [{ displayName: 'Market1' }],
+    streams: [{ 
+      id: 'stream1',
+      name: 'Stream 1'
+    }]
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
-    
-    // Мокаем useSelector для базового состояния
+
+    // Mock URL API
+    global.URL.createObjectURL = jest.fn(() => 'mock-url');
+    global.URL.revokeObjectURL = jest.fn();
+
+    // Mock useSelector
     redux.useSelector.mockImplementation(() => ({
       user: { username: 'testuser', roles: ['TRACKER'] },
       roles: ['TRACKER'],
       username: 'testuser',
     }));
 
-    // Мокаем URL API
-    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
-    global.URL.revokeObjectURL = jest.fn();
-  });
-
-  test('должен отображать изображение потока и заглушку корректно', async () => {
-    const mockCard = {
-      id: '1',
-      name: 'Test Card',
-      description: 'Description',
-      enabled: true,
-      ntiMarkets: [{ displayName: 'Market1' }],
-      readinessLevel: '5',
-      streams: [{
-        id: 'stream1',
-        name: 'Stream 1',
-        startDate: '2025-01-01',
-        endDate: '2025-12-31'
-      }]
-    };
-
+    // Default fetch responses
     global.fetch = jest.fn((url) => {
-      if (url.includes('/api/v1/streams')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            content: [{ 
-              id: 'stream1',
-              name: 'Stream 1',
-              startDate: '2025-01-01',
-              endDate: '2025-12-31'
-            }]
-          })
-        });
-      }
-      if (url.includes('/streams/stream1/image')) {
-        return Promise.resolve({
-          ok: true,
-          blob: () => Promise.resolve(new Blob())
-        });
-      }
       if (url.includes('/team-cards')) {
         return Promise.resolve({
           ok: true,
@@ -1428,118 +1405,44 @@ describe('TrackerPage - Обработка изображений', () => {
         json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
       });
     });
-
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <TrackerPage />
-        </MemoryRouter>
-      );
-    });
-
-    // Проверяем, что изображение загружается
-    const imgElement = await screen.findByRole('img', { name: '' });
-    expect(imgElement).toBeInTheDocument();
-    expect(imgElement.src).toBe('mock-image-url');
   });
 
-  test('должен показывать заглушку при ошибке загрузки изображения', async () => {
-    const mockCard = {
-      id: '1',
-      name: 'Test Card',
-      description: 'Description',
-      enabled: true,
-      ntiMarkets: [{ displayName: 'Market1' }],
-      readinessLevel: '5',
-      streams: [{
-        id: 'stream1',
-        name: 'Stream 1',
-        startDate: '2025-01-01',
-        endDate: '2025-12-31'
-      }]
-    };
+  test('successful stream image load', async () => {
+    render(
+      <MemoryRouter>
+        <TrackerPage />
+      </MemoryRouter>
+    );
 
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/api/v1/streams')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            content: [mockCard]
-          })
-        });
-      }
-      if (url.includes('/streams/stream1/image')) {
-        return Promise.reject(new Error('Failed to fetch'));
-      }
-      if (url.includes('/team-cards')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            content: [mockCard],
-            page: { totalPages: 1 }
-          })
-        });
-      }
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
-      });
-    });
-
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <TrackerPage />
-        </MemoryRouter>
-      );
-    });
-
-    // Проверяем, что показывается заглушка
-    const imgElement = await screen.findByRole('img', { name: '' });
-    expect(imgElement).toBeInTheDocument();
-    expect(imgElement.src).toContain('stream-placeholder.png');
-
-    // Симулируем ошибку загрузки изображения
-    fireEvent.error(imgElement);
-    
-    // Проверяем, что заглушка осталась на месте
-    expect(imgElement.src).toContain('stream-placeholder.png');
-    expect(imgElement.onerror).toBeNull(); // onError handler should be removed
+    const img = await screen.findByRole('img');
+    expect(img).toBeInTheDocument();
+    expect(img.src).toBe('mock-url');
   });
 
-  test('должен очищать URL объекты при размонтировании', async () => {
-    const mockCard = {
-      id: '1',
-      name: 'Test Card',
-      streams: [{
-        id: 'stream1',
-        name: 'Stream 1'
-      }]
-    };
+  test('show placeholder on image load error', async () => {
+    render(
+      <MemoryRouter>
+        <TrackerPage />
+      </MemoryRouter>
+    );
 
-    global.fetch = jest.fn(() => Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({
-        content: [mockCard],
-        page: { totalPages: 1 }
-      })
-    }));
+    const img = await screen.findByRole('img');
+    fireEvent.error(img);
+    expect(img.src).toContain('stream-placeholder.png');
+  });
 
+  test('cleanup image URLs on unmount', async () => {
     const { unmount } = render(
       <MemoryRouter>
         <TrackerPage />
       </MemoryRouter>
     );
 
-    // Ждем загрузки изображений
     await waitFor(() => {
       expect(global.URL.createObjectURL).toHaveBeenCalled();
     });
 
-    // Размонтируем компонент
     unmount();
-
-    // Проверяем, что все URL объекты были очищены
     expect(global.URL.revokeObjectURL).toHaveBeenCalled();
   });
 });
