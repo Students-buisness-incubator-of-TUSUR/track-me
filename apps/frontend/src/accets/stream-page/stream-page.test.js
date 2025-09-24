@@ -318,6 +318,89 @@ describe('Stream Component', () => {
     });
   });
 });
+describe('Обработка изображений потока', () => {
+  const mockStreamData = {
+    data: {
+      content: [{
+        id: 1,
+        name: 'Test Stream',
+        description: 'Test Description'
+      }],
+      page: {}
+    }
+  };
+
+  beforeEach(() => {
+    // Подготовка моков перед каждым тестом
+    global.URL.createObjectURL = jest.fn(() => 'mock-url');
+    axios.post.mockResolvedValue(mockStreamData);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('должен отображать заглушку при отсутствии изображения потока', async () => {
+    // Подготавливаем ошибку загрузки изображения
+    const mockImageError = new Error('Image not found');
+    mockImageError.response = { status: 404 };
+    axios.get.mockRejectedValue(mockImageError);
+
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const imgElement = screen.getByRole('img', { name: '' });
+      expect(imgElement).toBeInTheDocument();
+      expect(imgElement.src).toContain('StreamPlaceholder');
+      expect(imgElement.alt).toBe('');
+    });
+  });
+
+  it('должен заменять изображение на заглушку при ошибке загрузки', async () => {
+    axios.get.mockResolvedValue({ data: new Blob() });
+
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const imgElement = screen.getByRole('img', { name: '' });
+      expect(imgElement).toBeInTheDocument();
+      
+      // Имитируем ошибку загрузки изображения
+      fireEvent.error(imgElement);
+      
+      expect(imgElement.src).toContain('StreamPlaceholder');
+      expect(imgElement.alt).toBe('');
+      expect(imgElement.onerror).toBeNull();
+    });
+  });
+
+  it('должен корректно отображать успешно загруженное изображение потока', async () => {
+    // Подготавливаем успешный ответ для загрузки изображения
+    axios.get.mockResolvedValue({ data: new Blob() });
+
+    render(
+      <MemoryRouter>
+        <Stream />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      const imgElement = screen.getByRole('img', { name: '' });
+      expect(imgElement).toBeInTheDocument();
+      expect(imgElement.src).toContain('mock-url');
+      expect(imgElement.alt).toBe('');
+    });
+  });
+});
+
 describe('User Role from localStorage', () => {
   const mockLocalStorage = (() => {
     let store = {};

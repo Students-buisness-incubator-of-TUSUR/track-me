@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import {Link, useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
 import ProfileIcon from "./personal_account_1.png";
+import StreamPlaceholder from './Заглушка для потока в TrackMe.png';
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 
 function TrackerPage() {
@@ -768,15 +769,15 @@ const options = {
         {card.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </div>
     )}
-    {card.streams?.[0]?.id && streamImages[card.streams[0].id] ? (
-      <img 
-        src={streamImages[card.streams[0].id]} 
-        alt={`Изображение потока ${card.streams[0].name}`}
-        className="stream-image"
-      />
-    ) : (
-      <div className="default-image"></div>
-    )}
+    <img 
+      src={card.streams?.[0]?.id && streamImages[card.streams[0].id] ? streamImages[card.streams[0].id] : StreamPlaceholder}
+      alt=""
+      onError={(e) => {
+        e.target.src = StreamPlaceholder;
+        e.target.onerror = null;
+      }}
+      className="stream-image"
+    />
   </div>
                             <span className="status">
                                 {card.enabled ? "Активно" : "Завершено"}
