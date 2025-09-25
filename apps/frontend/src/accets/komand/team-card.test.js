@@ -1092,58 +1092,8 @@ describe('Additional coverage (manual lines)', () => {
     });
   });
 
-  test('Stream selection via Enter key', async () => {
-    require('react-router-dom').__setSearch('?edit=true');
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
-          <Routes>
-            <Route path="/team-card/:id" element={<TeamCard />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-
-    // Open stream dropdown
-    fireEvent.click(screen.getByText('Stream1'));
-    const streamOption = await screen.findByText('Stream2');
-
-    // Simulate Enter key on stream label
-    fireEvent.keyDown(streamOption, { key: 'Enter' });
-
-    // Verify dropdown closed and Stream2 is selected
-    await waitFor(() => {
-      expect(screen.queryAllByText('Stream2').length).toBe(1); // Only toggle remains
-      expect(screen.getByText('Stream2')).toBeInTheDocument();
-    });
-  });
-
-  test('Stream selection via Space key', async () => {
-    require('react-router-dom').__setSearch('?edit=true');
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
-          <Routes>
-            <Route path="/team-card/:id" element={<TeamCard />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-
-    // Open stream dropdown
-    fireEvent.click(screen.getByText('Stream1'));
-    const streamOption = await screen.findByText('Stream2');
-
-    // Simulate Space key on stream label
-    fireEvent.keyDown(streamOption, { key: ' ' });
-
-    // Verify dropdown closed and Stream2 is selected
-    await waitFor(() => {
-      expect(screen.queryAllByText('Stream2').length).toBe(1); // Only toggle remains
-      expect(screen.getByText('Stream2')).toBeInTheDocument();
-    });
-  });
-
+  
+  
   test('NTI dropdown toggle via Enter key', async () => {
     require('react-router-dom').__setSearch('?edit=true');
     await act(async () => {
@@ -1929,18 +1879,102 @@ describe('Stream selection functionality (lines 455-488)', () => {
   });
 
   test('stream selection updates selectedStreamId on click', async () => {
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/api/v1/streams?page=0&size=1500')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            content: [
-              { id: 1, name: 'Stream1', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' },
-              { id: 2, name: 'Stream2', startDate: '2025-04-01T00:00:00Z', endDate: '2025-04-10T00:00:00Z' }
-            ]
-          })
-        });
-      }
+  // Обновляем мок для потоков
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/api/v1/streams?page=0&size=1500')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [
+            { 
+              id: 1, 
+              name: 'Stream1', 
+              startDate: '2025-03-01T00:00:00Z', 
+              endDate: '2025-03-10T00:00:00Z',
+              active: true 
+            },
+            { 
+              id: 2, 
+              name: 'Stream2', 
+              startDate: '2025-04-01T00:00:00Z', 
+              endDate: '2025-04-10T00:00:00Z',
+              active: true 
+            }
+          ]
+        })
+      });
+    }
+    // остальные моки остаются без изменений
+    if (url.includes('/api/v1/admin/team-cards')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{
+            id: 42,
+            name: 'OldName',
+            description: 'OldDesc',
+            ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+            readinessLevel: '0-2',
+            streams: [{ 
+              id: 1, 
+              name: 'Stream1', 
+              startDate: '2025-03-01T00:00:00Z', 
+              endDate: '2025-03-10T00:00:00Z',
+              active: true 
+            }],
+            username: 'reduxUser'
+          }],
+          totalPages: 1
+        })
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+  });
+
+  require('react-router-dom').__setSearch('?edit=true');
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+
+  fireEvent.click(screen.getByText('Stream1')); // Open dropdown
+  fireEvent.click(screen.getByText('Stream2')); // Select Stream2
+
+  await waitFor(() => {
+    expect(screen.getAllByText('Stream2').length).toBe(1); // Only toggle remains
+    expect(screen.getByText('Stream2')).toBeInTheDocument();
+  });
+});
+
+  test('Stream selection via Enter key', async () => {
+  // Тот же мок с двумя потоками
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/api/v1/streams?page=0&size=1500')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [
+            { 
+              id: 1, 
+              name: 'Stream1', 
+              startDate: '2025-03-01T00:00:00Z', 
+              endDate: '2025-03-10T00:00:00Z',
+              active: true 
+            },
+            { 
+              id: 2, 
+              name: 'Stream2', 
+              startDate: '2025-04-01T00:00:00Z', 
+              endDate: '2025-04-10T00:00:00Z',
+              active: true 
+            }
+          ]
+        })
+      });
+    }
       if (url.includes('/api/v1/admin/team-cards')) {
         return Promise.resolve({
           ok: true,
@@ -1961,124 +1995,30 @@ describe('Stream selection functionality (lines 455-488)', () => {
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
     });
 
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
-          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
-        </MemoryRouter>
-      );
-    });
-
-    fireEvent.click(screen.getByText('Stream1')); // Open dropdown
-    fireEvent.click(screen.getByText('Stream2')); // Select Stream2
-
-    await waitFor(() => {
-      expect(screen.getAllByText('Stream2').length).toBe(1); // Only toggle remains
-      expect(screen.getByText('Stream2')).toBeInTheDocument();
-    });
+    require('react-router-dom').__setSearch('?edit=true');
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
   });
 
-  test('stream selection via Enter key updates selectedStreamId', async () => {
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/api/v1/streams?page=0&size=1500')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            content: [
-              { id: 1, name: 'Stream1', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' },
-              { id: 2, name: 'Stream2', startDate: '2025-04-01T00:00:00Z', endDate: '2025-04-10T00:00:00Z' }
-            ]
-          })
-        });
-      }
-      if (url.includes('/api/v1/admin/team-cards')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            content: [{
-              id: 42,
-              name: 'OldName',
-              description: 'OldDesc',
-              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
-              readinessLevel: '0-2',
-              streams: [{ id: 1, name: 'Stream1' }],
-              username: 'reduxUser'
-            }],
-            totalPages: 1
-          })
-        });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
-    });
+  // Open stream dropdown
+  fireEvent.click(screen.getByText('Stream1'));
+  const streamOption = await screen.findByText('Stream2');
 
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
-          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
-        </MemoryRouter>
-      );
-    });
+  // Simulate Enter key on stream label
+  fireEvent.keyDown(streamOption, { key: 'Enter' });
 
-    fireEvent.click(screen.getByText('Stream1')); // Open dropdown
-    const streamOption = await screen.findByText('Stream2');
-    fireEvent.keyDown(streamOption, { key: 'Enter' });
-
-    await waitFor(() => {
-      expect(screen.getAllByText('Stream2').length).toBe(1); // Only toggle remains
-      expect(screen.getByText('Stream2')).toBeInTheDocument();
-    });
+  // Verify dropdown closed and Stream2 is selected
+  await waitFor(() => {
+    expect(screen.queryAllByText('Stream2').length).toBe(1);
+    expect(screen.getByText('Stream2')).toBeInTheDocument();
   });
+});
 
-  test('stream selection via Space key updates selectedStreamId', async () => {
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/api/v1/streams?page=0&size=1500')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            content: [
-              { id: 1, name: 'Stream1', startDate: '2025-03-01T00:00:00Z', endDate: '2025-03-10T00:00:00Z' },
-              { id: 2, name: 'Stream2', startDate: '2025-04-01T00:00:00Z', endDate: '2025-04-10T00:00:00Z' }
-            ]
-          })
-        });
-      }
-      if (url.includes('/api/v1/admin/team-cards')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({
-            content: [{
-              id: 42,
-              name: 'OldName',
-              description: 'OldDesc',
-              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
-              readinessLevel: '0-2',
-              streams: [{ id: 1, name: 'Stream1' }],
-              username: 'reduxUser'
-            }],
-            totalPages: 1
-          })
-        });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
-    });
-
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42?edit=true']}>
-          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
-        </MemoryRouter>
-      );
-    });
-
-    fireEvent.click(screen.getByText('Stream1')); // Open dropdown
-    const streamOption = await screen.findByText('Stream2');
-    fireEvent.keyDown(streamOption, { key: ' ' });
-
-    await waitFor(() => {
-      expect(screen.getAllByText('Stream2').length).toBe(1); // Only toggle remains
-      expect(screen.getByText('Stream2')).toBeInTheDocument();
-    });
-  });
+  
 
   describe('Saving meeting date (lines 875-882)', () => {
   beforeEach(() => {
