@@ -20,9 +20,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MeetingStatusUpdateService {
+    private static final int BATCH_SIZE = 200;
     private final MeetingRepository meetingRepository;
     private final MeetingEventsProducer meetingEventsProducer;
-    private static final int BATCH_SIZE = 200;
 
     @Transactional
     @Scheduled(cron = "0 0 * * * *")
@@ -105,7 +105,11 @@ public class MeetingStatusUpdateService {
                 .oldStatus(oldStatus)
                 .teamStatus(meeting.getTeamStatus())
                 .teamCardId(meeting.getTeamCardId())
-                .teamGrade(meeting.getTeamStatus().getValue())
+                .teamGrade(
+                        meeting.getTeamStatus() == null ?
+                                0 :
+                                meeting.getTeamStatus().getValue()
+                )
                 .build();
         meetingEventsProducer.sendMeetingUpdatedEvent(event);
     }
