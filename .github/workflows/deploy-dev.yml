@@ -37,6 +37,7 @@ jobs:
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
           proxy_host: bastion.tusur.ru
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
@@ -77,6 +78,7 @@ jobs:
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
           proxy_host: bastion.tusur.ru
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
@@ -110,6 +112,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           proxy_host: bastion.tusur.ru
@@ -140,6 +143,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           proxy_host: bastion.tusur.ru
