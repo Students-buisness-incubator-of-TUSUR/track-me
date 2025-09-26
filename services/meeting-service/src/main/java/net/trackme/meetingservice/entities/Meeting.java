@@ -2,7 +2,9 @@ package net.trackme.meetingservice.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -49,8 +51,7 @@ public class Meeting {
     @Column(name = "tasks_next", length = 2048)
     private String tasksNextMeeting;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
+    @JdbcTypeCode(SqlTypes.VARBINARY)
     @Column(name = "image")
     private byte[] imageBytes;
 
