@@ -298,31 +298,43 @@ const checkMeetingCreation = () => {
 }, [role]);
 
 
-    useEffect(() => {
-        if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            fetch(`${backendHost}/api/v1/streams?page=0&size=1500`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...getCsrfConfigForFetch()
-                },
-                credentials: 'include',
-                body: JSON.stringify({filters: []}),
+    // Замените useEffect загрузки потоков на этот:
+useEffect(() => {
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+        fetch(`${backendHost}/api/v1/streams?page=0&size=1500`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...getCsrfConfigForFetch()
+            },
+            credentials: 'include',
+            body: JSON.stringify({filters: []}),
+        })
+            .then(async (res) => {
+                if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
+                return res.json();
             })
-                .then(async (res) => {
-  if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
-  return res.json();
-})
+            .then((data) => {
+                const allStreams = Array.isArray(data.content) ? data.content : [];
+                
+                // Фильтруем: активные потоки + текущий поток команды (если есть)
+                const currentTeamStreamId = teamData.streams?.[0]?.id;
+                const filteredStreams = allStreams.filter(stream => 
+                    stream.active === true || stream.id === currentTeamStreamId
+                );
 
-                .then((data) => {
-                    const streamsWithNames = Array.isArray(data.content)
-                        ? data.content.map((s) => ({id: s.id, name: s.name}))
-                        : [];
-                    setStreams(streamsWithNames);
-                })
-                .catch((err) => handleApiError(err, "загрузке потоков"));
-        }
-    }, [role]);
+                const streamsWithNames = filteredStreams.map((s) => ({
+                    id: s.id, 
+                    name: s.name,
+                    active: s.active,
+                    isCurrentTeamStream: s.id === currentTeamStreamId
+                }));
+                
+                setStreams(streamsWithNames);
+            })
+            .catch((err) => handleApiError(err, "загрузке потоков"));
+    }
+}, [role, teamData.streams]); // Добавляем teamData.streams в зависимости
 
     useEffect(() => {
         fetch(`${backendHost}/api/v1/streams/nti-markets`, {
