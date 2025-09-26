@@ -1,6 +1,5 @@
 package net.trackme.meetingservice.services;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.dao.MeetingRepository;
@@ -10,6 +9,8 @@ import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.events.MeetingUpdatedEvent;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -23,8 +24,8 @@ public class MeetingStatusUpdateService {
 
     private final MeetingEventsProducer meetingEventsProducer;
 
-    @Scheduled(cron = "0 0 * * * *")
     @Transactional
+    @Scheduled(cron = "0 0 * * * *")
     public void updateMeetingStatuses() {
         log.info("Starting scheduled meeting status update");
 
@@ -41,6 +42,7 @@ public class MeetingStatusUpdateService {
         log.info("Scheduled meeting status update completed");
     }
 
+    @Transactional(propagation = Propagation.NESTED)
     private void updateExpiredMeetings(OffsetDateTime now) {
         List<Meeting> expiredMeetings = meetingRepository
                 .findByStatusAndStartDateBefore(MeetingStatus.SCHEDULED, now);
@@ -62,6 +64,7 @@ public class MeetingStatusUpdateService {
         }
     }
 
+    @Transactional(propagation = Propagation.NESTED)
     private void updateNotHappenedMeetings(OffsetDateTime now) {
         OffsetDateTime threeDaysAgo = now.minusDays(3);
         List<Meeting> notHappenedMeetings = meetingRepository

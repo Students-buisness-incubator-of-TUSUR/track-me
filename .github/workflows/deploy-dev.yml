@@ -36,6 +36,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
+          proxy_host: bastion.tusur.ru
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
@@ -75,6 +76,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
+          proxy_host: bastion.tusur.ru
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
@@ -110,6 +112,7 @@ jobs:
           host: ${{ secrets.SBI_SSH_HOST }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          proxy_host: bastion.tusur.ru
           script: |
             set -e
             
@@ -139,5 +142,6 @@ jobs:
           host: ${{ secrets.SBI_SSH_HOST }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          proxy_host: bastion.tusur.ru
           script: |
             sudo systemctl reload nginx

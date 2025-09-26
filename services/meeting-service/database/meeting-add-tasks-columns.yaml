@@ -26,3 +26,37 @@ databaseChangeLog:
               - column:
                   name: tasks_next
                   type: text
+  - changeSet:
+      id: meeting-add-tasks-columns-2
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            tableName: meeting
+            schemaName: ${db_schema}
+            columnName: image
+      changes:
+        - dropColumn:
+            tableName: meeting
+            schemaName: ${db_schema}
+            columnName: image
+  - changeSet:
+      id: meeting-add-tasks-columns-3
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              tableName: meeting
+              schemaName: ${db_schema}
+              columnName: image
+      changes:
+        - addColumn:
+            tableName: meeting
+            schemaName: ${db_schema}
+            columns:
+              - column:
+                  name: image
+                  type: bytea
+                  constraints:
+                    nullable: true
