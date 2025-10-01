@@ -104,6 +104,11 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  public void delete(UserEntity userEntity) {
+    userRepository.delete(userEntity);
+  }
+
+  @Override
   public void changePassword(String username, String newPassword, String oldPassword) {
     var userEntity = findByUsername(username);
     if (!passwordEncoder.matches(oldPassword, userEntity.getPasswordHash())) {
@@ -128,7 +133,13 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void disableUser(String username) {
-    changeActivity(username, false);
+    var userEntity = findByUsername(username);
+    if (!userEntity.getActive()){
+      delete(userEntity);
+    }
+    else {
+      changeActivity(username, false);
+    }
   }
 
   @Override
