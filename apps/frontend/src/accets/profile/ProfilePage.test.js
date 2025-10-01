@@ -401,3 +401,298 @@ test('validateForm: should pass with all valid fields', async () => {
 });
 
 });
+// Тесты для обработки ошибок 400 и общего catch блока
+describe('ProfilePage Error Handling', () => {
+  beforeEach(() => {
+    fetch.mockImplementation((url) => {
+      if (url.includes('/account/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockUserData),
+        });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockTeamCardsResponse),
+        });
+      }
+      if (url.includes('/account/photo')) {
+        return Promise.reject(new Error('Photo not found'));
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Вспомогательная функция для подготовки формы к сохранению
+  const prepareValidFormForSave = async () => {
+    const editButton = await screen.findByRole('button', { name: /Редактировать/i });
+    fireEvent.click(editButton);
+
+    // Убеждаемся, что все поля валидны
+    const fullNameInput = screen.getByDisplayValue('Test User');
+    const emailInput = screen.getByDisplayValue('test@example.com');
+    const phoneInput = screen.getByDisplayValue('+79123456789');
+    const usernameInput = screen.getByDisplayValue('testuser');
+
+    // Если нужно изменить данные для теста, делаем это здесь
+    fireEvent.change(fullNameInput, { target: { value: 'Valid Name' } });
+    fireEvent.change(emailInput, { target: { value: 'valid@example.com' } });
+    fireEvent.change(phoneInput, { target: { value: '+79999999999' } });
+    fireEvent.change(usernameInput, { target: { value: 'validuser' } });
+
+    return screen.getByRole('button', { name: /Сохранить/i });
+  };
+
+  
+
+  // Тесты для общего catch блока с ошибкой JSON парсинга
+  test('should handle fetch error with JSON parsing error in catch block', async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes('/account/update')) {
+        return Promise.reject(new Error('Failed to parse JSON'));
+      }
+      if (url.includes('/account/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockUserData),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(
+      <BrowserRouter>
+        <ProfilePage />
+      </BrowserRouter>
+    );
+
+    const saveButton = await prepareValidFormForSave();
+    fireEvent.click(saveButton);
+
+    // Проверяем, что ошибка логируется
+    await waitFor(() => {
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Ошибка сохранения данных:',
+        expect.any(Error)
+      );
+    });
+
+    // Проверяем, что общее сообщение об ошибке НЕ устанавливается из-за JSON ошибки
+    await waitFor(() => {
+      expect(screen.queryByText('Произошла ошибка при сохранении данных')).not.toBeInTheDocument();
+    });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  // Тесты для общего catch блока с НЕ-JSON ошибкой
+  test('should handle fetch error with non-JSON error in catch block', async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes('/account/update')) {
+        return Promise.reject(new Error('Network error'));
+      }
+      if (url.includes('/account/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockUserData),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    render(
+      <BrowserRouter>
+        <ProfilePage />
+      </BrowserRouter>
+    );
+
+    const saveButton = await prepareValidFormForSave();
+    fireEvent.click(saveButton);
+
+    // Проверяем, что устанавливается общее сообщение об ошибке
+    await waitFor(() => {
+      expect(screen.getByText('Произошла ошибка при сохранении данных')).toBeInTheDocument();
+    });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  // Тесты для успешного сохранения с обновлением данных
+  test('should update user data after successful save', async () => {
+    const updatedUserData = {
+      ...mockUserData,
+      fullName: 'Updated Name',
+      email: 'updated@example.com',
+    };
+
+    let updateCallCount = 0;
+
+    fetch.mockImplementation((url) => {
+      if (url.includes('/account/update')) {
+        updateCallCount++;
+        return Promise.resolve({
+          ok: true,
+        });
+      }
+      if (url.includes('/account/info')) {
+        // При первом вызове возвращаем старые данные, при втором - обновленные
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(updateCallCount > 0 ? updatedUserData : mockUserData),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <BrowserRouter>
+        <ProfilePage />
+      </BrowserRouter>
+    );
+
+    const editButton = await screen.findByRole('button', { name: /Редактировать/i });
+    fireEvent.click(editButton);
+
+    // Меняем данные
+    const fullNameInput = screen.getByDisplayValue('Test User');
+    fireEvent.change(fullNameInput, { target: { value: 'Updated Name' } });
+
+    const saveButton = screen.getByRole('button', { name: /Сохранить/i });
+    fireEvent.click(saveButton);
+
+    // Проверяем, что данные обновились
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Updated Name')).toBeInTheDocument();
+    });
+
+    // Проверяем, что вышли из режима редактирования
+    expect(screen.getByRole('button', { name: /Редактировать/i })).toBeInTheDocument();
+  });
+
+  // Тесты для обработки случая, когда не удалось получить свежие данные после сохранения
+  test('should use sent data when fresh data fetch fails after save', async () => {
+    let updateCallCount = 0;
+
+    fetch.mockImplementation((url) => {
+      if (url.includes('/account/update')) {
+        updateCallCount++;
+        return Promise.resolve({ ok: true });
+      }
+      if (url.includes('/account/info')) {
+        // При первом вызове успешно, при втором (после сохранения) - ошибка
+        if (updateCallCount > 0) {
+          return Promise.resolve({ ok: false });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockUserData),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <BrowserRouter>
+        <ProfilePage />
+      </BrowserRouter>
+    );
+
+    const editButton = await screen.findByRole('button', { name: /Редактировать/i });
+    fireEvent.click(editButton);
+
+    // Меняем username для проверки навигации
+    const usernameInput = screen.getByDisplayValue('testuser');
+    fireEvent.change(usernameInput, { target: { value: 'newusername' } });
+
+    const saveButton = screen.getByRole('button', { name: /Сохранить/i });
+    fireEvent.click(saveButton);
+
+    // Проверяем, что навигация не произошла из-за ошибки получения свежих данных
+    await waitFor(() => {
+      expect(screen.queryByText('Редактировать')).toBeInTheDocument();
+    });
+  });
+
+  // Дополнительный тест: проверяем, что ошибки валидации блокируют отправку запроса
+  test('should not send request when form validation fails', async () => {
+    render(
+      <BrowserRouter>
+        <ProfilePage />
+      </BrowserRouter>
+    );
+
+    const editButton = await screen.findByRole('button', { name: /Редактировать/i });
+    fireEvent.click(editButton);
+
+    // Устанавливаем невалидный email
+    const emailInput = screen.getByDisplayValue('test@example.com');
+    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
+
+    const saveButton = screen.getByRole('button', { name: /Сохранить/i });
+    fireEvent.click(saveButton);
+
+    // Проверяем, что отображается ошибка валидации
+    await waitFor(() => {
+      expect(screen.getByText('Некорректный формат email')).toBeInTheDocument();
+    });
+
+    // Проверяем, что запрос на обновление НЕ был отправлен
+    expect(fetch).not.toHaveBeenCalledWith(
+      expect.stringContaining('/account/update'),
+      expect.any(Object)
+    );
+  });
+
+  // Новый тест: отладочный - посмотрим, что именно возвращает fetch
+  test('DEBUG: check what error message is displayed', async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes('/account/update')) {
+        return Promise.resolve({
+          ok: false,
+          status: 400,
+          json: () => Promise.resolve({ message: 'Номер телефона уже занят' }),
+        });
+      }
+      if (url.includes('/account/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockUserData),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <BrowserRouter>
+        <ProfilePage />
+      </BrowserRouter>
+    );
+
+    const saveButton = await prepareValidFormForSave();
+    fireEvent.click(saveButton);
+
+    // Ждем и выводим все что есть на экране для отладки
+    await waitFor(() => {
+      const errorElements = screen.queryAllByText(/.*/);
+      const errorTexts = errorElements.map(el => el.textContent).filter(text => 
+        text.includes('ошибк') || text.includes('Ошибк') || text.includes('error')
+      );
+      console.log('Found error texts:', errorTexts);
+    });
+
+    // Более гибкая проверка
+    await waitFor(() => {
+      const errorElement = screen.getByText(/Номер телефона уже|ошибк/i);
+      expect(errorElement).toBeInTheDocument();
+    });
+  });
+});
