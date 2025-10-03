@@ -88,7 +88,10 @@ public class GlobalExceptionControllerAdvice {
     return new ResponseEntity<>(
         ErrorResponseDto.builder()
             .error("constraint.violation.exception")
-            .message(exception.getMessage())
+                .message(exception.getConstraintViolations().stream()
+                        .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                        .reduce((s1, s2) -> s1 + "; " + s2)
+                        .orElse(exception.getMessage()))
             .status(HttpStatus.BAD_REQUEST.value())
             .timestamp(System.currentTimeMillis())
             .build(),
@@ -141,7 +144,11 @@ public class GlobalExceptionControllerAdvice {
     return new ResponseEntity<>(
         ErrorResponseDto.builder()
             .error("method.argument.not.valid.exception")
-            .message(exception.getMessage())
+                .message(exception.getAllErrors().stream()
+                        .map(objectError -> objectError.getDefaultMessage() != null ?
+                                objectError.getDefaultMessage() : objectError.getCode())
+                        .reduce((s1, s2) -> s1 + "; " + s2)
+                        .orElse(exception.getMessage()))
             .status(HttpStatus.BAD_REQUEST.value())
             .timestamp(System.currentTimeMillis())
             .build(),
