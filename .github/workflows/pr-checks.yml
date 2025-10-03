@@ -32,6 +32,7 @@ jobs:
       sso: ${{ steps.changes.outputs.sso }}
       gateway: ${{ steps.changes.outputs.gateway }}
       commons: ${{ steps.changes.outputs.commons }}
+      reporting-service: ${{ steps.changes.outputs.reporting-service }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,6 +72,12 @@ jobs:
               - 'build.gradle'
               - 'settings.gradle'
               - 'gradle/**'
+            reporting-service:
+                - 'services/reporting-service/**'
+                - 'libs/commons/**'
+                - 'build.gradle'
+                - 'settings.gradle'
+                - 'gradle/**'
 
   backend-check:
     runs-on: ubuntu-latest
