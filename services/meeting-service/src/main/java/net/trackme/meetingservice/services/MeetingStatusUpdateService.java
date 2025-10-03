@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
-import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.events.MeetingUpdatedEvent;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -73,7 +72,6 @@ public class MeetingStatusUpdateService {
             for (Meeting meeting : notHappenedMeetings) {
                 if (hasUnfilledFields(meeting)) {
                     meeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
-                    meeting.setTeamStatus(TeamStatus.MANY_ISSUES);
                     log.debug(
                             "Meeting {} set to COMPLETED_AS_NOT_HAPPENED after 3 days. Team status set to MANY_ISSUES",
                             meeting.getId());
