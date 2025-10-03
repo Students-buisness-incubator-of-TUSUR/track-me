@@ -16,6 +16,21 @@ app:
 spring:
   application:
     name: track-me-gateway
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USER:trackme-redis}
+      password: ${REDIS_USER_PASSWORD:trackme-redis}
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+  session:
+    redis:
+      namespace: "trackme:gateway:session"
+      flush-mode: immediate
+    timeout: 30m
   cloud:
     gateway:
       routes:
