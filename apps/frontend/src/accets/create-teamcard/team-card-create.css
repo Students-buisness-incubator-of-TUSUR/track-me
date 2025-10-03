@@ -26,6 +26,8 @@ a {
 .create-radio-style input[type="radio"] {
   width: 17px;
   height: 17px;
+  flex-shrink: 0;             /* 💡 не позволяем сжиматься */
+  box-sizing: border-box;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -208,6 +210,8 @@ input:focus {
     max-width: 100%;
     padding: 10px 14px;
     box-sizing: border-box;
+    white-space: normal;
+    
     display: grid;
     grid-template-columns: repeat(2, minmax(100px, 1fr)); /* Оставляем только это */
     gap: 6px 8px;
@@ -219,6 +223,20 @@ input:focus {
     width: 100%;
     overflow: visible;
 }
+.create-checkbox-item {
+  display: flex;
+  align-items: flex-start;
+  
+  font-size: 18px;
+max-width: 98px;
+  cursor: pointer;
+  
+
+  /* 💡 Перенос длинного текста */
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+}
 
 .create-stream-list,
 .create-checkbox-list {
@@ -228,7 +246,7 @@ input:focus {
 .data-create-team {
     all: unset;
   position: relative;
-  top: -6px;           /* немного вниз */
+            /* немного вниз */
   left: 8px;          /* немного вправо */
   font-size: 13px;    /* по желанию, сделать чуть больше */
   cursor: pointer;    /* курсор "рука" для UX */

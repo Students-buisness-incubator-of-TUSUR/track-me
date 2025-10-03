@@ -5,6 +5,7 @@ import axios from 'axios';
 import './stream-page.css';
 import {useSelector} from "react-redux";
 import ProfileIcon from "./personal_account_1.png";
+import StreamPlaceholder from "./Заглушка для потока в TrackMe.png";
 import { getCsrfConfig } from '../../utils/csrf-utils'; // Импортируем функцию для CSRF конфигурации
 // import LoginService from '../../services/login-service'; // Импортируем сервис для логина
 export default function Stream() {
@@ -575,11 +576,14 @@ useEffect(() => {
                     <Link to="/team-cards" key={card.id} onClick={() => perehod(card)}
                           className="Stream-card">
                         <div className="Stream-card-pic">
-                            {imageUrls[card.id] ? (
-                                <img src={imageUrls[card.id]} alt={card.title}/>
-                            ) : (
-                                <img src="rabbit.png" alt=" "/>
-                            )}
+                            <img 
+                                src={imageUrls[card.id] || StreamPlaceholder} 
+                                alt=""
+                                onError={(e) => {
+                                    // e.target.onerror = null;
+                                    e.target.src = StreamPlaceholder;
+                                }}
+                            />
                         </div>
                         <h1 className="Stream-card-headText">{card.title} </h1>
                         <Link to={`/edit-stream/${card.id}`} key={card.id}

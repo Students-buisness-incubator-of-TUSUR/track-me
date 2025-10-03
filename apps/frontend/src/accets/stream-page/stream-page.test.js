@@ -318,6 +318,7 @@ describe('Stream Component', () => {
     });
   });
 });
+
 describe('User Role from localStorage', () => {
   const mockLocalStorage = (() => {
     let store = {};
