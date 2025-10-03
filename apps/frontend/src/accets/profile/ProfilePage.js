@@ -13,7 +13,7 @@ function ProfilePage() {
     const [error, setError] = useState(null);
     const [userPhoto, setUserPhoto] = useState(null);
     const ssoHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/sso';
-
+    const defaultAvatarUrl = "/images/no-photo.png";
     // Флаг редактирования
     const [isEditing, setIsEditing] = useState(false);
 
@@ -180,44 +180,73 @@ function ProfilePage() {
     setError(null);
     return true;
 };
-    const handleSaveClick = () => {
-        if (!validateForm()) {
-            return; // Если данные невалидны, не отправляем запрос
-        }
+    const handleSaveClick = async () => {
+    if (!validateForm()) {
+        return;
+    }
 
-        fetch(`${ssoHost}/api/v1/account/update`, {
+    try {
+        // Подготавливаем данные для отправки - заменяем null на пустую строку для avatarUrl
+        const dataToSend = {
+            ...editedData,
+            avatarUrl: editedData.avatarUrl || defaultAvatarUrl // отправляем пустую строку вместо null
+        };
+
+        const response = await fetch(`${ssoHost}/api/v1/account/update`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 ...getCsrfConfigForFetch()
             },
             credentials: "include",
-            body: JSON.stringify(editedData),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    if (response.status === 400) {
-                        setError("Номер телефона уже существует");
-                    } else {
-                        setError(`Ошибка при сохранении данных. Статус: ${response.status}`);
-                    }
-                    throw new Error("Ошибка сохранения");
+            body: JSON.stringify(dataToSend), // используем подготовленные данные
+        });
+
+        if (!response.ok) {
+            if (response.status === 400) {
+                // Пытаемся получить более детальную ошибку
+                try {
+                    const errorData = await response.json();
+                    setError(errorData.message || "Ошибка валидации данных");
+                } catch {
+                    setError("Номер телефона уже существует или данные неверны");
                 }
-                return response.json();
-            })
-            .then((result) => {
-                // Если username изменился, перенаправляем на страницу авторизации
-                if (userData && userData.username !== result.username) {
-                    navigate("/");
-                } else {
-                    setUserData(result);
-                    setIsEditing(false);
-                }
-            })
-            .catch((err) => {
-                console.error("Ошибка сохранения данных:", err);
-            });
-    };
+            } else {
+                setError(`Ошибка при сохранении данных. Статус: ${response.status}`);
+            }
+            throw new Error("Ошибка сохранения");
+        }
+
+        // После успешного сохранения запрашиваем свежие данные
+        const userResponse = await fetch(`${ssoHost}/api/v1/account/info`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include"
+        });
+
+        if (userResponse.ok) {
+            const freshData = await userResponse.json();
+            setUserData(freshData);
+            setEditedData(freshData);
+        } else {
+            // Если не удалось получить свежие данные, используем отправленные
+            setUserData(dataToSend);
+        }
+
+        setIsEditing(false);
+        setError(null);
+
+        if (userData && userData.username !== editedData.username) {
+            navigate("/");
+        }
+        
+    } catch (err) {
+        console.error("Ошибка сохранения данных:", err);
+        if (!err.message.includes('JSON')) {
+            setError("Произошла ошибка при сохранении данных");
+        }
+    }
+};
 
     // Обработчик для остальных полей
     const handleChange = (e) => {
