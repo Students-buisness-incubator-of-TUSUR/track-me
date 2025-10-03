@@ -32,7 +32,7 @@ public interface UserService {
   UserEntity saveAndActivateUser(RegistrationRequestDto userDto);
 
   /**
-   * Проверить существует ли пользователь с указанным email
+   * Проверить, существует ли пользователь с указанным email, исключая пользователя с указанным username
    */
   boolean existByEmailAndUsernameNot(String email, String username);
 
