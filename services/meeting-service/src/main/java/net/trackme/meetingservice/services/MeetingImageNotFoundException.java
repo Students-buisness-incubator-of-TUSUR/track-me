@@ -7,11 +7,11 @@ import java.util.UUID;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 /**
- * Исключение, которое выбрасывается, если изображение для встречи не найдено.
+ * Exception thrown when a meeting image is not found.
  */
-@ResponseStatus(code = NOT_FOUND, reason = "Изображение для встречи не найдено")
+@ResponseStatus(code = NOT_FOUND, reason = "Meeting image not found")
 public class MeetingImageNotFoundException extends RuntimeException {
     public MeetingImageNotFoundException(UUID meetingId) {
-        super("Изображение для встречи с ID " + meetingId + " не найдено.");
+        super("Meeting image with ID " + meetingId + " not found.");
     }
 }
