@@ -91,7 +91,7 @@ public class DefaultUserService implements UserService {
 
     @Override
     public boolean existByEmailAndUsernameNot(String email, String username) {
-        return userRepository.existsByEmailAndUsernameNot(email, username);
+        return userRepository.existsByEmailOrUsername(email, username);
     }
 
     @Override
@@ -162,7 +162,12 @@ public class DefaultUserService implements UserService {
     return admins.map(userMapper::userEntityToUserDto);
   }
 
-  private void changeActivity(String username, boolean active) {
+    @Override
+    public boolean existsByEmailOrUsername(String email, String username) {
+        return userRepository.existsByEmail(email) || userRepository.existsByUsername(username);
+    }
+
+    private void changeActivity(String username, boolean active) {
     var userEntity = findByUsername(username);
     userEntity.setActive(active);
     save(userEntity);

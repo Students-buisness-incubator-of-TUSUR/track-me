@@ -51,4 +51,6 @@ public interface UserService {
   Page<UserDto> getTrackers(FilterRequest filterRequest, Pageable pageable);
 
   Page<UserDto> getAdmins(FilterRequest filterRequest, Pageable pageable);
+
+    boolean existsByEmailOrUsername(String email, String username);
 }

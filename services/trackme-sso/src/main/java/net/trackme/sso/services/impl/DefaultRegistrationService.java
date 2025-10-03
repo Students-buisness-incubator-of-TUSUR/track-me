@@ -38,7 +38,7 @@ public class DefaultRegistrationService implements RegistrationService {
 
   @Override
   public void register(RegistrationRequestDto requestDto) {
-      if (userService.existsByEmail(requestDto.email()) || userService.existsByUsername(requestDto.username())) {
+      if (userService.existsByEmailOrUsername(requestDto.email(), requestDto.username())) {
         throw InformationException.builder("$account.already.exist").build();
       }
 
