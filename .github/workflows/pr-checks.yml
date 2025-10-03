@@ -289,6 +289,49 @@ jobs:
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
 
+  reporting-service-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: detect-changes
+    if: needs.detect-changes.outputs.reporting-service == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: ${{ runner.os }}-gradle
+          restore-keys: |
+            ${{ runner.os }}-gradle
+      - name: Cache SonarQube
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: |
+            ${{ runner.os }}-sonar
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          pwd; ls -l .
+          ./gradlew :reporting-service:check :reporting-service:sonar \
+            -Dsonar.projectKey=trackme-reporting-service \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }} \
+
   libs-commons-check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
