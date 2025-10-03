@@ -14,7 +14,7 @@ public record RegistrationRequestDto(
     @Schema(description = "Имя пользователя", example = "johndoe")
     @NotBlank(message = "Имя пользователя не может быть пустым.")
     @Pattern(
-            regexp = "^[a-zA-Z0-9._-]{6,}$",
+            regexp = "^[a-zA-Z0-9._\\-]{6,}$",
             message = "Имя пользователя может содержать только буквы, цифры, точки, подчеркивания и дефисы."
     )
     @Size(min = 6, message = "Имя пользователя должно быть не менее 6 символов.")
