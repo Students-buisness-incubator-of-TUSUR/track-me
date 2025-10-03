@@ -13,10 +13,18 @@ import lombok.Builder;
 public record RegistrationRequestDto(
     @Schema(description = "Имя пользователя", example = "johndoe")
     @NotBlank(message = "Имя пользователя не может быть пустым.")
+    @Pattern(
+            regexp = "^[a-zA-Z0-9._-]{6,}$",
+            message = "Имя пользователя может содержать только буквы, цифры, точки, подчеркивания и дефисы."
+    )
     @Size(min = 6, message = "Имя пользователя должно быть не менее 6 символов.")
     String username,
     @Schema(description = "Пароль пользователя", example = "password123")
     @NotBlank(message = "Пароль не может быть пустым.")
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{6,}$",
+            message = "Пароль должен содержать как минимум одну заглавную букву, одну строчную букву и одну цифру."
+    )
     @Size(min = 6, message = "Пароль должен быть не менее 6 символов.")
     String password,
     @Schema(description = "Номер телефона", example = "+79001234567")

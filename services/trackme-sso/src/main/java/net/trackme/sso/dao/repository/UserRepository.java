@@ -8,11 +8,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<UserEntity, UUID>, JpaSpecificationExecutor<UserEntity> {
-  Optional<UserEntity> findByUsername(String username);
+    Optional<UserEntity> findByUsername(String username);
 
-  Optional<UserEntity> findByEmail(String email);
+    Optional<UserEntity> findByEmail(String email);
 
-  boolean existsByUsername(String username);
+    boolean existsByUsername(String username);
 
-  boolean existsByEmail(String email);
+    boolean existsByEmail(String email);
+
+    boolean existsByEmailAndUsernameNot(String email, String username);
 }

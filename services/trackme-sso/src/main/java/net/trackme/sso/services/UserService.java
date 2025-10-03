@@ -34,7 +34,7 @@ public interface UserService {
   /**
    * Проверить существует ли пользователь с указанным email
    */
-  boolean existByEmail(String email);
+  boolean existByEmailAndUsernameNot(String email, String username);
 
   void save(UserEntity userEntity);
 

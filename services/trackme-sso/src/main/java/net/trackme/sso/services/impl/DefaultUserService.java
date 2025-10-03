@@ -89,15 +89,12 @@ public class DefaultUserService implements UserService {
     return firstActivation(user.getId(), userDto.password());
   }
 
-  /**
-   * Проверить существует ли пользователь с указанным email
-   */
-  @Override
-  public boolean existByEmail(String email) {
-    return userRepository.existsByEmail(email);
-  }
+    @Override
+    public boolean existByEmailAndUsernameNot(String email, String username) {
+        return userRepository.existsByEmailAndUsernameNot(email, username);
+    }
 
-  @Override
+    @Override
   public void save(UserEntity userEntity) {
     Assert.notNull(userEntity, "UserEntity must not be null");
     userRepository.save(userEntity);
