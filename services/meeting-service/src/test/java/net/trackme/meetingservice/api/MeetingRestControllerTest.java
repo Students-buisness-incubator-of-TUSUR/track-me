@@ -261,8 +261,16 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testGetImage_notFound() throws Exception {
+    void testGetMeeting_notFound() throws Exception {
         var meetingId = UUID.randomUUID();
+        mockMvc.perform(get("/api/v1/image/" + meetingId).with(csrf()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetImage_notFound() throws Exception {
+        var meetingId = meetingRepository.findAll().getFirst().getId();
         mockMvc.perform(get("/api/v1/image/" + meetingId).with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
