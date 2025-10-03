@@ -74,7 +74,7 @@ public class MeetingServiceImpl implements MeetingService {
     @PreAuthorize(
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN')")
     public void deleteMeeting(UUID meetingId) {
-        var meeting = getMeeting(meetingId);
+        var meeting = meetingRepository.getReferenceById(meetingId);
         meetingRepository.delete(meeting);
         aclService.deleteAcl(meeting);
     }
@@ -106,7 +106,7 @@ public class MeetingServiceImpl implements MeetingService {
             }
         }
 
-        var meeting = getMeeting(meetingId);
+        var meeting = meetingRepository.getReferenceById(meetingId);
         try {
             meeting.setImageBytes(file.getBytes());
             meetingRepository.save(meeting);
@@ -120,6 +120,9 @@ public class MeetingServiceImpl implements MeetingService {
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN')")
     public Resource getMeetingImage(UUID meetingId) {
         var meeting = getMeeting(meetingId);
+        if (meeting.getImageBytes() == null) {
+            throw new MeetingImageNotFoundException(meetingId);
+        }
         return new ByteArrayResource(meeting.getImageBytes());
     }
 
