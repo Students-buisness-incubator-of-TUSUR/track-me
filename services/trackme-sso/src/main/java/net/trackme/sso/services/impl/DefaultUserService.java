@@ -21,9 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.Optional;
-import java.util.UUID;
-
 import static net.trackme.sso.dao.UserSpecification.byRole;
 import static net.trackme.sso.dao.UserSpecification.withFilters;
 
@@ -59,40 +56,6 @@ public class DefaultUserService implements UserService {
     user.setPasswordHash(passwordEncoder.encode(userDto.password()));
     return userRepository.save(user);
   }
-
-  /**
-   * Активация пользователя
-   *
-   * @param username уникальный идентификатор пользователя
-   * @param password пароль пользователя
-   */
-  @Override
-  @Transactional
-  public UserEntity firstActivation(UUID username, String password) {
-    Optional<UserEntity> userEntityOptional = this.userRepository.findById(username);
-    if (userEntityOptional.isEmpty()) {
-      throw new AuthException(AuthErrorCode.USER_ACTIVATION_FAILED);
-    }
-    UserEntity userEntity = userEntityOptional.get();
-    userEntity.setPasswordHash(passwordEncoder.encode(password));
-    userEntity.setActive(true);
-    return userRepository.save(userEntity);
-  }
-
-  /**
-   * Создать пользователя и сразу активировать
-   */
-  @Override
-  @Transactional
-  public UserEntity saveAndActivateUser(RegistrationRequestDto userDto) {
-    UserEntity user = saveUser(userDto);
-    return firstActivation(user.getId(), userDto.password());
-  }
-
-    @Override
-    public boolean existByEmailAndUsernameNot(String email, String username) {
-        return userRepository.existsByEmailOrUsername(email, username);
-    }
 
     @Override
   public void save(UserEntity userEntity) {
@@ -164,7 +127,7 @@ public class DefaultUserService implements UserService {
 
     @Override
     public boolean existsByEmailOrUsername(String email, String username) {
-        return userRepository.existsByEmail(email) || userRepository.existsByUsername(username);
+        return userRepository.existsByEmailOrUsername(email, username);
     }
 
     private void changeActivity(String username, boolean active) {
