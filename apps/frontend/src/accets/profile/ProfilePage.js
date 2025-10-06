@@ -176,6 +176,11 @@ function ProfilePage() {
         setError("Поле 'Телеграм' обязательно для заполнения");
         return false;
     }
+    
+    if (!editedData.username.match(/^[A-Za-z0-9_]+$/)) {
+        setError("Введите корректный юзернейм");
+        return false;
+    }
 
     setError(null);
     return true;
@@ -236,9 +241,9 @@ function ProfilePage() {
         setIsEditing(false);
         setError(null);
 
-        if (userData && userData.username !== editedData.username) {
-            navigate("/");
-        }
+        // if (userData && userData.username !== editedData.username) {
+        //     navigate("/");
+        // }
         
     } catch (err) {
         console.error("Ошибка сохранения данных:", err);
@@ -421,7 +426,7 @@ function ProfilePage() {
                         </div>
 
                         <div className="field">
-                            <label className="profile-label">Мой телеграм в Telegram</label>
+                            <label className="profile-label">Username в Telegram</label>
                             <div className="input-container">
                                 <input
                                     type="text"
