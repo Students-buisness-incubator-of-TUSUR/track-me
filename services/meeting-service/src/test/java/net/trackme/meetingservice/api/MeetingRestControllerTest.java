@@ -180,6 +180,29 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.number").value("123456"));
     }
 
+    @Test
+    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
+    void updateMeeting_completedMeeting_failure() throws Exception {
+        var meeting = meetingRepository.findAll().getFirst();
+        meeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
+        meetingRepository.save(meeting);
+
+        var meetingUpdateDto = MeetingUpdateDto.builder()
+                .link("https://example.com/meeting")
+                .number("12345")
+                .teamStatus(TeamStatus.MANY_ISSUES)
+                .build();
+
+        var meetingId = meeting.getId().toString();
+        mockMvc.perform(patch("/api/v1/update-meeting/" + meetingId)
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType("application/json")
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(meetingUpdateDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"image/png", "image/jpeg"})
     void testAddImage_success(String contentType) throws Exception {
