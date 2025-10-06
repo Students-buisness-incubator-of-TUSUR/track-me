@@ -64,7 +64,7 @@ public class MeetingServiceImpl implements MeetingService {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
-        if (MeetingStatus.completedStatuses().contains(meeting.getStatus())) {
+        if (MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
         }
         meetingMapper.updateEntityFromDto(updateDto, meeting);
