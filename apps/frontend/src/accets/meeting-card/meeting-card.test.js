@@ -742,7 +742,7 @@ describe('MeetingCard Completion and Editing', () => {
     fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ ...mockMeetingData, status: "NOT_HAPPENED" }),
+        json: () => Promise.resolve({ ...mockMeetingData, status: "COMPLETED_AS_NOT_HAPPENED" }),
       })
     );
 
@@ -767,7 +767,7 @@ describe('MeetingCard Completion and Editing', () => {
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({
-          status: "NOT_HAPPENED",
+          status: "COMPLETED_AS_NOT_HAPPENED",
           link: "http://example.com",
           number: "10",
           teamStatus: "OK",

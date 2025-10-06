@@ -237,7 +237,7 @@ if (!isMeetingDatePassed()) {
     }
 
     try {
-        const newStatus = completed ? "COMPLETED" : "NOT_HAPPENED";
+        const newStatus = completed ? "COMPLETED" : "COMPLETED_AS_NOT_HAPPENED";
         
         // Сначала обновляем локальное состояние для мгновенного отображения
         setMeetingData(prev => ({
@@ -296,7 +296,7 @@ if (!isMeetingDatePassed()) {
 };
 
     const isMeetingCompleted = meetingData.status === "COMPLETED" || 
-                              meetingData.status === "NOT_HAPPENED" || 
+                               
                               meetingData.status === "COMPLETED_AS_NOT_HAPPENED";
     
     const isMeetingLocked = isMeetingCompleted;
