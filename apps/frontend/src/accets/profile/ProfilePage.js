@@ -177,7 +177,7 @@ function ProfilePage() {
         return false;
     }
     
-    if (!editedData.username.match(/^[A-Za-z0-9_]+$/)) {
+    if (!editedData.username.match(/^\w+$/)) {
         setError("Введите корректный юзернейм");
         return false;
     }
@@ -240,10 +240,6 @@ function ProfilePage() {
 
         setIsEditing(false);
         setError(null);
-
-        // if (userData && userData.username !== editedData.username) {
-        //     navigate("/");
-        // }
         
     } catch (err) {
         console.error("Ошибка сохранения данных:", err);
@@ -426,9 +422,10 @@ function ProfilePage() {
                         </div>
 
                         <div className="field">
-                            <label className="profile-label">Username в Telegram</label>
+                            <label htmlFor="telegram-username" className="profile-label">Username в Telegram</label>
                             <div className="input-container">
                                 <input
+                                    id="telegram-username"
                                     type="text"
                                     name="username"
                                     className="profile-input"
