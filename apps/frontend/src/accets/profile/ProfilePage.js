@@ -431,12 +431,8 @@ function ProfilePage() {
                                     className="profile-input"
                                     value={editedData.username || ""}
                                     onChange={handleChange}
-                                    readOnly={!isEditing}
+                                    readOnly={true}
                                 />
-                                {isEditing && (
-                                    <img src={penIcon} alt="Редактировать"
-                                         className="edit-icon123"/>
-                                )}
                             </div>
                         </div>
                     </div>

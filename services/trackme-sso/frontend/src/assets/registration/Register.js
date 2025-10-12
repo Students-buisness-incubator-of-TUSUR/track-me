@@ -43,10 +43,12 @@ const Register = () => {
                     <input
                         type="text"
                         className="register-input"
-                        placeholder="Имя пользователя"
+                        placeholder="Имя пользователя в Telegram(@username)"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
+                        pattern="^@[a-zA-Z0-9_]+$"
+                        title="Имя пользователя должно начинаться с @ и содержать только латинские буквы, цифры и _"
                     />
                     <input
                         type="password"
