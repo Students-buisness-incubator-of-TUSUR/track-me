@@ -1202,3 +1202,359 @@ describe('Filter Toggle Button Integration', () => {
     expect(mockSetHoveredButton).toHaveBeenCalledWith(null);
   });
 });
+describe('Filter Toggle Button Text and Functionality', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('отображает правильный текст тултипа при showLockedOnly: false', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: 'filter',
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    // Проверяем, что отображается тултип "Показать заблокированных пользователей"
+    expect(screen.getByText('Показать заблокированных пользователей')).toBeInTheDocument();
+  });
+
+  test('отображает правильный текст тултипа при showLockedOnly: true', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: 'filter',
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: true,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    // Проверяем, что отображается тултип "Показать активных пользователей"
+    expect(screen.getByText('Показать активных пользователей')).toBeInTheDocument();
+  });
+
+  test('правильный aria-label при showLockedOnly: false', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterButton = screen.getByRole('button', { 
+      name: /показать заблокированных пользователей/i 
+    });
+    
+    expect(filterButton).toHaveAttribute(
+      'aria-label', 
+      'Показать заблокированных пользователей'
+    );
+  });
+
+  test('правильный aria-label при showLockedOnly: true', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: true,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterButton = screen.getByRole('button', { 
+      name: /показать активных пользователей/i 
+    });
+    
+    expect(filterButton).toHaveAttribute(
+      'aria-label', 
+      'Показать активных пользователей'
+    );
+  });
+
+  test('тултип появляется только при наведении на кнопку фильтра', () => {
+    const mockSetHoveredButton = jest.fn();
+    
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: mockSetHoveredButton,
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterButton = screen.getByRole('button', { 
+      name: /показать заблокированных пользователей/i 
+    });
+
+    // Изначально тултипа нет
+    expect(screen.queryByText('Показать заблокированных пользователей')).not.toBeInTheDocument();
+
+    // Наводим курсор - тултип должен появиться
+    fireEvent.mouseEnter(filterButton);
+    
+    // Проверяем, что setHoveredButton был вызван
+    expect(mockSetHoveredButton).toHaveBeenCalledWith('filter');
+  });
+
+  test('тултип скрывается при уходе курсора', () => {
+    const mockSetHoveredButton = jest.fn();
+    
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: 'filter',
+      setHoveredButton: mockSetHoveredButton,
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterButton = screen.getByRole('button', { 
+      name: /показать заблокированных пользователей/i 
+    });
+
+    // Убираем курсор
+    fireEvent.mouseLeave(filterButton);
+    
+    // Проверяем, что setHoveredButton был вызван с null
+    expect(mockSetHoveredButton).toHaveBeenCalledWith(null);
+  });
+
+  
+
+  test('кнопка имеет активный класс когда showLockedOnly: true', () => {
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: true,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterButton = screen.getByRole('button', { 
+      name: /показать активных пользователей/i 
+    });
+    
+    expect(filterButton).toHaveClass('filter-toggle', 'active');
+  });
+
+  test('клик по кнопке вызывает toggleShowLocked', () => {
+    const mockToggleShowLocked = jest.fn();
+    
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: mockToggleShowLocked,
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterButton = screen.getByRole('button', { 
+      name: /показать заблокированных пользователей/i 
+    });
+
+    fireEvent.click(filterButton);
+    
+    expect(mockToggleShowLocked).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Filter messages', () => {
+  test('отображает сообщение для активных пользователей при showLockedOnly: false', () => {
+    require('../hooks/useTrackerList').useTrackerList = jest.fn().mockReturnValue({
+      trackers: [],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    expect(screen.getByText('Нет активных пользователей для отображения')).toBeInTheDocument();
+  });
+
+  test('отображает сообщение для заблокированных пользователей при showLockedOnly: true', () => {
+    require('../hooks/useTrackerList').useTrackerList = jest.fn().mockReturnValue({
+      trackers: [],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: true,
+      toggleShowLocked: jest.fn(),
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+
+    expect(screen.getByText('Нет заблокированных пользователей для отображения')).toBeInTheDocument();
+  });
+});
