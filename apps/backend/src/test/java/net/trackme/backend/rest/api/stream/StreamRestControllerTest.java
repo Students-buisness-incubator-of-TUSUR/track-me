@@ -104,7 +104,7 @@ class StreamRestControllerTest extends BaseApplicationTest {
 
     @Test
     void getStreams_withFilters_ntiMarket() throws Exception {
-        var ntiMarket = ntiMarketRepository.findAll().get(0);
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
         streamRepository.save(Stream.builder()
                 .name("stream 2")
@@ -200,7 +200,7 @@ class StreamRestControllerTest extends BaseApplicationTest {
     void addImage_success() throws Exception {
         var file = new MockMultipartFile("image", "image".getBytes());
 
-        var uuid = streamRepository.findAll().get(0).getId();
+        var uuid = streamRepository.findAll().getFirst().getId();
         mockMvc.perform(multipart("/api/v1/streams/%s/image".formatted(uuid))
                         .file("file", file.getBytes())
                         .with(csrf()))
@@ -210,7 +210,7 @@ class StreamRestControllerTest extends BaseApplicationTest {
 
     @Test
     void addImage_emptyFile() throws Exception {
-        var uuid = streamRepository.findAll().get(0).getId();
+        var uuid = streamRepository.findAll().getFirst().getId();
         mockMvc.perform(multipart("/api/v1/streams/%s/image".formatted(uuid))
                         .file("file", new byte[0])
                         .with(csrf()))
@@ -219,8 +219,18 @@ class StreamRestControllerTest extends BaseApplicationTest {
     }
 
     @Test
+    void addImage_largeFileSize() throws Exception {
+        var uuid = streamRepository.findAll().getFirst().getId();
+        mockMvc.perform(multipart("/api/v1/streams/%s/image".formatted(uuid))
+                        .file("file", new byte[100*1024*1024 + 1])
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void getStreamImage_success() throws Exception {
-        var stream = streamRepository.findAll().get(0);
+        var stream = streamRepository.findAll().getFirst();
         stream.setImageBytes(resourceLoader.getResource("classpath:img/stream-image.png")
                 .getInputStream()
                 .readAllBytes());
@@ -242,9 +252,9 @@ class StreamRestControllerTest extends BaseApplicationTest {
 
     @Test
     void getStream_withFilters_byTeamCardReadinessLevel() throws Exception {
-        var stream = streamRepository.findAll().get(0);
+        var stream = streamRepository.findAll().getFirst();
 
-        var uuid = ntiMarketRepository.findAll().get(0).getId();
+        var uuid = ntiMarketRepository.findAll().getFirst().getId();
         mockMvc.perform(post("/api/v1/team-card")
                         .with(csrf())
                         .param("streamId", stream.getId().toString())

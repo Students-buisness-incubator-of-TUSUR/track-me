@@ -18,12 +18,4 @@ public class MeetingSpecification {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get("id"), meetingId);
     }
-
-    public static Specification<Meeting> notCompleted() {
-        return ((root, query, cb) ->
-                cb.and(
-                        cb.equal(root.get("status"), MeetingStatus.SCHEDULED),
-                        cb.equal(root.get("status"), MeetingStatus.NOT_HAPPENED)
-                ));
-    }
 }

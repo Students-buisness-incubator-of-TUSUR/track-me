@@ -80,6 +80,14 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
 
     assertThat(userDetailsService.loadUserByUsername("tracker").isEnabled())
         .isFalse();
+
+    mockMvc.perform(post("/api/v1/users/disable")
+           .param("username", "tracker")
+           .with(csrf()))
+        .andExpect(status().isOk());
+
+    assertThat(userService.findByUsername("tracker").getAccountNonLocked())
+        .isFalse();
   }
 
   @Test
@@ -190,5 +198,4 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
         .andExpect(header().string("Content-Type", "application/json"))
         .andExpect(jsonPath("$.content[0].username").value("admin"));
   }
-
 }

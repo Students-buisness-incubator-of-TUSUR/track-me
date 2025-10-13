@@ -377,6 +377,36 @@ test('validateForm: should show error if username is empty', async () => {
 
   expect(await screen.findByText("Поле 'Телеграм' обязательно для заполнения")).toBeInTheDocument();
 });
+test('validateForm: should show error if username contains invalid characters', async () => {
+    render(
+      <BrowserRouter>
+        <ProfilePage />
+      </BrowserRouter>
+    );
+
+    const editButton = await screen.findByRole('button', { name: /Редактировать/i });
+    fireEvent.click(editButton);
+
+    const usernameInput = screen.getByDisplayValue('testuser');
+    
+    // Тестируем различные невалидные значения
+    const invalidUsernames = [
+      'test user', // пробел
+      'user!name', // специальный символ
+      'имя', // кириллица
+      'user@name', // @
+      'user-name', // дефис
+    ];
+
+    for (const invalidUsername of invalidUsernames) {
+      fireEvent.change(usernameInput, { target: { value: invalidUsername } });
+      fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+      
+      // Проверяем сообщение об ошибке
+      expect(await screen.findByText('Введите корректный юзернейм')).toBeInTheDocument();
+    }
+  });
+
 test('validateForm: should pass with all valid fields', async () => {
   render(
     <BrowserRouter>
