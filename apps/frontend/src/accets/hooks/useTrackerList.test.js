@@ -269,4 +269,45 @@ describe('useTrackerList', () => {
     });
     expect(result.current.hoveredButton).toBe('confirm');
   });
+  it('toggleShowLocked должен переключать фильтр заблокированных пользователей и сбрасывать страницу', async () => {
+  const endpoint = "/mock-endpoint"; // Определяем endpoint внутри теста
+
+  global.fetch.mockImplementationOnce(() =>
+    Promise.resolve({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          content: [{ username: 'user1', enabled: true }],
+          page: { totalPages: 3, totalElements: 45 },
+        }),
+    })
+  );
+
+  const { result } = renderHook(() => useTrackerList(endpoint));
+  await waitFor(() => expect(result.current.trackers.length).toBe(1));
+
+  // Устанавливаем не первую страницу
+  act(() => {
+    result.current.setPage(2);
+  });
+
+  // Мокаем запрос после переключения
+  global.fetch.mockImplementationOnce(() =>
+    Promise.resolve({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          content: [{ username: 'lockedUser', enabled: false }],
+          page: { totalPages: 1, totalElements: 1 },
+        }),
+    })
+  );
+
+  act(() => {
+    result.current.toggleShowLocked();
+  });
+
+  expect(result.current.showLockedOnly).toBe(true);
+  expect(result.current.page).toBe(0);
+});
 });

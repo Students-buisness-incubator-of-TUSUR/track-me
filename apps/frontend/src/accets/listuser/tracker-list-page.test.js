@@ -1089,3 +1089,116 @@ describe("TrackerListPage userRole from localStorage", () => {
     expect(screen.queryByRole("button", { name: /Администраторы/i })).not.toBeInTheDocument();
   });
 });
+describe('Filter Toggle Button', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Мокаем useTrackerList с toggleShowLocked
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+        { username: 'testuser2', fullName: 'Test User 2', telegramId: 'test2', enabled: false },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: jest.fn(),
+    });
+  });
+
+  test('кнопка фильтра отображается с правильными атрибутами', () => {
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterButton = screen.getByRole('button', { 
+      name: /показать активных пользователей|показать заблокированных пользователей/i 
+    });
+    
+    expect(filterButton).toBeInTheDocument();
+    expect(filterButton).toHaveClass('filter-toggle');
+    expect(filterButton).not.toHaveClass('active'); // По умолчанию showLockedOnly: false
+  });
+
+  
+
+  test('отображается иконка пользователя когда showLockedOnly false', () => {
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterIcon = document.querySelector('.filter-toggle-icon svg');
+    expect(filterIcon).toBeInTheDocument();
+    
+    // Проверяем, что отображается иконка пользователя (активные)
+    const svgPath = filterIcon.querySelector('path');
+    expect(svgPath).toHaveAttribute('d', 'M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z');
+  });
+
+  
+
+  test('контейнер кнопки фильтра имеет правильный класс', () => {
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterContainer = document.querySelector('.filter-toggle-container');
+    expect(filterContainer).toBeInTheDocument();
+  });
+});
+
+describe('Filter Toggle Button Integration', () => {
+  test('полный цикл взаимодействия с кнопкой фильтра', () => {
+    const mockToggleShowLocked = jest.fn();
+    const mockSetHoveredButton = jest.fn();
+    
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [
+        { username: 'testuser1', fullName: 'Test User 1', telegramId: 'test1', enabled: true },
+      ],
+      error: null,
+      searchQuery: '',
+      setSearchQuery: jest.fn(),
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: mockSetHoveredButton,
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: mockToggleShowLocked,
+    });
+
+    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+    
+    const filterButton = screen.getByRole('button', { 
+      name: /показать заблокированных пользователей/i 
+    });
+
+    // Наведение
+    fireEvent.mouseEnter(filterButton);
+    expect(mockSetHoveredButton).toHaveBeenCalledWith('filter');
+
+    // Клик
+    fireEvent.click(filterButton);
+    expect(mockToggleShowLocked).toHaveBeenCalledTimes(1);
+
+    // Уход курсора
+    fireEvent.mouseLeave(filterButton);
+    expect(mockSetHoveredButton).toHaveBeenCalledWith(null);
+  });
+});
