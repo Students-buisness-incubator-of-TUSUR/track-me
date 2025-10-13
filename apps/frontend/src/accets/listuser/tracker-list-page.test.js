@@ -166,31 +166,34 @@ describe('TrackerListPage (объединённые тесты)', () => {
   });
 
   test('рендер сообщения при отсутствии трекеров', () => {
-    require('../hooks/useTrackerList').useTrackerList = () => ({
-      trackers: [],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: null,
-      setHoveredTracker: jest.fn(),
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-    });
-
-    const TrackerListPage = require('./TrackerListPage').default;
-    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
-
-    expect(screen.getByText('Нет трекеров для отображения')).toBeInTheDocument();
+  require('../hooks/useTrackerList').useTrackerList = () => ({
+    trackers: [],
+    error: null,
+    searchQuery: '',
+    setSearchQuery: jest.fn(),
+    page: 0,
+    setPage: jest.fn(),
+    totalPages: 1,
+    handleNextPage: jest.fn(),
+    handlePrevPage: jest.fn(),
+    handlePageJump: jest.fn(),
+    hoveredTracker: null,
+    setHoveredTracker: jest.fn(),
+    hoveredButton: null,
+    setHoveredButton: jest.fn(),
+    trackersPerPage: 5,
+    confirmUser: jest.fn(),
+    deleteUser: jest.fn(),
+    showLockedOnly: false, // Добавляем этот параметр
+    toggleShowLocked: jest.fn(), // Добавляем этот параметр
   });
+
+  const TrackerListPage = require('./TrackerListPage').default;
+  render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
+
+  // Используем правильный текст из компонента
+  expect(screen.getByText('Нет активных пользователей для отображения')).toBeInTheDocument();
+});
 
   test('кнопка показать больше вызывает setPage', () => {
   const setPage = jest.fn();
