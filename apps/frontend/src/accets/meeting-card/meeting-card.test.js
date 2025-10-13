@@ -1366,3 +1366,242 @@ describe("MeetingCard tooltip hover minimal", () => {
     // Никаких expect не нужно — цель только coverage
   });
 });
+describe('Textarea Auto-resize Functionality', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    console.warn.mockRestore();
+    console.error.mockRestore();
+  });
+
+  test('should auto-resize textarea on focus (lines 45-48)', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Находим все textarea элементы
+    const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
+    
+    textareas.forEach(textarea => {
+      // Мокаем свойства style
+      Object.defineProperty(textarea, 'style', {
+        value: {
+          height: '',
+        },
+        writable: true
+      });
+
+      // Мокаем scrollHeight
+      Object.defineProperty(textarea, 'scrollHeight', {
+        value: 100,
+        configurable: true
+      });
+
+      // Триггерим событие focus
+      fireEvent.focus(textarea);
+
+      // Проверяем, что высота была установлена
+      expect(textarea.style.height).toBe('100px');
+    });
+  });
+
+  test('should auto-resize textarea on change (lines 35-38)', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Находим первую textarea
+    const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
+    const textarea = textareas[0];
+
+    // Мокаем свойства
+    Object.defineProperty(textarea, 'style', {
+      value: {
+        height: '',
+      },
+      writable: true
+    });
+
+    Object.defineProperty(textarea, 'scrollHeight', {
+      value: 80,
+      configurable: true
+    });
+
+    // Триггерим событие change
+    fireEvent.change(textarea, { target: { value: 'New task value', name: 'tasksCurrentMeeting' } });
+
+    // Проверяем, что высота была установлена
+    expect(textarea.style.height).toBe('80px');
+  });
+
+  test('should reset height to auto before calculating new height', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
+    const textarea = textareas[0];
+
+    const styleSpy = jest.spyOn(textarea.style, 'height', 'set');
+
+    Object.defineProperty(textarea, 'scrollHeight', {
+      value: 120,
+      configurable: true
+    });
+
+    // Триггерим focus
+    fireEvent.focus(textarea);
+
+    // Проверяем, что height был установлен в 'auto' перед установкой новой высоты
+    const calls = styleSpy.mock.calls;
+    expect(calls.length).toBeGreaterThanOrEqual(2);
+    expect(calls[0][0]).toBe('auto'); // Первый вызов - reset
+    expect(calls[calls.length - 1][0]).toBe('120px'); // Последний вызов - установка новой высоты
+
+    styleSpy.mockRestore();
+  });
+
+  test('should handle different scrollHeight values correctly', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
+    const textarea = textareas[0];
+
+    // Тестируем с разными значениями scrollHeight
+    const testCases = [40, 60, 100, 150];
+
+    testCases.forEach(scrollHeight => {
+      Object.defineProperty(textarea, 'style', {
+        value: {
+          height: '',
+        },
+        writable: true
+      });
+
+      Object.defineProperty(textarea, 'scrollHeight', {
+        value: scrollHeight,
+        configurable: true
+      });
+
+      fireEvent.focus(textarea);
+
+      expect(textarea.style.height).toBe(`${scrollHeight}px`);
+    });
+  });
+
+  test('should apply correct inline styles to textarea', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
+    
+    textareas.forEach(textarea => {
+      expect(textarea).toHaveStyle({
+        resize: 'none',
+        overflow: 'hidden',
+        minHeight: '40px'
+      });
+    });
+  });
+
+  test('should maintain auto-resize functionality when editing is enabled', () => {
+    // Рендерим в режиме редактирования (isNewMeeting = true)
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
+    const textarea = textareas[0];
+
+    // Проверяем, что textarea доступна для редактирования
+    expect(textarea).not.toBeDisabled();
+
+    // Тестируем авто-ресайз
+    Object.defineProperty(textarea, 'style', {
+      value: {
+        height: '',
+      },
+      writable: true
+    });
+
+    Object.defineProperty(textarea, 'scrollHeight', {
+      value: 90,
+      configurable: true
+    });
+
+    fireEvent.focus(textarea);
+
+    expect(textarea.style.height).toBe('90px');
+  });
+
+  test('should handle textarea change with name attribute correctly', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
+    
+    // Тестируем каждую textarea с соответствующим name
+    textareas.forEach((textarea, index) => {
+      const names = ['tasksCurrentMeeting', 'tasksNextMeeting'];
+      const expectedName = names[index];
+
+      Object.defineProperty(textarea, 'style', {
+        value: {
+          height: '',
+        },
+        writable: true
+      });
+
+      Object.defineProperty(textarea, 'scrollHeight', {
+        value: 70,
+        configurable: true
+      });
+
+      // Триггерим change с правильным name
+      fireEvent.change(textarea, { 
+        target: { 
+          value: `Test value for ${expectedName}`,
+          name: expectedName
+        } 
+      });
+
+      expect(textarea.style.height).toBe('70px');
+    });
+  });
+});
