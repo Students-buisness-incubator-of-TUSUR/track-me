@@ -20,8 +20,8 @@ import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -92,5 +92,84 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .param("id", teamCard.getId().toString())
                         .with(user("tracker1").roles("TRACKER")))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void getTeamCard_success() throws Exception {
+        var teamCard = teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Team card1")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                "tracker1");
+
+        mockMvc.perform(get("/api/v1/admin/team-card")
+                        .param("id", teamCard.getId().toString())
+                        .param("username", teamCard.getUsername())
+                        .with(user(BaseApplicationTest.USER).roles("SUPER_ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
+                .andExpect(jsonPath("$.username", is(teamCard.getUsername())));
+    }
+
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void getTeamCards_success() throws Exception {
+        teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Team card 1")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                BaseApplicationTest.USER);
+
+        teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Team card 2")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                BaseApplicationTest.USER);
+
+        mockMvc.perform(post("/api/v1/admin/team-cards")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "filters": []
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name").value("Team card 1"))
+                .andExpect(jsonPath("$.content[1].name").value("Team card 2"))
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER,
+            roles = "SUPER_ADMIN")
+    void deleteTeamCard_success() throws Exception {
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team card1")
+                .ntiMarkets(List.of(ntiMarket))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .build());
+
+        mockMvc.perform(delete("/api/v1/admin/team-card")
+                        .with(csrf())
+                        .param("id", teamCard.getId().toString())
+                        .param("username", teamCard.getUsername())
+                        .with(user(BaseApplicationTest.USER).roles("SUPER_ADMIN")))
+                .andDo(print())
+                .andExpect(status().isNoContent());
     }
 }

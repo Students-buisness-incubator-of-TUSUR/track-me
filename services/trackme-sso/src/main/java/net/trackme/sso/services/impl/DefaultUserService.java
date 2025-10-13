@@ -21,8 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import static net.trackme.sso.dao.UserSpecification.byRole;
-import static net.trackme.sso.dao.UserSpecification.withFilters;
+import static net.trackme.sso.dao.UserSpecification.*;
 
 @Service
 @RequiredArgsConstructor
@@ -88,6 +87,11 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void disableUser(String username) {
+    var userEntity = findByUsername(username);
+    if (Boolean.FALSE.equals(userEntity.getActive())){
+      userEntity.setAccountNonLocked(false);
+      save(userEntity);
+    }
     changeActivity(username, false);
   }
 

@@ -759,4 +759,24 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].name", is("Test")));
     }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void deleteTeamCard_success() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team card1")
+                .ntiMarkets(List.of(ntiMarket))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .build());
+
+        mockMvc.perform(delete("/api/v1/team-card")
+                        .with(csrf())
+                        .param("id", teamCard.getId().toString())
+                        .with(user(BaseApplicationTest.USER).roles("TRACKER")))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
 }

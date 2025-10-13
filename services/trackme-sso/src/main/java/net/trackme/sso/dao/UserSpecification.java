@@ -14,8 +14,7 @@ import java.util.List;
 public class UserSpecification implements Specification<UserEntity> {
 
   private static final List<String> ALLOWED_FIELDS =
-      List.of("fullName", "username");
-
+      List.of("fullName", "username", "accountNonLocked");
 
   private final transient List<Filter> filters;
 

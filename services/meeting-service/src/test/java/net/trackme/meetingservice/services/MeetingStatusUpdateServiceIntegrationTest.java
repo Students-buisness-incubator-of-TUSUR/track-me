@@ -28,24 +28,46 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
 
     @Test
     void updateMeetingStatuses_integrationTest() {
-        // given
+        // Arrange
         var pastDate = OffsetDateTime.now().minusHours(2);
 
         var expiredMeeting = new Meeting();
-        expiredMeeting.setStatus(MeetingStatus.SCHEDULED);
-        expiredMeeting.setTeamStatus(TeamStatus.MANY_ISSUES);
         expiredMeeting.setStartDate(pastDate);
+        expiredMeeting.setTeamStatus(TeamStatus.MANY_ISSUES);
         expiredMeeting.setTeamCardId(UUID.randomUUID());
-        expiredMeeting.setLink(null); // unfilled field
+        expiredMeeting.setStatus(MeetingStatus.SCHEDULED);
+
+        var expiredMeetingWithoutUnfilledFields = new Meeting();
+        expiredMeetingWithoutUnfilledFields.setLink("TestLink");
+        expiredMeetingWithoutUnfilledFields.setNumber("TestNumber");
+        expiredMeetingWithoutUnfilledFields.setStartDate(pastDate);
+        expiredMeetingWithoutUnfilledFields.setTeamStatus(TeamStatus.MANY_ISSUES);
+        expiredMeetingWithoutUnfilledFields.setTeamCardId(UUID.randomUUID());
+        expiredMeetingWithoutUnfilledFields.setTasksCurrentMeeting("TestTasksCurrentMeeting");
+        expiredMeetingWithoutUnfilledFields.setTasksNextMeeting("TestTasksNextMeeting");
+        expiredMeetingWithoutUnfilledFields.setStatus(MeetingStatus.SCHEDULED);
+
+        var notHappenedMeeting = new Meeting();
+        notHappenedMeeting.setStartDate(OffsetDateTime.now().minusDays(4));
+        notHappenedMeeting.setTeamStatus(TeamStatus.MANY_ISSUES);
+        notHappenedMeeting.setTeamCardId(UUID.randomUUID());
+        notHappenedMeeting.setStatus(MeetingStatus.NOT_HAPPENED);
 
         meetingRepository.save(expiredMeeting);
+        meetingRepository.save(expiredMeetingWithoutUnfilledFields);
+        meetingRepository.save(notHappenedMeeting);
 
-        // when
+        // Act
         meetingStatusUpdateService.updateMeetingStatuses();
 
-        // then
-        var updatedMeeting = meetingRepository.findById(expiredMeeting.getId()).orElseThrow();
-        Assertions.assertEquals(MeetingStatus.NOT_HAPPENED, updatedMeeting.getStatus());
-    }
+        // Assert
+        var updatedExpiredMeeting = meetingRepository.findById(expiredMeeting.getId()).orElseThrow();
+        var updatedExpiredMeetingWithoutUnfilledFields = meetingRepository.findById(expiredMeetingWithoutUnfilledFields.getId()).orElseThrow();
+        var updatedNotHappenedMeeting = meetingRepository.findById(notHappenedMeeting.getId()).orElseThrow();
 
+        Assertions.assertEquals(MeetingStatus.NOT_HAPPENED, updatedExpiredMeeting.getStatus());
+        Assertions.assertEquals(MeetingStatus.COMPLETED, updatedExpiredMeetingWithoutUnfilledFields.getStatus());
+        Assertions.assertEquals(MeetingStatus.COMPLETED_AS_NOT_HAPPENED, updatedNotHappenedMeeting.getStatus());
+        Assertions.assertEquals(TeamStatus.MANY_ISSUES, updatedNotHappenedMeeting.getTeamStatus());
+    }
 }
