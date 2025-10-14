@@ -31,7 +31,40 @@ const MeetingCard = () => {
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const fileInputRef = useRef(null);
-
+const renderTextareaSection = (name, label, value) => (
+        <div className="unique-meeting-info-row">
+            <span className="unique-label">{label}</span>
+            {isEditing ? (
+                <>
+                    <textarea
+                        name={name}
+                        value={value || ''}
+                        onChange={(e) => {
+                            handleChange(e);
+                            // Авто-ресайз после изменения
+                            e.target.style.height = 'auto';
+                            e.target.style.height = e.target.scrollHeight + 'px';
+                        }}
+                        className="unique-textarea"
+                        disabled={isMeetingCompleted}
+                        style={{
+                            resize: 'none',
+                            overflow: 'hidden',
+                            minHeight: '40px'
+                        }}
+                        onFocus={(e) => {
+                            // Авто-ресайз при фокусе
+                            e.target.style.height = 'auto';
+                            e.target.style.height = e.target.scrollHeight + 'px';
+                        }}
+                    />
+                    <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
+                </>
+            ) : (
+                <div className="unique-task">{value || "Не указаны"}</div>
+            )}
+        </div>
+    );
     useEffect(() => {
         if (!isNewMeeting && meetingId) {
             // Fetch meeting data
@@ -444,41 +477,18 @@ if (!isMeetingDatePassed()) {
                     )}
                 </div>
 
-                <div className="unique-meeting-info-row">
-                    <span className="unique-label">Задачи к следующей встрече:</span>
-                    {isEditing ? (
-                        <>
-                            <textarea
-                                name="tasksCurrentMeeting"
-                                value={meetingData.tasksCurrentMeeting || ''}
-                                onChange={handleChange}
-                                className="unique-textarea"
-                                disabled={isMeetingCompleted}
-                            />
-                            <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
-                        </>
-                    ) : (
-                        <div className="unique-task">{meetingData.tasksCurrentMeeting || "Не указаны"}</div>
-                    )}
-                </div>
+                {renderTextareaSection(
+    "tasksCurrentMeeting",
+    "Задачи к следующей встрече:",
+    meetingData.tasksCurrentMeeting
+)}
 
-                <div className="unique-meeting-info-row">
-                    <span className="unique-label">Выполнили задачи прошлой встречи или нет, общая информация по команде:</span>
-                    {isEditing ? (
-                        <>
-                            <textarea
-                                name="tasksNextMeeting"
-                                value={meetingData.tasksNextMeeting || ''}
-                                onChange={handleChange}
-                                className="unique-textarea"
-                                disabled={isMeetingCompleted}
-                            />
-                            <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
-                        </>
-                    ) : (
-                        <div className="unique-task">{meetingData.tasksNextMeeting || "Не указаны"}</div>
-                    )}
-                </div>
+
+                {renderTextareaSection(
+    "tasksNextMeeting",
+    "Выполнили задачи прошлой встречи или нет, общая информация по команде:",
+    meetingData.tasksNextMeeting
+)}
 
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Текущий статус команды:</span>

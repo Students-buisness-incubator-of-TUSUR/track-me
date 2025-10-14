@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useState } from "react";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
+
 export function useTrackerList(endpoint) {
   const [trackers, setTrackers] = useState([]);
   const [error, setError] = useState(null);
@@ -13,79 +14,106 @@ export function useTrackerList(endpoint) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
 
+  // Новое состояние для фильтра заблокированных пользователей
+  const [showLockedOnly, setShowLockedOnly] = useState(false);
+
   const ssoServiceUri = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + "/sso";
 
-  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, currentSearchQuery = "") => {
-  try {
-    const filters = [];
-    if (currentSearchQuery) {
-      filters.push({
-        fieldName: "fullName",
-        type: "LIKE",
-        value: currentSearchQuery,
-      });
-    }
-
-    // Добавляем сортировку по алфавиту на бэкенде
-    const sortParams = "sort=fullName,asc";
-
-    const response = await fetch(`${ssoServiceUri}${endpoint}?page=${currentPage}&size=${currentSize}&${sortParams}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch()},
-      credentials: "include",
-      body: JSON.stringify({ filters }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error("Ошибка авторизации! Пожалуйста, выполните вход заново.");
+  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, currentSearchQuery = "", showLocked = false) => {
+    try {
+      const filters = [];
+      
+      // Основной фильтр - всегда показываем активных пользователей
+      if (!showLocked) {
+        filters.push({
+          fieldName: "accountNonLocked",
+          type: "EQ",
+          value: true,
+        });
       } else {
-        throw new Error(`Ошибка при загрузке пользователей. Статус: ${response.status}`);
+        // Если нажата кнопка - показываем только заблокированных
+        filters.push({
+          fieldName: "accountNonLocked",
+          type: "EQ",
+          value: false,
+        });
       }
-    }
 
-    const data = await response.json();
-    console.log("Backend response:", data);
+      // Фильтр по поисковому запросу
+      if (currentSearchQuery) {
+        filters.push({
+          fieldName: "fullName",
+          type: "LIKE",
+          value: currentSearchQuery,
+        });
+      }
 
-    // Функция для сортировки по активности на фронтенде
-    const sortByActiveStatus = (trackers) => {
-      return [...trackers].sort((a, b) => {
-        // Сначала активные (enabled = true), потом неактивные
-        if (a.enabled && !b.enabled) return -1;
-        if (!a.enabled && b.enabled) return 1;
-        
-        // Если статус одинаковый, оставляем порядок из бэкенда (уже отсортировано по алфавиту)
-        return 0;
+      // Добавляем сортировку по алфавиту на бэкенде
+      const sortParams = "sort=fullName,asc";
+
+      const response = await fetch(`${ssoServiceUri}${endpoint}?page=${currentPage}&size=${currentSize}&${sortParams}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch()},
+        credentials: "include",
+        body: JSON.stringify({ filters }),
       });
-    };
 
-    // Обновленная проверка ответа с учетом пагинации
-    if (data.content && data.page) {
-      const sortedContent = sortByActiveStatus(data.content);
-      setTrackers(sortedContent);
-      setTotalPages(data.page.totalPages);
-      setTotalElements(data.page.totalElements);
-    } else if (Array.isArray(data)) {
-      // Если бэкенд возвращает просто массив без пагинации
-      const sortedData = sortByActiveStatus(data);
-      setTrackers(sortedData);
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Ошибка авторизации! Пожалуйста, выполните вход заново.");
+        } else {
+          throw new Error(`Ошибка при загрузке пользователей. Статус: ${response.status}`);
+        }
+      }
+
+      const data = await response.json();
+      console.log("Backend response:", data);
+
+      // Функция для сортировки по активности на фронтенде
+      const sortByActiveStatus = (trackers) => {
+        return [...trackers].sort((a, b) => {
+          // Сначала активные (enabled = true), потом неактивные
+          if (a.enabled && !b.enabled) return -1;
+          if (!a.enabled && b.enabled) return 1;
+          
+          // Если статус одинаковый, оставляем порядок из бэкенда (уже отсортировано по алфавиту)
+          return 0;
+        });
+      };
+
+      // Обновленная проверка ответа с учетом пагинации
+      if (data.content && data.page) {
+        const sortedContent = sortByActiveStatus(data.content);
+        setTrackers(sortedContent);
+        setTotalPages(data.page.totalPages);
+        setTotalElements(data.page.totalElements);
+      } else if (Array.isArray(data)) {
+        // Если бэкенд возвращает просто массив без пагинации
+        const sortedData = sortByActiveStatus(data);
+        setTrackers(sortedData);
+        setTotalPages(1);
+        setTotalElements(data.length);
+      } else {
+        throw new Error("Неверный формат данных, полученных с сервера.");
+      }
+    } catch (err) {
+      console.error("Ошибка при загрузке пользователей:", err);
+      setError(err.message);
+      setTrackers([]);
       setTotalPages(1);
-      setTotalElements(data.length);
-    } else {
-      throw new Error("Неверный формат данных, полученных с сервера.");
+      setTotalElements(0);
     }
-  } catch (err) {
-    console.error("Ошибка при загрузке пользователей:", err);
-    setError(err.message);
-    setTrackers([]);
-    setTotalPages(1);
-    setTotalElements(0);
-  }
-}, [ssoServiceUri, endpoint]);
+  }, [ssoServiceUri, endpoint]);
 
   useEffect(() => {
-    fetchTrackers(page, size, searchQuery);
-  }, [fetchTrackers, page, size, searchQuery]);
+    fetchTrackers(page, size, searchQuery, showLockedOnly);
+  }, [fetchTrackers, page, size, searchQuery, showLockedOnly]);
+
+  // Функция для переключения отображения заблокированных пользователей
+  const toggleShowLocked = () => {
+    setShowLockedOnly(prev => !prev);
+    setPage(0); // Сбрасываем на первую страницу при переключении фильтра
+  };
 
   // Остальные функции остаются без изменений
   const confirmUser = async (username) => {
@@ -102,7 +130,7 @@ export function useTrackerList(endpoint) {
       setTrackers(prev => 
         prev.map(t => t.username === username ? { ...t, enabled: true } : t)
       );
-      fetchTrackers(page, size, searchQuery);
+      fetchTrackers(page, size, searchQuery, showLockedOnly);
     } catch (err) {
       console.error("Ошибка при подтверждении пользователя:", err);
       setError(`Ошибка при подтверждении пользователя: ${err.message}`);
@@ -120,7 +148,7 @@ export function useTrackerList(endpoint) {
 
       if (!response.ok) throw new Error(response.statusText);
 
-      await fetchTrackers(page, size, searchQuery);
+      await fetchTrackers(page, size, searchQuery, showLockedOnly);
     } catch (err) {
       console.error("Ошибка при удалении пользователя:", err);
       setError(`Ошибка при удалении пользователя: ${err.message}`);
@@ -162,5 +190,8 @@ export function useTrackerList(endpoint) {
     handlePrevPage,
     handlePageJump,
     fetchTrackers,
+    // Добавляем новые функции и состояния
+    showLockedOnly,
+    toggleShowLocked,
   };
 }

@@ -1,5 +1,4 @@
-/* istanbul ignore next */
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTrackerList } from "../hooks/useTrackerList";
 import "./TrackerList.css";
@@ -10,6 +9,7 @@ import trueIcon2 from "./true2.png";
 import falseIcon2 from "./false2.png";
 import ProfileIcon from "./personal_account_1.png";
 import { useNavigate } from "react-router-dom";
+
 function TrackerListPage({ endpoint }) {
   const {
     trackers,
@@ -27,25 +27,30 @@ function TrackerListPage({ endpoint }) {
     handleNextPage,
     handlePrevPage,
     setPage,
-    handlePageJump
+    handlePageJump,
+    showLockedOnly,
+    toggleShowLocked,
   } = useTrackerList(endpoint);
+  
   const location = useLocation();
   const logoutHost = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + "/logout";
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const toggleProfileMenu = () => setIsProfileMenuOpen((prev) => !prev);
-const [userRole, setUserRole] = useState('');
+  const [userRole, setUserRole] = useState('');
+
   const handleLogout = async () => {
-        localStorage.removeItem("user");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("streamName");
-        localStorage.removeItem("streamId");
-        localStorage.removeItem("streamSDate");
-        localStorage.removeItem("streamEDate");
-        localStorage.removeItem("csrfToken");
-        localStorage.removeItem("csrfHeaderName");
-    };
-useEffect(() => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("streamName");
+    localStorage.removeItem("streamId");
+    localStorage.removeItem("streamSDate");
+    localStorage.removeItem("streamEDate");
+    localStorage.removeItem("csrfToken");
+    localStorage.removeItem("csrfHeaderName");
+  };
+
+  useEffect(() => {
     // Проверяем данные пользователя в localStorage
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
@@ -53,6 +58,7 @@ useEffect(() => {
       setUserRole(userData.roles[0]);
     }
   }, []);
+
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
     setPage(0); // Reset page to 0 on search
@@ -63,33 +69,33 @@ useEffect(() => {
       <header className="Stream-header">
         <div className="Stream-header-cont">
           <div // NOSONAR
-  className="Stream-header-logo" // NOSONAR
-  onClick={() => navigate("/streams")} // NOSONAR
-  onKeyDown={(e) => { // NOSONAR
-    if (e.key === 'Enter' || e.key === ' ') { // NOSONAR
-      navigate("/streams"); // NOSONAR
-    } // NOSONAR
-  }} // NOSONAR
-  tabIndex={0} // NOSONAR
-  role="button" // NOSONAR
-  aria-label="Вернуться на главную страницу" // NOSONAR
-  style={{ cursor: "pointer" }} // NOSONAR
-/> 
-<h1 // NOSONAR
-  className="Stream-title" // NOSONAR
-  onClick={() => navigate("/streams")} // NOSONAR
-  onKeyDown={(e) => { // NOSONAR
-    if (e.key === 'Enter' || e.key === ' ') { // NOSONAR
-      navigate("/streams"); // NOSONAR
-    } // NOSONAR
-  }} // NOSONAR
-  tabIndex={0} // NOSONAR
-  role="button" // NOSONAR
-  aria-label="Вернуться на главную страницу" // NOSONAR
-  style={{ cursor: "pointer" }} // NOSONAR
-> {/*NOSONAR*/}
-  TrackMe {/*NOSONAR*/}
-</h1> {/*NOSONAR*/}
+            className="Stream-header-logo" // NOSONAR
+            onClick={() => navigate("/streams")} // NOSONAR
+            onKeyDown={(e) => { // NOSONAR
+              if (e.key === 'Enter' || e.key === ' ') { // NOSONAR
+                navigate("/streams"); // NOSONAR
+              } // NOSONAR
+            }} // NOSONAR
+            tabIndex={0} // NOSONAR
+            role="button" // NOSONAR
+            aria-label="Вернуться на главную страницу" // NOSONAR
+            style={{ cursor: "pointer" }} // NOSONAR
+          /> 
+          <h1 // NOSONAR
+            className="Stream-title" // NOSONAR
+            onClick={() => navigate("/streams")} // NOSONAR
+            onKeyDown={(e) => { // NOSONAR
+              if (e.key === 'Enter' || e.key === ' ') { // NOSONAR
+                navigate("/streams"); // NOSONAR
+              } // NOSONAR
+            }} // NOSONAR
+            tabIndex={0} // NOSONAR
+            role="button" // NOSONAR
+            aria-label="Вернуться на главную страницу" // NOSONAR
+            style={{ cursor: "pointer" }} // NOSONAR
+          > {/*NOSONAR*/}
+            TrackMe {/*NOSONAR*/}
+          </h1> {/*NOSONAR*/}
           <div className="Stream-buttons">
             {userRole === 'SUPER_ADMIN' && location.pathname === "/list-trackers" && (
               <Link to="/list-admins">
@@ -163,6 +169,36 @@ useEffect(() => {
               />
             </div>
           </div>
+          
+          {/* Добавляем кнопку переключения фильтра */}
+          <div className="filter-toggle-container">
+  <button 
+    className={`filter-toggle ${showLockedOnly ? 'active' : ''}`}
+    onClick={toggleShowLocked}
+    onMouseEnter={() => setHoveredButton("filter")}
+    onMouseLeave={() => setHoveredButton(null)}
+    aria-label={showLockedOnly ? "Показать активных пользователей" : "Показать заблокированных пользователей"}
+  >
+    <div className="filter-toggle-icon">
+      {showLockedOnly ? (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          {/* Иконка крестика (заблокированные) */}
+          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM6.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-3.293 3.293a1 1 0 101.414 1.414L10 11.414l3.293 3.293a1 1 0 001.414-1.414L11.414 10l3.293-3.293a1 1 0 00-1.414-1.414L10 8.586 6.707 5.293z"/>
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+          {/* Иконка пользователя (активные) */}
+          <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+        </svg>
+      )}
+    </div>
+    {hoveredButton === "filter" && (
+      <div className="filter-tooltip">
+        {showLockedOnly ? "Показать активных пользователей" : "Показать заблокированных пользователей"}
+      </div>
+    )}
+  </button>
+</div>
         </div>
       </header>
 
@@ -280,71 +316,75 @@ useEffect(() => {
               )
             )
           ) : (
-            <p className="error-message oval2">Нет трекеров для отображения</p>
+            <p className="error-message oval2">
+              {showLockedOnly 
+                ? "Нет заблокированных пользователей для отображения" 
+                : "Нет активных пользователей для отображения"
+              }
+            </p>
           )}
         </div>
       </main>
 
       {trackers.length > 0 && (
-  <footer className="Stream-footer">
-  <div className="Stream-footer-butts">
-    <div className="Stream-footer-p-butt-1">
-      {page > 0 && (
-        <button
-          onClick={handlePrevPage}
-          className="Stream-footer-button-1"
-          aria-label="Предыдущая страница"
-        ></button>
+        <footer className="Stream-footer">
+          <div className="Stream-footer-butts">
+            <div className="Stream-footer-p-butt-1">
+              {page > 0 && (
+                <button
+                  onClick={handlePrevPage}
+                  className="Stream-footer-button-1"
+                  aria-label="Предыдущая страница"
+                ></button>
+              )}
+            </div>
+            <div className="Stream-footer-p-butts">
+              {page > 1 && (
+                <button
+                  onClick={() => handlePageJump(-2)}
+                  className="Stream-footer-button-2"
+                  aria-label="Перейти на 2 страницы назад"
+                ></button>
+              )}
+              {page > 0 && (
+                <button
+                  onClick={handlePrevPage}
+                  className="Stream-footer-button-2"
+                  aria-label="Предыдущая страница"
+                ></button>
+              )}
+              <button
+                className="Stream-footer-button-3"
+                aria-label={`Текущая страница ${page + 1}`}
+                disabled
+              ></button>
+              {page < totalPages - 1 && (
+                <button
+                  onClick={handleNextPage}
+                  className="Stream-footer-button-4"
+                  aria-label="Следующая страница"
+                ></button>
+              )}
+              {page < totalPages - 2 && (
+                <button
+                  onClick={() => handlePageJump(2)}
+                  className="Stream-footer-button-4"
+                  aria-label="Перейти на 2 страницы вперед"
+                ></button>
+              )}
+            </div>
+            <div className="Stream-footer-p-butt-5">
+              {page < totalPages - 1 && (
+                <button
+                  onClick={handleNextPage}
+                  className="Stream-footer-button-5"
+                  aria-label="Следующая страница"
+                ></button>
+              )}
+            </div>
+          </div>
+        </footer>
       )}
-    </div>
-    <div className="Stream-footer-p-butts">
-      {page > 1 && (
-        <button
-          onClick={() => handlePageJump(-2)}
-          className="Stream-footer-button-2"
-          aria-label="Перейти на 2 страницы назад"
-        ></button>
-      )}
-      {page > 0 && (
-        <button
-          onClick={handlePrevPage}
-          className="Stream-footer-button-2"
-          aria-label="Предыдущая страница"
-        ></button>
-      )}
-      <button
-        className="Stream-footer-button-3"
-        aria-label={`Текущая страница ${page + 1}`}
-        disabled
-      ></button>
-      {page < totalPages - 1 && (
-        <button
-          onClick={handleNextPage}
-          className="Stream-footer-button-4"
-          aria-label="Следующая страница"
-        ></button>
-      )}
-      {page < totalPages - 2 && (
-        <button
-          onClick={() => handlePageJump(2)}
-          className="Stream-footer-button-4"
-          aria-label="Перейти на 2 страницы вперед"
-        ></button>
-      )}
-    </div>
-    <div className="Stream-footer-p-butt-5">
-      {page < totalPages - 1 && (
-        <button
-          onClick={handleNextPage} // Изменено с setPage(totalPages - 1) на handleNextPage
-          className="Stream-footer-button-5"
-          aria-label="Следующая страница" // Изменено с "Последняя страница" на "Следующая страница"
-        ></button>
-      )}
-    </div>
-  </div>
-</footer>
-)}
-      
     </div>
   );
 }
