@@ -31,6 +31,9 @@ const MeetingCard = () => {
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const fileInputRef = useRef(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+const [pendingCompletion, setPendingCompletion] = useState(null); // true = состоялась, false = не состоялась
+
 const renderTextareaSection = (name, label, value) => (
         <div className="unique-meeting-info-row">
             <span className="unique-label">{label}</span>
@@ -426,7 +429,10 @@ if (!isMeetingDatePassed()) {
     {/* Кнопка "Не состоялась" */}
     {meetingData.status !== "COMPLETED" && (
       <button 
-        onClick={() => handleCompleteMeeting(false)}
+  onClick={() => {
+    setPendingCompletion(false);
+    setShowConfirmModal(true);
+  }}
         disabled={meetingData.status === "COMPLETED_AS_NOT_HAPPENED" || !isMeetingDatePassed()}
         className={`unique-status-button unique-status-not-happened ${
           meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : ""
@@ -621,6 +627,34 @@ if (!isMeetingDatePassed()) {
                     )}
                 </div>
             </div>
+            {showConfirmModal && (
+  <div className="confirm-modal-overlay">
+    <div className="confirm-modal">
+      <h3 className="confirm-modal-title">Подтверждение действия</h3>
+      <p className="confirm-modal-text">
+        Вы уверены, что хотите завершить встречу как <b>несостоявшуюся</b>?
+      </p>
+      <div className="confirm-modal-buttons">
+        <button
+          className="confirm-button yes"
+          onClick={() => {
+            setShowConfirmModal(false);
+            handleCompleteMeeting(pendingCompletion);
+          }}
+        >
+          Да
+        </button>
+        <button
+          className="confirm-button no"
+          onClick={() => setShowConfirmModal(false)}
+        >
+          Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
         </div>
     );
 };

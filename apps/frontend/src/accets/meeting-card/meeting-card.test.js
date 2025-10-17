@@ -739,29 +739,35 @@ describe('MeetingCard Completion and Editing', () => {
     );
   });
   test('should mark meeting as not happened successfully (lines 186-230)', async () => {
-    fetch.mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ ...mockMeetingData, status: "COMPLETED_AS_NOT_HAPPENED" }),
-      })
-    );
+  fetch.mockImplementationOnce(() =>
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ ...mockMeetingData, status: "COMPLETED_AS_NOT_HAPPENED" }),
+    })
+  );
 
-    render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
-    );
+  render(
+    <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+      <Routes>
+        <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+      </Routes>
+    </MemoryRouter>
+  );
 
-    // Wait for initial load
-    await screen.findByText(/Встреча 10/i);
+  // Wait for initial load
+  await screen.findByText(/Встреча 10/i);
 
-    // Click "Встреча не состоялась" button
-    await act(async () => {
-      fireEvent.click(screen.getByText('Не состоялась'));
-    });
+  // Click "Встреча не состоялась" button - это открывает модальное окно
+  await act(async () => {
+    fireEvent.click(screen.getByText('Не состоялась'));
+  });
 
+  // Подтверждаем в модальном окне
+  await act(async () => {
+    fireEvent.click(screen.getByText('Да'));
+  });
+
+  await waitFor(() => {
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/v1/update-meeting/123'),
       expect.objectContaining({
@@ -778,6 +784,7 @@ describe('MeetingCard Completion and Editing', () => {
       })
     );
   });
+});
 
   test('should handle error when completing meeting (lines 186-230)', async () => {
     // Mock image preview URL to satisfy areAllFieldsFilled() check
@@ -1177,8 +1184,11 @@ describe('MeetingCard Completion Validation', () => {
       })
     );
 
-    const notHappenedButton = screen.getByText('Не состоялась');
-    fireEvent.click(notHappenedButton);
+    // Click "Не состоялась" button - открывает модальное окно
+  const notHappenedButton = screen.getByText('Не состоялась');
+  fireEvent.click(notHappenedButton);
+  const confirmButton = screen.getByText('Да');
+  fireEvent.click(confirmButton);
 
     // Should not show validation errors for "NOT_HAPPENED"
     expect(screen.queryByText(/Нельзя завершить встречу/)).not.toBeInTheDocument();
