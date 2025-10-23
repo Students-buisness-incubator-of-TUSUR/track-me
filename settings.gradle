@@ -25,3 +25,6 @@ findProject(':commons').projectDir = file('libs/commons')
 
 include ':meeting-service'
 findProject(':meeting-service').projectDir = file('services/meeting-service')
+
+include ':reporting-service'
+findProject(':reporting-service').projectDir = file('services/reporting-service')
