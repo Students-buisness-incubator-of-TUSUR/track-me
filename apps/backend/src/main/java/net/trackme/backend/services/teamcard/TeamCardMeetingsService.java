@@ -11,5 +11,5 @@ public interface TeamCardMeetingsService {
 
     void updateTeamCardInfo(UUID teamCardId, UUID uuid, MeetingStatus newStatus,
                             MeetingStatus oldStatus, TeamCardStatus teamCardStatus,
-                            BigDecimal teamGrade);
+                            BigDecimal teamGrade, String meetingLink);
 }

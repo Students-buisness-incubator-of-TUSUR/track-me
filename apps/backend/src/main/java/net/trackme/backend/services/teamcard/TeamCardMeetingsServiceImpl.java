@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.domain.TeamCard;
+import net.trackme.backend.messaging.MeetingNotHappenedEvent;
 import net.trackme.backend.models.MeetingStatus;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.repos.MeetingGradeRepository;
@@ -22,6 +23,8 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
     private final TeamCardsRepository teamCardsRepository;
 
     private final MeetingGradeRepository meetingGradeRepository;
+
+    private final TeamCardEventsProducer teamCardEventsProducer;
 
     @Override
     @Transactional
@@ -50,7 +53,8 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                                    UUID meetingId, MeetingStatus newStatus,
                                    MeetingStatus oldStatus,
                                    TeamCardStatus teamCardStatus,
-                                   BigDecimal teamGrade) {
+                                   BigDecimal teamGrade,
+                                   String meetingLink) {
         meetingGradeRepository.findByMeetingIdAndTeamCardId(meetingId, teamCardId)
                 .ifPresent(meetingGrade -> meetingGrade.setGrade(teamGrade));
         teamCardsRepository.findById(teamCardId)
@@ -66,6 +70,13 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                             }
                             if (teamGrade != null) {
                                 calculateAverageGrade(teamCard);
+                                if (oldStatus == MeetingStatus.SCHEDULED
+                                        && newStatus == MeetingStatus.NOT_HAPPENED){
+                                    sendMeetingNotHappenedEvent(
+                                            teamCard.getUsername(),
+                                            meetingLink,
+                                            teamCard.getAverageGrade());
+                                }
                             }
                             teamCardsRepository.save(teamCard);
                             log.info(
@@ -92,5 +103,16 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                     BigDecimal.valueOf(meetingGrades.size()), 2, RoundingMode.HALF_UP);
             teamCard.setAverageGrade(average);
         }
+    }
+
+    private void sendMeetingNotHappenedEvent(String username,
+                                             String meetingLink,
+                                             BigDecimal averageGrade){
+        var event = MeetingNotHappenedEvent.builder()
+                .username(username)
+                .meetingLink(meetingLink)
+                .averageGrade(averageGrade)
+                .build();
+        teamCardEventsProducer.sendMeetingNotHappenedEvent(event);
     }
 }

@@ -39,6 +39,7 @@ public class MeetingEventsListener {
                 meetingUpdatedEvent.newStatus(),
                 meetingUpdatedEvent.oldStatus(),
                 meetingUpdatedEvent.teamStatus(),
-                meetingUpdatedEvent.teamGrade());
+                meetingUpdatedEvent.teamGrade(),
+                meetingUpdatedEvent.meetingLink());
     }
 }

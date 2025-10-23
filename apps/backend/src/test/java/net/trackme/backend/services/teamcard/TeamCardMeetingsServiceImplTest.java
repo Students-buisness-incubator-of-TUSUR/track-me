@@ -70,6 +70,7 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
         var meetingId = UUID.randomUUID();
+        var meetingLink = "Test meeting link";
 
         // Act
         teamCardMeetingsService.updateTeamCardInfo(
@@ -78,7 +79,8 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
                 MeetingStatus.COMPLETED,
                 MeetingStatus.SCHEDULED,
                 teamCard.getStatus(),
-                BigDecimal.ZERO);
+                BigDecimal.ZERO,
+                meetingLink);
 
         // Assert
         var expectedTeamCard = teamCardsService.getTeamCard(teamCard.getId());

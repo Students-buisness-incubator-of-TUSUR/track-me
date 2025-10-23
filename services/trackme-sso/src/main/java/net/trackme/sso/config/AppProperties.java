@@ -17,6 +17,9 @@ public class AppProperties {
   @NotBlank(message = "URL cannot be blank")
   private String apiUrl;
 
+  @NotBlank(message = "Bot username cannot be blank")
+  private String botUsername;
+
   private MailProperties mail = new MailProperties();
 
   @Data
