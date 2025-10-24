@@ -7,7 +7,6 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import * as redux from 'react-redux';
 import { getMeetingStatusClass } from './team-card.js';
 
-      const urlString = typeof url === 'string' ? url : url?.toString?.() ?? String(url);
 const mockedNavigate = jest.fn();
 
 jest.mock('../meeting-card/MeetingCreate.js', () => {
@@ -59,8 +58,8 @@ beforeEach(() => {
 
   window.confirm = jest.fn(() => true);
 
-  global.fetch = jest.fn((url, opts = {}) => {
-    // 1) PATCH (handleSave)
+  global.fetch = jest.fn((url, opts = {}) = {> 
+    const urlString = typeof url === 'string' ? url : url?.toString?.() ?? String(url);    // 1) PATCH (handleSave)
     if (opts.method === 'PATCH') {
       const body = JSON.parse(opts.body);
       return Promise.resolve({
