@@ -14,8 +14,8 @@ jest.mock('react-router-dom', () => ({
 // Mock getCsrfConfigForFetch
 jest.mock('../../utils/csrf-utils', () => ({
   getCsrfConfigForFetch: jest.fn(() => ({
-    'X-CSRF-Token': 'mock-csrf-token',  })),
-}));
+    'X-CSRF-Token': 'mock-csrf-token'
+        }))
 
 describe('Компонент MeetingCreate', () => {
 MeetingCreate.test.js: исправил синтаксис fetch мока (добавил { посMeetingCreate.test.js: исправил синтаксис fetch мокале => и убрал лишнюю {)  const mockNavigate = jest.fn();
