@@ -14,9 +14,7 @@ jest.mock('react-router-dom', () => ({
 // Mock getCsrfConfigForFetch
 jest.mock('../../utils/csrf-utils', () => ({
   getCsrfConfigForFetch: jest.fn(() => ({
-    'X-CSRF-Token': 'mock-csrf-token',
-if (urlString.includes('/api/v1/meetings')) {
-  })),
+    'X-CSRF-Token': 'mock-csrf-token',  })),
 }));
 
 describe('Компонент MeetingCreate', () => {
