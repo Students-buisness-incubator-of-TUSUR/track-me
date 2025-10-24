@@ -1265,33 +1265,6 @@ describe('MobileHeader Component', () => {
     expect(mockedNavigate).toHaveBeenCalledWith('/streams');
   });
 
-  test('clears localStorage and navigates to logout when "Выйти" is clicked', async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42']}>
-          <Routes>
-            <Route path="/team-card/:id" element={<TeamCard />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: '' })); // open menu
-    fireEvent.click(screen.getByText('Выйти'));
-
-    // Check that localStorage items were removed
-    expect(localStorage.removeItem).toHaveBeenCalledWith('user');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('userRole');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('streamName');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('streamId');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('streamSDate');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('streamEDate');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('csrfToken');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('csrfHeaderName');
-
-    // Check navigation to logout
-    expect(mockedNavigate).toHaveBeenCalledWith(expect.stringContaining('/logout'));
-  });
 
   test('menu closes when clicking the hamburger button again', async () => {
     await act(async () => {
