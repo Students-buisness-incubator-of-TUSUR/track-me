@@ -795,10 +795,10 @@ describe('Additional coverage (manual lines)', () => {
         </MemoryRouter>
       );
     });
-    expect(spySet).toHaveBeenCalledWith(
-      'user',
-      JSON.stringify({ user: { username: 'reduxUser', roles: ['ADMIN'] } })
-    );
+  expect(spySet).toHaveBeenCalledWith(
+    'user',
+    JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+  );
     spySet.mockRestore();
   });
 
@@ -1198,7 +1198,7 @@ describe('MobileHeader Component', () => {
       );
     });
 
-    const menuButton = screen.getByRole('button', { name: '' }); // hamburger button
+    const menuButton = screen.getByRole('button', { name: 'Главный экран' }); // hamburger button
     fireEvent.click(menuButton);
 
     expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
@@ -1265,6 +1265,33 @@ describe('MobileHeader Component', () => {
     expect(mockedNavigate).toHaveBeenCalledWith('/streams');
   });
 
+  test('clears localStorage and navigates to logout when "Выйти" is clicked', async () => {
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '' })); // open menu
+    fireEvent.click(screen.getByText('Выйти'));
+
+    // Check that localStorage items were removed
+    expect(localStorage.removeItem).toHaveBeenCalledWith('user');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('userRole');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('streamName');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('streamId');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('streamSDate');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('streamEDate');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('csrfToken');
+    expect(localStorage.removeItem).toHaveBeenCalledWith('csrfHeaderName');
+
+    // Check navigation to logout
+    expect(mockedNavigate).toHaveBeenCalledWith(expect.stringContaining('/logout'));
+  });
 
   test('menu closes when clicking the hamburger button again', async () => {
     await act(async () => {
@@ -1290,27 +1317,29 @@ describe('MobileHeader Component', () => {
     });
   });
 
-  test('menu items are keyboard accessible', async () => {
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42']}>
-          <Routes>
-            <Route path="/team-card/:id" element={<TeamCard />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-
-    // Open menu with keyboard
-    const menuButton = screen.getByRole('button', { name: '' });
-    fireEvent.keyDown(menuButton, { key: 'Enter' });
-    
-    // Navigate through menu items
-    const menuItems = screen.getAllByRole('button');
-    fireEvent.keyDown(menuItems[1], { key: 'Enter' }); // Profile button
-    
-    expect(mockedNavigate).toHaveBeenCalledWith('/profile');
+test('menu items are keyboard accessible', async () => {
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes>
+          <Route path="/team-card/:id" element={<TeamCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
   });
+  
+  // Открываем меню с клавиатуры
+  const menuButton = screen.getByRole('button', { name: '' });
+  fireEvent.keyDown(menuButton, { key: 'Enter' });
+  
+  // Ждём появления пункта меню
+  const profileMenuItem = await screen.findByText('Личный кабинет');
+  
+  // Нажимаем Enter на пункте меню
+  fireEvent.keyDown(profileMenuItem, { key: 'Enter' });
+  
+  expect(mockedNavigate).toHaveBeenCalledWith('/profile');
+});
 
   test('hamburger icon animates on menu toggle', async () => {
     await act(async () => {
