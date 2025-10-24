@@ -1426,6 +1426,183 @@ describe('MeetingCard Date Validation Logic', () => {
     expect(mockSetShowDateTooltip).toHaveBeenCalledWith(false);
   });
 
+  test('hamburger icon should animate on menu toggle', async () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const menuButton = screen.getByRole('button', { name: /menu/i });
+    const hamburger = menuButton.querySelector('.hamburger');
+
+    // Initially should not have open class
+    expect(hamburger).not.toHaveClass('open');
+
+    // After click should have open class
+    fireEvent.click(menuButton);
+    expect(hamburger).toHaveClass('open');
+
+    // After second click should not have open class
+    fireEvent.click(menuButton);
+    expect(hamburger).not.toHaveClass('open');
+  });
+
+  test('mobile menu should be accessible with keyboard', async () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const menuButton = screen.getByRole('button', { name: /menu/i });
+
+    // Open menu with keyboard
+    fireEvent.keyDown(menuButton, { key: 'Enter' });
+    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
+
+    // Navigate through menu items with keyboard
+    const menuItems = screen.getAllByRole('button');
+    fireEvent.keyDown(menuItems[1], { key: 'Enter' });
+    
+    // Menu should close after item selection
+    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+  });
+
+  test('mobile header should show on small screens', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Get header element
+    const header = document.querySelector('.mobile-header');
+    expect(header).toBeInTheDocument();
+
+    // Check media query styles
+    const styles = window.getComputedStyle(header);
+    
+    // At default width (>768px) header should be hidden
+    expect(styles.display).toBe('none');
+
+    // Simulate mobile width
+    Object.defineProperty(window, 'innerWidth', {value: 767});
+    window.dispatchEvent(new Event('resize'));
+
+    // After resize to mobile width, header should be shown
+    const updatedStyles = window.getComputedStyle(header);
+    expect(updatedStyles.display).toBe('flex');
+  });
+
+  test('header should adapt to very small screens', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const header = document.querySelector('.mobile-header');
+    const headerLeft = header.querySelector('.header-left');
+    const logoImg = header.querySelector('.Stream-header-logo');
+    const headerText = header.querySelector('.mobile-header-text');
+
+    // Simulate very small screen
+    Object.defineProperty(window, 'innerWidth', {value: 479});
+    window.dispatchEvent(new Event('resize'));
+
+    const styles = window.getComputedStyle(headerLeft);
+    const logoStyles = window.getComputedStyle(logoImg);
+    const textStyles = window.getComputedStyle(headerText);
+
+    // Check responsive styles
+    expect(styles.maxWidth).toBe('calc(100% - 60px)');
+    expect(styles.overflow).toBe('hidden');
+    expect(textStyles.fontSize).toBe('20px');
+  });
+
+  test('menu should close when clicking outside', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // Open menu
+    const menuButton = screen.getByRole('button', { name: /menu/i });
+    fireEvent.click(menuButton);
+    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
+
+    // Click outside menu
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+  });
+
+  test('menu should handle multiple open/close cycles', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const menuButton = screen.getByRole('button', { name: /menu/i });
+    const hamburger = menuButton.querySelector('.hamburger');
+
+    // First cycle
+    fireEvent.click(menuButton);
+    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
+    expect(hamburger).toHaveClass('open');
+
+    fireEvent.click(menuButton);
+    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+    expect(hamburger).not.toHaveClass('open');
+
+    // Second cycle
+    fireEvent.click(menuButton);
+    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
+    expect(hamburger).toHaveClass('open');
+
+    fireEvent.click(menuButton);
+    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+    expect(hamburger).not.toHaveClass('open');
+  });
+
+  test('menu should maintain role and aria attributes', () => {
+    render(
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const menuButton = screen.getByRole('button', { name: /menu/i });
+    
+    // Check initial aria states
+    expect(menuButton).toHaveAttribute('aria-label', 'menu');
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+
+    // Check aria states after opening menu
+    fireEvent.click(menuButton);
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+
+    // Check aria states after closing menu
+    fireEvent.click(menuButton);
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+  });
+
   // Test the isMeetingDatePassed function logic
   test('isMeetingDatePassed should return correct values', () => {
     // Create fixed dates for testing
