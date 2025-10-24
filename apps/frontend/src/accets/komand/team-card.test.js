@@ -52,7 +52,6 @@ beforeEach(() => {
   Storage.prototype.getItem = jest.fn(() =>
     JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
   );
-
   window.confirm = jest.fn(() => true);
 
   global.fetch = jest.fn((url, opts = {}) => {
@@ -796,9 +795,11 @@ describe('Additional coverage (manual lines)', () => {
       );
     });
   expect(spySet).toHaveBeenCalledWith(
-    'user',
-    JSON.stringify({ user: { username: 'reduxUser', roles: ['ADMIN'] } })
-  );
+      'user',
+      JSON.stringify({ user: { username: 'reduxUser', roles: ['ADMIN'] } })
+    );
+    spySet.mockRestore();
+  });
 
   test('handleDeactivate: если confirm отклонён, fetch и navigate не вызываются', async () => {
     window.confirm = jest.fn(() => false);
@@ -1154,9 +1155,6 @@ describe('Additional coverage (manual lines)', () => {
 
   
 });
-
-
-
 describe('Additional coverage for specific lines', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -2267,4 +2265,4 @@ describe('getMeetingStatusClass', () => {
     const result = getMeetingStatusClass('UNKNOWN_STATUS');
     expect(result).toBe('');
   });
-})});
+});
