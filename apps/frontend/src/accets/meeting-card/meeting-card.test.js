@@ -5,8 +5,8 @@ import MeetingCard from './meeting-card';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 // Mock fetch globally
-global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) };)
-              ;est.setTimeout(10000);
+global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }))
+  ;              ;est.setTimeout(10000);
 // Mock react-router-dom hooks
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
