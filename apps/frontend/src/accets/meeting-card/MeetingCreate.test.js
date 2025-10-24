@@ -14,12 +14,13 @@ jest.mock('react-router-dom', () => ({
 // Mock getCsrfConfigForFetch
 jest.mock('../../utils/csrf-utils', () => ({
   getCsrfConfigForFetch: jest.fn(() => ({
-    'X-CSRF-Token': 'mock-csrf-token'
-        }))
-    }));
+    'X-CSRF-Token': 'mock-csrf-token',
+  })),
+}));
 
 describe('Компонент MeetingCreate', () => {
-MeetingCreate.test.js: исправил синтаксис fetch мока (добавил { посMeetingCreate.test.js: исправил синтаксис fetch мокале => и убрал лишнюю {)  const mockNavigate = jest.fn();
+  const mockOnClose = jest.fn();
+  const mockNavigate = jest.fn();
   const teamId = 'team123';
 
   beforeEach(() => {
@@ -35,15 +36,14 @@ MeetingCreate.test.js: исправил синтаксис fetch мока (до�
     process.env.REACT_APP_BACKEND_URI = 'http://localhost:8080';
 
     // Mock fetch globally
-    global.fetch = jest.fn((url, options) = {>
-            const urlString = typeof url === 'string' ? url : url.toString(
-      if (urlString.includes('api/v1/meetings')) {
+    global.fetch = jest.fn((url, options) => {
+      if (url.includes('api/v1/meetings')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ content: [] }),
         });
       }
-      if (urlString.includes('api/v1/create-meeting')) {
+      if (url.includes('api/v1/create-meeting')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ id: 'meeting123' }),
@@ -130,13 +130,13 @@ MeetingCreate.test.js: исправил синтаксис fetch мока (до�
 
     it('должен обрабатывать ошибку API при создании встречи с сообщением', async () => {
       global.fetch.mockImplementation((url) => {
-        if (urlString.includes('api/v1/meetings')) {
+        if (url.includes('api/v1/meetings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ content: [] }),
           });
         }
-        if (urlString.includes('api/v1/create-meeting')) {
+        if (url.includes('api/v1/create-meeting')) {
           return Promise.resolve({
             ok: false,
             json: () => Promise.resolve({ message: 'Не удалось создать встречу' }),
@@ -165,13 +165,13 @@ MeetingCreate.test.js: исправил синтаксис fetch мока (до�
   describe('Error handling for meeting creation (lines 98-110)', () => {
     it('should handle server error when creating meeting', async () => {
       global.fetch.mockImplementation((url) => {
-        if (urlString.includes('api/v1/meetings')) {
+        if (url.includes('api/v1/meetings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ content: [] }),
           });
         }
-        if (urlString.includes('api/v1/create-meeting')) {
+        if (url.includes('api/v1/create-meeting')) {
           return Promise.resolve({
             ok: false,
             json: () => Promise.resolve({ message: 'Creation failed' }),
@@ -196,13 +196,13 @@ MeetingCreate.test.js: исправил синтаксис fetch мока (до�
 
     it('should show default error when no message from server on creation', async () => {
       global.fetch.mockImplementation((url) => {
-        if (urlString.includes('api/v1/meetings')) {
+        if (url.includes('api/v1/meetings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ content: [] }),
           });
         }
-        if (urlString.includes('api/v1/create-meeting')) {
+        if (url.includes('api/v1/create-meeting')) {
           return Promise.resolve({
             ok: false,
             json: () => Promise.resolve({}),
@@ -250,13 +250,13 @@ MeetingCreate.test.js: исправил синтаксис fetch мока (до�
 
     it('должен очищать ошибку при изменении поля ввода', async () => {
       global.fetch.mockImplementation((url) => {
-        if (urlString.includes('api/v1/meetings')) {
+        if (url.includes('api/v1/meetings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ content: [] }),
           });
         }
-        if (urlString.includes('api/v1/create-meeting')) {
+        if (url.includes('api/v1/create-meeting')) {
           return Promise.resolve({
             ok: false,
             json: () => Promise.resolve({ message: 'Не удалось создать встречу' }),
