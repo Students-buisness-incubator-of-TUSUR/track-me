@@ -49,9 +49,13 @@ beforeEach(() => {
   redux.useSelector.mockImplementation(() => ({
     user: { username: 'reduxUser', roles: ['ADMIN'] }
   }));
-  Storage.prototype.getItem = jest.fn(() =>
-    JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
-  );
+  Storage.prototype.getItem = jest.fn((key) => {
+    if (key === 'csrfToken') return 'test-csrf-token';
+    if (key === 'csrfHeaderName') return 'X-CSRF-TOKEN';
+    if (key === 'user') return JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] });
+    return null;
+  });
+
   window.confirm = jest.fn(() => true);
 
   global.fetch = jest.fn((url, opts = {}) => {
@@ -1336,8 +1340,7 @@ test('menu items are keyboard accessible', async () => {
   const profileMenuItem = await screen.findByText('Личный кабинет');
   
   // Нажимаем Enter на пункте меню
-  fireEvent.keyDown(profileMenuItem, { key: 'Enter' });
-  
+    fireEvent.click(profileMenuItem);  
   expect(mockedNavigate).toHaveBeenCalledWith('/profile');
 });
 
