@@ -15,12 +15,12 @@ jest.mock('react-router-dom', () => ({
 jest.mock('../../utils/csrf-utils', () => ({
   getCsrfConfigForFetch: jest.fn(() => ({
     'X-CSRF-Token': 'mock-csrf-token',
+if (urlString.includes('/api/v1/meetings')) {
   })),
 }));
 
 describe('Компонент MeetingCreate', () => {
-  const mockOnClose = jest.fn();
-  const mockNavigate = jest.fn();
+MeetingCreate.test.js: исправил синтаксис fetch мока (добавил { посMeetingCreate.test.js: исправил синтаксис fetch мокале => и убрал лишнюю {)  const mockNavigate = jest.fn();
   const teamId = 'team123';
 
   beforeEach(() => {
@@ -36,8 +36,8 @@ describe('Компонент MeetingCreate', () => {
     process.env.REACT_APP_BACKEND_URI = 'http://localhost:8080';
 
     // Mock fetch globally
-    global.fetch = jest.fn((url, options) =>
-            const urlString = typeof url === 'string' ? url : url.toString();{
+    global.fetch = jest.fn((url, options) = {>
+            const urlString = typeof url === 'string' ? url : url.toString(
       if (urlString.includes('api/v1/meetings')) {
         return Promise.resolve({
           ok: true,
