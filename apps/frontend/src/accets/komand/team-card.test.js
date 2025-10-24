@@ -58,7 +58,7 @@ beforeEach(() => {
 
   window.confirm = jest.fn(() => true);
 
-  global.fetch = jest.fn((url, opts = {}) = {> 
+  global.fetch = jest.fn((url, opts = {}) = >{> 
     const urlString = typeof url === 'string' ? url : url?.toString?.() ?? String(url);    // 1) PATCH (handleSave)
     if (opts.method === 'PATCH') {
       const body = JSON.parse(opts.body);
