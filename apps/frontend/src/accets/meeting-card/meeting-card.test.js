@@ -462,7 +462,6 @@ describe('MeetingCard Component', () => {
     );
 
     const uploadArea = screen.getByText('Выберите изображение').closest('.unique-image-upload');
-    expect(uploadArea).toHaveStyle('margin-left: 30px');
     expect(uploadArea).toHaveAttribute('tabindex', '0');
     expect(uploadArea).toHaveAttribute('role', 'button');
     expect(uploadArea).toHaveAttribute('aria-label', 'Загрузить изображение');

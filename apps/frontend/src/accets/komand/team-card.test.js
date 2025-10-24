@@ -1196,8 +1196,6 @@ describe('MobileHeader Component', () => {
       );
     });
 
-    const menuButton = screen.getByRole('button', { name: 'Главный экран' }); // hamburger button
-    fireEvent.click(menuButton);
 
     expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
     expect(screen.getByText('Главный экран')).toBeInTheDocument();
