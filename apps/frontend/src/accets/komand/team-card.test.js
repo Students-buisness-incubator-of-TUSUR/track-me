@@ -7,6 +7,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import * as redux from 'react-redux';
 import { getMeetingStatusClass } from './team-card.js';
 
+      const urlString = typeof url === 'string' ? url : url?.toString?.() ?? String(url);
 const mockedNavigate = jest.fn();
 
 jest.mock('../meeting-card/MeetingCreate.js', () => {
