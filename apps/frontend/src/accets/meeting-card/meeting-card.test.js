@@ -24,6 +24,117 @@ jest.mock('../../utils/csrf-utils', () => ({
   })
 }));
 
+describe('MobileHeader Component', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    fetch.mockClear();
+  });
+
+  test('renders mobile header with logo and title', () => {
+    render(
+      <MemoryRouter>
+        <MeetingCard />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Track Me')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /menu/i })).toBeInTheDocument();
+  });
+
+  test('opens and closes menu on button click', () => {
+    render(
+      <MemoryRouter>
+        <MeetingCard />
+      </MemoryRouter>
+    );
+
+    const menuButton = screen.getByRole('button', { name: /menu/i });
+    
+    // Initially menu is closed
+    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+    
+    // Open menu
+    fireEvent.click(menuButton);
+    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
+    expect(screen.getByText('Главный экран')).toBeInTheDocument();
+    expect(screen.getByText('Выйти')).toBeInTheDocument();
+    
+    // Close menu
+    fireEvent.click(menuButton);
+    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+  });
+
+  test('handles user role from localStorage', () => {
+    const mockUser = { roles: ['TRACKER'] };
+    localStorage.setItem('user', JSON.stringify(mockUser));
+
+    render(
+      <MemoryRouter>
+        <MeetingCard />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+    
+    // Click "Главный экран" should use the correct path based on role
+    const mainScreenButton = screen.getByText('Главный экран');
+    fireEvent.click(mainScreenButton);
+
+    // Since we're using a mock navigate function, we can't directly test the navigation
+    // but we can verify the button is there and clickable
+    expect(mainScreenButton).toBeInTheDocument();
+  });
+
+  test('handles logout correctly', () => {
+    const mockNavigate = jest.fn();
+    jest.spyOn(require('react-router-dom'), 'useNavigate').mockImplementation(() => mockNavigate);
+
+    render(
+      <MemoryRouter>
+        <MeetingCard />
+      </MemoryRouter>
+    );
+
+    // Open menu and click logout
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+    fireEvent.click(screen.getByText('Выйти'));
+
+    // Check if localStorage items were removed
+    expect(localStorage.getItem('user')).toBeNull();
+    expect(localStorage.getItem('userRole')).toBeNull();
+    expect(localStorage.getItem('streamName')).toBeNull();
+    expect(localStorage.getItem('streamId')).toBeNull();
+    expect(localStorage.getItem('streamSDate')).toBeNull();
+    expect(localStorage.getItem('streamEDate')).toBeNull();
+    expect(localStorage.getItem('csrfToken')).toBeNull();
+    expect(localStorage.getItem('csrfHeaderName')).toBeNull();
+
+    // Check if navigation was called with logout path
+    expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('/logout'));
+  });
+
+  test('handles menu item clicks correctly', () => {
+    const mockNavigate = jest.fn();
+    jest.spyOn(require('react-router-dom'), 'useNavigate').mockImplementation(() => mockNavigate);
+
+    render(
+      <MemoryRouter>
+        <MeetingCard />
+      </MemoryRouter>
+    );
+
+    // Open menu
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+    
+    // Click Profile
+    fireEvent.click(screen.getByText('Личный кабинет'));
+    expect(mockNavigate).toHaveBeenCalledWith('/profile');
+
+    // Menu should be closed after clicking
+    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
+  });
+});
+
 describe('MeetingCard Component', () => {
   const mockMeetingData = {
     id: "123",

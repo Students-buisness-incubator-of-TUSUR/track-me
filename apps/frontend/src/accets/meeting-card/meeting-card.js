@@ -576,7 +576,6 @@ if (!isMeetingDatePassed()) {
                             tabIndex={0}
                             role="button"
                             aria-label="Загрузить изображение"
-                            style={{ marginLeft: '30px' }}
                         > 
                             <input
                                 type="file"
