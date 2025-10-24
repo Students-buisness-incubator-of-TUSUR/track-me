@@ -36,14 +36,15 @@ describe('Компонент MeetingCreate', () => {
     process.env.REACT_APP_BACKEND_URI = 'http://localhost:8080';
 
     // Mock fetch globally
-    global.fetch = jest.fn((url, options) => {
-      if (url.includes('api/v1/meetings')) {
+    global.fetch = jest.fn((url, options) =>
+            const urlString = typeof url === 'string' ? url : url.toString();{
+      if (urlString.includes('api/v1/meetings')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ content: [] }),
         });
       }
-      if (url.includes('api/v1/create-meeting')) {
+      if (urlString.includes('api/v1/create-meeting')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ id: 'meeting123' }),
@@ -130,13 +131,13 @@ describe('Компонент MeetingCreate', () => {
 
     it('должен обрабатывать ошибку API при создании встречи с сообщением', async () => {
       global.fetch.mockImplementation((url) => {
-        if (url.includes('api/v1/meetings')) {
+        if (urlString.includes('api/v1/meetings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ content: [] }),
           });
         }
-        if (url.includes('api/v1/create-meeting')) {
+        if (urlString.includes('api/v1/create-meeting')) {
           return Promise.resolve({
             ok: false,
             json: () => Promise.resolve({ message: 'Не удалось создать встречу' }),
@@ -165,13 +166,13 @@ describe('Компонент MeetingCreate', () => {
   describe('Error handling for meeting creation (lines 98-110)', () => {
     it('should handle server error when creating meeting', async () => {
       global.fetch.mockImplementation((url) => {
-        if (url.includes('api/v1/meetings')) {
+        if (urlString.includes('api/v1/meetings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ content: [] }),
           });
         }
-        if (url.includes('api/v1/create-meeting')) {
+        if (urlString.includes('api/v1/create-meeting')) {
           return Promise.resolve({
             ok: false,
             json: () => Promise.resolve({ message: 'Creation failed' }),
@@ -196,13 +197,13 @@ describe('Компонент MeetingCreate', () => {
 
     it('should show default error when no message from server on creation', async () => {
       global.fetch.mockImplementation((url) => {
-        if (url.includes('api/v1/meetings')) {
+        if (urlString.includes('api/v1/meetings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ content: [] }),
           });
         }
-        if (url.includes('api/v1/create-meeting')) {
+        if (urlString.includes('api/v1/create-meeting')) {
           return Promise.resolve({
             ok: false,
             json: () => Promise.resolve({}),
@@ -250,13 +251,13 @@ describe('Компонент MeetingCreate', () => {
 
     it('должен очищать ошибку при изменении поля ввода', async () => {
       global.fetch.mockImplementation((url) => {
-        if (url.includes('api/v1/meetings')) {
+        if (urlString.includes('api/v1/meetings')) {
           return Promise.resolve({
             ok: true,
             json: () => Promise.resolve({ content: [] }),
           });
         }
-        if (url.includes('api/v1/create-meeting')) {
+        if (urlString.includes('api/v1/create-meeting')) {
           return Promise.resolve({
             ok: false,
             json: () => Promise.resolve({ message: 'Не удалось создать встречу' }),
