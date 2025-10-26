@@ -9,6 +9,7 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
 const backendHost2 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/meeting';
+const logoutHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/logout';
 export const getMeetingStatusClass = (status) => {
     switch(status) {
         case "COMPLETED":
@@ -20,6 +21,91 @@ export const getMeetingStatusClass = (status) => {
             return ""; // Для SCHEDULED оставляем без специального класса
     }
 };
+
+const MobileHeader = ({ onNavigate }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [userRole, setUserRole] = useState(null);
+
+    useEffect(() => {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            const parsed = JSON.parse(savedUser);
+            setUserRole(parsed.roles?.[0] || null);
+        }
+    }, []);
+
+    const handleMenuClick = () => {
+        setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleMenuItemClick = (path) => {
+        onNavigate(path);
+        setIsMenuOpen(false);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("streamName");
+        localStorage.removeItem("streamId");
+        localStorage.removeItem("streamSDate");
+        localStorage.removeItem("streamEDate");
+        localStorage.removeItem("csrfToken");
+        localStorage.removeItem("csrfHeaderName");
+
+        onNavigate(logoutHost);
+    };
+
+    const getHomePagePath = () => {
+        if (userRole === "TRACKER") {
+            return "/team-cards";
+        }
+        return "/streams";
+    };
+
+    return (
+        <div className="mobile-header">
+            <div className="header-left">
+                <div className='Stream-header-logo'></div>
+                <div className="mobile-header-text">Track Me</div>
+            </div>
+
+            <div className="mobile-menu-container">
+                <button className="menu-button" onClick={handleMenuClick}>
+                    <span className={`hamburger ${isMenuOpen ? 'open' : ''}`}>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+
+                {isMenuOpen && (
+                    <div className="mobile-menu">
+                        <button 
+                            className="menu-item" 
+                            onClick={() => handleMenuItemClick('/profile')}
+                        >
+                            Личный кабинет
+                        </button>
+                        <button 
+                            className="menu-item" 
+                            onClick={() => handleMenuItemClick(getHomePagePath())}
+                        >
+                            Главный экран
+                        </button>
+                        <button 
+                            className="menu-item logout" 
+                            onClick={handleLogout}
+                        >
+                            Выйти
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const TeamCard = () => {
     const navigate = useNavigate();
     const {id} = useParams();
@@ -50,7 +136,7 @@ const [teamCardsCount, setTeamCardsCount] = useState(0);
     const forceEdit = query.get("edit") === "true";
     const [isEditing, setIsEditing] = useState(forceEdit);
     const [showTooltip, setShowTooltip] = useState(false);
-
+    const [showMeetingsOnMobile, setShowMeetingsOnMobile] = useState(false);
     const [showNTI, setShowNTI] = useState(false);
     const [showTRL, setShowTRL] = useState(false);
     const [selectedMarket, setSelectedMarket] = useState(null);
@@ -564,12 +650,14 @@ const saveMeetingDate = async () => {
    
 
     return (
-        <div className="team-card-widget-container">
-          {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
-  <div className="team-rating">
-    {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-  </div>
-)}
+        <div className="team-page">
+            <MobileHeader onNavigate={navigate} />
+            <div className="team-card-widget-container">
+                {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
+                    <div className="team-rating">
+                        {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                )}
             <button className="close-button-widget" onClick={() => navigate(from)}>×</button>
 
             <button
@@ -877,13 +965,16 @@ const saveMeetingDate = async () => {
             </div>
 
             <div className="right-panel">
-  {/* Сообщение об ошибке */}
-  {meetingError && (
-    <div className="error-message">
-      {meetingError}
-    </div>
-  )}
-            <div className="team-meetings-block">
+  <button className="show-meetings-mobile-btn" onClick={() => setShowMeetingsOnMobile(!showMeetingsOnMobile)}>
+                {showMeetingsOnMobile ? "Скрыть встречи" : "Показать встречи"}
+              </button>
+              {/* Сообщение об ошибке */}
+              {meetingError && (
+                <div className="error-message">
+                  {meetingError}
+                </div>
+              )}
+            <div className={`team-meetings-block${showMeetingsOnMobile ? " show-mobile" : ""}`}>
                     <div className="team-meetings-exist">
   {meetings.map((meeting) => (
     <div
@@ -993,6 +1084,7 @@ const saveMeetingDate = async () => {
                     </button>
                 </div>
             ) : null}
+            </div>
         </div>
     );
 };

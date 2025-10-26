@@ -1,5 +1,107 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400&family=Mulish:wght@300;400&display=swap');
 
+.meeting-page {
+    min-height: 100vh;
+    background: #ffffff;
+}
+
+.mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #8338EB;
+    padding: 0 20px;
+    z-index: 1000;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.mobile-header-text {
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+    font-family: 'Mulish', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.menu-button {
+    background: transparent;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+}
+
+.hamburger span {
+    display: block;
+    height: 4px;
+    width: 100%;
+    background: white;
+    border-radius: 3px;
+}
+
+.hamburger span:last-child {
+    margin-bottom: 0;
+}
+
+.mobile-menu {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    background: #FFFFFF;
+    border: 3px solid #8338EB;
+    width: 250px;
+    padding: 8px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0px 4px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.menu-item {
+    display: flex;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: #444444;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Mulish', sans-serif;
+    border-radius: 8px;
+    margin: 2px 0;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu-item:hover {
+    background: #F5F5F5;
+}
+
+.menu-item.logout {
+    color: #D34F4F;
+}
 
 .unique-meeting-container {
     display: flex;
@@ -598,13 +700,20 @@
   }
   
   @media (max-width: 768px) {
+    .mobile-header {
+        display: flex;
+        height: 60px;
+    }
+
     .unique-meeting-container {
+      padding-top: 60px;
       padding: 10px;
     }
   
     .unique-meeting-card {
       border-radius: 30px;
       padding: 20px;
+      margin-top: 60px;
     }
   
     .unique-close-button {
@@ -715,7 +824,7 @@
     }
   
     .unique-date-row {
-      flex-direction: column;
+      flex-direction: row;
       align-items: flex-start;
       gap: 10px;
     }
@@ -819,6 +928,7 @@
     height: 236px;
     display: flex;
     align-items: center;
+    margin-left: 30px;
     justify-content: center;
     cursor: pointer; /* Added to indicate clickability */
 }
@@ -985,15 +1095,85 @@
 }
 
 @media (max-width: 480px) {
+    .header-left {
+        max-width: calc(100% - 60px);
+        overflow: hidden;
+    }
+
+    .header-left img {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    .mobile-header-text {
+        font-size: 20px;
+    }
+
+    .unique-meeting-container {
+        padding: 0;
+    }
+
+    .unique-image-upload {
+        margin-left: 0px;
+    }
+
+    .unique-meeting-card {
+        background: #F8F3FF;
+        border-radius: 0;
+        min-height: 100%;
+    }
+    .unique-meeting-number {
+        background: #F8F3FF;
+        color: #44069A;
+        font-size: 32px;
+        padding-left: 0px;
+    }
+    .unique-label {
+        color: black;
+    }
+    .unique-screenshot-placeholder {
+      width: 93%;
+    }
+    .edit-icon23 {
+      display: none;
+    }
+    .unique-meeting-date {
+      max-width: 60px;
+    }
+    .unique-input {
+      width: 93%;
+    }
+    .unique-task, .unique-link, .unique-textarea, .unique-input {
+        border: 1px solid #8338EB;
+    }
+    .unique-textarea {
+      width: 93%;
+    }
+
     .unique-status-button {
         padding: 8px 16px;
         font-size: 14px;
     }
 }
 @media (max-width: 768px) {
+     .mobile-header {
+        display: flex;
+        height: 60px;
+    }
+
+    .unique-meeting-container {
+        padding-top: 60px;
+    }
+
+    .unique-meeting-card {
+        margin-top: 0;
+        border-radius: 0px;
+    }
+
     .unique-screenshot-placeholder,
     .unique-meeting-image {
-        width: 100%;
+        width: 93%;
         height: 150px;
     }
 
@@ -1019,7 +1199,7 @@
     .unique-textarea,
     .unique-input,
     .unique-dropdown {
-        padding: 10px 15px;
+        padding: 15px 20px;
         font-size: 14px;
     }
     
@@ -1029,5 +1209,9 @@
     
     .unique-dropdown {
         height: 38px;
+    }
+
+    .confirm-modal {
+        width: 90%;
     }
 }

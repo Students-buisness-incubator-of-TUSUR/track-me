@@ -7,6 +7,7 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 
 const MeetingCard = () => {
     const backendHost = (process.env.REACT_APP_BACKEND_URI || '') + '/meeting';
+    const logoutHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/logout';
     const { meetingId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -33,6 +34,90 @@ const MeetingCard = () => {
     const fileInputRef = useRef(null);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 const [pendingCompletion, setPendingCompletion] = useState(null); // true = состоялась, false = не состоялась
+
+const MobileHeader = ({ onNavigate }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [userRole, setUserRole] = useState(null);
+
+    useEffect(() => {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            const parsed = JSON.parse(savedUser);
+            setUserRole(parsed.roles?.[0] || null);
+        }
+    }, []);
+
+    const handleMenuClick = () => {
+        setIsMenuOpen(!isMenuOpen);
+    };
+
+    const handleMenuItemClick = (path) => {
+        onNavigate(path);
+        setIsMenuOpen(false);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("user");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("streamName");
+        localStorage.removeItem("streamId");
+        localStorage.removeItem("streamSDate");
+        localStorage.removeItem("streamEDate");
+        localStorage.removeItem("csrfToken");
+        localStorage.removeItem("csrfHeaderName");
+
+        onNavigate(logoutHost);
+    };
+
+    const getHomePagePath = () => {
+        if (userRole === "TRACKER") {
+            return "/team-cards";
+        }
+        return "/streams";
+    };
+
+    return (
+        <div className="mobile-header">
+            <div className="header-left">
+                <div className='Stream-header-logo'></div>
+                <div className="mobile-header-text">Track Me</div>
+            </div>
+
+            <div className="mobile-menu-container">
+                <button className="menu-button" onClick={handleMenuClick}>
+                    <span className={`hamburger ${isMenuOpen ? 'open' : ''}`}>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </span>
+                </button>
+
+                {isMenuOpen && (
+                    <div className="mobile-menu">
+                        <button 
+                            className="menu-item" 
+                            onClick={() => handleMenuItemClick('/profile')}
+                        >
+                            Личный кабинет
+                        </button>
+                        <button 
+                            className="menu-item" 
+                            onClick={() => handleMenuItemClick(getHomePagePath())}
+                        >
+                            Главный экран
+                        </button>
+                        <button 
+                            className="menu-item logout" 
+                            onClick={handleLogout}
+                        >
+                            Выйти
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 const renderTextareaSection = (name, label, value) => (
         <div className="unique-meeting-info-row">
@@ -352,6 +437,7 @@ if (!isMeetingDatePassed()) {
 
     return (
         <div className="unique-meeting-container">
+            <MobileHeader onNavigate={navigate} />
             <div className="unique-meeting-card">
                 <button className="unique-close-button" onClick={() => navigate(`/teamcard/${teamId}?userId=${userId}`)}>
                     <img src={closeIcon} alt="Закрыть" className="close-icon" />

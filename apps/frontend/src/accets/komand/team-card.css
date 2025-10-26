@@ -776,18 +776,203 @@ select.team-input-widget option {
     }
 }
 
+.show-meetings-mobile-btn {
+    display: none; /* По умолчанию кнопка скрыта */
+    width: 100%;
+    padding: 10px;
+    background: #8338EB;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #8338EB;
+    padding: 0 20px;
+    z-index: 1000;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.mobile-header-text {
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+    font-family: 'Mulish', sans-serif;
+}
+
+.menu-button {
+    background: transparent;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+}
+
+.hamburger span {
+    display: block;
+    height: 4px;
+    width: 100%;
+    background: white;
+    margin-bottom: 6px;
+    border-radius: 3px;
+}
+
+.hamburger span:last-child {
+    margin-bottom: 0;
+}
+
+.mobile-menu {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    background: #FFFFFF;
+    border:  2px solid #8338EB;
+    width: 300px;
+    padding: 12px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    background: transparent;
+    color: #333333;
+    text-align: left;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Mulish', sans-serif;
+    border-radius: 8px;
+    margin: 4px 0;
+    transition: all 0.2s ease;
+}
+
+.menu-item:hover {
+    background: #F4F4F4;
+}
+
+.menu-item.logout {
+    color: #FF4B4B;
+}
+
+.mobile-menu {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    background: #FFFFFF;
+    border:  3px solid #8338EB;
+    width: 250px;
+    padding: 8px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0px 4px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.menu-item {
+    display: flex;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: #444444;
+    text-align: left;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Mulish', sans-serif;
+    border-radius: 8px;
+    margin: 2px 0;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu-item:hover {
+    background: #F5F5F5;
+}
+
+.menu-item.logout {
+    color: #D34F4F;
+}
+
 @media (max-width: 768px) {
+    .mobile-header {
+        display: flex;
+        height: 60px;
+    }
+
+    .team-page {
+        padding-top: 60px;
+        min-height: 100vh;
+    }
+
+    .team-card-widget-container {
+        margin-top: 0;
+        border-radius: 0;
+        min-height: calc(100vh - 60px);
+    }
+
+    .show-meetings-mobile-btn {
+        display: block; /* Показываем кнопку на мобильных */
+        margin-top: 20px;
+    }
+
+    .team-meetings-block {
+        display: none; /* По умолчанию скрыт на мобильных */
+    }
+
+    .team-meetings-block.show-mobile {
+        display: flex; /* Показываем при активном состоянии */
+    }
+
     .team-card-widget-container {
         padding: 20px;
         min-width: 90%;
         margin: 20px auto;
         border-radius: 30px;
+        flex-direction: column;
+        border-radius: 0;
+        margin: 0;
+        max-height: 100%;
     }
 
     .team-title-widget {
         font-size: 18px;
         top: 25px;
         left: 25px;
+    }
+
+    .team-input-widget {
+        width: 200px;
     }
 
     .edit-button-widget {
@@ -815,12 +1000,44 @@ select.team-input-widget option {
         gap: 20px;
     }
 
+    .team-card-left {
+        padding: 60px 10px 0 10px;
+        width: 95%;
+    }
+
     .right-panel {
-        position: static;
-        width: 25%;
-        margin: 30px 0 0 0; /* Центрирование всей панели */
-        padding: 15px; /* Внутренние отступы */
-        margin-left: 55px;
+        width: 95%;
+        margin: 15px 0 0 0; /* Центрирование всей панели */
+        padding: 10px; /* Внутренние отступы */
+    }
+
+    .team-meetings-block {
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 25px 10px 25px 15px;
+        height: auto;
+    }
+
+    .team-meeting {
+        height: 30px;
+    }
+
+    .meeting-date, .meeting-title {
+        font-size: 18px;
+    }
+
+    .team-meeting-add {
+        height: 30px;
+        width: auto;
+        font-size: 18px;
+    }
+
+    .date-edit-container{
+        width: 100%;
+    }
+    .date-input {
+        margin-left: 8px;
+        max-width: 150px;
     }
 
     .team-label-widget {
@@ -889,9 +1106,57 @@ select.team-input-widget option {
     .inputs-container {
         gap: 20px;
     }
+
+    .close-button-widget {
+        top: 20px;
+        right: 20px;
+    }
+
+    .edit-button-widget {
+        top: 20px;
+        right: 60px;
+    }
+
+    .red-button-container {
+        position: static;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .red-button-widget {
+        margin-top: 10px;
+    }
 }
 
 @media (max-width: 480px) {
+     .header-left {
+        max-width: calc(100% - 60px); /* оставляем место для кнопки меню */
+        overflow: hidden;
+    }
+
+    .header-left img {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    .Stream-header-logo {
+        display: block !important;
+        margin-left: -50px !important;
+    }
+
+    .mobile-header-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .team-card-widget-container {
+        min-height: calc(100vh - 60px);
+        padding: 15px;
+    }
+
     .stream-attach-button-container {
         width: 100%; /* На мобильных занимает всю ширину */
         max-width: 200px; 
@@ -911,11 +1176,54 @@ select.team-input-widget option {
         padding: 10px; /* Внутренние отступы */
     }
     
+    .team-description-wrapper {
+        width: 100%;
+        height: 256px;
+        border-radius: 27px;
+        padding: 20px 30px 10px 15px;
+    }
+
+    .team-input-wrapper {
+        width: auto
+    }
+
+    .team-card-info {
+        width: 100%;
+    }
+
+    .team-rating {
+        height: 40px;
+        width: 150px;
+        font-size: 20px;
+        line-height: 40px;
+    }
+
+    .stream-info-block {
+        flex-direction: row;
+        font-size: 18px;
+        margin-top: 80px;
+        font-weight: 500;
+    }
+
+    .stream-header {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .stream-header-label {
+        min-width: 150px;
+    }
+
+    .stream-data {
+        flex-direction: column;
+        gap: 20px;
+    }
+
     .red-button-widget {
         min-width: 120px;
         height: 42px;
         padding: 8px 15px;
-        margin: 20px;
+        margin-bottom: 20px;
     }
     
     .inputs-container {
@@ -923,7 +1231,32 @@ select.team-input-widget option {
     }
 
     .team-input-widget {
-        height: 42px;
+        width: 170px;
+        background: #E6D7FB;
+        color: #44069A;
+        box-sizing: border-box;
+    }
+
+    .team-input-widget1 {
+        width: 85px;
+    }
+
+    .team-input-widget1, .team-input-widget2 {
+        height: 27px;
+    }
+
+    .team-input-widget1, .team-input-widget2, .team-input-widget, .team-description-label, .team-description-input {
+        font-size: 18px !important;
+    }
+
+    .create-dropdown-toggle{
+        height: 30px;
+        font-size: 18px !important;
+        padding: 3px 0 0 15px !important;
+    }
+
+    .create-dropdown-toggle::after {
+        top: 8px !important;
     }
 
     .team-info-widget,
