@@ -7,7 +7,6 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 
 const MeetingCard = () => {
     const backendHost = (process.env.REACT_APP_BACKEND_URI || '') + '/meeting';
-    const logoutHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/logout';
     const { meetingId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -37,43 +36,9 @@ const [pendingCompletion, setPendingCompletion] = useState(null); // true = со
 
 const MobileHeader = ({ onNavigate }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [userRole, setUserRole] = useState(null);
-
-    useEffect(() => {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            const parsed = JSON.parse(savedUser);
-            setUserRole(parsed.roles?.[0] || null);
-        }
-    }, []);
 
     const handleMenuClick = () => {
         setIsMenuOpen(!isMenuOpen);
-    };
-
-    const handleMenuItemClick = (path) => {
-        onNavigate(path);
-        setIsMenuOpen(false);
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("streamName");
-        localStorage.removeItem("streamId");
-        localStorage.removeItem("streamSDate");
-        localStorage.removeItem("streamEDate");
-        localStorage.removeItem("csrfToken");
-        localStorage.removeItem("csrfHeaderName");
-
-        onNavigate(logoutHost);
-    };
-
-    const getHomePagePath = () => {
-        if (userRole === "TRACKER") {
-            return "/team-cards";
-        }
-        return "/streams";
     };
 
     return (
@@ -96,19 +61,16 @@ const MobileHeader = ({ onNavigate }) => {
                     <div className="mobile-menu">
                         <button 
                             className="menu-item" 
-                            onClick={() => handleMenuItemClick('/profile')}
                         >
                             Личный кабинет
                         </button>
                         <button 
                             className="menu-item" 
-                            onClick={() => handleMenuItemClick(getHomePagePath())}
                         >
                             Главный экран
                         </button>
                         <button 
                             className="menu-item logout" 
-                            onClick={handleLogout}
                         >
                             Выйти
                         </button>
