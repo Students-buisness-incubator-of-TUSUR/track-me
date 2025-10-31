@@ -9,7 +9,7 @@ import trueIcon2 from "./true2.png";
 import falseIcon2 from "./false2.png";
 import ProfileIcon from "./personal_account_1.png";
 import { useNavigate } from "react-router-dom";
-
+import MobileHeader from "../adaptive-accets/MobileHeader";
 function TrackerListPage({ endpoint }) {
   const {
     trackers,
@@ -66,6 +66,7 @@ function TrackerListPage({ endpoint }) {
 
   return (
     <div className="tracker-container">
+       <MobileHeader onNavigate={navigate} />
       <header className="Stream-header">
         <div className="Stream-header-cont">
           <div // NOSONAR
