@@ -25,6 +25,7 @@ jobs:
       sso: ${{ steps.filter.outputs.sso }}
       frontend: ${{ steps.filter.outputs.frontend }}
       meeting-service: ${{ steps.filter.outputs.meeting-service }}
+      telegram-service: ${{ steps.filter.outputs.telegram-service }}
     steps:
       - uses: actions/checkout@v4
       - name: Filter changes
@@ -42,6 +43,8 @@ jobs:
               - 'apps/frontend/**'
             meeting-service:
               - 'services/meeting-service/**'
+            telegram-service:
+              - 'services/telegram-service/**'
 
   trackme-backend-build-push:
     needs: changes
@@ -191,4 +194,77 @@ jobs:
             ghcr.io/${{ github.repository }}/meeting-service:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  trackme-telegram-service-build-push:
+    needs: changes
+    if: needs.changes.outputs.telegram-service == 'true' || github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+      - name: Build and Push trackme-telegram-service Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: services/telegram-service/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/telegram-service:latest
+            ghcr.io/${{ github.repository }}/telegram-service:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/telegram-service:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  trackme-build-and-push-summary:
+    needs:
+      - trackme-backend-build-push
+      - trackme-client-build-push
+      - trackme-sso-build-push
+      - trackme-frontend-build-push
+      - trackme-meeting-service-build-push
+      - trackme-telegram-service-build-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## Build Summary"
+          if [ "${{ needs.changes.outputs.backend }}" = "true" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "- Backend image built and pushed."
+          else
+            echo "- Backend image not changed."
+          fi
+          if [ "${{ needs.changes.outputs.gateway }}" = "true" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "- Gateway image built and pushed."
+          else
+            echo "- Gateway image not changed."
+          fi
+          if [ "${{ needs.changes.outputs.sso }}" = "true" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "- SSO image built and pushed."
+          else
+            echo "- SSO image not changed."
+          fi
+          if [ "${{ needs.changes.outputs.frontend }}" = "true" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "- Frontend image built and pushed."
+          else
+            echo "- Frontend image not changed."
+          fi
+          if [ "${{ needs.changes.outputs.meeting-service }}" = "true" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "- Meeting Service image built and pushed."
+          else
+            echo "- Meeting Service image not changed."
+          fi
+          if [ "${{ needs.changes.outputs.telegram-service }}" = "true" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "- Telegram Service image built and pushed."
+          else
+            echo "- Telegram Service image not changed."
+          fi
 

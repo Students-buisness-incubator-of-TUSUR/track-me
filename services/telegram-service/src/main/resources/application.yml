@@ -1,0 +1,52 @@
+server:
+  port: 8084
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  profiles:
+    active: development
+  application:
+    name: telegram-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    password: ${DB_PASSWORD:project-place}
+    username: ${DB_USERNAME:project-place}
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/project-place}
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 10
+      initialization-fail-timeout: 1
+      leak-detection-threshold: 0
+      pool-name: "HikariPool-track-me-telegram-service"
+      register-mbeans: true
+      schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+  liquibase:
+    enabled: true
+    change-log: classpath:db.changelog.yaml
+    default-schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+    liquibase-schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: telegram-service
+    listener:
+      missing-topics-fatal: false
+      concurrency: 3
+      ack-mode: record
+      poll-timeout: 3000
+      auto-startup: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  liquibase:
+    liquibase-schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+    default-schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+    contexts: prod, dev
+  datasource:
+    hikari:
+      schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
