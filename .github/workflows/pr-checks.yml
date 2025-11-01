@@ -32,6 +32,7 @@ jobs:
       sso: ${{ steps.changes.outputs.sso }}
       gateway: ${{ steps.changes.outputs.gateway }}
       commons: ${{ steps.changes.outputs.commons }}
+      telegram-service: ${{ steps.changes.outputs.telegram-service }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,6 +68,12 @@ jobs:
               - 'settings.gradle'
               - 'gradle/**'
             commons:
+              - 'libs/commons/**'
+              - 'build.gradle'
+              - 'settings.gradle'
+              - 'gradle/**'
+            telegram-service:
+              - 'services/telegram-service/**'
               - 'libs/commons/**'
               - 'build.gradle'
               - 'settings.gradle'
@@ -330,11 +337,53 @@ jobs:
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
-  
+
+  telegram-service-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: detect-changes
+    if: needs.detect-changes.outputs.telegram-service == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper/
+          key: ${{ runner.os }}-gradle
+          restore-keys: |
+            ${{ runner.os }}-gradle
+      - name: Cache SonarQube
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: |
+            ${{ runner.os }}-sonar
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          pwd; ls -l .
+          ./gradlew :telegram-service:check :telegram-service:sonar \
+            -Dsonar.projectKey=track-me-telegram-service \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
+            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
+            -Dsonar.pullrequest.base=${{ github.base_ref }} \
 
   trackme-check:
     runs-on: ubuntu-latest
-    needs: [ detect-changes, backend-check, frontend-check, meeting-service-check, sso-check, gateway-check, libs-commons-check ]
+    needs: [ detect-changes, backend-check, frontend-check, meeting-service-check, sso-check, gateway-check, libs-commons-check, telegram-service-check ]
     if: ${{ always() && needs.detect-changes.result == 'success' }}
     steps:
       - name: Final check
@@ -351,6 +400,7 @@ jobs:
           meeting_service_result="${{ needs.meeting-service-check.result }}"
           sso_result="${{ needs.sso-check.result }}"
           gateway_result="${{ needs.gateway-check.result }}"
+          telegram_service_result="${{ needs.telegram-service-check.result }}"
           
           failed_jobs=""
           
@@ -369,6 +419,10 @@ jobs:
           if [[ "$gateway_needed" == "true" && "$gateway_result" == "failure" ]]; then
             failed_jobs="$failed_jobs gateway-check"
           fi
+          
+            if [[ "$telegram_service_result" == "failure" ]]; then
+                failed_jobs="$failed_jobs telegram-service-check"
+            fi
           
           if [[ -n "$failed_jobs" ]]; then
             echo "❌ The following required checks failed:$failed_jobs"
