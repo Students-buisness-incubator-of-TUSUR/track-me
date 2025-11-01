@@ -263,9 +263,7 @@ html, body {
         border-radius: 0;
         background-color: #ffffff;
         color: #000;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        
         display: flex;
         flex-direction: column; /* все элементы по вертикали */
         align-items: center;    /* центрируем по горизонтали */
@@ -404,7 +402,7 @@ html, body {
     display: flex;              /* делаем кнопки flex-контейнером */
     justify-content: center;    /* выравнивание по горизонтали */
     align-items: center;        /* выравнивание по вертикали */
-    width: 90%;
+    
     height: 48px;
     width: 300px;
     font-size: 16px;

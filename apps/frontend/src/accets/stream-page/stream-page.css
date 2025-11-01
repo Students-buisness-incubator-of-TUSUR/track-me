@@ -422,7 +422,7 @@ body {
 .Stream-footer-butts {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    
     align-self: center;
     justify-content: center;
     width: auto;

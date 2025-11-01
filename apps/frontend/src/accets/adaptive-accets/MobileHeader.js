@@ -41,10 +41,18 @@ const MobileHeader = ({ onNavigate }) => {
 
     return (
         <div className="mobile-header">
-            <div className="header-left" onClick={goToHomeByRole} style={{ cursor: 'pointer' }}>
-                <div className="Stream-header-logo" />
-                <div className="mobile-header-text">Track Me</div>
-            </div>
+            <div
+    className="header-left"
+    onClick={goToHomeByRole}
+    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && goToHomeByRole()}
+    role="button"
+    tabIndex={0}
+    style={{ cursor: 'pointer' }}
+>
+    <div className="Stream-header-logo" />
+    <div className="mobile-header-text">Track Me</div>
+</div>
+
 
             <div className="mobile-menu-container">
                 <button className="menu-button" onClick={handleMenuClick}>
