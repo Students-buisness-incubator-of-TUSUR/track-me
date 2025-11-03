@@ -37,7 +37,10 @@ spring:
       ack-mode: record
       poll-timeout: 3000
       auto-startup: true
-
+app:
+  telegram-bot-properties:
+    bot-token: ${TELEGRAM_BOT_TOKEN}
+    bot-username: ${TELEGRAM_BOT_USERNAME}
 ---
 spring:
   config:
