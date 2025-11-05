@@ -59,5 +59,6 @@ sonar {
         property "sonar.projectKey", "track-me-telegram-service"
         property "sonar.organization", "akarmanov2022"
         property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml,build/reports/checkstyle/test.xml"
     }
 }
