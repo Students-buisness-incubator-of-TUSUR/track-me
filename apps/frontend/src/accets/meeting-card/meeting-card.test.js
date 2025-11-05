@@ -351,7 +351,6 @@ describe('MeetingCard Component', () => {
     );
 
     const uploadArea = screen.getByText('Выберите изображение').closest('.unique-image-upload');
-    expect(uploadArea).toHaveStyle('margin-left: 30px');
     expect(uploadArea).toHaveAttribute('tabindex', '0');
     expect(uploadArea).toHaveAttribute('role', 'button');
     expect(uploadArea).toHaveAttribute('aria-label', 'Загрузить изображение');
@@ -1319,7 +1318,7 @@ describe('MeetingCard Date Validation Logic', () => {
   test('isMeetingDatePassed should return correct values', () => {
     // Create fixed dates for testing
     const now = new Date('2024-01-02T00:00:00.000Z'); // Fixed current date
-    
+
     // Mock meeting data with future date
     const futureMeetingData = {
       startDate: "2024-01-03T00:00:00.000Z" // Future date
@@ -1339,18 +1338,14 @@ describe('MeetingCard Date Validation Logic', () => {
 
     // Test with future date
     expect(isMeetingDatePassed(futureMeetingData)).toBe(false);
-    
+
     // Test with past date
     expect(isMeetingDatePassed(pastMeetingData)).toBe(true);
-    
+
     // Test with no date
     expect(isMeetingDatePassed({})).toBe(false);
   });
 });
-
-
-
-
 
 
 

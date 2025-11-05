@@ -55,7 +55,6 @@ beforeEach(() => {
   window.confirm = jest.fn(() => true);
 
   global.fetch = jest.fn((url, opts = {}) => {
-    // 1) PATCH (handleSave)
     if (opts.method === 'PATCH') {
       const body = JSON.parse(opts.body);
       return Promise.resolve({
@@ -795,7 +794,7 @@ describe('Additional coverage (manual lines)', () => {
         </MemoryRouter>
       );
     });
-    expect(spySet).toHaveBeenCalledWith(
+  expect(spySet).toHaveBeenCalledWith(
       'user',
       JSON.stringify({ user: { username: 'reduxUser', roles: ['ADMIN'] } })
     );
