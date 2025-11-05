@@ -37,6 +37,19 @@ spring:
     contexts: dev prod
     default-schema: sso
     liquibase-schema: sso
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: trackme-sso
+    listener:
+      missing-topics-fatal: false
+      concurrency: 3
+      ack-mode: record
+      poll-timeout: 3000
+      auto-startup: true
 
 ---
 spring:

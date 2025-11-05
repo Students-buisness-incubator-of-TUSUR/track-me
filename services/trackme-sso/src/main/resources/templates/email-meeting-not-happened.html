@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пропущена встреча</title>
+</head>
+<body>
+<div>
+    <h1>Назначенная встреча не состоялась!</h1>
+
+    <p>Здравствуйте, <span th:text="${email}"></span>!</p>
+
+    <p>Ваша команда <span th:text="${teamCardName}"></span> с потока <span th:text="${streamName}"></span> пропустила назначенную <a th:href="${meetingLink}">встречу</a>.</p>
+
+    <div class="footer">
+        <p>С уважением,<br>Команда <span th:text="${appName}"></span></p>
+        <p>
+            <small>
+                Это автоматическое письмо. Пожалуйста, не отвечайте на него.<br>
+                По вопросам обращайтесь:
+                <a th:href="'mailto:' + ${supportEmail}">поддержка</a>
+            </small>
+        </p>
+    </div>
+</div>
+</body>
+</html>

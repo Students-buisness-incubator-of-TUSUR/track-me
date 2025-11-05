@@ -12,6 +12,7 @@ public record MeetingUpdatedEvent(
         MeetingStatus oldStatus,
         MeetingStatus newStatus,
         TeamCardStatus teamStatus,
-        BigDecimal teamGrade
+        BigDecimal teamGrade,
+        String meetingLink
 ) {
 }

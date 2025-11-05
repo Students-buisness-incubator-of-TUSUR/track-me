@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сводка о пропущенных встречах</title>
+</head>
+<body>
+<div>
+    <h1>Сводка о пропущенных встречах</h1>
+
+    <p>Здравствуйте, <span th:text="${email}"></span>!</p>
+
+    <p>Ниже представлена информация о командах, которые пропустили встречи за последние 7 дней:</p>
+
+    <p><span th:utext="${summary}"></span></p>
+
+    <div class="footer">
+        <p>С уважением,<br>Команда <span th:text="${appName}"></span></p>
+        <p>
+            <small>
+                Это автоматическое письмо. Пожалуйста, не отвечайте на него.<br>
+                По вопросам обращайтесь:
+                <a th:href="'mailto:' + ${supportEmail}">поддержка</a>
+            </small>
+        </p>
+    </div>
+</div>
+</body>
+</html>

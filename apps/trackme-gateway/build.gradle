@@ -57,5 +57,6 @@ sonar {
         property "sonar.organization", "akarmanov2022"
         property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.exclusions", "**/*Configuration.java,**/*Properties.java"
+        property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml,build/reports/checkstyle/test.xml"
     }
 }
