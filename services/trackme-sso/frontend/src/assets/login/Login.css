@@ -28,9 +28,11 @@
     flex-direction: column;
     gap: 15px;
     margin-bottom: 20px;
+    align-items: center;
 }
 
 .login-input {
+    width: 95%;
     padding: 15px;
     border: none;
     border-radius: 10px;
@@ -39,6 +41,7 @@
 }
 
 .login-button {
+    width: 100%;
     background: white;
     color: #8338EB;
     font-size: 18px;
@@ -76,4 +79,52 @@
     margin-top: 10px;
     font-size: 14px;
     text-align: center;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        background: white;
+    }
+
+    .login-box {
+        background: white;
+        box-shadow: none;
+    }
+
+    .login-title {
+        color: #44069A;
+        font-weight: 400;
+        margin-bottom: 23px;
+    }
+
+    .login-input {
+        border-radius: 50px;
+        box-sizing: border-box;
+        height: 40px;
+        font-size: 14px;
+        background-color: #E6D7FB;
+        color: #44069A;
+    }
+
+    .login-input::placeholder {
+        color: #44069A;
+    }
+
+    .login-button {
+        background-color: #44069A;
+        color: white;
+        font-size: 13px;
+        font-weight: 700;
+        border-radius: 60px;
+        padding: 10px 20px;
+        width: 70%;
+    }
+    .login-links{
+        flex-direction: column;
+        gap: 13px;
+    }
+
+    .login-link {
+        color: #44069A;
+    }
 }

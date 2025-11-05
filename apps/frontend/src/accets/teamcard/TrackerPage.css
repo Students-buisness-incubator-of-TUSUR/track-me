@@ -353,13 +353,104 @@ text-overflow: ellipsis;
 
 /* Для мобильных устройств */
 @media (max-width: 768px) {
+    .Stream-header-cont {
+      border-radius: 0px;
+    }
+
+    .Stream-title11 {
+      font-size: 18px;
+    }
+
+    .Stream-title {
+      margin-left: 0px;
+    }
+
+    .Stream-header-logo {
+      margin-right: 0;
+      margin-left: -70px !important;
+    }
+
+    .Stream-header-bottom-cont {
+      margin: 0px !important;
+      margin-top: 5px !important;
+    }
+
+    .Stream-settings-pic {
+      height: 40px;
+      width: 67px;
+    }
+
+    .Stream-search {
+        font-size: 16px;
+        text-align: start;
+        width: 60% !important;
+        height: 100% !important;
+        padding-right: 5px;
+    }
+
+    .Stream-butt {
+    width: 140px !important;
+    font-size: 14px !important;
+    height: 40px;
+    padding: 0 10px;
+    flex-shrink: 1;
+    }
+
+    .ProfileDropdown{
+      right: 0px;
+    }
+
+    .Stream-search-contcont{
+      width: 50% !important;
+      margin-left: 10px;
+      height: 40px;
+      min-width: 200px;
+        flex-shrink: 1;
+    }
+
+    .Stream-settings-pic2 {
+      margin: 15px;
+      width: 27px;
+    }
     .cards-wrapper {
         grid-template-columns: 1fr;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .edit-button {
+      display: none;
     }
     
     .card {
         width: 100%;
-        margin-right: 0;
+        height: 190px;
+        margin: 0;
+        border-radius: 30px;
+        padding: 0px;
+    }
+
+    .card-image {
+      width: 180px;
+      margin-left: 10px;
+      border-radius: 30px;
+    }
+
+    .status {
+      left: 31px;
+    }
+
+    .project-title h3{
+      font-size: 16px;
+    }
+
+    .project-description p{
+      font-size: 12px;
+      -webkit-line-clamp: 3;
+    }
+
+    .project-flow p, .project-markets p, .project-trl p{
+      font-size: 12px;
     }
 }
 

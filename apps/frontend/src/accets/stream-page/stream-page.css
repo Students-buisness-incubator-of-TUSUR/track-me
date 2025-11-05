@@ -622,6 +622,13 @@ body {
 
 /* Планшеты (768px) */
 @media (max-width: 768px) {
+    .Stream-main {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+        margin: 10px !important;
+        justify-items: center;
+    }
+
     .Stream-header-cont {
         flex-wrap: nowrap;
         padding: 10px 15px; /* Уменьшаем отступы */
@@ -681,6 +688,7 @@ body {
     .Stream-card {
         height: 250px !important;
         border-radius: 50px;
+        width: 70% !important;
     }
 
     .Stream-card-headText {
@@ -689,6 +697,74 @@ body {
 
     .Stream-card-bodyText {
         font-size: 10px !important;
+    }
+
+    .Stream-header-afterclick-cont {
+        flex-direction: column;
+    }
+
+    .Stream-header-afterclick-left{
+        margin-left: 15px;
+    }
+
+    .Stream-header-afterclick-left-up{
+        gap: 10px;
+    }
+
+    .Stream-header-chosefrom-cont {
+        gap:10px;
+        margin-top: 10px;
+        justify-content:flex-start;
+    }
+
+    .Stream-header-chose-butt {
+        width: 80px !important;
+        height: 40px !important;
+        min-width: unset !important; /* Отключаем минимальную ширину */
+        font-size: 14px !important;
+        padding: 0 8px !important;
+        margin: 0 !important;
+        border-radius: 25px !important;
+        overflow: hidden; /* Фиксируем обрезку содержимого */
+    }
+    
+    .Stream-header-chosefrom-butt-cont, .Stream-header-chosefrom-butt2, .Stream-header-chosefrom-buttw{
+        width: 100px !important;
+        height: 40px !important;
+        font-size: 14px !important;
+        margin: 0 !important;
+        border-radius: 25px !important;
+        margin-right: 10px;
+    }
+
+    .Stream-header-chosefrom-butt-pic {
+        width: 16px !important;
+        height: 16px !important;
+        margin: 0 5px !important;
+    }
+
+    .Stream-header-chosefrom-butt-label {
+        margin-inline: 0;
+        margin-left: 5px;
+        font-size: 12px !important;
+        white-space: nowrap;
+        text-decoration: none !important;
+    }
+
+    .Stream-header-afterclick-right {
+        flex-direction: row;
+        margin-top: 10px;
+    }
+
+    .Stream-header-chose-butt2 {
+        margin: 0px 10px 0px 15px;
+        height: 40px;
+        width: 100px;
+        font-size: 12px;
+    }
+
+    .Stream-header-chosefrom-butt {
+        width: 100px;
     }
 }
 
@@ -741,7 +817,7 @@ body {
     }
 
     .Stream-header-chose-butt {
-        width: 80px !important;
+        width: 100px !important;
         height: 40px !important;
         min-width: unset !important; /* Отключаем минимальную ширину */
         font-size: 14px !important;
