@@ -21,53 +21,6 @@ export const getMeetingStatusClass = (status) => {
     }
 };
 
-const MobileHeader = ({ onNavigate }) => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const handleMenuClick = () => {
-        setIsMenuOpen(!isMenuOpen);
-    };
-
-    return (
-        <div className="mobile-header">
-            <div className="header-left">
-                <div className='Stream-header-logo'></div>
-                <div className="mobile-header-text">Track Me</div>
-            </div>
-
-            <div className="mobile-menu-container">
-                <button className="menu-button" onClick={handleMenuClick}>
-                    <span className={`hamburger ${isMenuOpen ? 'open' : ''}`}>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </span>
-                </button>
-
-                {isMenuOpen && (
-                    <div className="mobile-menu">
-                        <button 
-                            className="menu-item" 
-                        >
-                            Личный кабинет
-                        </button>
-                        <button 
-                            className="menu-item" 
-                        >
-                            Главный экран
-                        </button>
-                        <button 
-                            className="menu-item logout" 
-                        >
-                            Выйти
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
 const TeamCard = () => {
     const navigate = useNavigate();
     const {id} = useParams();
@@ -612,8 +565,6 @@ const saveMeetingDate = async () => {
    
 
     return (
-        <div className="team-page">
-            <MobileHeader onNavigate={navigate} />
             <div className="team-card-widget-container">
                 {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
                     <div className="team-rating">
@@ -1047,7 +998,6 @@ const saveMeetingDate = async () => {
                 </div>
             ) : null}
             </div>
-        </div>
     );
 };
 
