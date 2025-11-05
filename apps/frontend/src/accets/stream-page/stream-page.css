@@ -301,7 +301,7 @@ body {
     background-color: transparent;
     display: flex;
     align-self: center;
-    width: 28px;
+    width: 29px;
     height: 27px;
     margin: 59px;
     background-image: url("Group.png");
@@ -422,7 +422,7 @@ body {
 .Stream-footer-butts {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    
     align-self: center;
     justify-content: center;
     width: auto;

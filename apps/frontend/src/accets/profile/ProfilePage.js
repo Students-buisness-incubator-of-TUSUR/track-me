@@ -5,7 +5,7 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 // Импорт иконок
 import penIcon from "./pen.png";
 import uploadIcon from "./upload.png";
-
+import MobileHeader from "../adaptive-accets/MobileHeader";
 function ProfilePage() {
     const navigate = useNavigate();
     const [userData, setUserData] = useState(null);
@@ -345,6 +345,7 @@ function ProfilePage() {
 
     return (
         <div className="login-container">
+            <MobileHeader onNavigate={navigate} />
             <div className="profile-container">
                 <div className="profile-header">
                     <h1>Личный кабинет</h1>

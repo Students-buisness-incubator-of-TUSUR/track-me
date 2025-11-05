@@ -25,3 +25,6 @@ findProject(':commons').projectDir = file('libs/commons')
 
 include ':meeting-service'
 findProject(':meeting-service').projectDir = file('services/meeting-service')
+
+include ':telegram-service'
+project(':telegram-service').projectDir = file('services/telegram-service')

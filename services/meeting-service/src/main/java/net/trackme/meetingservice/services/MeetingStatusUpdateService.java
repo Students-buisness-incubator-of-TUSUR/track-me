@@ -108,6 +108,7 @@ public class MeetingStatusUpdateService {
                                 0 :
                                 meeting.getTeamStatus().getValue()
                 )
+                .meetingLink(meeting.getLink())
                 .build();
         meetingEventsProducer.sendMeetingUpdatedEvent(event);
     }

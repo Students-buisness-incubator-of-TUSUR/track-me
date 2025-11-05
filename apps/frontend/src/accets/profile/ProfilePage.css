@@ -221,189 +221,219 @@
     animation: tooltipFadeIn 0.2s ease-in-out;
     z-index: 1000;
 }
-
-
-@media (max-width: 992px) {
-    .profile-container {
-        transform: scale(0.7);
-        margin: 20px auto;
-        height: auto;
-        padding-bottom: 60px;
-        position: relative;
-    }
-
-    .profile-header h1 {
-        font-size: 72px;
-        padding-top: 40px;
-    }
-
-    .profile-input {
-        width: 480px;
-        height: 60px;
-    }
-
-    .avatar-placeholder,
-    .user-avatar,
-    .default-avatar {
-        width: 380px;
-        height: 380px;
-    }
-
-    .home-button,
-    .profile-team-cards-button {
-        width: 380px;
-        height: 60px;
-        font-size: 20px;
-    }
+.mobile-container {
+  display: none;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
 }
 
-@media (max-width: 768px) {
+/* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ ===== */
+/* ===== Мобильная версия (обновлённая) ===== */
+@media (max-width: 600px) {
+    .mobile-container {
+  display: block;
+}
+   
+
+
+    /* Основной контейнер */
+    .login-container {
+        margin-top: 50px;
+  height: auto;
+  padding: 0;
+  align-items: flex-start;
+  background-color: #ffffff;
+  overflow-x: hidden;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+
+    /* Убираем фиолетовый фон и фиксированные размеры */
     .profile-container {
-        transform: scale(0.65); /* Чуть меньше чем для 992px */
-        margin: 15px auto;
+        width: 100%;
+        max-width: 100%;
         height: auto;
-        padding-bottom: 50px;
-        position: relative;
+        border: none;
+        border-radius: 0;
+        background-color: #ffffff;
+        color: #000;
+        
+        display: flex;
+        flex-direction: column; /* все элементы по вертикали */
+        align-items: center;    /* центрируем по горизонтали */
+        gap: 20px;   
+    }
+
+    /* Упрощаем структуру */
+    .profile-header {
+        flex-direction: column;
+        display: flex;
+    justify-content: center;
+        margin-bottom: -10px;
+
+       
+        width: 100%;
     }
 
     .profile-header h1 {
-        font-size: 68px; /* Чуть меньше */
-        padding-top: 35px;
-        padding-left: 80px;
-    }
+    display: block;
+    width: 100%;
+    font-size: 32px;
+    font-weight: 400;
+    margin-top: 40px;
+    max-height: 30px;
+    padding: 0;
+    text-align: center;
+    color: #44069A;
+}
+
+
 
     .edit-button12 {
-        margin-right: 80px;
-        font-size: 18px;
+         display: block;              /* блочный элемент */
+        width: 90%;
+        margin: 20px auto 0 auto;   /* сверху отступ, центрирование */
+        position: relative; 
+        align-self: center;
+        font-size: 14px;
+        color: #8338EB;
+        top: 600px;
+
+        
     }
 
-    .profile-input {
-        width: 450px; /* Уменьшил ширину */
-        height: 58px; /* Чуть меньше */
-        font-size: 15px;
-    }
-
-    .avatar-placeholder,
-    .user-avatar,
-    .default-avatar {
-        width: 350px; /* Уменьшил размер */
-        height: 350px;
-    }
-
-    .profile-role-text {
-        font-size: 22px;
-        padding: 0 70px;
-        height: 50px;
-    }
-
-    .error-message42 {
-        margin-left: -380px;
-        width: 450px;
-        font-size: 15px;
-    }
-
-    .profile-fields {
-        padding-left: 80px;
-    }
-
-    .profile-label {
-        padding-left: 30px;
-        font-size: 15px;
-    }
-
-    .upload-icon-profile {
-        margin-top: 35px;
-        margin-right: 35px;
-        width: 30px;
-        height: 30px;
-    }
-
-    .home-button,
-    .profile-team-cards-button {
-        width: 350px;
-        height: 58px;
-        font-size: 19px;
-    }
-}
-
-@media (max-width: 480px) {
-    .profile-container {
-        transform: scale(0.8);
-        margin: 10px auto;
-        height: auto;
-        padding-bottom: 80px;
-    }
-
-    /* Перемещаем аватар и роль в начало контейнера */
     .profile-content {
         flex-direction: column;
         align-items: center;
-        order: -1; /* Это переместит весь контент выше */
+        gap: 15px;
+        width: 100%;
     }
 
     .profile-avatar-section {
-        order: -2; /* Это переместит аватар выше всех */
-        margin: 0 auto 30px;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .profile-header {
-        order: -1; /* Заголовок будет после аватара */
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-    }
-
-    .profile-header h1 {
-        width: 100%;
-        font-size: 60px;
-        padding: 30px 0 20px 0;
-        text-align: center;
         margin: 0;
-    }
-
-    .edit-button12 {
-        margin: 0 0 20px 0;
-        font-size: 18px;
-    }
-
-    .profile-fields {
-        width: 90%;
-        padding-left: 0;
-        align-items: center;
-        margin-top: 30px;
-    }
-
-    .edit-icon123 {
-        right: 10px;
+        width: 200px;
+        
     }
 
     .avatar-placeholder,
     .user-avatar,
     .default-avatar {
-        width: 300px;
-        height: 300px;
+        width: 200px;
+        height: 200px;
+        
+        
+       
+    }
+    .default-avatar{
+        border: 4px solid #8338EB; /* фиолетовая рамка */
+    box-sizing: border-box;  
+    border-radius: 30px;
+    }
+    .upload-icon-profile{
+        margin-top: 18px;
+    margin-right: 18px;
+    cursor: pointer;
+    }
+
+    .profile-role-text {
+        font-size: 16px;
+        padding: 8px 24px;
+        height: auto;
+        color: #8338EB;
+        background-color: #E6D7FB;
+        border-radius: 30px;
+        margin-top: -10px;
+    }
+
+    .profile-fields {
+        width: 100%;
+        align-items: center;
+        padding: 0;
+        
+        gap: 10px;
+    }
+
+    .profile-label {
+        font-size: 14px;
+        padding-left: 10px;
+        color: #333;
+    }
+
+    .profile-input {
+        width: 70%;
+        height: 44px;
+        font-size: 14px;
+        border-radius: 30px;
+        background-color: #F3ECFF;
+        color: #000;
+    }
+
+    .edit-icon123 {
+        right: 15px;
+        width: 18px;
+        height: 18px;
     }
 
     .profile-team-cards-button {
-        margin: 30px auto;
-        width: 80%;
-    }
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60%;
+    height: 48px;
+    font-size: 16px;
+    background-color: #8338EB;
+    color: white;
+    margin-top: -25px;      /* опускаем кнопку вниз */
+    margin-left: 10px;
+    margin-bottom: 100px;   /* создаём отступ перед следующей кнопкой */
+    gap: 10px;
+    border: none;
+    border-radius: 40px;
+    position: static !important;  /* убираем absolute */
+    align-self: center;           /* центрируем */
+  }
+.home-button{
+    display: flex;              /* делаем кнопки flex-контейнером */
+    justify-content: center;    /* выравнивание по горизонтали */
+    align-items: center;        /* выравнивание по вертикали */
+    
+    height: 48px;
+    width: 300px;
+    font-size: 16px;
+    background-color: #8338EB;
+    color: white;
+    margin: 20px 0;             /* убираем огромный верхний отступ */
+    gap: 10px;
+    border: none;
+    border-radius: 40px;
+     position: static;
+}
 
-    .home-button {
-        position: relative;
-        bottom: auto;
-        right: auto;
-        margin: 20px auto 0;
-        width: 80%;
-    }
 
     .error-message42 {
-        margin-left: 0;
-        width: 80%;
         margin: 10px auto;
+        width: 90%;
+        font-size: 14px;
+        text-align: center;
+        background-color: #ff4c4c;
+        color: white;
     }
+
+    .profile-tooltip {
+        font-size: 12px;
+    }
+    .profile-avatar-section { order: 1; }
+    .profile-role-text { order: 2; }
+    .profile-fields { order: 3; }
+    
+    .profile-team-cards-button { order: 4; }
+    
+    .edit-button12 { order: 6; }
 }
+

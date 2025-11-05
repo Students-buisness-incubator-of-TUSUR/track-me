@@ -13,6 +13,9 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+
 @EnableKafka
 @Configuration
 public class KafkaConsumerConfiguration {
@@ -63,6 +66,30 @@ public class KafkaConsumerConfiguration {
     ) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, MeetingUpdatedEvent>();
         factory.setConsumerFactory(meetingUpdatedEventConsumerFactory);
+        return factory;
+    }
+
+    @Bean
+    ConsumerFactory<String, List<LinkedHashMap<String, String>>> meetingSummaryEventConsumerFactory(
+            KafkaProperties kafkaProperties) {
+        var props = kafkaProperties.buildConsumerProperties(null);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, List.class);
+        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                new JsonDeserializer<>(List.class, false)
+        );
+    }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, List<LinkedHashMap<String, String>>> meetingSummaryListenerContainerFactory(
+            ConsumerFactory<String, List<LinkedHashMap<String, String>>> meetingSummaryEventConsumerFactory
+    ) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, List<LinkedHashMap<String, String>>>();
+        factory.setConsumerFactory(meetingSummaryEventConsumerFactory);
         return factory;
     }
 }

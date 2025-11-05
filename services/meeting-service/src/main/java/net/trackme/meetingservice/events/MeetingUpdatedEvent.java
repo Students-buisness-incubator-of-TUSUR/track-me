@@ -13,5 +13,6 @@ public record MeetingUpdatedEvent(
         MeetingStatus oldStatus,
         MeetingStatus newStatus,
         TeamStatus teamStatus,
-        Double teamGrade) implements MeetingEvent {
+        Double teamGrade,
+        String meetingLink) implements MeetingEvent {
 }

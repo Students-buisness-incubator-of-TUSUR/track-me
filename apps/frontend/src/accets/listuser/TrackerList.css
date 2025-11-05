@@ -229,13 +229,13 @@
 
 .confirm-button {
     position: relative;
-    margin-left: 15px;
-    margin-top: 4px;
+    margin-left: -20px;
+    margin-top: 0px;
 }
 
 .cancel-button {
     position: relative;
-    margin-left: 0px;
+    margin-left: -20px;
     margin-top: 4px;
 }
   
@@ -371,34 +371,151 @@
   animation: pulseGlow 1s ease-in-out;
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
+
+
+
+@media (max-width: 600px) {
+  /* Убедимся, что сам контейнер видим */
+  .Stream-header {
+    display: block !important;
+  }
+
+  /* Нижнюю часть прижмём влево и опустим чуть вниз */
+  .Stream-header-bottom-cont {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important; /* прижать влево */
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: -10px !important;   /* отступ вниз */
+    padding-left: 10px !important; /* отступ от левого края экрана */
+    padding-right: 50px !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    top: 6px !important; /* дополнительный тонкий сдвиг вниз, если margin не работает */
+    z-index: 50 !important;
+  }
+  
+  /* Если родитель фиксирован и перекрывает — добавим отступ у контейнера страницы */
+  .tracker-container {
+    padding-top: 100px !important;
+  }
+.Stream-settings-pic2{
+  margin: 15px;
+}
+  /* Убедимся, что поиск занимает место, а фильтр не расталкивает его */
+  .Stream-search-cont {
+    flex: 1 1 auto !important;
+    min-width: 0 !important; /* чтобы input не вылазил за пределы */
+  }
+
+  .Stream-search {
+    width: 100% !important;
+    max-width: none !important;
+    height: 38px !important;
+  }
+
   .filter-toggle-container {
-    margin-left: 0;
-    align-self: center;
+    flex: 0 0 auto !important;
+    margin-left: 8px !important;
   }
+
+  /* === Только верхнюю часть скрываем === */
+  .Stream-header-cont {
+    display: none; /* скрыть десктопную часть с заголовком и кнопками */
+    
+  }
+
+  /* Оставляем блок с поиском и фильтром */
+  .Stream-header-bottom-cont {
+  display: flex;
   
-  .filter-toggle {
-    width: 45px;
-    height: 45px;
+  gap: 8px;
+  width: 100%;
+  margin-top: 20px; /* чуть ниже */
+ 
+}
+.tracker-fio,
+  .tracker-nick {
+    margin-left: 0 !important;
+    padding-left: 70px;
+    text-align: left;
   }
-  
-  .filter-tooltip {
-    left: 50%;
-    transform: translateX(-50%) translateY(8px);
-    font-size: 11px;
-  }
+  .tracker-edit-panel12, .tracker-edit-panel {
+    
+    right: 10px; /* Было -50px, увеличиваем смещение влево */
+    
 }
 
-/* Для очень маленьких экранов */
-@media (max-width: 480px) {
-  .filter-toggle {
-    width: 40px;
-    height: 40px;
+
+  .Stream-search-cont {
+    flex: 1;
   }
-  
-  .filter-toggle-icon svg {
-    width: 16px;
-    height: 16px;
+
+  .Stream-search-contcont {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .Stream-search {
+    width: 100%;
+    max-width: 260px;
+    height: 38px;
+    font-size: 14px;
+    border-radius: 25px;
+  }
+
+  .filter-toggle-container {
+    position: static;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .filter-toggle {
+    width: 42px;
+    height: 42px;
+  }
+
+  /* Остальное — как было */
+  .tracker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    margin: 20px auto 0;
+    gap: 12px;
+    justify-items: center;
+  }
+
+  .tracker-item-true,
+  .tracker-item-edit {
+    width: 90%;
+    height: auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 10px;
+    margin: 10px 0;
+  }
+
+  .tracker-text {
+    margin-left: 15px;
+  }
+
+  .Stream-footer-butts {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .confirm-button img,
+  .cancel-button img,
+  .edit-icon img,
+  .green-checkmark img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .filter-tooltip {
+    display: none;
   }
 }

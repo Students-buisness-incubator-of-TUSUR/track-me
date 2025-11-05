@@ -3,16 +3,21 @@ package net.trackme.meetingservice.services;
 import lombok.RequiredArgsConstructor;
 import net.trackme.meetingservice.events.MeetingCreatedEvent;
 import net.trackme.meetingservice.events.MeetingUpdatedEvent;
+import net.trackme.meetingservice.events.MeetingSummaryEvent;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class MeetingEventsProducer {
     private static final String MEETING_CREATED_TOPIC = "meeting-created";
     private static final String MEETING_UPDATED_TOPIC = "meeting-updated";
+    private static final String MEETING_SUMMARY_TOPIC = "meeting-summary";
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -28,6 +33,14 @@ public class MeetingEventsProducer {
         var message = MessageBuilder.withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, MEETING_UPDATED_TOPIC)
                 .setHeader(KafkaHeaders.KEY, event.meetingId().toString())
+                .build();
+        kafkaTemplate.send(message);
+    }
+
+    public void sendMeetingSummaryEvents(List<MeetingSummaryEvent> event) {
+        var message = MessageBuilder.withPayload(event)
+                .setHeader(KafkaHeaders.TOPIC, MEETING_SUMMARY_TOPIC)
+                .setHeader(KafkaHeaders.KEY, String.valueOf(UUID.randomUUID()))
                 .build();
         kafkaTemplate.send(message);
     }

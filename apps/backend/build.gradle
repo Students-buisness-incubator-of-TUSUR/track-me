@@ -77,5 +77,6 @@ sonar {
         property "sonar.projectKey", "akarmanov2022_track-me_backend"
         property "sonar.organization", "akarmanov2022"
         property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml,build/reports/checkstyle/test.xml"
     }
 }

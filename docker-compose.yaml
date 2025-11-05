@@ -219,6 +219,28 @@ services:
       timeout: 10s
       retries: 5
 
+  telegram-service:
+    build:
+      context: .
+      dockerfile: services/telegram-service/Dockerfile
+    platform: linux/amd64
+    restart: always
+    depends_on:
+      - trackme-postgres
+    env_file:
+      - .env
+    ports:
+      - '8084:8084'
+    networks:
+      - trackme-net
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker-local
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 volumes:
   postgres_data:
   kafka_data:

@@ -29,7 +29,7 @@ yarn-error.log
 
 # Ignore possible secrets/env/configs
 .env
-.env.*
+.env
 *.jks
 *.keystore
 *.pem
