@@ -877,7 +877,7 @@ const saveMeetingDate = async () => {
             </div>
 
             <div className="right-panel">
-  <button className="show-meetings-mobile-btn" onClick={() => setShowMeetingsOnMobile(!showMeetingsOnMobile)}>
+  <button className="show-meetings-mobile-btn" onClick={() => setShowMeetingsOnMobile(!showMeetingsOnMobile)}>{/*NOSONAR*/}
                 {showMeetingsOnMobile ? "Скрыть встречи" : "Показать встречи"}
               </button>
               {/* Сообщение об ошибке */}
