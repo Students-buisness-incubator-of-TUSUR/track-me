@@ -936,8 +936,6 @@ select.team-input-widget option {
     }
 
     .team-card-widget-container {
-        margin-top: 0;
-        border-radius: 0;
         min-height: calc(100vh - 60px);
     }
 
@@ -964,6 +962,85 @@ select.team-input-widget option {
         margin: 0;
         max-height: 100%;
     }
+    .show-meetings-mobile-btn {
+        display: none; /* По умолчанию кнопка скрыта */
+        width: 100%;
+        padding: 10px;
+        background: #8338EB;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-size: 16px;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+
+    .mobile-header {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: #8338EB;
+        padding: 0 20px;
+        z-index: 1000;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        flex: 1;
+    }
+}
+
+
+
+
+
+
+
+
+@media (max-width: 768px) {
+    .mobile-header {
+        display: flex;
+        height: 60px;
+    }
+
+    .team-page {
+        padding-top: 60px;
+        min-height: 100vh;
+    }
+
+    .team-card-widget-container {
+        border-radius: 0;
+        min-height: calc(100vh - 60px);
+        padding: 20px;
+        min-width: 90%;
+        margin: 20px;
+        flex-direction: column;
+        border-radius: 0;
+        margin: 0;
+        max-height: 100%;
+    }
+
+    .show-meetings-mobile-btn {
+        display: block; /* Показываем кнопку на мобильных */
+        margin-top: 20px;
+    }
+
+    .team-meetings-block {
+        display: none; /* По умолчанию скрыт на мобильных */
+    }
+
+    .team-meetings-block.show-mobile {
+        display: flex; /* Показываем при активном состоянии */
+    }
+
 
     .team-title-widget {
         font-size: 18px;

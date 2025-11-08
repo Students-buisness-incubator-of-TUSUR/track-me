@@ -683,6 +683,7 @@ body {
     .Stream-header-bottom-cont {
         margin: 0 20px !important; /* Уменьшаем боковые отступы */
         flex-wrap: nowrap; /* Запрещаем перенос элементов */
+        padding-right: 10px;
     }
 
     .Stream-card {
@@ -804,6 +805,7 @@ body {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 5px;
+        padding-right: 10px !important;
     }
 
     .Stream-header-bottom-cont::-webkit-scrollbar {
