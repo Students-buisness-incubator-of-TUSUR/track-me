@@ -952,16 +952,6 @@ select.team-input-widget option {
         display: flex; /* Показываем при активном состоянии */
     }
 
-    .team-card-widget-container {
-        padding: 20px;
-        min-width: 90%;
-        margin: 20px auto;
-        border-radius: 30px;
-        flex-direction: column;
-        border-radius: 0;
-        margin: 0;
-        max-height: 100%;
-    }
     .show-meetings-mobile-btn {
         display: none; /* По умолчанию кнопка скрыта */
         width: 100%;
@@ -1017,11 +1007,9 @@ select.team-input-widget option {
     }
 
     .team-card-widget-container {
-        border-radius: 0;
         min-height: calc(100vh - 60px);
         padding: 20px;
         min-width: 90%;
-        margin: 20px;
         flex-direction: column;
         border-radius: 0;
         margin: 0;
