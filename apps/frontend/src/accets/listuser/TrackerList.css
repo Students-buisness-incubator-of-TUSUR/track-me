@@ -424,16 +424,7 @@
     display: none; /* скрыть десктопную часть с заголовком и кнопками */
     
   }
-
-  /* Оставляем блок с поиском и фильтром */
-  .Users-header-bottom-cont {
-  display: flex;
   
-  gap: 8px;
-  width: 100%;
-  margin-top: 20px; /* чуть ниже */
- 
-}
 .tracker-fio,
   .tracker-nick {
     margin-left: 0 !important;

@@ -20,7 +20,6 @@ export const getMeetingStatusClass = (status) => {
             return ""; // Для SCHEDULED оставляем без специального класса
     }
 };
-
 const TeamCard = () => {
     const navigate = useNavigate();
     const {id} = useParams();
