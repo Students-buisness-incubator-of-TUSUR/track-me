@@ -2267,3 +2267,61 @@ describe('getMeetingStatusClass', () => {
     expect(result).toBe('');
   });
 });
+
+const TestComponent = ({ 
+  showMeetingsOnMobile = false, 
+  setShowMeetingsOnMobile = jest.fn(),
+  meetingError = null 
+}) => {
+  return (
+    <div>
+      <button className="show-meetings-mobile-btn" onClick={() => setShowMeetingsOnMobile(!showMeetingsOnMobile)}>
+        {showMeetingsOnMobile ? "Скрыть встречи" : "Показать встречи"}
+      </button>
+      
+      {meetingError && <div className="error-message">{meetingError}</div>}
+      
+      <div className={`team-meetings-block${showMeetingsOnMobile ? " show-mobile" : ""}`}>
+        <div className="team-meetings-exist">Встречи</div>
+      </div>
+    </div>
+  );
+};
+
+describe('Meetings Section', () => {
+  test('кнопка меняет текст и вызывает обработчик при клике', () => {
+    const mockSetShow = jest.fn();
+    render(<TestComponent setShowMeetingsOnMobile={mockSetShow} />);
+    
+    const button = screen.getByRole('button');
+    expect(button).toHaveTextContent('Показать встречи');
+    
+    fireEvent.click(button);
+    expect(mockSetShow).toHaveBeenCalledWith(true);
+  });
+
+  test('отображает сообщение об ошибке когда есть meetingError', () => {
+    render(<TestComponent meetingError="Ошибка загрузки" />);
+    expect(screen.getByText('Ошибка загрузки')).toBeInTheDocument();
+  });
+
+  test('не отображает сообщение об ошибке когда meetingError нет', () => {
+    render(<TestComponent meetingError={null} />);
+    expect(screen.queryByText('Ошибка загрузки')).not.toBeInTheDocument();
+  });
+
+  test('добавляет класс show-mobile когда showMeetingsOnMobile true', () => {
+    render(<TestComponent showMeetingsOnMobile={true} />);
+    
+    const meetingsBlock = screen.getByText('Встречи').parentElement;
+    expect(meetingsBlock).toHaveClass('show-mobile');
+  });
+
+  test('не добавляет класс show-mobile когда showMeetingsOnMobile false', () => {
+    render(<TestComponent showMeetingsOnMobile={false} />);
+    
+    const meetingsBlock = screen.getByText('Встречи').parentElement;
+    expect(meetingsBlock).toHaveClass('team-meetings-block');
+    expect(meetingsBlock).not.toHaveClass('show-mobile');
+  });
+});
