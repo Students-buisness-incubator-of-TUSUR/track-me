@@ -5,7 +5,6 @@ import {useSelector} from "react-redux";
 import penIcon from "./pen.png";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
-import MobileHeader from "../adaptive-accets/MobileHeader";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
@@ -567,7 +566,6 @@ const saveMeetingDate = async () => {
 
     return (
             <div className="team-card-widget-container">
-              <MobileHeader onNavigate={navigate} />
                 {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
                     <div className="team-rating">
                         {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
