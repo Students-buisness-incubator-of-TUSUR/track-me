@@ -381,7 +381,7 @@
   }
 
   /* Нижнюю часть прижмём влево и опустим чуть вниз */
-  .Stream-header-bottom-cont {
+  .Users-header-bottom-cont {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
@@ -390,7 +390,7 @@
     width: 100% !important;
     margin-top: -10px !important;   /* отступ вниз */
     padding-left: 10px !important; /* отступ от левого края экрана */
-    padding-right: 50px !important;
+    padding-right: 50px ;
     box-sizing: border-box !important;
     position: relative !important;
     top: 6px !important; /* дополнительный тонкий сдвиг вниз, если margin не работает */
@@ -398,9 +398,7 @@
   }
   
   /* Если родитель фиксирован и перекрывает — добавим отступ у контейнера страницы */
-  .tracker-container {
-    padding-top: 100px !important;
-  }
+
 .Stream-settings-pic2{
   margin: 15px;
 }
@@ -428,7 +426,7 @@
   }
 
   /* Оставляем блок с поиском и фильтром */
-  .Stream-header-bottom-cont {
+  .Users-header-bottom-cont {
   display: flex;
   
   gap: 8px;

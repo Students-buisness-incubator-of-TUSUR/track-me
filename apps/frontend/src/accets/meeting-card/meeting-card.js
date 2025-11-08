@@ -4,6 +4,7 @@ import "./meeting-card.css";
 import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
+import MobileHeader from "../adaptive-accets/MobileHeader";
 
 const MeetingCard = () => {
     const backendHost = (process.env.REACT_APP_BACKEND_URI || '') + '/meeting';
@@ -353,6 +354,7 @@ if (!isMeetingDatePassed()) {
 
     return (
         <div className="unique-meeting-container">
+            <MobileHeader onNavigate={navigate} />
             <div className="unique-meeting-card">
                 <button className="unique-close-button" onClick={() => navigate(`/teamcard/${teamId}?userId=${userId}`)}>
                     <img src={closeIcon} alt="Закрыть" className="close-icon" />

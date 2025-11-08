@@ -157,7 +157,7 @@ function TrackerListPage({ endpoint }) {
             )}
           </div>
         </div>
-        <div className="Stream-header-bottom-cont">
+        <div className="Users-header-bottom-cont">
           <div className="Stream-search-cont">
             <div className="Stream-search-contcont">
               <button className="Stream-settings-pic2"></button>

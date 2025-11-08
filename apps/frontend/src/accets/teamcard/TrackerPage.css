@@ -353,6 +353,10 @@ text-overflow: ellipsis;
 
 /* Для мобильных устройств */
 @media (max-width: 768px) {
+
+    .tracker-container{
+        padding-top: 0 !important;
+    }
     .Stream-header-cont {
       border-radius: 0px;
     }

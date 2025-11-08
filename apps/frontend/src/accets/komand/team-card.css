@@ -802,6 +802,10 @@ select.team-input-widget option {
 
     .team-meetings-block {
         display: none; /* По умолчанию скрыт на мобильных */
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 25px 10px 25px 15px;
+        height: auto;
     }
 
     .team-meetings-block.show-mobile {
@@ -818,20 +822,6 @@ select.team-input-widget option {
         font-size: 16px;
         margin-bottom: 10px;
         cursor: pointer;
-    }
-
-    .mobile-header {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 60px;
-        background: #8338EB;
-        padding: 0 20px;
-        z-index: 1000;
-        align-items: center;
-        justify-content: space-between;
     }
 
     .header-left {
@@ -851,10 +841,6 @@ select.team-input-widget option {
 
 
 @media (max-width: 768px) {
-    .mobile-header {
-        display: flex;
-        height: 60px;
-    }
 
     .team-page {
         padding-top: 60px;
@@ -868,20 +854,13 @@ select.team-input-widget option {
         flex-direction: column;
         border-radius: 0;
         margin: 0;
+        margin-top: 60px;
         max-height: 100%;
     }
 
     .show-meetings-mobile-btn {
         display: block; /* Показываем кнопку на мобильных */
         margin-top: 20px;
-    }
-
-    .team-meetings-block {
-        display: none; /* По умолчанию скрыт на мобильных */
-    }
-
-    .team-meetings-block.show-mobile {
-        display: flex; /* Показываем при активном состоянии */
     }
 
 
@@ -920,13 +899,6 @@ select.team-input-widget option {
         width: 95%;
         margin: 15px 0 0 0; /* Центрирование всей панели */
         padding: 10px; /* Внутренние отступы */
-    }
-
-    .team-meetings-block {
-        max-width: 100%;
-        box-sizing: border-box;
-        padding: 25px 10px 25px 15px;
-        height: auto;
     }
 
     .team-meeting {

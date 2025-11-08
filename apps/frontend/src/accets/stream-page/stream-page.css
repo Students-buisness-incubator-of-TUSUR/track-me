@@ -629,6 +629,10 @@ body {
         justify-items: center;
     }
 
+    .Stream-header {
+        margin-top: 80px;
+    }
+
     .Stream-header-cont {
         flex-wrap: nowrap;
         padding: 10px 15px; /* Уменьшаем отступы */
