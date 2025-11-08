@@ -672,14 +672,6 @@ body {
         padding-right: 15px; /* Отступ от края */
     }
 
-    .Stream-header-chose-butt {
-        width: 180px !important; /* Уменьшаем кнопку */
-        font-size: 16px !important;
-        margin-right: 15px !important;
-        white-space: nowrap; /* Запрещаем перенос текста */
-        padding: 0 15px;
-    }
-
     .Stream-header-bottom-cont {
         margin: 0 20px !important; /* Уменьшаем боковые отступы */
         flex-wrap: nowrap; /* Запрещаем перенос элементов */
@@ -726,6 +718,7 @@ body {
         padding: 0 8px !important;
         margin: 0 !important;
         border-radius: 25px !important;
+        white-space: nowrap;
         overflow: hidden; /* Фиксируем обрезку содержимого */
     }
     

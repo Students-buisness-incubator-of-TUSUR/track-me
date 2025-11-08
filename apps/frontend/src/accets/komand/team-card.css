@@ -789,146 +789,7 @@ select.team-input-widget option {
     cursor: pointer;
 }
 
-.mobile-header {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: #8338EB;
-    padding: 0 20px;
-    z-index: 1000;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    flex: 1;
-}
-
-.mobile-header-text {
-    color: white;
-    font-size: 24px;
-    font-weight: 600;
-    font-family: 'Mulish', sans-serif;
-}
-
-.menu-button {
-    background: transparent;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-}
-
-.hamburger {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: 24px;
-    height: 18px;
-}
-
-.hamburger span {
-    display: block;
-    height: 4px;
-    width: 100%;
-    background: white;
-    margin-bottom: 6px;
-    border-radius: 3px;
-}
-
-.hamburger span:last-child {
-    margin-bottom: 0;
-}
-
-.mobile-menu {
-    position: absolute;
-    top: 60px;
-    right: 10px;
-    background: #FFFFFF;
-    border:  2px solid #8338EB;
-    width: 300px;
-    padding: 12px;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-}
-
-.menu-item {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 16px;
-    border: none;
-    background: transparent;
-    color: #333333;
-    text-align: left;
-    font-size: 18px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: 'Mulish', sans-serif;
-    border-radius: 8px;
-    margin: 4px 0;
-    transition: all 0.2s ease;
-}
-
-.menu-item:hover {
-    background: #F4F4F4;
-}
-
-.menu-item.logout {
-    color: #FF4B4B;
-}
-
-.mobile-menu {
-    position: absolute;
-    top: 60px;
-    right: 10px;
-    background: #FFFFFF;
-    border:  3px solid #8338EB;
-    width: 250px;
-    padding: 8px;
-    border-radius: 0 0 16px 16px;
-    box-shadow: 0px 4px 25px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-}
-
-.menu-item {
-    display: flex;
-    width: 100%;
-    padding: 12px 16px;
-    border: none;
-    background: transparent;
-    color: #444444;
-    text-align: left;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: 'Mulish', sans-serif;
-    border-radius: 8px;
-    margin: 2px 0;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.menu-item:hover {
-    background: #F5F5F5;
-}
-
-.menu-item.logout {
-    color: #D34F4F;
-}
-
 @media (max-width: 768px) {
-    .mobile-header {
-        display: flex;
-        height: 60px;
-    }
 
     .team-page {
         padding-top: 60px;
@@ -937,11 +798,6 @@ select.team-input-widget option {
 
     .team-card-widget-container {
         min-height: calc(100vh - 60px);
-    }
-
-    .show-meetings-mobile-btn {
-        display: block; /* Показываем кнопку на мобильных */
-        margin-top: 20px;
     }
 
     .team-meetings-block {
@@ -953,7 +809,6 @@ select.team-input-widget option {
     }
 
     .show-meetings-mobile-btn {
-        display: none; /* По умолчанию кнопка скрыта */
         width: 100%;
         padding: 10px;
         background: #8338EB;
@@ -1036,20 +891,11 @@ select.team-input-widget option {
         left: 25px;
     }
 
-    .team-input-widget {
-        width: 200px;
-    }
-
     .edit-button-widget {
         padding: 6px 15px;
         font-size: 16px;
-        top: 25px;
-        right: 80px;
-    }
-
-    .close-button-widget {
-        top: 25px;
-        right: 25px;
+        top: 20px;
+        right: 60px;
     }
 
     .team-card-content {
@@ -1111,8 +957,8 @@ select.team-input-widget option {
     }
 
     .team-input-widget {
+        width: 200px;
         height: 36px;
-        font-size: 14px;
         padding: 0 40px 0 15px;
     }
 
@@ -1158,6 +1004,7 @@ select.team-input-widget option {
     .red-button-widget {
         padding: 10px 20px;
         font-size: 14px;
+        margin-top: 10px;
     }
 
     .stream-attach-button-container {
@@ -1177,20 +1024,11 @@ select.team-input-widget option {
         right: 20px;
     }
 
-    .edit-button-widget {
-        top: 20px;
-        right: 60px;
-    }
-
     .red-button-container {
         position: static;
         display: flex;
         align-items: center;
         justify-content: center;
-    }
-
-    .red-button-widget {
-        margin-top: 10px;
     }
 }
 
