@@ -6,6 +6,7 @@ import {useSelector} from "react-redux";
 import ProfileIcon from "./personal_account_1.png";
 import StreamPlaceholder from './Заглушка для потока в TrackMe.png';
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
+import MobileHeader from "../adaptive-accets/MobileHeader";
 
 function TrackerPage() {
     const [cards, setCards] = useState([]);
@@ -467,6 +468,7 @@ const options = {
 
     return (
         <div className="tracker-container">
+            <MobileHeader onNavigate={navigate} />
             <header className="Stream-header">
                 <div className="Stream-header-cont">
                     <div 

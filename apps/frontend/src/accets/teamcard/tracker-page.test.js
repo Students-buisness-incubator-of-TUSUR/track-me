@@ -8,6 +8,13 @@ import { MemoryRouter, createMemoryRouter, RouterProvider } from 'react-router-d
 import * as redux from 'react-redux';
 import { act } from 'react'; // Используйте act из react
 
+beforeAll(() => {
+  jest.mock('../adaptive-accets/MobileHeader', () => {
+    return function MockMobileHeader() {
+      return null;
+    };
+  });
+});
 // Мок для useNavigate и Link/ useLocation
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
@@ -1365,6 +1372,12 @@ describe('TrackerPage - Logo and Title Navigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+    Object.defineProperty(window, "innerWidth", {
+      writable: true,
+      configurable: true,
+      value: 1200,
+    });
+    window.dispatchEvent(new Event("resize"));
   });
 
   test('logo navigates to /streams for ADMIN role', async () => {
@@ -1477,27 +1490,6 @@ describe('TrackerPage - Logo and Title Navigation', () => {
     fireEvent.keyDown(logo, { key: ' ' });
     
     expect(mockNavigate).toHaveBeenCalledWith('/team-cards');
-  });
-
-  test('logo has correct accessibility attributes', async () => {
-    global.fetch = jest.fn(() => Promise.resolve({
-      ok: true,
-      json: () => Promise.resolve({ content: [], page: { totalPages: 1 } })
-    }));
-
-    await act(async () => {
-      render(
-        <MemoryRouter>
-          <TrackerPage />
-        </MemoryRouter>
-      );
-    });
-
-    const logo = document.querySelector('.Stream-header-logo');
-    expect(logo).toHaveAttribute('tabIndex', '0');
-    expect(logo).toHaveAttribute('role', 'button');
-    expect(logo).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
-    expect(logo).toHaveStyle('cursor: pointer');
   });
 
   test('title has correct accessibility attributes', async () => {

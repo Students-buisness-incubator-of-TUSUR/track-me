@@ -8,6 +8,8 @@ import ProfileIcon from "./personal_account_1.png";
 import StreamPlaceholder from "./Заглушка для потока в TrackMe.png";
 import { getCsrfConfig } from '../../utils/csrf-utils'; // Импортируем функцию для CSRF конфигурации
 // import LoginService from '../../services/login-service'; // Импортируем сервис для логина
+import MobileHeader from "../adaptive-accets/MobileHeader";
+
 export default function Stream() {
     const [isVisible, setIsVisible] = useState(false);
     const [visibleCardsStart] = useState(0);
@@ -374,6 +376,7 @@ useEffect(() => {
 
     return (
         <div className="Stream">
+            <MobileHeader onNavigate={navigate} />
             <header className="Stream-header">
                 <div className="Stream-header-cont">{/*NOSONAR*/}
                     <div // NOSONAR
