@@ -2283,6 +2283,10 @@ const TestComponent = ({
 };
 
 describe('Button coverage for Sonar', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('full button coverage - toggle functionality', () => {
     const mockSetShow = jest.fn();
     
@@ -2294,19 +2298,15 @@ describe('Button coverage for Sonar', () => {
       />
     );
 
-    // Проверяем текст кнопки
-    const button = screen.getByRole('button');
-    expect(button).toHaveTextContent('Показать встречи');
+    // Находим кнопку по тексту
+    let button = screen.getByText('Показать встречи');
     expect(button).toHaveClass('show-meetings-mobile-btn');
 
     // Кликаем и проверяем вызов с true
     fireEvent.click(button);
     expect(mockSetShow).toHaveBeenCalledWith(true);
 
-    // Очищаем мок
-    mockSetShow.mockClear();
-
-    // Тест 2: состояние true
+    // Ре-рендерим с новым состоянием
     rerender(
       <TestComponent 
         showMeetingsOnMobile={true} 
@@ -2314,26 +2314,40 @@ describe('Button coverage for Sonar', () => {
       />
     );
 
-    // Проверяем измененный текст
-    expect(button).toHaveTextContent('Скрыть встречи');
-
+    // Находим кнопку по новому тексту
+    button = screen.getByText('Скрыть встречи');
+    
     // Кликаем и проверяем вызов с false
     fireEvent.click(button);
     expect(mockSetShow).toHaveBeenCalledWith(false);
   });
 
-  test('button click with different initial states', () => {
+  test('button states coverage', () => {
     const mockSetShow = jest.fn();
     
-    // Тестируем оба состояния отдельно
-    render(<TestComponent showMeetingsOnMobile={false} setShowMeetingsOnMobile={mockSetShow} />);
-    fireEvent.click(screen.getByRole('button'));
+    // Тестируем состояние false
+    const { unmount } = render(
+      <TestComponent 
+        showMeetingsOnMobile={false} 
+        setShowMeetingsOnMobile={mockSetShow} 
+      />
+    );
+    
+    fireEvent.click(screen.getByText('Показать встречи'));
     expect(mockSetShow).toHaveBeenCalledWith(true);
-
+    
+    unmount();
     mockSetShow.mockClear();
     
-    render(<TestComponent showMeetingsOnMobile={true} setShowMeetingsOnMobile={mockSetShow} />);
-    fireEvent.click(screen.getByRole('button'));
+    // Тестируем состояние true
+    render(
+      <TestComponent 
+        showMeetingsOnMobile={true} 
+        setShowMeetingsOnMobile={mockSetShow} 
+      />
+    );
+    
+    fireEvent.click(screen.getByText('Скрыть встречи'));
     expect(mockSetShow).toHaveBeenCalledWith(false);
   });
 });
