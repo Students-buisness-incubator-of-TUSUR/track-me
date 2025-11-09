@@ -879,7 +879,7 @@ const saveMeetingDate = async () => {
             <div className="right-panel">
               <button
                className="show-meetings-mobile-btn" 
-               onClick={() => setShowMeetingsOnMobile(!showMeetingsOnMobile)}//NOSONAR
+               onClick={() => setShowMeetingsOnMobile(!showMeetingsOnMobile)}// sonarignore
                >
                 {showMeetingsOnMobile ? "Скрыть встречи" : "Показать встречи"}
               </button>
