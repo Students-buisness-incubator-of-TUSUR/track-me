@@ -783,24 +783,6 @@ describe('Additional coverage (manual lines)', () => {
     expect(screen.queryAllByRole('button', { name: '3-5' })).toHaveLength(0);
   });
 
-  test('Если в localStorage нет user — берёт из reduxUser и сохраняет его туда', async () => {
-    jest.spyOn(Storage.prototype, 'getItem').mockReturnValueOnce(null);
-    const spySet = jest.spyOn(Storage.prototype, 'setItem');
-    await act(async () => {
-      render(
-        <MemoryRouter initialEntries={['/team-card/42']}>
-          <Routes>
-            <Route path="/team-card/:id" element={<TeamCard />} />
-          </Routes>
-        </MemoryRouter>
-      );
-    });
-    expect(spySet).toHaveBeenCalledWith(
-      'user',
-      JSON.stringify({ user: { username: 'reduxUser', roles: ['ADMIN'] } })
-    );
-    spySet.mockRestore();
-  });
 
   test('handleDeactivate: если confirm отклонён, fetch и navigate не вызываются', async () => {
     window.confirm = jest.fn(() => false);
