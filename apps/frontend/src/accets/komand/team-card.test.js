@@ -2270,11 +2270,11 @@ describe('getMeetingStatusClass', () => {
 
 const TestComponent = ({ 
   showMeetingsOnMobile = false, 
-  setShowMeetingsOnMobile = jest.fn()
+  setShowMeetingsOnMobile = jest.fn() 
 }) => {
   return (
-    <button 
-      className="show-meetings-mobile-btn" 
+    <button
+      className="show-meetings-mobile-btn"
       onClick={() => setShowMeetingsOnMobile(!showMeetingsOnMobile)}
     >
       {showMeetingsOnMobile ? "Скрыть встречи" : "Показать встречи"}
@@ -2282,40 +2282,58 @@ const TestComponent = ({
   );
 };
 
-describe('Кнопка показа/скрытия встреч', () => {
-  test('отображает текст "Показать встречи" когда showMeetingsOnMobile false', () => {
-    render(<TestComponent showMeetingsOnMobile={false} />);
+describe('Button coverage for Sonar', () => {
+  test('full button coverage - toggle functionality', () => {
+    const mockSetShow = jest.fn();
     
+    // Тест 1: начальное состояние false
+    const { rerender } = render(
+      <TestComponent 
+        showMeetingsOnMobile={false} 
+        setShowMeetingsOnMobile={mockSetShow} 
+      />
+    );
+
+    // Проверяем текст кнопки
     const button = screen.getByRole('button');
     expect(button).toHaveTextContent('Показать встречи');
     expect(button).toHaveClass('show-meetings-mobile-btn');
-  });
 
-  test('отображает текст "Скрыть встречи" когда showMeetingsOnMobile true', () => {
-    render(<TestComponent showMeetingsOnMobile={true} />);
-    
-    const button = screen.getByRole('button');
-    expect(button).toHaveTextContent('Скрыть встречи');
-    expect(button).toHaveClass('show-meetings-mobile-btn');
-  });
-
-  test('вызывает setShowMeetingsOnMobile с true при клике когда showMeetingsOnMobile false', () => {
-    const mockSetShow = jest.fn();
-    render(<TestComponent showMeetingsOnMobile={false} setShowMeetingsOnMobile={mockSetShow} />);
-    
-    const button = screen.getByRole('button');
+    // Кликаем и проверяем вызов с true
     fireEvent.click(button);
-    
     expect(mockSetShow).toHaveBeenCalledWith(true);
+
+    // Очищаем мок
+    mockSetShow.mockClear();
+
+    // Тест 2: состояние true
+    rerender(
+      <TestComponent 
+        showMeetingsOnMobile={true} 
+        setShowMeetingsOnMobile={mockSetShow} 
+      />
+    );
+
+    // Проверяем измененный текст
+    expect(button).toHaveTextContent('Скрыть встречи');
+
+    // Кликаем и проверяем вызов с false
+    fireEvent.click(button);
+    expect(mockSetShow).toHaveBeenCalledWith(false);
   });
 
-  test('вызывает setShowMeetingsOnMobile с false при клике когда showMeetingsOnMobile true', () => {
+  test('button click with different initial states', () => {
     const mockSetShow = jest.fn();
+    
+    // Тестируем оба состояния отдельно
+    render(<TestComponent showMeetingsOnMobile={false} setShowMeetingsOnMobile={mockSetShow} />);
+    fireEvent.click(screen.getByRole('button'));
+    expect(mockSetShow).toHaveBeenCalledWith(true);
+
+    mockSetShow.mockClear();
+    
     render(<TestComponent showMeetingsOnMobile={true} setShowMeetingsOnMobile={mockSetShow} />);
-    
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    
+    fireEvent.click(screen.getByRole('button'));
     expect(mockSetShow).toHaveBeenCalledWith(false);
   });
 });
