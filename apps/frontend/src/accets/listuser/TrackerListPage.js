@@ -242,7 +242,19 @@ function TrackerListPage({ endpoint }) {
         </div>
       </header>
 
-     <main className="tracker-list-content" onClick={closeMobileMenu}>
+     <main 
+  className="tracker-list-content" 
+  onClick={closeMobileMenu}
+  onKeyDown={(e) => {
+    // Close menu on Escape key or Enter/Space (if you want those too)
+    if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+      closeMobileMenu();
+    }
+  }}
+  tabIndex={0} // Make the element focusable
+  role="button" // Indicate that this element is acting as a button
+  aria-label="Close mobile menu" // Provide accessible description
+>
   {error && <div className="error-message oval2">{error}</div>}
 
   <div className="tracker-grid">
