@@ -11,7 +11,16 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
 }));
-
+// Мокаем MobileHeader чтобы он не влиял на навигацию
+jest.mock('../adaptive-accets/MobileHeader', () => {
+  return function MockMobileHeader({ onNavigate }) {
+    return (
+      <div data-testid="mobile-header">
+        Mock Mobile Header
+      </div>
+    );
+  };
+});
 // Создаем мок для localStorage
 const localStorageMock = {
   getItem: jest.fn(),
