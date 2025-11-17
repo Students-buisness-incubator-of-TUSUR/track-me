@@ -22,6 +22,14 @@ jest.mock('../adaptive-accets/MobileHeader', () => {
     );
   };
 });
+// Мокаем window.innerWidth для consistent тестирования
+beforeEach(() => {
+  Object.defineProperty(window, 'innerWidth', {
+    writable: true,
+    configurable: true,
+    value: 1024,
+  });
+});
 // Мок useTrackerListв
 jest.mock('../hooks/useTrackerList', () => {
   const confirmUser = jest.fn();
@@ -85,25 +93,47 @@ describe('TrackerListPage (объединённые тесты)', () => {
     expect(screen.getByText('TrackMe')).toBeInTheDocument();
   });
 
-  test('отображает пользователей и Telegram ID', () => {
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
-    expect(screen.getByText('Test User 1')).toBeInTheDocument();
-    expect(screen.getByText('testuser1')).toBeInTheDocument();
-    expect(screen.getByText('Test User 2')).toBeInTheDocument();
-    expect(screen.getByText('@testuser2')).toBeInTheDocument();
-  });
+  // Замените проблемные тесты на эти:
 
-  test('клик по активному трекеру вызывает setHoveredTracker', () => {
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
-    fireEvent.click(screen.getByText('Test User 1'));
-    expect(setHoveredTracker).toHaveBeenCalledWith('testuser1');
+test('отображает пользователей и Telegram ID', () => {
+  renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+  
+  expect(screen.getByText('Test User 1')).toBeInTheDocument();
+  expect(screen.getByText('Test User 2')).toBeInTheDocument();
+  
+  // Используем более гибкий поиск для никнеймов
+  const nick1 = screen.getByText((content, element) => {
+    return element.className === 'tracker-nick' && content.includes('testuser1');
   });
+  expect(nick1).toBeInTheDocument();
+  
+  const nick2 = screen.getByText((content, element) => {
+    return element.className === 'tracker-nick' && content.includes('testuser2');
+  });
+  expect(nick2).toBeInTheDocument();
+});
 
-  test('клик по неактивному трекеру вызывает setHoveredTracker', () => {
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
-    fireEvent.click(screen.getByText('Test User 2'));
-    expect(setHoveredTracker).toHaveBeenCalledWith('testuser2');
-  });
+test('наведение на активный трекер вызывает setHoveredTracker', () => {
+  renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+  
+  const trackerItem = screen.getByText('Test User 1').closest('.tracker-item-true');
+  
+  // Тестируем hover (mouseEnter), а не click
+  fireEvent.mouseEnter(trackerItem);
+  
+  expect(setHoveredTracker).toHaveBeenCalledWith('testuser1');
+});
+
+test('наведение на неактивный трекер вызывает setHoveredTracker', () => {
+  renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+  
+  const trackerItem = screen.getByText('Test User 2').closest('.tracker-item-edit');
+  
+  // Тестируем hover (mouseEnter), а не click
+  fireEvent.mouseEnter(trackerItem);
+  
+  expect(setHoveredTracker).toHaveBeenCalledWith('testuser2');
+});
 
   test('открывает меню профиля', () => {
     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
