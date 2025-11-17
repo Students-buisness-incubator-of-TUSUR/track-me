@@ -122,6 +122,11 @@ function App() {
                             <MeetingCard />
                         </ProtectedRoute>
                     } />
+                    <Route path="/profile/:username" element={
+    <ProtectedRoute>
+        <ProfilePage />
+    </ProtectedRoute>
+} />
                     <Route path="/report" element={
   <ProtectedRoute>
     <ReportPage />

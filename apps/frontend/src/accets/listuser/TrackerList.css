@@ -12,7 +12,7 @@
 .tracker-item-true {
     /* Размер/отступы подбирайте по вкусу */
     width: 360px;
-    height: 91px;
+    height: 95px;
     margin-top: 58px;
     margin-right: 26px;
     display: flex;
@@ -107,6 +107,7 @@
     font-size: 18px;
     margin-left: 13px;
     color: black;
+    margin-top: -10px;
 
 
 }
@@ -341,7 +342,13 @@
   border: 6px solid transparent;
   border-bottom-color: rgba(45, 45, 45, 0.95);
 }
-
+.tracker-profile-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  flex: 1;
+}
 @keyframes tooltipFade {
   from {
     opacity: 0;
@@ -372,25 +379,33 @@
 }
 
 
-
+.Users-header-bottom-cont {
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    justify-content: space-between;
+    margin-right: 121px;
+    margin-left: 157px;
+    margin-top: 20px;
+}
 
 @media (max-width: 600px) {
   /* Убедимся, что сам контейнер видим */
   .Stream-header {
     display: block !important;
   }
-
+ 
   /* Нижнюю часть прижмём влево и опустим чуть вниз */
   .Users-header-bottom-cont {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: flex-start !important; /* прижать влево */
-    gap: 8px !important;
+    gap: 120px !important;
     width: 100% !important;
     margin-top: -10px !important;   /* отступ вниз */
     padding-left: 10px !important; /* отступ от левого края экрана */
-    padding-right: 50px ;
+    padding-right: 250px ;
     box-sizing: border-box !important;
     position: relative !important;
     top: 6px !important; /* дополнительный тонкий сдвиг вниз, если margin не работает */
@@ -424,7 +439,9 @@
     display: none; /* скрыть десктопную часть с заголовком и кнопками */
     
   }
-  
+  .tracker-fio{
+    margin-top: -5px;
+  }
 .tracker-fio,
   .tracker-nick {
     margin-left: 0 !important;
@@ -450,7 +467,7 @@
 
   .Stream-search {
     width: 100%;
-    max-width: 260px;
+    max-width: 300px;
     height: 38px;
     font-size: 14px;
     border-radius: 25px;
@@ -478,13 +495,16 @@
   .tracker-item-true,
   .tracker-item-edit {
     width: 90%;
-    height: auto;
+    height: 64px;
     flex-direction: row;
     justify-content: flex-start;
     padding: 10px;
     margin: 10px 0;
+    
   }
 
+    
+ 
   .tracker-text {
     margin-left: 15px;
   }
@@ -493,7 +513,7 @@
     flex-direction: row;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
   }
 
   .confirm-button img,

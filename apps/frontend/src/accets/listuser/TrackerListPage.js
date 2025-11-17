@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTrackerList } from "../hooks/useTrackerList";
 import "./TrackerList.css";
@@ -10,6 +10,7 @@ import falseIcon2 from "./false2.png";
 import ProfileIcon from "./personal_account_1.png";
 import { useNavigate } from "react-router-dom";
 import MobileHeader from "../adaptive-accets/MobileHeader";
+
 function TrackerListPage({ endpoint }) {
   const {
     trackers,
@@ -38,6 +39,13 @@ function TrackerListPage({ endpoint }) {
   const navigate = useNavigate();
   const toggleProfileMenu = () => setIsProfileMenuOpen((prev) => !prev);
   const [userRole, setUserRole] = useState('');
+    
+  const [activeMobileMenu, setActiveMobileMenu] = useState(null);
+
+  const longPressTimers = useRef({});
+  // Состояние для отслеживания активного меню на мобильных
+  
+
 
   const handleLogout = async () => {
     localStorage.removeItem("user");
@@ -63,7 +71,38 @@ function TrackerListPage({ endpoint }) {
     setSearchQuery(event.target.value);
     setPage(0); // Reset page to 0 on search
   };
+   const handleTouchStart = (username) => {
+    longPressTimers.current[username] = setTimeout(() => {
+      setActiveMobileMenu(username);
+      setHoveredTracker(username);
+    }, 500); // 500ms для long press
+  };
 
+  const handleTouchEnd = (username) => {
+    if (longPressTimers.current[username]) {
+      clearTimeout(longPressTimers.current[username]);
+      delete longPressTimers.current[username];
+    }
+  };
+
+  const handleTouchMove = (username) => {
+    // Если пользователь двигает пальцем, отменяем long press
+    if (longPressTimers.current[username]) {
+      clearTimeout(longPressTimers.current[username]);
+      delete longPressTimers.current[username];
+    }
+  };
+
+  // Закрыть меню при клике вне элемента
+  const closeMobileMenu = () => {
+    setActiveMobileMenu(null);
+    setHoveredTracker(null);
+  };
+
+  // Определяем, мобильное ли устройство
+  const isMobile = () => {
+    return window.innerWidth <= 768;
+  };
   return (
     <div className="tracker-container">
        <MobileHeader onNavigate={navigate} />
@@ -203,129 +242,174 @@ function TrackerListPage({ endpoint }) {
         </div>
       </header>
 
-      <main className="tracker-list-content">
-        {error && <div className="error-message oval2">{error}</div>}
-        <div className="tracker-grid">
-          {trackers.length > 0 ? (
-            trackers.map((tracker, index) =>
-              tracker.enabled ? (
-                <div
-                  className="tracker-item-true"
-                  key={tracker.username || index}
-                  onClick={() => setHoveredTracker(tracker.username)}
-                  onMouseLeave={() => setHoveredTracker(null)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      setHoveredTracker(tracker.username);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="tracker-avatar">
-                    {hoveredTracker === tracker.username && (
-                      <div className="tracker-edit-panel12">
-                        <button
-                          className="confirm-button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setHoveredTracker(null);
-                          }}
-                          onMouseEnter={() => setHoveredButton("confirm")}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        >
-                          <img src={hoveredButton === "cancel" ? trueIcon2 : trueIcon} alt="Оставить" />
-                        </button>
-                        {hoveredButton === "cancel" && (
-                          <span className="tooltip tooltip-red">Удалить</span>
-                        )}
-                        <button
-                          className="cancel-button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteUser(tracker.username);
-                          }}
-                          onMouseEnter={() => setHoveredButton("cancel")}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        >
-                          <img src={hoveredButton === "confirm" ? falseIcon2 : falseIcon} alt="Удалить" />
-                        </button>
-                        {hoveredButton === "confirm" && (
-                          <span className="tooltip tooltip-green">Оставить</span>
-                        )}
-                      </div>
-                    )}
-                    <span className="green-checkmark" title="Включён">
-                      <img src={trueIcon} alt="Подтверждён" />
-                    </span>
-                    <div className="tracker-text">
-                      <div className="tracker-fio">{tracker.fullName}</div>
-                      <div className="tracker-nick">{tracker.username}</div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  className="tracker-item-edit"
-                  key={tracker.username || index}
-                  onClick={() => setHoveredTracker(tracker.username)}
-                  onMouseLeave={() => setHoveredTracker(null)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      setHoveredTracker(tracker.username);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="tracker-avatar">
-                    {hoveredTracker === tracker.username && (
-                      <div className="tracker-edit-panel">
-                        <button
-                          className="confirm-button"
-                          onClick={() => confirmUser(tracker.username)}
-                          onMouseEnter={() => setHoveredButton("confirm")}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        >
-                          <img src={hoveredButton === "cancel" ? trueIcon2 : trueIcon} alt="Подтвердить" />
-                        </button>
-                        {hoveredButton === "cancel" && (
-                          <span className="tooltip tooltip-red">Отменить</span>
-                        )}
-                        <button
-                          className="cancel-button"
-                          onClick={() => deleteUser(tracker.username)}
-                          onMouseEnter={() => setHoveredButton("cancel")}
-                          onMouseLeave={() => setHoveredButton(null)}
-                        >
-                          <img src={hoveredButton === "confirm" ? falseIcon2 : falseIcon} alt="Отклонить" />
-                        </button>
-                        {hoveredButton === "confirm" && (
-                          <span className="tooltip tooltip-green">Подтвердить</span>
-                        )}
-                      </div>
-                    )}
-                    <div className="edit-icon" title="Редактировать">
-                      <img src={editIcon} alt="Редактировать" />
-                    </div>
-                    <div className="tracker-text">
-                      <div className="tracker-fio">{tracker.fullName}</div>
-                      <div className="tracker-nick">@{tracker.username}</div>
-                    </div>
-                  </div>
-                </div>
-              )
-            )
-          ) : (
-            <p className="error-message oval2">
-              {showLockedOnly 
-                ? "Нет заблокированных пользователей для отображения" 
-                : "Нет активных пользователей для отображения"
+     <main className="tracker-list-content" onClick={closeMobileMenu}>
+  {error && <div className="error-message oval2">{error}</div>}
+
+  <div className="tracker-grid">
+    {trackers.length > 0 ? (
+      trackers.map((tracker, index) => {
+        const isEnabled = tracker.enabled;
+        const itemClass = isEnabled ? "tracker-item-true" : "tracker-item-edit";
+        const showMenu = hoveredTracker === tracker.username || activeMobileMenu === tracker.username;
+
+        return (
+          <div
+            className={itemClass}
+            key={tracker.username || index}
+            // Наведение для десктопа
+            onMouseEnter={() => !isMobile() && setHoveredTracker(tracker.username)}
+            onMouseLeave={() => !isMobile() && setHoveredTracker(null)}
+            // Long press для мобильных
+            onTouchStart={() => isMobile() && handleTouchStart(tracker.username)}
+            onTouchEnd={() => isMobile() && handleTouchEnd(tracker.username)}
+            onTouchMove={() => isMobile() && handleTouchMove(tracker.username)}
+            onClick={(e) => {
+              if (isMobile() && activeMobileMenu === tracker.username) {
+                e.stopPropagation();
               }
-            </p>
-          )}
-        </div>
-      </main>
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                setHoveredTracker(tracker.username);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
+            {/* ---------- КЛИКАБЕЛЬНАЯ ССЫЛКА НА ПРОФИЛЬ ---------- */}
+            <Link
+              to={`/profile/${tracker.username}`}
+              className="tracker-profile-link"
+              onClick={(e) => {
+                if (isMobile() && activeMobileMenu === tracker.username) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
+              onMouseEnter={(e) => e.stopPropagation()}
+            >
+              <div className="tracker-avatar">
+                {/* Иконка статуса */}
+                {isEnabled ? (
+                  <span className="green-checkmark" title="Включён">
+                    <img src={trueIcon} alt="Подтверждён" />
+                  </span>
+                ) : (
+                  <div className="edit-icon" title="Редактировать">
+                    <img src={editIcon} alt="Редактировать" />
+                  </div>
+                )}
+
+                {/* Текст */}
+                <div className="tracker-text">
+                  <div className="tracker-fio">{tracker.fullName}</div>
+                  <div className="tracker-nick">@{tracker.username}</div>
+                </div>
+              </div>
+            </Link>
+
+            {/* ---------- ПАНЕЛЬ ДЕЙСТВИЙ ПРИ НАВЕДЕНИИ ИЛИ LONG PRESS ---------- */}
+            {showMenu && (
+              <div className="tracker-edit-panel12">
+                {isEnabled ? (
+                  <>
+                    {/* Оставить (просто закрыть) */}
+                    <button
+                      className="confirm-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setHoveredTracker(null);
+                        setActiveMobileMenu(null);
+                      }}
+                      onMouseEnter={() => setHoveredButton("confirm")}
+                      onMouseLeave={() => setHoveredButton(null)}
+                    >
+                      <img
+                        src={hoveredButton === "cancel" ? trueIcon2 : trueIcon}
+                        alt="Оставить"
+                      />
+                    </button>
+                    {hoveredButton === "cancel" && (
+                      <span className="tooltip tooltip-red">Удалить</span>
+                    )}
+
+                    {/* Удалить */}
+                    <button
+                      className="cancel-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteUser(tracker.username);
+                        setActiveMobileMenu(null);
+                      }}
+                      onMouseEnter={() => setHoveredButton("cancel")}
+                      onMouseLeave={() => setHoveredButton(null)}
+                    >
+                      <img
+                        src={hoveredButton === "confirm" ? falseIcon2 : falseIcon}
+                        alt="Удалить"
+                      />
+                    </button>
+                    {hoveredButton === "confirm" && (
+                      <span className="tooltip tooltip-green">Оставить</span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* Подтвердить */}
+                    <button
+                      className="confirm-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        confirmUser(tracker.username);
+                        setActiveMobileMenu(null);
+                      }}
+                      onMouseEnter={() => setHoveredButton("confirm")}
+                      onMouseLeave={() => setHoveredButton(null)}
+                    >
+                      <img
+                        src={hoveredButton === "cancel" ? trueIcon2 : trueIcon}
+                        alt="Подтвердить"
+                      />
+                    </button>
+                    {hoveredButton === "cancel" && (
+                      <span className="tooltip tooltip-red">Отменить</span>
+                    )}
+
+                    {/* Отклонить */}
+                    <button
+                      className="cancel-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteUser(tracker.username);
+                        setActiveMobileMenu(null);
+                      }}
+                      onMouseEnter={() => setHoveredButton("cancel")}
+                      onMouseLeave={() => setHoveredButton(null)}
+                    >
+                      <img
+                        src={hoveredButton === "confirm" ? falseIcon2 : falseIcon}
+                        alt="Отклонить"
+                      />
+                    </button>
+                    {hoveredButton === "confirm" && (
+                      <span className="tooltip tooltip-green">Подтвердить</span>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })
+    ) : (
+      <p className="error-message oval2">
+        {showLockedOnly
+          ? "Нет заблокированных пользователей для отображения"
+          : "Нет активных пользователей для отображения"}
+      </p>
+    )}
+  </div>
+</main>
 
       {trackers.length > 0 && (
         <footer className="Stream-footer">

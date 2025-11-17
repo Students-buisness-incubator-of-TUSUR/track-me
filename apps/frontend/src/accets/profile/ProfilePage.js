@@ -1,21 +1,26 @@
-import React, {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import React, { useEffect, useState, useCallback } from "react";
+import {useNavigate, useParams} from "react-router-dom";
 import "./ProfilePage.css";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 // Импорт иконок
 import penIcon from "./pen.png";
 import uploadIcon from "./upload.png";
 import MobileHeader from "../adaptive-accets/MobileHeader";
+
 function ProfilePage() {
     const navigate = useNavigate();
+    const { username } = useParams(); // Получаем username из URL, если есть
     const [userData, setUserData] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null); // Текущий авторизованный пользователь
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userPhoto, setUserPhoto] = useState(null);
     const ssoHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/sso';
     const defaultAvatarUrl = "/images/no-photo.png";
-    // Флаг редактирования
+    
+    // Флаг редактирования - доступен только для своего профиля
     const [isEditing, setIsEditing] = useState(false);
+    const [isOwnProfile, setIsOwnProfile] = useState(false);
 
     // Состояние для редактируемых данных
     const [editedData, setEditedData] = useState({});
@@ -34,9 +39,32 @@ function ProfilePage() {
 
     // Количество команд, получаемое из userData
     const [teamCount, setTeamCount] = useState(0);
+    const loadTargetUserData = useCallback((targetUsername, currentUserData) => {
+        const endpoint = `${ssoHost}/api/v1/users/${targetUsername}/info`;
 
+        fetch(endpoint, {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+        })
+            .then(res => {
+                if (res.status === 403) throw new Error("Нет доступа к просмотру этого профиля");
+                if (res.status === 404) throw new Error("Пользователь не найден");
+                if (!res.ok) throw new Error("Ошибка загрузки данных пользователя");
+                return res.json();
+            })
+            .then(data => {
+                setUserData(data);
+                setEditedData(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                setError(err.message);
+                setLoading(false);
+            });
+    }, [ssoHost]);
+    // 1. Загружаем текущего авторизованного пользователя
     useEffect(() => {
-
         fetch(`${ssoHost}/api/v1/account/info`, {
             method: "GET",
             headers: {
@@ -56,20 +84,38 @@ function ProfilePage() {
                 return response.json();
             })
             .then((result) => {
-                setUserData(result);
-                setEditedData(result); // Заполняем редактируемые данные
-                setLoading(false);
+                setCurrentUser(result);
+                
+                // Проверяем, это свой профиль или чужой
+                if (!username || username === result.username) {
+                    setIsOwnProfile(true);
+                    setUserData(result);
+                    setEditedData(result);
+                    setLoading(false);
+                } else {
+                    setIsOwnProfile(false);
+                    // Загружаем данные целевого пользователя
+                    loadTargetUserData(username, result);
+                }
             })
             .catch((err) => {
                 console.error("Ошибка загрузки данных:", err);
                 setLoading(false);
             });
-    }, [ssoHost]);
+    }, [ssoHost, username, loadTargetUserData]);
 
+    
+
+    // Загрузка фото пользователя
     useEffect(() => {
         if (!userData) return;
 
-        fetch(`${ssoHost}/api/v1/account/photo`, {
+        const targetUsername = isOwnProfile ? null : username;
+        const photoEndpoint = targetUsername 
+            ? `${ssoHost}/api/v1/users/${targetUsername}/photo`
+            : `${ssoHost}/api/v1/account/photo`;
+
+        fetch(photoEndpoint, {
             method: "GET",
             credentials: "include",
         })
@@ -86,54 +132,55 @@ function ProfilePage() {
             .catch(() => {
                 setUserPhoto(null);
             });
-    }, [userData, ssoHost]);
+    }, [userData, username, isOwnProfile, ssoHost]);
 
+    // Загрузка количества команд (только для трекеров и только для своего профиля)
     useEffect(() => {
-    if (!userData?.roles?.includes("TRACKER")) return;
-    const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
-    
-    fetch(`${backendHost}/api/v1/team-cards?page=0&size=1000`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch() },
-        credentials: "include",
-        body: JSON.stringify({
-            filters: [
-                {
-                    fieldName: "username",
-                    type: "EQ",
-                    value: userData.username
-                },
-                {
-                    fieldName: "enabled",
-                    type: "EQ",
-                    value: true
+        if (!userData?.roles?.includes("TRACKER") || !isOwnProfile) return;
+        
+        const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
+        
+        fetch(`${backendHost}/api/v1/team-cards?page=0&size=1000`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch() },
+            credentials: "include",
+            body: JSON.stringify({
+                filters: [
+                    {
+                        fieldName: "username",
+                        type: "EQ",
+                        value: userData.username
+                    },
+                    {
+                        fieldName: "enabled",
+                        type: "EQ",
+                        value: true
+                    }
+                ]
+            })
+        })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error("Ошибка при загрузке карточек команд");
                 }
-            ]
-        })
-    })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error("Ошибка при загрузке карточек команд");
-            }
-            return res.json();
-        })
-        .then(data => {
-            // Устанавливаем teamCount на основе totalElements, если доступно, или длины content
-            setTeamCount(data.totalElements || (Array.isArray(data?.content) ? data.content.length : 0));
-        })
-        .catch(err => {
-            console.error("Ошибка при загрузке карточек:", err);
-            setTeamCount(0);
-        });
-}, [userData]);
+                return res.json();
+            })
+            .then(data => {
+                setTeamCount(data.totalElements || (Array.isArray(data?.content) ? data.content.length : 0));
+            })
+            .catch(err => {
+                console.error("Ошибка при загрузке карточек:", err);
+                setTeamCount(0);
+            });
+    }, [userData, isOwnProfile]);
 
     const handleEditClick = () => {
         setIsEditing(true);
     };
 
     const handleHomeButtonClick = () => {
-        if (userData && userData.roles) {
-            const role = userData.roles[0].toLowerCase();
+        if (currentUser && currentUser.roles) {
+            const role = currentUser.roles[0].toLowerCase();
             if (
                 role === "superadmin" ||
                 role === "суперадмин" ||
@@ -155,99 +202,98 @@ function ProfilePage() {
 
     // Функция валидации email и телефона
     const validateForm = () => {
-    if (!editedData.fullName || editedData.fullName.trim() === "") {
-        setError("Поле 'ФИО' обязательно для заполнения");
-        return false;
-    }
-
-    const emailPattern = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
-    if (!editedData.email || !emailPattern.test(editedData.email)) {
-        setError("Некорректный формат email");
-        return false;
-    }
-
-    const phoneDigits = editedData.phoneNumber?.replace(/\D/g, "") || "";
-    if (phoneDigits.length < 11) {
-        setError("Некорректный формат телефона");
-        return false;
-    }
-
-    if (!editedData.username || editedData.username.trim() === "") {
-        setError("Поле 'Телеграм' обязательно для заполнения");
-        return false;
-    }
-    
-    if (!editedData.username.match(/^\w+$/)) {
-        setError("Введите корректный юзернейм");
-        return false;
-    }
-
-    setError(null);
-    return true;
-};
-    const handleSaveClick = async () => {
-    if (!validateForm()) {
-        return;
-    }
-
-    try {
-        // Подготавливаем данные для отправки - заменяем null на пустую строку для avatarUrl
-        const dataToSend = {
-            ...editedData,
-            avatarUrl: editedData.avatarUrl || defaultAvatarUrl // отправляем пустую строку вместо null
-        };
-
-        const response = await fetch(`${ssoHost}/api/v1/account/update`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                ...getCsrfConfigForFetch()
-            },
-            credentials: "include",
-            body: JSON.stringify(dataToSend), // используем подготовленные данные
-        });
-
-        if (!response.ok) {
-            if (response.status === 400) {
-                // Пытаемся получить более детальную ошибку
-                try {
-                    const errorData = await response.json();
-                    setError(errorData.message || "Ошибка валидации данных");
-                } catch {
-                    setError("Номер телефона уже существует или данные неверны");
-                }
-            } else {
-                setError(`Ошибка при сохранении данных. Статус: ${response.status}`);
-            }
-            throw new Error("Ошибка сохранения");
+        if (!editedData.fullName || editedData.fullName.trim() === "") {
+            setError("Поле 'ФИО' обязательно для заполнения");
+            return false;
         }
 
-        // После успешного сохранения запрашиваем свежие данные
-        const userResponse = await fetch(`${ssoHost}/api/v1/account/info`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include"
-        });
-
-        if (userResponse.ok) {
-            const freshData = await userResponse.json();
-            setUserData(freshData);
-            setEditedData(freshData);
-        } else {
-            // Если не удалось получить свежие данные, используем отправленные
-            setUserData(dataToSend);
+        const emailPattern = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        if (!editedData.email || !emailPattern.test(editedData.email)) {
+            setError("Некорректный формат email");
+            return false;
         }
 
-        setIsEditing(false);
-        setError(null);
+        const phoneDigits = editedData.phoneNumber?.replace(/\D/g, "") || "";
+        if (phoneDigits.length < 11) {
+            setError("Некорректный формат телефона");
+            return false;
+        }
+
+        if (!editedData.username || editedData.username.trim() === "") {
+            setError("Поле 'Телеграм' обязательно для заполнения");
+            return false;
+        }
         
-    } catch (err) {
-        console.error("Ошибка сохранения данных:", err);
-        if (!err.message.includes('JSON')) {
-            setError("Произошла ошибка при сохранении данных");
+        if (!editedData.username.match(/^\w+$/)) {
+            setError("Введите корректный юзернейм");
+            return false;
         }
-    }
-};
+
+        setError(null);
+        return true;
+    };
+
+    const handleSaveClick = async () => {
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+            // Подготавливаем данные для отправки - заменяем null на пустую строку для avatarUrl
+            const dataToSend = {
+                ...editedData,
+                avatarUrl: editedData.avatarUrl || defaultAvatarUrl
+            };
+
+            const response = await fetch(`${ssoHost}/api/v1/account/update`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getCsrfConfigForFetch()
+                },
+                credentials: "include",
+                body: JSON.stringify(dataToSend),
+            });
+
+            if (!response.ok) {
+                if (response.status === 400) {
+                    try {
+                        const errorData = await response.json();
+                        setError(errorData.message || "Ошибка валидации данных");
+                    } catch {
+                        setError("Номер телефона уже существует или данные неверны");
+                    }
+                } else {
+                    setError(`Ошибка при сохранении данных. Статус: ${response.status}`);
+                }
+                throw new Error("Ошибка сохранения");
+            }
+
+            // После успешного сохранения запрашиваем свежие данные
+            const userResponse = await fetch(`${ssoHost}/api/v1/account/info`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include"
+            });
+
+            if (userResponse.ok) {
+                const freshData = await userResponse.json();
+                setUserData(freshData);
+                setEditedData(freshData);
+            } else {
+                setUserData(dataToSend);
+            }
+
+            setIsEditing(false);
+            setError(null);
+            
+        } catch (err) {
+            console.error("Ошибка сохранения данных:", err);
+            if (!err.message.includes('JSON')) {
+                setError("Произошла ошибка при сохранении данных");
+            }
+        }
+    };
 
     // Обработчик для остальных полей
     const handleChange = (e) => {
@@ -277,8 +323,10 @@ function ProfilePage() {
         setEditedData({...editedData, phoneNumber: formatted});
     };
 
-    // Обработчик загрузки фото
+    // Обработчик загрузки фото (только для своего профиля)
     const handlePhotoChange = (event) => {
+        if (!isOwnProfile) return;
+        
         const file = event.target.files[0];
         if (!file) return;
 
@@ -324,8 +372,8 @@ function ProfilePage() {
 
     // Обработчик для кнопки "Карточки команд"
     const handleTeamCardsClick = () => {
-        if (!userData || !userData.roles) return;
-        const role = userData.roles[0].toLowerCase();
+        if (!currentUser || !currentUser.roles) return;
+        const role = currentUser.roles[0].toLowerCase();
         if (role === "tracker" || role === "трекер") {
             navigate("/team-cards");
         } else if (
@@ -343,13 +391,27 @@ function ProfilePage() {
         return <div>Загрузка...</div>;
     }
 
+    if (error && !userData) {
+        return (
+            <div className="login-container">
+                <MobileHeader onNavigate={navigate} />
+                <div className="profile-container">
+                    <div className="error-message42">{error}</div>
+                    <button className="home-button" onClick={handleHomeButtonClick}>
+                        Главная страница
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="login-container">
             <MobileHeader onNavigate={navigate} />
             <div className="profile-container">
                 <div className="profile-header">
-                    <h1>Личный кабинет</h1>
-                    {!isEditing && (
+                    <h1>Личный кабинет </h1>
+                    {isOwnProfile && !isEditing && (
                         <button className="edit-button12" onClick={handleEditClick}>
                             Редактировать
                         </button>
@@ -367,9 +429,9 @@ function ProfilePage() {
                                     className="profile-input"
                                     value={editedData.fullName || ""}
                                     onChange={handleChange}
-                                    readOnly={!isEditing}
+                                    readOnly={!isEditing || !isOwnProfile}
                                 />
-                                {isEditing && (
+                                {isEditing && isOwnProfile && (
                                     <img src={penIcon} alt="Редактировать"
                                          className="edit-icon123"/>
                                 )}
@@ -385,10 +447,10 @@ function ProfilePage() {
                                     className="profile-input"
                                     value={editedData.email || ""}
                                     onChange={handleChange}
-                                    readOnly={!isEditing}
+                                    readOnly={!isEditing || !isOwnProfile}
                                     pattern="^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$"
                                 />
-                                {isEditing && (
+                                {isEditing && isOwnProfile && (
                                     <img src={penIcon} alt="Редактировать"
                                          className="edit-icon123"/>
                                 )}
@@ -398,7 +460,7 @@ function ProfilePage() {
                         <div className="field">
                             <label className="profile-label">Телефон</label>
                             <div className="input-container">
-                                {isEditing ? (
+                                {isEditing && isOwnProfile ? (
                                     <input
                                         type="text"
                                         name="phoneNumber"
@@ -415,7 +477,7 @@ function ProfilePage() {
                                         readOnly
                                     />
                                 )}
-                                {isEditing && (
+                                {isEditing && isOwnProfile && (
                                     <img src={penIcon} alt="Редактировать"
                                          className="edit-icon123"/>
                                 )}
@@ -439,7 +501,7 @@ function ProfilePage() {
                     </div>
 
                     <div className="profile-avatar-section" style={{position: "relative"}}>
-                        {isEditing ? (
+                        {isEditing && isOwnProfile ? (
                             <label htmlFor="photo-upload" className="avatar-placeholder clickable"
                                    style={{cursor: "pointer"}}>
                                 {userPhoto ? (
@@ -462,7 +524,7 @@ function ProfilePage() {
                                 )}
                             </div>
                         )}
-                        {isEditing && (
+                        {isEditing && isOwnProfile && (
                             <input
                                 type="file"
                                 id="photo-upload"
@@ -477,44 +539,51 @@ function ProfilePage() {
                     </div>
                 </div>
 
-                {/* Блок с сообщением об ошибке, выводится только в режиме редактирования */}
-                {isEditing && error && (
+                {/* Блок с сообщением об ошибке, выводится только в режиме редактирования своего профиля */}
+                {isEditing && isOwnProfile && error && (
                     <div className="error-message42">{error}</div>
                 )}
 
-                {!isEditing ? (
-                    <>
-                        <button 
-                            className="profile-team-cards-button" 
-                            onClick={handleTeamCardsClick}
-                        >
-                            Карточки команд
-                            {userData?.roles?.includes("TRACKER") && (
-                                <span 
-                                    className="count-container"
-                                    onMouseEnter={() => setShowTooltip(true)}
-                                    onMouseLeave={() => setShowTooltip(false)}
-                                    onMouseMove={handleMouseMove}
-                                >
-                                    ({teamCount})
-                                </span>
-                            )}
-                        </button>
-                        {showTooltip && userData?.roles?.includes("TRACKER") && (
-                            <div 
-                                className="profile-tooltip"
-                                style={{
-                                    left: `${tooltipPosition.x}px`,
-                                    top: `${tooltipPosition.y}px`
-                                }}
+                {isOwnProfile ? (
+                    !isEditing ? (
+                        <>
+                            <button 
+                                className="profile-team-cards-button" 
+                                onClick={handleTeamCardsClick}
                             >
-                                Количество моих команд
-                            </div>
-                        )}
-                    </>
+                                Карточки команд
+                                {userData?.roles?.includes("TRACKER") && (
+                                    <span 
+                                        className="count-container"
+                                        onMouseEnter={() => setShowTooltip(true)}
+                                        onMouseLeave={() => setShowTooltip(false)}
+                                        onMouseMove={handleMouseMove}
+                                    >
+                                        ({teamCount})
+                                    </span>
+                                )}
+                            </button>
+                            {showTooltip && userData?.roles?.includes("TRACKER") && (
+                                <div 
+                                    className="profile-tooltip"
+                                    style={{
+                                        left: `${tooltipPosition.x}px`,
+                                        top: `${tooltipPosition.y}px`
+                                    }}
+                                >
+                                    Количество моих команд
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <button className="profile-team-cards-button" onClick={handleSaveClick}>
+                            Сохранить
+                        </button>
+                    )
                 ) : (
-                    <button className="profile-team-cards-button" onClick={handleSaveClick}>
-                        Сохранить
+                    // Для чужого профиля показываем только кнопку "Назад" или "Главная"
+                    <button className="home-button" onClick={() => navigate(-1)}>
+                        Назад
                     </button>
                 )}
 

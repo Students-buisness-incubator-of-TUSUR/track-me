@@ -5,7 +5,7 @@ import ProfileIcon from "../stream-page/personal_account_1.png";
 import "./ReportPage.css";
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
-
+import MobileHeader from "../adaptive-accets/MobileHeader";
 export default function ReportPage() {
   const navigate = useNavigate();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -60,6 +60,7 @@ export default function ReportPage() {
 
   return (
     <div className="Report">
+      <MobileHeader onNavigate={navigate} />
       {/* Хеддер */}
       <header className="Stream-header">
         <div className="Stream-header-cont">

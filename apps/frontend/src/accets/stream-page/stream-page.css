@@ -265,6 +265,8 @@ body {
     padding: 12px 27px;
     font-weight: 700;
     border-radius: 50px;
+    z-index: 9999999;
+    
     background-color: white;
     color: #843AEB;
     border: 2px solid #8202CD;
@@ -796,6 +798,7 @@ body {
         width: 30px;
         height: 30px;
     }
+
 
     .Stream-header-bottom-cont {
         flex-wrap: nowrap;

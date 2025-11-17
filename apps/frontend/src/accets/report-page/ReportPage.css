@@ -60,7 +60,7 @@
   font-size: 13px;
   cursor: pointer;
   overflow: hidden; /* ограничиваем содержимое */
-  z-index: 10;      /* чтобы меню было поверх всего */
+  z-index: 5;      /* чтобы меню было поверх всего */
 }
 
 
@@ -195,3 +195,179 @@
   padding: 12px 8px;
 }
 
+/* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (ReportPage) ===== */
+/* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (ReportPage) ===== */
+/* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (ReportPage) ===== */
+@media (max-width: 600px) {
+  .Report {
+    width: 100%;
+    overflow-x: hidden;
+    background-color: #ffffff;
+    margin-top: -20px;
+  }
+
+  /* Хеддер */
+  .Stream-header {
+    padding: 10px 20px;
+  }
+
+  .Stream-header-cont {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .Stream-title {
+    font-size: 24px;
+  }
+
+  .Stream-pic-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Кнопка "Выгрузить отчет" */
+  .report-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 20px;
+  }
+
+  .report-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 30px;
+  }
+
+  /* Фильтры */
+  .report-filters {
+    flex-direction: column;
+    gap: 12px;
+    position: static;
+    width: 100%;
+  }
+
+  .dropdown1,
+  .dropdown2 {
+    position: static;
+    width: 100%;
+    border-radius: 20px;
+  }
+
+  .dropdown-btn {
+    font-size: 16px;
+    padding: 10px 14px;
+    text-align: left;
+  }
+
+  .dropdown-icon1,
+  .dropdown-icon2 {
+    margin-left: 10px;
+  }
+
+  .dropdown-menu {
+    max-height: 200px;
+    font-size: 13px;
+  }
+
+  .dropdown-item {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  /* Таблица - просто расширяем ячейки */
+  .report-table-container {
+    padding: 10px 20px 60px 20px;
+    overflow-x: auto;
+  }
+
+  .report-table {
+    width: 100%;
+    min-width: 800px;
+    font-size: 14px;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+    border: 1px solid #6d28d9;
+    min-width: 80px;
+  }
+
+  .report-table th {
+    background: #8338eb44;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.2;
+  }
+
+  /* Делаем ячейки пошире для лучшего отображения */
+  .report-table th:nth-child(1),
+  .report-table td:nth-child(1) {
+    min-width: 50px;
+  }
+
+  .report-table th:nth-child(2),
+  .report-table td:nth-child(2) {
+    min-width: 150px;
+  }
+
+  .report-table th:nth-child(3),
+  .report-table td:nth-child(3) {
+    min-width: 120px;
+  }
+
+  .report-table th:nth-child(4),
+  .report-table td:nth-child(4) {
+    min-width: 140px;
+  }
+
+  .report-table th:nth-child(5),
+  .report-table td:nth-child(5) {
+    min-width: 160px;
+  }
+
+  .report-table th:nth-child(6),
+  .report-table td:nth-child(6) {
+    min-width: 90px;
+  }
+
+  .report-table th:nth-child(7),
+  .report-table td:nth-child(7) {
+    min-width: 90px;
+  }
+
+  .report-table th:nth-child(8),
+  .report-table td:nth-child(8) {
+    min-width: 100px;
+  }
+
+  .report-table th:nth-child(9),
+  .report-table td:nth-child(9) {
+    min-width: 100px;
+  }
+
+  .report-table th:nth-child(10),
+  .report-table td:nth-child(10) {
+    min-width: 80px;
+  }
+
+  /* Меню профиля */
+  .ProfileDropdown {
+    position: absolute;
+    right: 10px;
+    top: 60px;
+    width: 160px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+
+  .ProfileDropdown-item {
+    padding: 10px;
+  }
+}
