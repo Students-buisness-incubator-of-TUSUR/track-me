@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ProfilePage from './ProfilePage';
 import { BrowserRouter } from 'react-router-dom';
-
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 global.fetch = jest.fn();
 
 const mockUserData = {
@@ -1044,4 +1044,185 @@ describe('ProfilePage useEffect Dependencies and Initialization', () => {
     });
   });
 });
+describe("loadTargetUserData", () => {
 
+  // -----------------------------
+  // 403 — Нет доступа
+  // -----------------------------
+  test("should show error when response status is 403", async () => {
+    fetch.mockImplementation((url) => {
+      // Текущий пользователь
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ...mockUserData, username: "me" }),
+        });
+      }
+      // Целевой пользователь
+      if (url.includes("/api/v1/users/")) {
+        return Promise.resolve({
+          ok: false,
+          status: 403,
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/profile/other"]}>
+        <Routes>
+          <Route path="/profile/:username" element={<ProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByText("Нет доступа к просмотру этого профиля")
+    ).toBeInTheDocument();
+  });
+
+  // -----------------------------
+  // 404 — Пользователь не найден
+  // -----------------------------
+  test("should show error when response status is 404", async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ...mockUserData, username: "me" }),
+        });
+      }
+      if (url.includes("/api/v1/users/")) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/profile/other"]}>
+        <Routes>
+          <Route path="/profile/:username" element={<ProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText("Пользователь не найден")).toBeInTheDocument();
+  });
+
+  // -----------------------------
+  // 500 — Общая ошибка
+  // -----------------------------
+  test("should show generic error when response status is not ok", async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ...mockUserData, username: "me" }),
+        });
+      }
+      if (url.includes("/api/v1/users/")) {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/profile/other"]}>
+        <Routes>
+          <Route path="/profile/:username" element={<ProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+
+    );
+
+    expect(
+      await screen.findByText("Ошибка загрузки данных пользователя")
+    ).toBeInTheDocument();
+  });
+
+  // -----------------------------
+  // Успешная загрузка чужого пользователя
+  // -----------------------------
+  test("should load and set user data on success", async () => {
+    const targetUser = {
+      username: "other",
+      fullName: "Other User",
+      email: "other@example.com",
+      phoneNumber: "+79998887766",
+      roles: ["TRACKER"],
+    };
+
+    fetch.mockImplementation((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ...mockUserData, username: "me" }),
+        });
+      }
+      if (url.includes("/api/v1/users/other/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(targetUser),
+        });
+      }
+      // Фото → ошибка
+      if (url.includes("/photo")) {
+        return Promise.reject(new Error("Photo not found"));
+      }
+      // Карточки команд
+      if (url.includes("/team-cards")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockTeamCardsResponse),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/profile/other"]}>
+        <Routes>
+          <Route path="/profile/:username" element={<ProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByDisplayValue("Other User")).toBeInTheDocument();
+    expect(await screen.findByDisplayValue("other@example.com")).toBeInTheDocument();
+  });
+
+  // -----------------------------
+  // Ошибка fetch → catch ветка
+  // -----------------------------
+  test("should handle fetch rejection and show error message", async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ ...mockUserData, username: "me" }),
+        });
+      }
+      if (url.includes("/api/v1/users/")) {
+        return Promise.reject(new Error("Network error"));
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/profile/other"]}>
+        <Routes>
+          <Route path="/profile/:username" element={<ProfilePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText("Network error")).toBeInTheDocument();
+  });
+
+});

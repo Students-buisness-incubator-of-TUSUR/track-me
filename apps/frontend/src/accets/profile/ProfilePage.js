@@ -39,30 +39,37 @@ function ProfilePage() {
 
     // Количество команд, получаемое из userData
     const [teamCount, setTeamCount] = useState(0);
-    const loadTargetUserData = useCallback((targetUsername, currentUserData) => {
-        const endpoint = `${ssoHost}/api/v1/users/${targetUsername}/info`;
+    const loadTargetUserData = useCallback((targetUsername) => {
+    setUserData(null);
+    setEditedData({});
+    setLoading(true);
+    setError(null);
 
-        fetch(endpoint, {
-            method: "GET",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
+    const endpoint = `${ssoHost}/api/v1/users/${targetUsername}/info`;
+
+    fetch(endpoint, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+    })
+        .then(res => {
+            if (res.status === 403) throw new Error("Нет доступа к просмотру этого профиля");
+            if (res.status === 404) throw new Error("Пользователь не найден");
+            if (!res.ok) throw new Error("Ошибка загрузки данных пользователя");
+            return res.json();
         })
-            .then(res => {
-                if (res.status === 403) throw new Error("Нет доступа к просмотру этого профиля");
-                if (res.status === 404) throw new Error("Пользователь не найден");
-                if (!res.ok) throw new Error("Ошибка загрузки данных пользователя");
-                return res.json();
-            })
-            .then(data => {
-                setUserData(data);
-                setEditedData(data);
-                setLoading(false);
-            })
-            .catch(err => {
-                setError(err.message);
-                setLoading(false);
-            });
-    }, [ssoHost]);
+        .then(data => {
+            setUserData(data);
+            setEditedData(data);
+        })
+        .catch(err => {
+            setError(err.message || "Ошибка загрузки данных пользователя");
+            setUserData(null);
+            setEditedData({});
+        })
+        .finally(() => setLoading(false));
+}, [ssoHost]);
+
     // 1. Загружаем текущего авторизованного пользователя
     useEffect(() => {
         fetch(`${ssoHost}/api/v1/account/info`, {
@@ -99,9 +106,12 @@ function ProfilePage() {
                 }
             })
             .catch((err) => {
-                console.error("Ошибка загрузки данных:", err);
-                setLoading(false);
-            });
+    console.error("Ошибка загрузки данных:", err);
+    setUserData(null);             // ← обязательное
+    setEditedData({});
+    setLoading(false);
+});
+
     }, [ssoHost, username, loadTargetUserData]);
 
     
@@ -396,7 +406,8 @@ function ProfilePage() {
             <div className="login-container">
                 <MobileHeader onNavigate={navigate} />
                 <div className="profile-container">
-                    <div className="error-message42">{error}</div>
+                    <div className="error-message42" data-testid="error-message">{error}</div>
+
                     <button className="home-button" onClick={handleHomeButtonClick}>
                         Главная страница
                     </button>
@@ -541,7 +552,8 @@ function ProfilePage() {
 
                 {/* Блок с сообщением об ошибке, выводится только в режиме редактирования своего профиля */}
                 {isEditing && isOwnProfile && error && (
-                    <div className="error-message42">{error}</div>
+                    <div className="error-message42" data-testid="error-message">{error}</div>
+
                 )}
 
                 {isOwnProfile ? (
