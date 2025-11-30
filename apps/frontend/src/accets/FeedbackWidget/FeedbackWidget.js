@@ -47,6 +47,12 @@ const FeedbackWidget = () => {
     fetchUserData();
   }, [backendHost]);
 
+  useEffect(() => {
+    const handleOpenFeedback = () => setIsOpen(true);
+    window.addEventListener('open-feedback', handleOpenFeedback);
+    return () => window.removeEventListener('open-feedback', handleOpenFeedback);
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;

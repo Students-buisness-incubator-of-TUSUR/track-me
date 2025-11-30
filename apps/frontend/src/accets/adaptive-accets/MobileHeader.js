@@ -39,6 +39,10 @@ const MobileHeader = ({ onNavigate }) => {
         navigate(targetPath);
     };
 
+    const openFeedback = () => {
+        window.dispatchEvent(new Event('open-feedback'));
+    };
+
     return (
         <div className="mobile-header">
             <div
@@ -76,6 +80,12 @@ const MobileHeader = ({ onNavigate }) => {
                             onClick={goToHomeByRole}
                         >
                             Главная страница
+                        </button>
+                                                <button
+                            className="menu-item"
+                            onClick={openFeedback}
+                        >
+                            Обратная связь
                         </button>
                         <button
                             className="menu-item logout"

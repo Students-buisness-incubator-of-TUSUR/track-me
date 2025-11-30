@@ -378,7 +378,7 @@ text-overflow: ellipsis;
 
     .Stream-settings-pic {
       height: 40px;
-      width: 67px;
+      width: 70px !important;
     }
 
     .Stream-search {
@@ -402,10 +402,10 @@ text-overflow: ellipsis;
     }
 
     .Stream-search-contcont{
-      width: 50% !important;
+      width: 50%;
       margin-left: 10px;
       height: 40px;
-      min-width: 200px;
+      min-width: 150px;
         flex-shrink: 1;
     }
 

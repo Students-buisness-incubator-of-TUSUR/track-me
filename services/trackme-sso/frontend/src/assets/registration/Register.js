@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import "./Register.css";
 import LoginAPI from "../../services/login-service";
 
@@ -11,14 +11,24 @@ const Register = () => {
     const [phoneNumber, setPhoneNumber] = useState("");
     const [role, setRole] = useState("TRACKER");
     const [errorMessage, setErrorMessage] = useState("");
+    const [showModal, setShowModal] = useState(false);
+    const [acceptedPolicy, setAcceptedPolicy] = useState(false);
+    const [termsText, setTermsText] = useState("Загрузка...");
 
     const handleRegister = (e) => {
         e.preventDefault();
-        const userData = {username, password, fullName, email, phoneNumber, role};
+        setErrorMessage("");
+        setShowModal(true); // Показываем модальное окно
+    };
+
+    const handleModalSubmit = () => {
+        if (!acceptedPolicy) return; // Кнопка "Продолжить" неактивна, но на всякий случай проверяем
+
+        const userData = { username, password, fullName, email, phoneNumber, role };
         LoginAPI.register(userData)
             .then((response) => {
                 if (response.status === 200) {
-                    window.location = `${basePath}/client/registration-success`;
+                    window.location.href = `${basePath}/client/registration-success`;
                 } else {
                     throw new Error("Registration failed");
                 }
@@ -27,12 +37,32 @@ const Register = () => {
                 console.error("Registration failed", error);
                 const message = error.response?.data?.message || "Ошибка регистрации. Попробуйте снова.";
                 setErrorMessage(message);
+                setShowModal(false);
             });
     };
 
     const handleBack = () => {
-        window.history.back();
+        if (showModal) {
+            setShowModal(false); // Закрываем модальное окно
+        } else {
+            window.history.back();
+        }
     };
+
+    useEffect(() => {
+        fetch('/terms-of-use.txt')
+            .then(response => {
+            if (!response.ok) throw new Error('Файл не найден');
+            return response.text();
+            })
+            .then(text => {
+            setTermsText(text);
+            })
+            .catch(err => {
+            console.error("Ошибка загрузки соглашения:", err);
+            setTermsText("Не удалось загрузить пользовательское соглашение. Пожалуйста, свяжитесь с поддержкой.");
+            });
+    }, []);
 
     return (
         <div className="register-container">
@@ -43,7 +73,7 @@ const Register = () => {
                     <input
                         type="text"
                         className="register-input"
-                        placeholder="Имя пользователя в Telegram(@username)"
+                        placeholder="Имя пользователя в Telegram (без @)"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
@@ -100,6 +130,45 @@ const Register = () => {
                     Назад
                 </button>
             </div>
+            {showModal && (
+                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h2>Согласие на обработку персональных данных</h2>
+                        <div className="modal-text">
+                            <div className="terms-text">
+                                {termsText.split('\n').map((line, index) => (
+                                    <p key={index}>{line}</p>
+                                ))}
+                            </div>
+                        </div>
+
+                        <label className="policy-agreement">
+                            <input
+                                type="checkbox"
+                                checked={acceptedPolicy}
+                                onChange={() => setAcceptedPolicy(!acceptedPolicy)}
+                            />
+                            Я даю согласие на обработку персональных данных
+                        </label>
+
+                        <div className="modal-buttons">
+                            <button
+                                className="register-button back-button"
+                                onClick={() => setShowModal(false)}
+                            >
+                                Назад
+                            </button>
+                            <button
+                                className={`register-button ${acceptedPolicy ? "" : "disabled"}`}
+                                onClick={acceptedPolicy ? handleModalSubmit : undefined}
+                                disabled={!acceptedPolicy}
+                            >
+                                Продолжить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

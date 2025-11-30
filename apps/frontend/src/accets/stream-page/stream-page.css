@@ -291,6 +291,7 @@ body {
 .Stream-settings-pic {
     display: flex;
     align-self: center;
+    align-content: center;
     width: 101px;
     height: 60px;
     background-image: url("image.png");
@@ -681,7 +682,8 @@ body {
     .Stream-header-bottom-cont {
         margin: 0 20px !important; /* Уменьшаем боковые отступы */
         flex-wrap: nowrap; /* Запрещаем перенос элементов */
-        padding-right: 10px;
+        padding-right: 5px;
+        padding-left: 5px;
     }
 
     .Stream-card {
@@ -733,7 +735,6 @@ body {
         height: 40px !important;
         font-size: 14px !important;
         margin: 0 !important;
-        border-radius: 25px !important;
         margin-right: 10px;
     }
 
@@ -765,6 +766,10 @@ body {
 
     .Stream-header-chosefrom-butt {
         width: 100px;
+    }
+
+    .Stream-header-checkboxes {
+        margin-left: 5px;
     }
 }
 
@@ -805,7 +810,7 @@ body {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 5px;
-        padding-right: 10px !important;
+        padding-right: 5px !important;
     }
 
     .Stream-header-bottom-cont::-webkit-scrollbar {

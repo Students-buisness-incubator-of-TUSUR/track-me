@@ -4,6 +4,7 @@ import Login from "./assets/login/Login";
 import Register from "./assets/registration/Register";
 import RegistrationSuccess from "./assets/registration-success/RegistrationSuccess";
 import ConfirmRegistration from "./assets/registration-confirm/ConfirmRegistration";
+import LoginRecovery from "./assets/login-recovery/login-recovery";
 
 const basePath = process.env.REACT_APP_BASE_PATH || "";
 
@@ -17,6 +18,8 @@ function App() {
                        element={<RegistrationSuccess/>}/>
                 <Route path={`${basePath}/client/registration-confirm`}
                        element={<ConfirmRegistration/>}/>
+                <Route path={`${basePath}/client/recovery`}
+                       element={<LoginRecovery/>}/>
             </Routes>
         </Router>
     );
