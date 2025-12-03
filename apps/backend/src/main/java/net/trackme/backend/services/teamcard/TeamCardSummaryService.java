@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -27,6 +28,8 @@ public class TeamCardSummaryService {
     private final TeamCardsRepository teamCardsRepository;
 
     private final TeamCardEventsProducer teamCardEventsProducer;
+
+    private final double lowGrade = 0.25;
 
     @Transactional
     @Scheduled(cron = "0 2 5 * * 1")
@@ -44,54 +47,62 @@ public class TeamCardSummaryService {
             var teamCard = teamCardsService
                     .getTeamCard(UUID.fromString(meetingSummaryEvent.get("teamCardId")));
 
-            var stream = getStreamByTeamCard(teamCard);
+            getStreamByTeamCard(teamCard).ifPresentOrElse(stream -> {
+                TeamCardSummaryEvent teamCardSummaryEvent =
+                        TeamCardSummaryEvent.builder()
+                                .teamCardName(teamCard.getName())
+                                .streamName(stream.getName())
+                                .meetingNumber(meetingSummaryEvent.get("meetingNumber"))
+                                .meetingLink(meetingSummaryEvent.get("meetingLink"))
+                                .build();
 
-            TeamCardSummaryEvent teamCardSummaryEvent =
-                    TeamCardSummaryEvent.builder()
-                            .teamCardName(teamCard.getName())
-                            .streamName(stream.getName())
-                            .meetingNumber(meetingSummaryEvent.get("meetingNumber"))
-                            .meetingLink(meetingSummaryEvent.get("meetingLink"))
-                            .build();
+                teamCardSummaryEvents.add(teamCardSummaryEvent);
+            }, () -> log.info("There are no active streams. Team card id = {}", teamCard.getId()));
+        }
 
-            teamCardSummaryEvents.add(teamCardSummaryEvent);
+        if (teamCardSummaryEvents.isEmpty()) {
+            return;
         }
 
          teamCardEventsProducer.sendTeamCardSummaryEvent(teamCardSummaryEvents);
     }
 
-    private void sendTeamCardLowGradeSummary(){
+    private void sendTeamCardLowGradeSummary() {
         List<TeamCardLowGradeSummaryEvent> teamCardLowGradeSummaryEvents =
                 new ArrayList<>();
 
         var teamCards = teamCardsRepository.findAll().stream()
                 .filter(teamCard -> teamCard.getAverageGrade()
-                        .compareTo(BigDecimal.valueOf(0.25)) < 0)
+                        .compareTo(BigDecimal.valueOf(lowGrade)) <= 0)
                 .toList();
 
-        if (teamCards.isEmpty()){
+        if (teamCards.isEmpty()) {
             log.info("No team cards with low grade");
             return;
         }
 
         for (var teamCard : teamCards) {
-            var stream = getStreamByTeamCard(teamCard);
+            getStreamByTeamCard(teamCard).ifPresentOrElse(stream -> {
+                TeamCardLowGradeSummaryEvent event = TeamCardLowGradeSummaryEvent.builder()
+                        .teamCardName(teamCard.getName())
+                        .streamName(stream.getName())
+                        .averageGrade(teamCard.getAverageGrade())
+                        .build();
 
-            TeamCardLowGradeSummaryEvent event = TeamCardLowGradeSummaryEvent.builder()
-                    .teamCardName(teamCard.getName())
-                    .streamName(stream.getName())
-                    .averageGrade(teamCard.getAverageGrade())
-                    .build();
+                teamCardLowGradeSummaryEvents.add(event);
+            }, () -> log.info("There are no active streams. Team card id = {}", teamCard.getId()));
+        }
 
-            teamCardLowGradeSummaryEvents.add(event);
+        if (teamCardLowGradeSummaryEvents.isEmpty()) {
+            return;
         }
 
         teamCardEventsProducer.sendTeamCardLowGradeSummaryEvent(teamCardLowGradeSummaryEvents);
     }
 
-    private Stream getStreamByTeamCard(TeamCard teamCard){
+    private Optional<Stream> getStreamByTeamCard(TeamCard teamCard) {
         return teamCard.getStreams().stream()
                 .filter(Stream::isActive)
-                .findFirst().orElseThrow();
+                .findFirst();
     }
 }

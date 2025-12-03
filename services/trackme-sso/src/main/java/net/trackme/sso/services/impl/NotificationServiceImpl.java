@@ -105,6 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 .getMail()
                                  .getSummarySendRoles()
                                 .contains(roleEntity.getCode())))
+                .filter(UserEntity::getActive)
                 .map(UserEntity::getEmail)
                 .toList();
 

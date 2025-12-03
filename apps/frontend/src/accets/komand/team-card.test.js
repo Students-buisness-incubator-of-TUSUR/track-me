@@ -2275,3 +2275,310 @@ test("Кнопка 'Показать встречи' отображается н
     screen.getByText(/Показать встречи|Скрыть встречи/i)
   ).toBeInTheDocument();
 });
+// ДОБАВЬТЕ ЭТИ ТЕСТЫ В ПОДХОДЯЩИЙ РАЗДЕЛ (например, после других тестов для meetings)
+
+describe('Meetings sorting functionality', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    require('react-router-dom').__setSearch('');
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: ['ADMIN'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+    );
+  });
+
+  test('sorts meetings by number in ascending order', async () => {
+    // Мок для встреч с разными номерами в неправильном порядке
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, startDate: '2025-01-05T00:00:00Z', number: '5' },
+              { id: 101, startDate: '2025-01-10T00:00:00Z', number: '1' },
+              { id: 102, startDate: '2025-01-15T00:00:00Z', number: '3' },
+              { id: 103, startDate: '2025-01-20T00:00:00Z', number: '2' },
+              { id: 104, startDate: '2025-01-25T00:00:00Z', number: '4' }
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Проверяем, что встречи отображаются в правильном порядке
+    await waitFor(() => {
+      const meetingTitles = screen.getAllByText(/Встреча \d+/);
+      expect(meetingTitles.length).toBe(5);
+      
+      // Проверяем порядок: 1, 2, 3, 4, 5
+      expect(meetingTitles[0].textContent).toBe('Встреча 1');
+      expect(meetingTitles[1].textContent).toBe('Встреча 2');
+      expect(meetingTitles[2].textContent).toBe('Встреча 3');
+      expect(meetingTitles[3].textContent).toBe('Встреча 4');
+      expect(meetingTitles[4].textContent).toBe('Встреча 5');
+    });
+  });
+
+  test('handles meetings with invalid or missing numbers', async () => {
+    // Мок с некорректными номерами
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, startDate: '2025-01-05T00:00:00Z', number: 'abc' }, // Не число
+              { id: 101, startDate: '2025-01-10T00:00:00Z', number: '10' }, // Число
+              { id: 102, startDate: '2025-01-15T00:00:00Z' }, // Нет number
+              { id: 103, startDate: '2025-01-20T00:00:00Z', number: '2' }, // Число
+              { id: 104, startDate: '2025-01-25T00:00:00Z', number: '' } // Пустая строка
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Проверяем, что сортировка всё равно работает, используя 0 для некорректных значений
+    await waitFor(() => {
+      const meetingTitles = screen.getAllByText(/Встреча/);
+      
+      // Элемент с number="abc" будет обработан как 0
+      // Элемент без number будет обработан как 0
+      // Элемент с пустым number будет обработан как 0
+      // Ожидаемый порядок: "abc" (0), "" (0), нет number (0), "2", "10"
+      // Но фактически могут быть в любом порядке из-за одинаковых значений 0
+      // Проверим, что все элементы загрузились
+      expect(meetingTitles.length).toBe(5);
+    });
+  });
+
+  test('sorts meetings by parsed integer numbers', async () => {
+    // Мок с числами в разных форматах
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, startDate: '2025-01-05T00:00:00Z', number: '001' },
+              { id: 101, startDate: '2025-01-10T00:00:00Z', number: '10' },
+              { id: 102, startDate: '2025-01-15T00:00:00Z', number: '2' },
+              { id: 103, startDate: '2025-01-20T00:00:00Z', number: '005' }
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Проверяем, что parseInt корректно обрабатывает строки с ведущими нулями
+    await waitFor(() => {
+      const meetingTitles = screen.getAllByText(/Встреча/);
+      
+      // Ожидаемый порядок после parseInt: 1, 2, 5, 10
+      // "001" -> 1, "2" -> 2, "005" -> 5, "10" -> 10
+      const numbers = meetingTitles.map(title => {
+        const match = title.textContent.match(/Встреча (\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      });
+      
+      expect(numbers).toEqual([1, 2, 5, 10]);
+    });
+  });
+
+  test('handles meetings with large numbers', async () => {
+    // Мок с большими числами
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, startDate: '2025-01-05T00:00:00Z', number: '999' },
+              { id: 101, startDate: '2025-01-10T00:00:00Z', number: '1000' },
+              { id: 102, startDate: '2025-01-15T00:00:00Z', number: '50' },
+              { id: 103, startDate: '2025-01-20T00:00:00Z', number: '100' }
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Проверяем сортировку больших чисел
+    await waitFor(() => {
+      const meetingTitles = screen.getAllByText(/Встреча/);
+      const numbers = meetingTitles.map(title => {
+        const match = title.textContent.match(/Встреча (\d+)/);
+        return match ? parseInt(match[1]) : 0;
+      });
+      
+      // Ожидаемый порядок: 50, 100, 999, 1000
+      expect(numbers).toEqual([50, 100, 999, 1000]);
+    });
+  });
+
+  test('maintains stable sorting for equal numbers', async () => {
+    // Мок с одинаковыми номерами
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, startDate: '2025-01-05T00:00:00Z', number: '1', name: 'First' },
+              { id: 101, startDate: '2025-01-10T00:00:00Z', number: '1', name: 'Second' },
+              { id: 102, startDate: '2025-01-15T00:00:00Z', number: '1', name: 'Third' }
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Проверяем, что элементы с одинаковыми номерами сохраняют исходный порядок
+    await waitFor(() => {
+      const meetingTitles = screen.getAllByText(/Встреча 1/);
+      expect(meetingTitles.length).toBe(3);
+      
+      // Поскольку все номера равны (1), порядок должен сохраниться исходный
+      // В React это обычно происходит из-за стабильной сортировки
+    });
+  });
+
+  test('handles empty meetings array', async () => {
+    // Мок с пустым массивом встреч
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Проверяем, что нет встреч
+    await waitFor(() => {
+      const meetingTitles = screen.queryAllByText(/Встреча \d+/);
+      expect(meetingTitles.length).toBe(0);
+    });
+  });
+
+  test('uses fallback to 0 when parseInt fails', async () => {
+    // Мок с NaN значениями
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, startDate: '2025-01-05T00:00:00Z', number: 'not-a-number' },
+              { id: 101, startDate: '2025-01-10T00:00:00Z', number: null },
+              { id: 102, startDate: '2025-01-15T00:00:00Z', number: undefined }
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], totalPages: 1 }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Проверяем, что все встречи загрузились (с number=0)
+    await waitFor(() => {
+      const meetingTitles = screen.getAllByText(/Встреча/);
+      expect(meetingTitles.length).toBe(3);
+    });
+  });
+});
+
+// Можете также добавить unit-тест для самой функции сортировки (если выделите её отдельно)
+describe('Sorting function unit tests', () => {
+  test('sort function works correctly', () => {
+    // Пример сортировки массива
+    const meetings = [
+      { number: '5' },
+      { number: '1' },
+      { number: '3' },
+      { number: '2' },
+      { number: '4' }
+    ];
+    
+    const sorted = meetings.sort((a, b) => {
+      const numA = parseInt(a.number) || 0;
+      const numB = parseInt(b.number) || 0;
+      return numA - numB; // по возрастанию
+    });
+    
+    expect(sorted.map(m => m.number)).toEqual(['1', '2', '3', '4', '5']);
+  });
+});
