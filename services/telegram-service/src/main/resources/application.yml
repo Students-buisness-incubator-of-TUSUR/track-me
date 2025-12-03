@@ -14,19 +14,11 @@ spring:
     username: ${DB_USERNAME:project-place}
     url: ${DB_URL:jdbc:postgresql://postgres:5432/project-place}
     hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      minimum-idle: 10
-      initialization-fail-timeout: 1
-      leak-detection-threshold: 0
-      pool-name: "HikariPool-track-me-telegram-service"
-      register-mbeans: true
-      schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+      schema: telegram_service
   liquibase:
     enabled: true
-    change-log: classpath:db.changelog.yaml
-    default-schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
-    liquibase-schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+    liquibase-schema: telegram_service
+    default-schema: telegram_service
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     consumer:
@@ -47,9 +39,9 @@ spring:
     activate:
       on-profile: test
   liquibase:
-    liquibase-schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
-    default-schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+    liquibase-schema: telegram_service
+    default-schema: telegram_service
     contexts: prod, dev
   datasource:
     hikari:
-      schema: ${TELEGRAM_DB_SCHEMA:telegram_service}
+      schema: telegram_service

@@ -122,6 +122,7 @@ public class TeamCard {
     public void addMeetingGrade(UUID meetingId) {
         var meetingGrade = new MeetingGrade();
         meetingGrade.setMeetingId(meetingId);
+        meetingGrade.setGrade(null);
         this.addMeetingGrade(meetingGrade);
     }
 }

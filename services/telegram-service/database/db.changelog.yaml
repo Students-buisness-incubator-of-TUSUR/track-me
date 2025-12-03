@@ -1,5 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: create-schema.sql
-  - include:
-      file: chats.sql

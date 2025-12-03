@@ -6,6 +6,7 @@ import net.trackme.sso.config.AppProperties;
 import net.trackme.sso.dao.repository.UserRepository;
 import net.trackme.sso.services.EmailService;
 import net.trackme.sso.services.NotificationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -38,6 +39,14 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
     private EmailService emailService;
     @MockitoBean
     private JavaMailSender javaMailSender;
+
+    @BeforeEach
+    void setUpUsers()
+    {
+        var admin = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
+        admin.setEmail("superadmin@superadmin.ru");
+        userRepository.save(admin);
+    }
 
     @Test
     void sendMeetingNotHappenedNotification_success() {

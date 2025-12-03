@@ -1,5 +1,6 @@
 -- liquibase formatted sql
 
+-- changeset popovam:chats-1
 CREATE TABLE IF NOT EXISTS telegram_service.chats
 (
     id                    UUID                        NOT NULL DEFAULT gen_random_uuid(),

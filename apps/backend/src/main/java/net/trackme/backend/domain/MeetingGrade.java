@@ -25,5 +25,5 @@ public class MeetingGrade {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_card_id")
     private TeamCard teamCard;
-    private BigDecimal grade = BigDecimal.ZERO;
+    private BigDecimal grade;
 }

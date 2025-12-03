@@ -19,6 +19,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -78,6 +79,8 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
     void updateTeamCardInfo() {
         // Arrange
         var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var meetingId1 = UUID.randomUUID();
+        var meetingId2 = UUID.randomUUID();
         var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Test team card")
@@ -85,22 +88,26 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
-        var meetingId = UUID.randomUUID();
+        teamCard.addMeetingGrade(meetingId1);
+        teamCard.addMeetingGrade(meetingId2);
+        teamCardsRepository.save(teamCard);
         var meetingLink = "test link";
 
         // Act
         teamCardMeetingsService.updateTeamCardInfo(
                 teamCard.getId(),
-                meetingId,
+                meetingId1,
                 MeetingStatus.COMPLETED,
                 MeetingStatus.SCHEDULED,
                 teamCard.getStatus(),
-                BigDecimal.ZERO,
+                BigDecimal.ONE,
                 meetingLink);
 
         // Assert
         var expectedTeamCard = teamCardsService.getTeamCard(teamCard.getId());
-        Assertions.assertEquals(teamCard.getMeetingsCompletedCount() + 1, expectedTeamCard.getMeetingsCompletedCount());
+        Assertions.assertEquals(
+                BigDecimal.ONE.setScale(2, RoundingMode.HALF_UP),
+                expectedTeamCard.getAverageGrade());
     }
 
     @Test
