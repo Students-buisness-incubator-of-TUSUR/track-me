@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - property:
+      name: db_schema
+      value: telegram_service
+  - include:
+      file: create-schema.sql
+      relativeToChangelogFile: true
+  - include:
+      file: chats.sql
+      relativeToChangelogFile: true

@@ -3,6 +3,7 @@ package net.trackme.backend.services.teamcard;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.trackme.backend.domain.MeetingGrade;
 import net.trackme.backend.domain.Stream;
 import net.trackme.backend.domain.TeamCard;
 import net.trackme.backend.messaging.MeetingNotHappenedEvent;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -88,22 +90,23 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
     }
 
     private void calculateAverageGrade(TeamCard teamCard) {
-        var meetingGrades = teamCard.getMeetingGrades();
+        var grades = teamCard.getMeetingGrades().stream()
+                .map(MeetingGrade::getGrade)
+                .filter(Objects::nonNull)
+                .toList();
 
-        if (meetingGrades.isEmpty()) {
+        if (grades.isEmpty()) {
             teamCard.setAverageGrade(BigDecimal.ZERO);
         } else {
-            var total = meetingGrades.stream()
-                    .map(grade -> grade.getGrade() != null ? grade.getGrade() : BigDecimal.ZERO)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            var total = grades.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
             var average = total.divide(
-                    BigDecimal.valueOf(meetingGrades.size()), 2, RoundingMode.HALF_UP);
+                    BigDecimal.valueOf(grades.size()), 2, RoundingMode.HALF_UP);
             teamCard.setAverageGrade(average);
         }
     }
 
     private void sendMeetingNotHappenedEvent(TeamCard teamCard,
-                                             String meetingLink){
+                                             String meetingLink) {
         var streamName = teamCard.getStreams().stream()
                 .filter(Stream::isActive).map(Stream::getName)
                 .findFirst().orElseThrow();

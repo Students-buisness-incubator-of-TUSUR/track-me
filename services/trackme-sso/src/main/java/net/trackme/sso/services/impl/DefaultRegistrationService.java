@@ -63,7 +63,8 @@ public class DefaultRegistrationService implements RegistrationService {
             "email", requestDto.email(),
             "appName", appProperties.getMail().getSubject(),
             "supportEmail", appProperties.getMail().getFrom(),
-                "confirmationLink", getConfirmationLink(tokenHash)));
+                "confirmationLink", getConfirmationLink(tokenHash),
+                "notificationBotLink", getNotificationBotLink()));
   }
 
   @Override
@@ -81,5 +82,12 @@ public class DefaultRegistrationService implements RegistrationService {
     return UriComponentsBuilder.fromUriString(httpUrl, UriComponentsBuilder.ParserType.WHAT_WG)
         .queryParam("token", token)
         .build().toUriString();
+  }
+
+  private String getNotificationBotLink() {
+    var httpUrl = appProperties.getTelegramUrl() + "/{botUsername}";
+    return UriComponentsBuilder.fromUriString(httpUrl, UriComponentsBuilder.ParserType.WHAT_WG)
+            .queryParam("start", "{start}")
+            .build(appProperties.getBotUsername(), System.currentTimeMillis()).toString();
   }
 }

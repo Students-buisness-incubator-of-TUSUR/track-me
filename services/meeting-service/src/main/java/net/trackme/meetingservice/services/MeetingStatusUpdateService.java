@@ -2,6 +2,7 @@ package net.trackme.meetingservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.trackme.meetingservice.configuration.AppProperties;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,9 +24,10 @@ public class MeetingStatusUpdateService {
     private static final int BATCH_SIZE = 200;
     private final MeetingRepository meetingRepository;
     private final MeetingEventsProducer meetingEventsProducer;
+    private final AppProperties appProperties;
 
     @Transactional
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 5 * * *")
     public void updateMeetingStatuses() {
         log.info("Starting scheduled meeting status update");
         var now = OffsetDateTime.now();
@@ -40,7 +43,9 @@ public class MeetingStatusUpdateService {
             Pageable pageable = PageRequest.of(page, BATCH_SIZE);
             expiredMeetings = meetingRepository
                     .findByStatusAndStartDateBefore(MeetingStatus.SCHEDULED, now, pageable);
-            if (expiredMeetings.isEmpty()) break;
+            if (expiredMeetings.isEmpty()) {
+                break;
+            }
             for (Meeting meeting : expiredMeetings) {
                 if (hasUnfilledFields(meeting)) {
                     meeting.setStatus(MeetingStatus.NOT_HAPPENED);
@@ -68,7 +73,9 @@ public class MeetingStatusUpdateService {
             notHappenedMeetings = meetingRepository
                     .findByStatusAndStartDateBefore(
                             MeetingStatus.NOT_HAPPENED, threeDaysAgo, pageable);
-            if (notHappenedMeetings.isEmpty()) break;
+            if (notHappenedMeetings.isEmpty()) {
+                break;
+            }
             for (Meeting meeting : notHappenedMeetings) {
                 if (hasUnfilledFields(meeting)) {
                     meeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
@@ -87,13 +94,13 @@ public class MeetingStatusUpdateService {
     }
 
     private boolean hasUnfilledFields(Meeting meeting) {
-        return meeting.getLink() == null ||
-               meeting.getNumber() == null ||
-               meeting.getStartDate() == null ||
-               meeting.getTeamStatus() == null ||
-               meeting.getTeamCardId() == null ||
-               meeting.getTasksCurrentMeeting() == null ||
-               meeting.getTasksNextMeeting() == null;
+        return meeting.getLink() == null
+                || meeting.getNumber() == null
+                || meeting.getStartDate() == null
+                || meeting.getTeamStatus() == null
+                || meeting.getTeamCardId() == null
+                || meeting.getTasksCurrentMeeting() == null
+                || meeting.getTasksNextMeeting() == null;
     }
 
     private void sendMeetingEvent(Meeting meeting, MeetingStatus oldStatus) {
@@ -104,12 +111,20 @@ public class MeetingStatusUpdateService {
                 .teamStatus(meeting.getTeamStatus())
                 .teamCardId(meeting.getTeamCardId())
                 .teamGrade(
-                        meeting.getTeamStatus() == null ?
-                                0 :
-                                meeting.getTeamStatus().getValue()
+                        meeting.getTeamStatus() == null
+                                ? 0
+                                : meeting.getTeamStatus().getValue()
                 )
-                .meetingLink(meeting.getLink())
+                .meetingLink(getMeetingLink(meeting))
                 .build();
         meetingEventsProducer.sendMeetingUpdatedEvent(event);
+    }
+
+    private String getMeetingLink(Meeting meeting) {
+        var httpUrl = appProperties.getAppUrl() + "/meeting/{meetingId}";
+        return UriComponentsBuilder.fromUriString(httpUrl, UriComponentsBuilder.ParserType.WHAT_WG)
+                .queryParam("teamId", "{teamId}")
+                .build(meeting.getId(), meeting.getTeamCardId())
+                .toString();
     }
 }

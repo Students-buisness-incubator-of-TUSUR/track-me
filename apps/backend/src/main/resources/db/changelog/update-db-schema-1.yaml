@@ -269,3 +269,11 @@ databaseChangeLog:
             constraintName: fk_meeting_grade_team_card
             baseTableSchemaName: ${db_schema}
             referencedTableSchemaName: ${db_schema}
+  - changeSet:
+      id: meeting-grade-update-grade-column
+      author: popovam
+      changes:
+        - dropNotNullConstraint:
+            tableName: meeting_grade
+            columnName: grade
+            schemaName: ${db_schema}

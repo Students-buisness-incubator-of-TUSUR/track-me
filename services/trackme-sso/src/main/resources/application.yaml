@@ -47,6 +47,8 @@ app:
       authorization_url: http://localhost:9000/oauth2/authorize
       refresh-url: http://localhost:9000/oauth2/token
   api-url: ${BACKEND_URI:http://127.0.0.1:8081}/sso
+  telegram-url: ${TELEGRAM_URI:https://t.me}
+  bot-username: ${TELEGRAM_BOT_USERNAME}
   mail:
     from: ${MAIL_FROM}
     subject: ${MAIL_SUBJECT}
