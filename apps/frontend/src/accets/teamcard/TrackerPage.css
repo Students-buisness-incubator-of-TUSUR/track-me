@@ -261,7 +261,7 @@ text-overflow: ellipsis;
 /* Обертка для тултипа */
 .tooltip-wrapper {
   position: relative;
-  display: inline-block;
+  display: flex;
 }
 
 /* Сам тултип */
@@ -350,6 +350,10 @@ text-overflow: ellipsis;
   transform: translateX(22px);
 }
 
+.slider-text {
+  display: none;
+}
+
 
 /* Для мобильных устройств */
 @media (max-width: 768px) {
@@ -374,11 +378,13 @@ text-overflow: ellipsis;
     .Stream-header-bottom-cont {
       margin: 0px !important;
       margin-top: 5px !important;
+      gap: 5px;
     }
 
     .Stream-settings-pic {
       height: 40px;
       width: 70px !important;
+      min-width: 70px;
     }
 
     .Stream-search {
@@ -390,7 +396,7 @@ text-overflow: ellipsis;
     }
 
     .Stream-butt {
-    width: 140px !important;
+    width: 120px !important;
     font-size: 14px !important;
     height: 40px;
     padding: 0 10px;
@@ -403,15 +409,15 @@ text-overflow: ellipsis;
 
     .Stream-search-contcont{
       width: 50%;
-      margin-left: 10px;
+      margin-left: 5px;
       height: 40px;
-      min-width: 150px;
+      min-width: 130px;
         flex-shrink: 1;
     }
 
     .Stream-settings-pic2 {
       margin: 15px;
-      width: 27px;
+      min-width: 27px;
     }
     .cards-wrapper {
         grid-template-columns: 1fr;
@@ -453,6 +459,18 @@ text-overflow: ellipsis;
 
     .project-flow p, .project-markets p, .project-trl p{
       font-size: 12px;
+    }
+
+    .slider-text {
+      display:block;
+      font-size: 14px;
+      padding-top: 7px;
+      margin-left: 5px;
+
+    }
+
+    .tooltip-text {
+      display: none;
     }
 }
 

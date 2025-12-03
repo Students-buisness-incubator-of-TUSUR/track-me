@@ -304,7 +304,7 @@ body {
     background-color: transparent;
     display: flex;
     align-self: center;
-    width: 29px;
+    width: 27px;
     height: 27px;
     margin: 59px;
     background-image: url("Group.png");
@@ -542,7 +542,6 @@ body {
     margin-top: 20px;
     position: relative;
     display: flex;
-    width: auto;
     height: min-content;
     justify-content: space-between;
 }
@@ -633,7 +632,8 @@ body {
     }
 
     .Stream-header {
-        margin-top: 80px;
+        margin-top: 70px;
+        padding: 10px 15px !important;
     }
 
     .Stream-header-cont {
@@ -705,7 +705,7 @@ body {
     }
 
     .Stream-header-afterclick-left{
-        margin-left: 15px;
+        margin-left: 5px;
     }
 
     .Stream-header-afterclick-left-up{
@@ -719,7 +719,7 @@ body {
     }
 
     .Stream-header-chose-butt {
-        width: 80px !important;
+        width: 85px !important;
         height: 40px !important;
         min-width: unset !important; /* Отключаем минимальную ширину */
         font-size: 14px !important;
@@ -731,7 +731,7 @@ body {
     }
     
     .Stream-header-chosefrom-butt-cont, .Stream-header-chosefrom-butt2, .Stream-header-chosefrom-buttw{
-        width: 100px !important;
+        width: 85px !important;
         height: 40px !important;
         font-size: 14px !important;
         margin: 0 !important;
@@ -765,7 +765,7 @@ body {
     }
 
     .Stream-header-chosefrom-butt {
-        width: 100px;
+        width: 85px;
     }
 
     .Stream-header-checkboxes {
@@ -824,7 +824,7 @@ body {
     }
 
     .Stream-header-chose-butt {
-        width: 100px !important;
+        width: 85px !important;
         height: 40px !important;
         min-width: unset !important; /* Отключаем минимальную ширину */
         font-size: 14px !important;

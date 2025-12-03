@@ -729,6 +729,7 @@ const options = {
         <span className="slider"></span>
       </label>
       <span className="tooltip-text">Показать карточки, где вы назначены трекером</span>
+      <span className="slider-text"> Показать карточки, где вы назначены трекером </span>
     </div>
   </div>
 ) : null}
