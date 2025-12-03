@@ -133,7 +133,7 @@ const Register = () => {
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>Согласие на обработку персональных данных</h2>
+                        <h2>Пользовательское соглашение</h2>
                         <div className="modal-text">
                             <div className="terms-text">
                                 {termsText.split('\n').map((line, index) => (
@@ -163,7 +163,7 @@ const Register = () => {
                                 onClick={acceptedPolicy ? handleModalSubmit : undefined}
                                 disabled={!acceptedPolicy}
                             >
-                                Продолжить
+                                Принимаю
                             </button>
                         </div>
                     </div>
