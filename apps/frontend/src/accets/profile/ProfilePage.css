@@ -169,6 +169,33 @@
     border-radius: 70px;
     cursor: pointer;
 }
+/* Стиль для кнопки закрытия */
+.close-profile-button {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.3s;
+    z-index: 100;
+}
+
+.close-profile-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.close-icon {
+    color: #ffffff;
+    transition: color 0.3s;
+}
+
+.close-profile-button:hover .close-icon {
+    color: #333;
+}
+
 
 .home-button {
     position: absolute;
@@ -436,4 +463,6 @@ html, body {
     
     .edit-button12 { order: 6; }
 }
+
+
 

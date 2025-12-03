@@ -209,12 +209,20 @@ const checkMeetingCreation = () => {
     const loadMeetings = async () => {
         try {
             const response = await fetch(
-                `${backendHost2}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000&sort=number,asc`, // Добавляем сортировку
+                `${backendHost2}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000`,
                 { credentials: 'include' }
             );
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
-            setMeetings(data.content || []);
+            
+            // Сортируем встречи как числа
+            const sortedMeetings = (data.content || []).sort((a, b) => {
+                const numA = parseInt(a.number) || 0;
+                const numB = parseInt(b.number) || 0;
+                return numA - numB; // по возрастанию
+            });
+            
+            setMeetings(sortedMeetings);
             setTotalPages(data.totalPages || 1);
         } catch (error) {
             handleApiError(error, "загрузке встреч");
