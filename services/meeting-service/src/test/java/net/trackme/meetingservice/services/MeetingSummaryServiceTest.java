@@ -35,7 +35,7 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
         meeting.setNumber("test number");
         meeting.setLink("test link");
         meeting.setStartDate(OffsetDateTime.now().minusDays(3));
-        meeting.setStatus(MeetingStatus.NOT_HAPPENED);
+        meeting.setStatus(MeetingStatus.SCHEDULED);
         meetingRepository.save(meeting);
 
         // Act

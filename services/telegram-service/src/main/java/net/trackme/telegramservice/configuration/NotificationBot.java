@@ -2,6 +2,7 @@ package net.trackme.telegramservice.configuration;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.trackme.telegramservice.services.ChatService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -15,8 +16,15 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @AllArgsConstructor
 @EnableConfigurationProperties(AppProperties.class)
 public class NotificationBot extends TelegramLongPollingBot {
-
+    /**
+     * Настройки приложения.
+     */
     private final AppProperties appProperties;
+
+    /**
+     * Сервис чатов.
+     */
+    private final ChatService chatService;
 
     @Override
     public String getBotUsername() {
@@ -33,19 +41,23 @@ public class NotificationBot extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String message = update.getMessage().getText();
             Long chatId = update.getMessage().getChatId();
+            String username = update.getMessage().getChat().getUserName();
             Integer messageId = update.getMessage().getMessageId();
 
             deleteMessage(chatId, messageId);
-            handleMessage(chatId, message);
+
+            if (message.startsWith("/start")) {
+                sendMessage(chatId, MessageTemplates.START_MESSAGE_TEMPLATE);
+                chatService.createChat(chatId, username);
+            }
         }
     }
 
-    private void handleMessage(Long chatId, String message) {
-        if (message.startsWith("/start")) {
-            sendMessage(chatId, MessageTemplates.START_MESSAGE_TEMPLATE);
-        }
-    }
-
+    /**
+     * Отправить сообщение.
+     * @param chatId Идентификатор чата в Telegram
+     * @param text Текст сообщения
+     */
     public void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));

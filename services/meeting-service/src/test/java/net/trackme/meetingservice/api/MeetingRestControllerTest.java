@@ -181,6 +181,30 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void updateMeeting_completeMeeting_success() throws Exception {
+        var meetingUpdateDto = MeetingUpdateDto.builder()
+                .link("https://example.com/meeting")
+                .number("12345")
+                .teamStatus(TeamStatus.MANY_ISSUES)
+                .status(MeetingStatus.COMPLETED)
+                .build();
+
+        var meetingId = meetingRepository.findAll().getFirst().getId().toString();
+        mockMvc.perform(patch("/api/v1/update-meeting/" + meetingId)
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType("application/json")
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(meetingUpdateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.id").value(meetingId))
+                .andExpect(jsonPath("$.link").value("https://example.com/meeting"))
+                .andExpect(jsonPath("$.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.number").value("12345"));
+    }
+
+    @Test
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
     void updateMeeting_completedMeeting_failure() throws Exception {
         var meeting = meetingRepository.findAll().getFirst();

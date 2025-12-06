@@ -21,6 +21,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MeetingSummaryService {
     /**
+     * Период выборки несостоявщихся встреч.
+     */
+    private static final int MEETING_SUMMARY_PERIOD = 7;
+
+    /**
      * Репозиторий встреч.
      */
     private final MeetingRepository meetingRepository;
@@ -35,23 +40,23 @@ public class MeetingSummaryService {
      */
     private final AppProperties appProperties;
 
+    /**
+     * Сообщить о пропущенных встречах за период.
+     */
     @Transactional
     @Scheduled(cron = "0 2 5 * * 1")
     public void reportAboutNotHappenedMeetings() {
         log.info("Scheduled not happened meetings summary started");
-        var now = OffsetDateTime.now();
-        sendNotHappenedMeetingSummary(now);
+        var dateAfter = OffsetDateTime.now().minusDays(MEETING_SUMMARY_PERIOD);
+        sendNotHappenedMeetingSummary(dateAfter);
         log.info("Scheduled not happened meetings summary completed");
     }
 
-    private void sendNotHappenedMeetingSummary(OffsetDateTime now) {
-        var dateAfter = now.minusDays(7);
+    private void sendNotHappenedMeetingSummary(OffsetDateTime dateAfter) {
         List<MeetingSummaryEvent> meetingSummaryEvents = new ArrayList<>();
 
         List<Meeting> meetings = meetingRepository
-                .findByStatusAndStartDateAfter(MeetingStatus.NOT_HAPPENED, dateAfter);
-        meetings.addAll(meetingRepository
-                .findByStatusAndStartDateAfter(MeetingStatus.COMPLETED_AS_NOT_HAPPENED, dateAfter));
+                .findByStatusAndStartDateAfter(MeetingStatus.COMPLETED_AS_NOT_HAPPENED, dateAfter);
 
         if (meetings.isEmpty()) {
             return;

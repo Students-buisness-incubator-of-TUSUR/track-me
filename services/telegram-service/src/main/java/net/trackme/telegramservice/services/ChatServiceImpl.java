@@ -9,7 +9,9 @@ import org.springframework.util.Assert;
 @Service
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
-
+    /**
+     * Репозиторий чатов.
+     */
     private final ChatRepository chatRepository;
 
     @Override

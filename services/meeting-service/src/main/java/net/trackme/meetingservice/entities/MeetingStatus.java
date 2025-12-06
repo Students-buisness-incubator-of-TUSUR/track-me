@@ -9,7 +9,6 @@ import java.util.List;
 public enum MeetingStatus {
     SCHEDULED("Запланирована"),
     COMPLETED("Завершена"),
-    NOT_HAPPENED("Не состоялась"),
     COMPLETED_AS_NOT_HAPPENED("Завершена как не состоявшаяся");
 
     public static final List<MeetingStatus> COMPLETED_STATUSES = Arrays.asList(

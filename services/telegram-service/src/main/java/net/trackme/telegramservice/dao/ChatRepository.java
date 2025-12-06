@@ -6,6 +6,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.UUID;
 
-public interface ChatRepository extends JpaRepository<ChatEntity, UUID>, JpaSpecificationExecutor<ChatEntity> {
+public interface ChatRepository extends JpaRepository<ChatEntity, UUID>,
+        JpaSpecificationExecutor<ChatEntity> {
+    /**
+     * Найти чат по имени пользователя.
+     * @param username Имя пользователя
+     * @return Чат
+     */
     ChatEntity findByUsername(String username);
 }

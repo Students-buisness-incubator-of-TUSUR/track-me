@@ -75,6 +75,7 @@ app:
     sid-identity-query: "select currval(pg_get_serial_sequence('acl_sid', 'id'))"
     class-identity-query: "select currval(pg_get_serial_sequence('acl_class', 'id'))"
   api-url: ${BACKEND_URI:http://127.0.0.1:8081}/meeting
+  app-url: ${FRONTEND_URI:http://127.0.0.1:3000}
 ---
 spring:
   config:

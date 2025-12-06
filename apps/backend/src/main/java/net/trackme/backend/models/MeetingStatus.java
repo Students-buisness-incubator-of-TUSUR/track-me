@@ -8,7 +8,6 @@ import lombok.Getter;
 public enum MeetingStatus {
     SCHEDULED("Запланирована"),
     COMPLETED("Завершена"),
-    NOT_HAPPENED("Не состоялась"),
     COMPLETED_AS_NOT_HAPPENED("Завершена как не состоявшаяся");
 
     private final String value;

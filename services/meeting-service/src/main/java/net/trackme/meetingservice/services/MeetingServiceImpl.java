@@ -9,6 +9,7 @@ import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.events.MeetingCreatedEvent;
+import net.trackme.meetingservice.events.MeetingUpdatedEvent;
 import net.trackme.meetingservice.mapping.MeetingMapper;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -67,8 +68,12 @@ public class MeetingServiceImpl implements MeetingService {
         if (MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
         }
+        var oldStatus = meeting.getStatus();
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         meeting = meetingRepository.save(meeting);
+        if (oldStatus != meeting.getStatus()) {
+            sendMeetingUpdatedEvent(meeting, oldStatus);
+        }
         return meetingMapper.mapToDto(meeting);
     }
 
@@ -96,8 +101,8 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         String contentType = file.getContentType();
-        if (!MediaType.IMAGE_PNG_VALUE.equals(contentType) &&
-            !MediaType.IMAGE_JPEG_VALUE.equals(contentType)) {
+        if (!MediaType.IMAGE_PNG_VALUE.equals(contentType)
+                && !MediaType.IMAGE_JPEG_VALUE.equals(contentType)) {
             throw new MeetingMIMETypeException(contentType);
         }
 
@@ -132,6 +137,23 @@ public class MeetingServiceImpl implements MeetingService {
     private Meeting getMeeting(UUID meetingId) {
         return meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+    }
+
+    private void sendMeetingUpdatedEvent(Meeting meeting, MeetingStatus oldStatus) {
+        var event = MeetingUpdatedEvent.builder()
+                .meetingId(meeting.getId())
+                .newStatus(meeting.getStatus())
+                .oldStatus(oldStatus)
+                .teamStatus(meeting.getTeamStatus())
+                .teamCardId(meeting.getTeamCardId())
+                .teamGrade(
+                        meeting.getTeamStatus() == null
+                                ? 0
+                                : meeting.getTeamStatus().getValue()
+                )
+                .build();
+
+        meetingEventsProducer.sendMeetingUpdatedEvent(event);
     }
 
     private void sendMeetingCreatedEvent(Meeting meeting) {

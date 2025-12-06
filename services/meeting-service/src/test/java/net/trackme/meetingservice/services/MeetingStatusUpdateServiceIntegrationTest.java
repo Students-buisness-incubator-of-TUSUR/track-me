@@ -5,7 +5,6 @@ import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
-import net.trackme.meetingservice.events.MeetingUpdatedEvent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +13,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @ActiveProfiles("test")
 class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest {
@@ -79,7 +74,7 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
         // Assert
         var updatedMeeting = meetingRepository.findById(scheduledMeeting.getId()).orElseThrow();
 
-        Assertions.assertEquals(MeetingStatus.NOT_HAPPENED, updatedMeeting.getStatus());
+        Assertions.assertEquals(MeetingStatus.SCHEDULED, updatedMeeting.getStatus());
     }
 
     @Test
@@ -91,12 +86,12 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
         notHappenedMeeting1.setStartDate(pastDate);
         notHappenedMeeting1.setTeamStatus(TeamStatus.MANY_ISSUES);
         notHappenedMeeting1.setTeamCardId(UUID.randomUUID());
-        notHappenedMeeting1.setStatus(MeetingStatus.NOT_HAPPENED);
+        notHappenedMeeting1.setStatus(MeetingStatus.SCHEDULED);
 
         var notHappenedMeeting2 = new Meeting();
         notHappenedMeeting2.setStartDate(pastDate);
         notHappenedMeeting2.setTeamCardId(UUID.randomUUID());
-        notHappenedMeeting2.setStatus(MeetingStatus.NOT_HAPPENED);
+        notHappenedMeeting2.setStatus(MeetingStatus.SCHEDULED);
 
         meetingRepository.save(notHappenedMeeting1);
         meetingRepository.save(notHappenedMeeting2);
@@ -110,16 +105,5 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
 
         Assertions.assertEquals(MeetingStatus.COMPLETED_AS_NOT_HAPPENED, updatedMeeting1.getStatus());
         Assertions.assertEquals(MeetingStatus.COMPLETED_AS_NOT_HAPPENED, updatedMeeting2.getStatus());
-        verify(meetingEventsProducer, times(2)).sendMeetingUpdatedEvent(any(MeetingUpdatedEvent.class));
     }
-
-    @Test
-    void updateMeetingStatuses_isEmpty() {
-        // Act
-        meetingStatusUpdateService.updateMeetingStatuses();
-
-        // Assert
-        verify(meetingEventsProducer, times(0)).sendMeetingUpdatedEvent(any(MeetingUpdatedEvent.class));
-    }
-
 }

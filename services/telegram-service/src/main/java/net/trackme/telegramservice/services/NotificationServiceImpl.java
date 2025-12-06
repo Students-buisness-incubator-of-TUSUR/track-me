@@ -12,9 +12,14 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
-
+    /**
+     * Бот уведомлений.
+     */
     private final NotificationBot notificationBot;
 
+    /**
+     * Репозиторий чатов.
+     */
     private final ChatRepository chatRepository;
 
     @Override

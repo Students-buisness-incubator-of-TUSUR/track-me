@@ -135,7 +135,7 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
         teamCardMeetingsService.updateTeamCardInfo(
                 teamCard.getId(),
                 meetingId,
-                MeetingStatus.NOT_HAPPENED,
+                MeetingStatus.SCHEDULED,
                 MeetingStatus.SCHEDULED,
                 teamCard.getStatus(),
                 BigDecimal.ZERO,

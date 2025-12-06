@@ -21,11 +21,34 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MeetingStatusUpdateService {
+    /**
+     * Размер пакета.
+     */
     private static final int BATCH_SIZE = 200;
+
+    /**
+     * Период до завершения несостоявщейся встречи.
+     */
+    private static final int NOT_HAPPENED_MEETING_PERIOD = 3;
+
+    /**
+     * Репозиторий встреч.
+     */
     private final MeetingRepository meetingRepository;
+
+    /**
+     * Поставщик сообщений о встречах.
+     */
     private final MeetingEventsProducer meetingEventsProducer;
+
+    /**
+     * Настройки приложения.
+     */
     private final AppProperties appProperties;
 
+    /**
+     * Автоматическое обновление статусов встреч.
+     */
     @Transactional
     @Scheduled(cron = "0 0 5 * * *")
     public void updateMeetingStatuses() {
@@ -48,13 +71,12 @@ public class MeetingStatusUpdateService {
             }
             for (Meeting meeting : expiredMeetings) {
                 if (hasUnfilledFields(meeting)) {
-                    meeting.setStatus(MeetingStatus.NOT_HAPPENED);
                     log.debug(
-                            "Meeting {} set to NOT_HAPPENED due to unfilled fields",
+                            "Meeting {} remained to SCHEDULED due to unfilled fields",
                             meeting.getId());
                 } else {
                     meeting.setStatus(MeetingStatus.COMPLETED);
-                    log.debug("Meeting {} set to HAPPENED", meeting.getId());
+                    log.debug("Meeting {} set to COMPLETED", meeting.getId());
                 }
                 sendMeetingEvent(meeting, MeetingStatus.SCHEDULED);
             }
@@ -65,14 +87,14 @@ public class MeetingStatusUpdateService {
     }
 
     private void updateNotHappenedMeetings(OffsetDateTime now) {
-        OffsetDateTime threeDaysAgo = now.minusDays(3);
+        OffsetDateTime threeDaysAgo = now.minusDays(NOT_HAPPENED_MEETING_PERIOD);
         int page = 0;
         List<Meeting> notHappenedMeetings;
         do {
             Pageable pageable = PageRequest.of(page, BATCH_SIZE);
             notHappenedMeetings = meetingRepository
                     .findByStatusAndStartDateBefore(
-                            MeetingStatus.NOT_HAPPENED, threeDaysAgo, pageable);
+                            MeetingStatus.SCHEDULED, threeDaysAgo, pageable);
             if (notHappenedMeetings.isEmpty()) {
                 break;
             }
@@ -80,10 +102,12 @@ public class MeetingStatusUpdateService {
                 if (hasUnfilledFields(meeting)) {
                     meeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
                     log.debug(
-                            "Meeting {} set to COMPLETED_AS_NOT_HAPPENED after 3 days. Team status set to MANY_ISSUES",
-                            meeting.getId());
+                            "Meeting {} set to COMPLETED_AS_NOT_HAPPENED after {} days. "
+                                    + "Team status set to MANY_ISSUES",
+                            meeting.getId(),
+                            NOT_HAPPENED_MEETING_PERIOD);
                 }
-                sendMeetingEvent(meeting, MeetingStatus.NOT_HAPPENED);
+                sendMeetingEvent(meeting, MeetingStatus.SCHEDULED);
             }
             meetingRepository.saveAll(notHappenedMeetings);
             log.info(

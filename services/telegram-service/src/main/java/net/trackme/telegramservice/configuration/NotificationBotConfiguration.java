@@ -12,7 +12,9 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 @Configuration
 @AllArgsConstructor
 public class NotificationBotConfiguration {
-
+    /**
+     * Бот уведомлений.
+     */
     private final NotificationBot notificationBot;
 
     @PostConstruct

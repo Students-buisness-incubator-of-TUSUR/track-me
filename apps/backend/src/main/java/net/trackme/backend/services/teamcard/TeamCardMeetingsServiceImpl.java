@@ -23,10 +23,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
 
+    /**
+     * Репозиторий карточек команд.
+     */
     private final TeamCardsRepository teamCardsRepository;
 
+    /**
+     * Репозиторий встреч команд.
+     */
     private final MeetingGradeRepository meetingGradeRepository;
 
+    /**
+     * Поставщик сообщений о карточках команд.
+     */
     private final TeamCardEventsProducer teamCardEventsProducer;
 
     @Override
@@ -42,7 +51,8 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                             teamCardsRepository.save(teamCard);
                             calculateAverageGrade(teamCard);
                             log.info(
-                                    "Increased meeting count for team card {}. Current count: {}. Average grade: {}",
+                                    "Increased meeting count for team card {}. "
+                                            + "Current count: {}. Average grade: {}",
                                     teamCardId,
                                     teamCard.getMeetingsCount(),
                                     teamCard.getAverageGrade());
@@ -67,7 +77,8 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                                 if (newStatus == MeetingStatus.COMPLETED) {
                                     teamCard.increaseMeetingCompletedCount();
                                 }
-                                else if (newStatus == MeetingStatus.NOT_HAPPENED){
+                            } else {
+                                if (newStatus == MeetingStatus.SCHEDULED) {
                                     sendMeetingNotHappenedEvent(teamCard, meetingLink);
                                 }
                             }
@@ -79,7 +90,8 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                             }
                             teamCardsRepository.save(teamCard);
                             log.info(
-                                    "Updated team card {} info. Current count: {}, status: {}, grade: {}",
+                                    "Updated team card {} info. "
+                                            + "Current count: {}, status: {}, grade: {}",
                                     teamCardId,
                                     teamCard.getMeetingsCount(),
                                     teamCard.getStatus(),
@@ -105,18 +117,18 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
         }
     }
 
-    private void sendMeetingNotHappenedEvent(TeamCard teamCard,
-                                             String meetingLink) {
-        var streamName = teamCard.getStreams().stream()
-                .filter(Stream::isActive).map(Stream::getName)
-                .findFirst().orElseThrow();
-
-        var event = MeetingNotHappenedEvent.builder()
-                .teamCardUsername(teamCard.getUsername())
-                .teamCardName(teamCard.getName())
-                .streamName(streamName)
-                .meetingLink(meetingLink)
-                .build();
-        teamCardEventsProducer.sendMeetingNotHappenedEvent(event);
+    private void sendMeetingNotHappenedEvent(TeamCard teamCard, String meetingLink) {
+        teamCard.getStreams().stream()
+                .filter(Stream::isActive)
+                .findFirst()
+                .ifPresentOrElse(stream -> {
+                    var event = MeetingNotHappenedEvent.builder()
+                            .teamCardUsername(teamCard.getUsername())
+                            .teamCardName(teamCard.getName())
+                            .streamName(stream.getName())
+                            .meetingLink(meetingLink)
+                            .build();
+                    teamCardEventsProducer.sendMeetingNotHappenedEvent(event);
+                    }, () -> log.info("Team card {} has no active streams.", teamCard.getId()));
     }
 }
