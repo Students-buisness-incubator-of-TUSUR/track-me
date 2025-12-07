@@ -34,6 +34,17 @@ jobs:
 
       - name: Set Environment Variables
         uses: appleboy/ssh-action@master
+        env:
+          DEV_FRONTEND_URI: ${{ secrets.DEV_FRONTEND_URI }}
+          DEV_BACKEND_URI: ${{ secrets.DEV_BACKEND_URI }}
+          DEV_SSO_URI: ${{ secrets.DEV_SSO_URI }}
+          MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
           proxy_host: bastion.tusur.ru
@@ -50,22 +61,21 @@ jobs:
             # Создать .env файл с переменными окружения
             rm -f .env
             
-            echo "FRONTEND_URI=${{ secrets.DEV_FRONTEND_URI }}" >> .env
-            echo "CORS_ORIGINS=${{ secrets.DEV_FRONTEND_URI }},http://localhost:3000" >> .env
-            echo "AFTER_LOGOUT_URI=${{ secrets.DEV_FRONTEND_URI }}" >> .env
-            echo "AFTER_LOGIN_URL=${{ secrets.DEV_FRONTEND_URI }}/after-login" >> .env
-            echo "SSO_URI=${{ secrets.DEV_SSO_URI }}" >> .env
-            
-            echo "BACKEND_URI=${{ secrets.DEV_BACKEND_URI }}" >> .env
-            echo "REACT_APP_BACKEND_URI=${{ secrets.DEV_BACKEND_URI }}" >> .env
-            echo "MAIL_HOST=${{ secrets.MAIL_HOST }}" >> .env
-            echo "MAIL_PORT=${{ secrets.MAIL_PORT }}" >> .env
-            echo "MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}" >> .env
-            echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
-            echo "MAIL_FROM=${{ secrets.MAIL_FROM }}" >> .env
+            echo "FRONTEND_URI=${DEV_FRONTEND_URI}" >> .env
+            echo "CORS_ORIGINS=${DEV_FRONTEND_URI},http://localhost:3000" >> .env
+            echo "AFTER_LOGOUT_URI=${DEV_FRONTEND_URI}" >> .env
+            echo "AFTER_LOGIN_URL=${DEV_FRONTEND_URI}/after-login" >> .env
+            echo "SSO_URI=${DEV_SSO_URI}" >> .env
+            echo "BACKEND_URI=${DEV_BACKEND_URI}" >> .env
+            echo "REACT_APP_BACKEND_URI=${DEV_BACKEND_URI}" >> .env
+            echo "MAIL_HOST=${MAIL_HOST}" >> .env
+            echo "MAIL_PORT=${MAIL_PORT}" >> .env
+            echo "MAIL_USERNAME=${MAIL_USERNAME}" >> .env
+            echo "MAIL_PASSWORD=${MAIL_PASSWORD}" >> .env
+            echo "MAIL_FROM=${MAIL_FROM}" >> .env
             echo "MAIL_SUBJECT=TrackMe" >> .env
-            echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
-            echo "TELEGRAM_BOT_USERNAME=${{ secrets.TELEGRAM_BOT_USERNAME }}" >> .env
+            echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" >> .env
+            echo "TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}" >> .env
             cat .env.dev.redis | tr -d '\r' >> .env
             echo "" >> .env
             cat .env.dev.database | tr -d '\r' >> .env
