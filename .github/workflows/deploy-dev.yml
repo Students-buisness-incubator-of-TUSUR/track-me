@@ -140,19 +140,3 @@ jobs:
               echo "Waiting for frontend..."
               sleep 5
             done
-
-  restart-nginx:
-    needs: healthcheck-services
-    runs-on: ubuntu-latest
-    steps:
-      - name: Restart Nginx
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SBI_SSH_HOST }}
-          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
-          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          username: ${{ secrets.SBI_SSH_USERNAME }}
-          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          proxy_host: bastion.tusur.ru
-          script: |
-            sudo systemctl reload nginx
