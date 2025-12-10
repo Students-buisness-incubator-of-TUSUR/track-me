@@ -72,6 +72,11 @@ const [maxMeetingsCount, setMaxMeetingsCount] = useState(0);
     ], []);
     const [trackerFullName, setTrackerFullName] = useState("");
     const [streamInfo, setStreamInfo] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [meetingToDelete, setMeetingToDelete] = useState(null);
+
+
+
 
 useEffect(() => {
   if (teamData.streams && teamData.streams.length > 0) {
@@ -533,6 +538,41 @@ const saveMeetingDate = async () => {
         handleApiError(error, "сохранении даты встречи");
     }
 };
+
+const deleteMeeting = async () => {
+  if (!meetingToDelete) return;
+
+  try {
+    const response = await fetch(
+      `${backendHost2}/api/v1/delete-meeting/${meetingToDelete}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...getCsrfConfigForFetch(),
+        },
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Ошибка при удалении: ${response.status} ${errorText}`);
+    }
+
+    // Успешно удалено → обновляем список встреч
+    setMeetings(prev => prev.filter(m => m.id !== meetingToDelete));
+    setEditingMeetingId(null);
+    setShowDeleteModal(false);
+    setMeetingToDelete(null);
+  } catch (error) {
+    console.error("Ошибка удаления встречи:", error);
+    setMeetingError("Не удалось удалить встречу. Попробуйте позже.");
+    setTimeout(() => setMeetingError(""), 3000);
+    setShowDeleteModal(false);
+  }
+};
+
     const handleDeactivate = async () => {
   const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
 
@@ -569,7 +609,7 @@ const saveMeetingDate = async () => {
   }
 };
 
-    
+   
    
 
     return (
@@ -952,7 +992,21 @@ const saveMeetingDate = async () => {
           >
             Отмена
           </button>
+          {(role === "ADMIN" || role === "SUPER_ADMIN") && (
+            <button
+              className="delete-meeting-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMeetingToDelete(meeting.id);
+                setShowDeleteModal(true);
+              }}
+              title="Удалить встречу"
+            >
+              Удалить
+            </button>
+          )}
         </div>
+        
       ) : (
         <>
           <span 
@@ -1009,6 +1063,37 @@ const saveMeetingDate = async () => {
                     </button>
                 </div>
             ) : null}
+            {showDeleteModal && (
+              <div className="confirm-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+                <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+                  <h3>Подтвердите удаление</h3>
+                  <p>
+                    Вы уверены, что хотите удалить эту встречу? <br />
+                    <strong>Это действие нельзя отменить.</strong>
+                  </p>
+                  <div className="confirm-modal-buttons">
+                    <button
+                      className="confirm-button no"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDeleteModal(false);
+                      }}
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      className="confirm-button yes"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteMeeting();
+                      }}
+                    >
+                      Удалить
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             </div>
     );
 };

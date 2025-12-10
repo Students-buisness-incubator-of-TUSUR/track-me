@@ -2582,3 +2582,138 @@ describe('Sorting function unit tests', () => {
     expect(sorted.map(m => m.number)).toEqual(['1', '2', '3', '4', '5']);
   });
 });
+
+describe('TeamCard Delete Meeting Functionality', () => {
+  const mockNavigate = jest.fn();
+
+  beforeEach(() => {
+    jest.spyOn(require('react-router-dom'), 'useNavigate').mockReturnValue(mockNavigate);
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    console.error.mockRestore();
+    jest.clearAllMocks();
+  });
+
+  const renderWithMeetings = async (role = "ADMIN") => {
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: [role] }
+    }));
+
+    // Мок встреч
+    global.fetch.mockImplementation((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, number: '1', startDate: '2025-01-01T00:00:00Z' },
+              { id: 101, number: '2', startDate: '2025-01-08T00:00:00Z' }
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      if (url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ id: 42, name: 'Team', streams: [{ id: 1 }] }],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    await screen.findByText(/Встреча 1/i);
+  };
+
+  test('should show delete button for ADMIN', async () => {
+    await renderWithMeetings('ADMIN');
+    expect(screen.getByText('Удалить')).toBeInTheDocument();
+  });
+
+  test('should not show delete button for non-admin', async () => {
+    await renderWithMeetings('TRACKER');
+    expect(screen.queryByText('Удалить')).not.toBeInTheDocument();
+  });
+
+  test('should open delete modal when delete button is clicked', async () => {
+    await renderWithMeetings();
+
+    const deleteButtons = screen.getAllByText('Удалить');
+    fireEvent.click(deleteButtons[0]);
+
+    expect(screen.getByText(/Подтвердите удаление/i)).toBeInTheDocument();
+    expect(screen.getByText(/Вы уверены, что хотите удалить эту встречу?/i)).toBeInTheDocument();
+  });
+
+  test('should delete meeting on confirmation and update state', async () => {
+    await renderWithMeetings();
+
+    // Мок успешного удаления
+    global.fetch.mockImplementationOnce(() => Promise.resolve({ ok: true }));
+
+    const deleteButtons = screen.getAllByText('Удалить');
+    fireEvent.click(deleteButtons[0]);
+    fireEvent.click(screen.getByText('Удалить'));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/v1/delete-meeting/100'),
+        expect.objectContaining({
+          method: 'DELETE'
+        })
+      );
+    });
+
+    // Проверяем, что встречи обновились
+    await waitFor(() => {
+      expect(screen.queryByText(/Встреча 1/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/Встреча 2/i)).toBeInTheDocument();
+    });
+  });
+
+  test('should show error on delete failure', async () => {
+    await renderWithMeetings();
+
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({ ok: false, text: () => Promise.resolve('Server error') })
+    );
+
+    const deleteButtons = screen.getAllByText('Удалить');
+    fireEvent.click(deleteButtons[0]);
+    fireEvent.click(screen.getByText('Удалить'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Не удалось удалить встречу/)).toBeInTheDocument();
+      expect(console.error).toHaveBeenCalledWith(
+        'Ошибка удаления встречи:',
+        expect.any(Error)
+      );
+    });
+  });
+
+  test('should close modal on cancel', async () => {
+    await renderWithMeetings();
+
+    fireEvent.click(screen.getByText('Удалить'));
+    expect(screen.getByText(/Подтвердите удаление/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Отмена'));
+    expect(screen.queryByText(/Подтвердите удаление/i)).not.toBeInTheDocument();
+  });
+});
