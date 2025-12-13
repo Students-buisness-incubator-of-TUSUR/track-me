@@ -76,8 +76,6 @@ const [maxMeetingsCount, setMaxMeetingsCount] = useState(0);
     const [meetingToDelete, setMeetingToDelete] = useState(null);
 
 
-
-
 useEffect(() => {
   if (teamData.streams && teamData.streams.length > 0) {
     setStreamInfo(teamData.streams[0]); // берем первый поток
@@ -1064,7 +1062,7 @@ const deleteMeeting = async () => {
                 </div>
             ) : null}
             {showDeleteModal && (
-              <div className="confirm-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+              <div className="confirm-modal-overlay" onClick={() => setShowDeleteModal(false)} data-testid="delete-modal-overlay">
                 <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
                   <h3>Подтвердите удаление</h3>
                   <p>

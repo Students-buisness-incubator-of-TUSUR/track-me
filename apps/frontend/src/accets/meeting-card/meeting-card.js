@@ -743,7 +743,7 @@ if (!isMeetingDatePassed()) {
 {showDeleteModal && (
   <div className="confirm-modal-overlay" onClick={() => setShowDeleteModal(false)}>
     <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
-      <h3>Удалить встречу?</h3>
+      <h3 data-testid="delete-modal-title">Удалить встречу?</h3>
       <p>
         Вы уверены, что хотите удалить эту встречу? <br />
         <strong>Это действие нельзя отменить.</strong>
@@ -764,6 +764,7 @@ if (!isMeetingDatePassed()) {
             e.stopPropagation();
             deleteMeeting();
           }}
+          data-testid="delete-confirm-button"
         >
           Удалить
         </button>
