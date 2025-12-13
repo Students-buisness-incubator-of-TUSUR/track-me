@@ -8,7 +8,15 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import MobileHeader from "../adaptive-accets/MobileHeader";
 
 const MeetingCard = () => {
-    const backendHost = (process.env.REACT_APP_BACKEND_URI || '') + '/meeting';
+    // Формируем абсолютный backendHost для корректной работы new URL
+    let backendHost = '';
+    if (process.env.REACT_APP_BACKEND_URI && process.env.REACT_APP_BACKEND_URI.trim()) {
+        backendHost = process.env.REACT_APP_BACKEND_URI + '/meeting';
+    } else if (typeof window !== 'undefined' && window.location && window.location.origin) {
+        backendHost = window.location.origin + '/meeting';
+    } else {
+        backendHost = 'http://localhost/meeting';
+    }
     const { meetingId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
