@@ -236,6 +236,11 @@ describe('MeetingCard Delete Functionality', () => {
     fetch.mockClear();
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
+    // Мокаем window.location.origin для корректного формирования абсолютных URL
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { origin: 'http://localhost' }
+    });
   });
   afterEach(() => {
     // intentionally left blank: do not call mockRestore here
