@@ -1995,6 +1995,44 @@ test('confirm-modal: onClick и onKeyDown вызывают stopPropagation (ед
 
   stopPropagationSpy.mockRestore();
 });
+test('sets role from localStorage when reduxUser is not available', () => {
+  // Redux — без пользователя
+  const store = createStore(() => ({ user: { user: null } }));
+
+  // Мок fetch
+  global.fetch.mockImplementation((input) => {
+    const url = typeof input === 'string' ? input : input?.href || '';
+    
+    if (url.includes('/api/v1/meetings')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [{ id: '1', number: 1, startDate: '2025-01-01T10:00:00Z', status: 'SCHEDULED' }] })
+      });
+    }
+    if (url.includes('/api/v1/image')) {
+      return Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob()) });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+
+  // Установим пользователя в localStorage
+  localStorage.setItem('user', JSON.stringify({ roles: ['TRACKER'] }));
+
+  // Рендерим
+  render(
+    <Provider store={store}>
+      <MemoryRouter initialEntries={['/meeting/1?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
+  );
+
+  // Проверим: если роль TRACKER, то кнопки "Удалить" или "Редактировать" должны быть, но не "Состоялась"
+  expect(screen.getByText(/Редактировать/i)).toBeInTheDocument();
+  // Можно добавить: expect(screen.queryByText('Удалить')).toBeNull();
+});
 
 
 
