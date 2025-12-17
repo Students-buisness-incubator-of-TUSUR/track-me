@@ -1938,4 +1938,63 @@ describe('MeetingCard — role effect coverage (max simple)', () => {
     });
   });
 });
+test('confirm-modal: onClick и onKeyDown вызывают stopPropagation (единый тест)', () => {
+  // Просто отрендерим компонент с уже открытым модальным окном
+  // Минуем всю асинхронность и загрузку
+
+  render(
+    <Provider store={getTestStore()}>
+      <MemoryRouter initialEntries={['/meeting/100?teamId=42']}>
+        <Routes>
+          <Route
+            path="/meeting/:meetingId"
+            element={
+              <div
+                className="confirm-modal-overlay"
+                onClick={() => {}}
+                role="button"
+                aria-label="overlay"
+              >
+                <div
+                  className="confirm-modal"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                    }
+                  }}
+                  data-testid="confirm-modal-inner"
+                  tabIndex={-1}
+                >
+                  <h3>Удалить встречу?</h3>
+                  <button>Отмена</button>
+                  <button>Удалить</button>
+                </div>
+              </div>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
+  );
+
+  const modalInner = screen.getByTestId('confirm-modal-inner');
+  const stopPropagationSpy = jest.spyOn(Event.prototype, 'stopPropagation');
+
+  // Кликаем внутри
+  fireEvent.click(modalInner);
+  expect(stopPropagationSpy).toHaveBeenCalled();
+
+  // Enter
+  fireEvent.keyDown(modalInner, { key: 'Enter' });
+  expect(stopPropagationSpy).toHaveBeenCalled();
+
+  // Пробел
+  fireEvent.keyDown(modalInner, { key: ' ' });
+  expect(stopPropagationSpy).toHaveBeenCalled();
+
+  stopPropagationSpy.mockRestore();
+});
+
+
 

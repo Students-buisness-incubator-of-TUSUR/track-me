@@ -2899,6 +2899,46 @@ describe('deleteMeeting functionality', () => {
     { timeout: 3000 }
   );
 });
+test('confirm-modal: onClick и onKeyDown вызывают stopPropagation (единый тест)', async () => {
+  const stopPropagationSpy = jest.spyOn(Event.prototype, 'stopPropagation');
+
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes>
+          <Route path="/team-card/:id" element={<TeamCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  });
+
+  // Открываем модалку удаления
+  fireEvent.click(screen.getByText('05.01'));
+  fireEvent.click(screen.getByRole('button', { name: /Удалить/i }));
+
+  const modalInner = screen.getByText('Подтвердите удаление').closest('.confirm-modal');
+  expect(modalInner).toBeInTheDocument();
+
+  // Кликаем внутри
+  fireEvent.click(modalInner);
+
+  // Проверяем, что stopPropagation был вызван хотя бы раз
+  expect(stopPropagationSpy).toHaveBeenCalled();
+
+  // Enter
+  fireEvent.keyDown(modalInner, { key: 'Enter' });
+  expect(stopPropagationSpy).toHaveBeenCalled();
+
+  // Пробел
+  fireEvent.keyDown(modalInner, { key: ' ' });
+  expect(stopPropagationSpy).toHaveBeenCalled();
+
+  // Проверяем, что модалка не закрылась
+  expect(screen.getByTestId('delete-modal-overlay')).toBeInTheDocument();
+
+  stopPropagationSpy.mockRestore();
+});
+
 
 });
 
