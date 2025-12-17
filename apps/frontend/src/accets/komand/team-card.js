@@ -1062,19 +1062,13 @@ const deleteMeeting = async () => {
                 </div>
             ) : null}
             {showDeleteModal && (
-              <div className="confirm-modal-overlay"
-              onClick={() => setShowDeleteModal(false)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setShowDeleteModal(false);
-                }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label="Закрыть модальное окно"
-              data-testid="delete-modal-overlay"
-            >
+              <button
+                  type="button"
+                  className="confirm-modal-overlay"
+                  onClick={() => setShowDeleteModal(false)}
+                  aria-label="Закрыть модальное окно"
+                  data-testid="delete-modal-overlay"
+                >
                 <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
                   <h3>Подтвердите удаление</h3>
                   <p>
@@ -1102,7 +1096,7 @@ const deleteMeeting = async () => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </button>
             )}
             </div>
     );

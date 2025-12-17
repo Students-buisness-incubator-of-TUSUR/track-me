@@ -749,20 +749,13 @@ if (!isMeetingDatePassed()) {
   </div>
 )}
 {showDeleteModal && (
-  <div
+  <button
+    type="button"
     className="confirm-modal-overlay"
     onClick={() => setShowDeleteModal(false)}
-    onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        setShowDeleteModal(false);
-        }
-    }}
-    role="button"
-    tabIndex={0}
     aria-label="Закрыть модальное окно"
     data-testid="delete-modal-overlay"
-    >
+  >
     <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
       <h3 data-testid="delete-modal-title">Удалить встречу?</h3>
       <p>
@@ -791,7 +784,7 @@ if (!isMeetingDatePassed()) {
         </button>
       </div>
     </div>
-  </div>
+  </button>
 )}
 
         </div>
