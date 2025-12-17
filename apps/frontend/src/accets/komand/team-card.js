@@ -1069,7 +1069,10 @@ const deleteMeeting = async () => {
                   aria-label="Закрыть модальное окно"
                   data-testid="delete-modal-overlay"
                 >
-                <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="confirm-modal" onClick={(e) => e.stopPropagation()}
+                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+                  // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+                  >
                   <h3>Подтвердите удаление</h3>
                   <p>
                     Вы уверены, что хотите удалить эту встречу? <br />

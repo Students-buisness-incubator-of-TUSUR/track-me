@@ -9,14 +9,14 @@ import MobileHeader from "../adaptive-accets/MobileHeader";
 
 const MeetingCard = () => {
     // Формируем абсолютный backendHost для корректной работы new URL
-    let backendHost = '';
-    if (process.env.REACT_APP_BACKEND_URI && process.env.REACT_APP_BACKEND_URI.trim()) {
-        backendHost = process.env.REACT_APP_BACKEND_URI + '/meeting';
-    } else if (typeof window !== 'undefined' && window.location && window.location.origin) {
-        backendHost = window.location.origin + '/meeting';
-    } else {
-        backendHost = 'http://localhost/meeting';
+    let backendHost = 'http://localhost/meeting';
+
+    if (process.env.REACT_APP_BACKEND_URI?.trim()) {
+    backendHost = process.env.REACT_APP_BACKEND_URI.trim() + '/meeting';
+    } else if (typeof globalThis.window !== 'undefined' && globalThis.window.location?.origin) {
+    backendHost = globalThis.window.location.origin + '/meeting';
     }
+
     const { meetingId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -756,7 +756,10 @@ if (!isMeetingDatePassed()) {
     aria-label="Закрыть модальное окно"
     data-testid="delete-modal-overlay"
   >
-    <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="confirm-modal" onClick={(e) => e.stopPropagation()}
+        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+        >
       <h3 data-testid="delete-modal-title">Удалить встречу?</h3>
       <p>
         Вы уверены, что хотите удалить эту встречу? <br />
