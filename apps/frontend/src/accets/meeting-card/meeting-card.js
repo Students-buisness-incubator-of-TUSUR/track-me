@@ -13,8 +13,8 @@ const MeetingCard = () => {
 
     if (process.env.REACT_APP_BACKEND_URI?.trim()) {
     backendHost = process.env.REACT_APP_BACKEND_URI.trim() + '/meeting';
-    } else if (typeof globalThis.window !== 'undefined' && globalThis.window.location?.origin) {
-    backendHost = globalThis.window.location.origin + '/meeting';
+    } else if (typeof window !== 'undefined' && window.location?.origin) {
+    backendHost = window.location.origin + '/meeting';
     }
 
     const { meetingId } = useParams();
@@ -756,11 +756,22 @@ if (!isMeetingDatePassed()) {
     aria-label="Закрыть модальное окно"
     data-testid="delete-modal-overlay"
   >
-    <div className="confirm-modal" onClick={(e) => e.stopPropagation()}
-        // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-        // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-        >
-      <h3 data-testid="delete-modal-title">Удалить встречу?</h3>
+    <div
+      className="confirm-modal"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.stopPropagation();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-meeting-title"
+      tabIndex={-1}
+    >
+      <h3 id="delete-meeting-title" data-testid="delete-modal-title">
+        Удалить встречу?
+      </h3>
       <p>
         Вы уверены, что хотите удалить эту встречу? <br />
         <strong>Это действие нельзя отменить.</strong>
@@ -789,6 +800,7 @@ if (!isMeetingDatePassed()) {
     </div>
   </button>
 )}
+
 
         </div>
     );

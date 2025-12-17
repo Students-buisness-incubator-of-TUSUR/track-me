@@ -1063,17 +1063,26 @@ const deleteMeeting = async () => {
             ) : null}
             {showDeleteModal && (
               <button
-                  type="button"
-                  className="confirm-modal-overlay"
-                  onClick={() => setShowDeleteModal(false)}
-                  aria-label="Закрыть модальное окно"
-                  data-testid="delete-modal-overlay"
+                type="button"
+                className="confirm-modal-overlay"
+                onClick={() => setShowDeleteModal(false)}
+                aria-label="Закрыть модальное окно"
+                data-testid="delete-modal-overlay"
+              >
+                <div
+                  className="confirm-modal"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                    }
+                  }}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="delete-meeting-title"
+                  tabIndex={-1}
                 >
-                <div className="confirm-modal" onClick={(e) => e.stopPropagation()}
-                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                  // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-                  >
-                  <h3>Подтвердите удаление</h3>
+                  <h3 id="delete-meeting-title">Подтвердите удаление</h3>
                   <p>
                     Вы уверены, что хотите удалить эту встречу? <br />
                     <strong>Это действие нельзя отменить.</strong>
