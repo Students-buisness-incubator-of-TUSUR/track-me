@@ -2755,5 +2755,41 @@ describe('TeamCard Delete Meeting Functionality (Guaranteed Pass)', () => {
     // For now, just check that no error is shown initially
     expect(screen.queryByText(/максимальное количество встреч/i)).not.toBeInTheDocument();
   });
+test('deleteMeeting: покрывает строки 543–570 при успешном удалении', async () => {
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes>
+          <Route path="/team-card/:id" element={<TeamCard />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  });
+
+  await waitFor(() => screen.getByText(/Встреча 2/i));
+
+  // Кликаем на дату
+  fireEvent.click(screen.getByText('05.01'));
+
+  // Кликаем "Удалить" (первая кнопка)
+  fireEvent.click(screen.getByRole('button', { name: /Удалить/i }));
+
+  // Ищем кнопку подтверждения по тексту и предполагаемому классу
+  const confirmButton = screen.getByText('Удалить', {
+    selector: 'button.yes, button.confirm, button.bg-red, button[type="submit"]'
+  });
+  fireEvent.click(confirmButton);
+
+  // Проверяем запрос
+  await waitFor(() => {
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/delete-meeting/100'),
+      expect.objectContaining({ method: 'DELETE' })
+    );
+  });
+});
+
+
+
 
 
