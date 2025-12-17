@@ -1834,3 +1834,108 @@ describe('Textarea Auto-resize Functionality', () => {
     });
   });
 });
+describe('MeetingCard — role effect coverage (max simple)', () => {
+  beforeEach(() => {
+    global.fetch.mockClear();
+    localStorage.clear();
+  });
+
+  // ✅ Универсальный мок: не падает ни при каких
+  const mockApi = () => {
+    global.fetch.mockImplementation((input, init) => {
+      // Логируем для отладки (можно убрать)
+      // console.log('fetch called with:', input, init);
+
+      // Безопасное извлечение строки URL
+      let urlStr = '';
+      if (typeof input === 'string') {
+        urlStr = input;
+      } else if (input && typeof input === 'object' && 'url' in input) {
+        urlStr = input.url;
+      } else if (input && typeof input === 'object' && 'href' in input) {
+        urlStr = input.href;
+      } else {
+        urlStr = '';
+      }
+
+      // Проверяем, что urlStr — строка
+      const isString = typeof urlStr === 'string';
+
+      // Теперь безопасно используем includes
+      if (isString && urlStr.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ id: '1', number: 1, startDate: '2025-01-01T10:00:00Z', status: 'SCHEDULED' }]
+          })
+        });
+      }
+
+      if (isString && urlStr.includes('/api/v1/image')) {
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob())
+        });
+      }
+
+      // Для всех остальных запросов (CSRF, update и т.д.)
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('')
+      });
+    });
+  };
+
+  test('renders with reduxUser', async () => {
+    mockApi();
+    const store = createStore(() => ({ user: { user: { roles: ['TRACKER'] } } }));
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <MemoryRouter initialEntries={['/meeting/1?teamId=1']}>
+            <Routes>
+              <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+            </Routes>
+          </MemoryRouter>
+        </Provider>
+      );
+    });
+  });
+
+  test('renders with localStorage user', async () => {
+    mockApi();
+    localStorage.setItem('user', JSON.stringify({ roles: ['ADMIN'] }));
+
+    await act(async () => {
+      render(
+        <Provider store={getTestStore()}>
+          <MemoryRouter initialEntries={['/meeting/1?teamId=1']}>
+            <Routes>
+              <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+            </Routes>
+          </MemoryRouter>
+        </Provider>
+      );
+    });
+  });
+
+  test('renders with no user data', async () => {
+    mockApi();
+    const store = createStore(() => ({ user: null }));
+
+    await act(async () => {
+      render(
+        <Provider store={store}>
+          <MemoryRouter initialEntries={['/meeting/1?teamId=1']}>
+            <Routes>
+              <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+            </Routes>
+          </MemoryRouter>
+        </Provider>
+      );
+    });
+  });
+});
+
