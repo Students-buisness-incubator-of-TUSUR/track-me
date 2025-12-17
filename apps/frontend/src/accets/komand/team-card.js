@@ -933,7 +933,7 @@ const deleteMeeting = async () => {
               </button>
               {/* Сообщение об ошибке */}
               {meetingError && (
-                <div className="error-message">
+                <div className="error-message" data-testid="meeting-error">
                   {meetingError}
                 </div>
               )}

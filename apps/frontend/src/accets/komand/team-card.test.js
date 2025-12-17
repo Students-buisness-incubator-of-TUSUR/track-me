@@ -2755,7 +2755,112 @@ describe('TeamCard Delete Meeting Functionality (Guaranteed Pass)', () => {
     // For now, just check that no error is shown initially
     expect(screen.queryByText(/максимальное количество встреч/i)).not.toBeInTheDocument();
   });
-test('deleteMeeting: покрывает строки 543–570 при успешном удалении', async () => {
+describe('deleteMeeting functionality', () => {
+  const mockMeetings = [
+    {
+      id: 100,
+      number: 2,
+      startDate: '2025-01-05T10:00:00Z',
+      status: 'SCHEDULED'
+    }
+  ];
+
+  // ✅ Перенесённая и общая функция setup
+  const setup = async () => {
+    global.fetch = jest.fn((url, opts) => {
+      if (url.includes('/api/v1/meetings') && url.includes('teamCardId=42')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: mockMeetings, totalPages: 1 })
+        });
+      }
+      if (url.includes('/api/v1/team-cards') || url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [] })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes>
+            <Route path="/team-card/:id" element={<TeamCard />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Ждём, пока "Встреча 2" появится
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 2/i)).toBeInTheDocument();
+    });
+
+    // Кликаем на дату встречи
+    fireEvent.click(screen.getByText('05.01'));
+
+    // Открываем модалку удаления
+    fireEvent.click(screen.getByRole('button', { name: /Удалить/i }));
+  };
+
+  test('deleteMeeting: покрывает строки 543–558 при успешном удалении', async () => {
+    global.fetch = jest.fn((url, opts) => {
+      if (url.includes('/api/v1/delete-meeting/100') && opts?.method === 'DELETE') {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      }
+      if (url.includes('/api/v1/meetings') && url.includes('teamCardId=42')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: mockMeetings, totalPages: 1 })
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    await setup();
+
+    const confirmButton = screen.getByText('Удалить', { selector: 'button.yes' });
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/v1/delete-meeting/100'),
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
+  });
+
+  test('deleteMeeting: покрывает строки 567–570 при ошибке удаления', async () => {
+  const mockMeetings = [
+    { id: 100, number: 2, startDate: '2025-01-05T10:00:00Z', status: 'SCHEDULED' }
+  ];
+
+  // Мокаем все запросы
+  global.fetch = jest.fn(async (url, opts) => {
+    if (url.includes('/api/v1/meetings') && url.includes('teamCardId=42')) {
+      return {
+        ok: true,
+        json: () => Promise.resolve({ content: mockMeetings, totalPages: 1 })
+      };
+    }
+
+    if (url.includes('/api/v1/delete-meeting/100') && opts?.method === 'DELETE') {
+      return {
+        ok: false,
+        text: () => Promise.resolve('Server error')
+      };
+    }
+
+    // Для других запросов (team-cards, stream и т.п.)
+    return {
+      ok: true,
+      json: () => Promise.resolve({})
+    };
+  });
+
+  // Рендерим компонент
   await act(async () => {
     render(
       <MemoryRouter initialEntries={['/team-card/42']}>
@@ -2766,30 +2871,34 @@ test('deleteMeeting: покрывает строки 543–570 при успеш
     );
   });
 
-  await waitFor(() => screen.getByText(/Встреча 2/i));
+  // Ждём, пока появится "Встреча 2"
+  await waitFor(() => {
+    expect(screen.getByText(/Встреча 2/i)).toBeInTheDocument();
+  });
 
-  // Кликаем на дату
+  // Кликаем на дату встречи
   fireEvent.click(screen.getByText('05.01'));
 
-  // Кликаем "Удалить" (первая кнопка)
+  // Кликаем "Удалить" — открытие модалки
   fireEvent.click(screen.getByRole('button', { name: /Удалить/i }));
 
-  // Ищем кнопку подтверждения по тексту и предполагаемому классу
-  const confirmButton = screen.getByText('Удалить', {
-    selector: 'button.yes, button.confirm, button.bg-red, button[type="submit"]'
-  });
+  // Кликаем "Удалить" в модалке — вызов deleteMeeting → catch
+  const confirmButton = screen.getByText('Удалить', { selector: 'button.yes' });
   fireEvent.click(confirmButton);
 
-  // Проверяем запрос
+  // ✅ Ждём, пока модалка исчезнет
   await waitFor(() => {
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/delete-meeting/100'),
-      expect.objectContaining({ method: 'DELETE' })
-    );
-  });
+    expect(screen.queryByTestId('delete-modal-overlay')).not.toBeInTheDocument();
+  }, { timeout: 3000 });
+
+  // ✅ Ждём, пока появится сообщение об ошибке
+  await waitFor(
+    () => {
+      expect(screen.getByTestId('meeting-error')).toHaveTextContent(/Не удалось удалить встречу/i);
+    },
+    { timeout: 3000 }
+  );
 });
 
-
-
-
+});
 
