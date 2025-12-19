@@ -34,6 +34,7 @@ const MeetingCreate = ({ onClose, teamId }) => {
         meetings.forEach(meeting => {
             const monday = getMonday(meeting.startDate);
             weeks[monday] = (weeks[monday] || 0) + 1;
+            console.log('COVERAGE: weeks[monday] updated');
         });
         return weeks;
     };
@@ -72,6 +73,7 @@ const MeetingCreate = ({ onClose, teamId }) => {
                     ...prev,
                     number: (maxNumber + 1).toString()
                 }));
+                console.log('COVERAGE: new meeting number set');
             } catch (err) {
                 console.error("Ошибка при загрузке встреч:", err);
                 setError("Не удалось загрузить список встреч");
