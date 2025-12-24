@@ -1841,7 +1841,7 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
       close: () => {}
     }));
 
-    // Устанавливаем фиксированные размеры для предсказуемого поведения
+    // Устанавливаем фиксированные размеры экрана
     Object.defineProperty(window, 'innerWidth', { writable: true, value: 1920 });
     Object.defineProperty(window, 'innerHeight', { writable: true, value: 1080 });
     Object.defineProperty(window, 'screenX', { writable: true, value: 0 });
@@ -1854,11 +1854,13 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
 
   test('should update bbbLink on input change', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const input = screen.getByPlaceholderText('https://demo.bigbluebutton.org/rooms/...');
@@ -1871,11 +1873,13 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
     global.alert = jest.fn();
 
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const button = screen.getByText('Подключиться');
@@ -1889,11 +1893,13 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
 
   test('should add https:// to URL without protocol', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const input = screen.getByPlaceholderText('https://demo.bigbluebutton.org/rooms/...');
@@ -1911,11 +1917,13 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
 
   test('should open window with correct features (security & layout)', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const input = screen.getByPlaceholderText('https://demo.bigbluebutton.org/rooms/...');
@@ -1932,7 +1940,6 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
     expect(url).toBe('https://bbb.example.com/rooms/test');
     expect(name).toBe('bbb_meeting_window');
 
-    // Проверяем, что все нужные параметры есть — независимо от порядка
     expect(features).toMatch(/width=1100/);
     expect(features).toMatch(/height=700/);
     expect(features).toMatch(/resizable=yes/);
@@ -1947,18 +1954,19 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
   });
 
   test('should calculate centered window position', () => {
-    // Устанавливаем размеры
     const width = 1100;
     const height = 700;
     const expectedLeft = (1920 - width) / 2; // 410
     const expectedTop = (1080 - height) / 2; // 190
 
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const input = screen.getByPlaceholderText('https://demo.bigbluebutton.org/rooms/...');
@@ -1967,10 +1975,8 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
     const button = screen.getByText('Подключиться');
     fireEvent.click(button);
 
-    const call = window.open.mock.calls[0];
-    const features = call[2];
+    const features = window.open.mock.calls[0][2];
 
-    // Проверяем через регулярные выражения
     expect(features).toMatch(new RegExp(`left=${expectedLeft}`));
     expect(features).toMatch(new RegExp(`top=${expectedTop}`));
   });
