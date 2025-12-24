@@ -8,6 +8,8 @@ import net.trackme.sso.components.RegistrationTokenStore;
 import net.trackme.sso.config.AppProperties;
 import net.trackme.sso.dto.RegistrationRequestDto;
 import net.trackme.sso.dto.RegistrationToken;
+import net.trackme.sso.dto.RecoveryPasswordRequestDto;
+import net.trackme.sso.dto.ResetPasswordRequestDto;
 import net.trackme.sso.exception.InformationException;
 import net.trackme.sso.services.EmailService;
 import net.trackme.sso.services.RegistrationService;
@@ -23,16 +25,34 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DefaultRegistrationService implements RegistrationService {
 
+  /**
+   * Сервис пользователей.
+   */
   private final UserService userService;
 
+  /**
+   * Сервис электронной почты.
+   */
   private final EmailService emailService;
 
+  /**
+   * Хранилище данных при регистрации.
+   */
   private final RegistrationStore registrationStore;
 
+  /**
+   * Хранилище токенов при регистрации.
+   */
   private final RegistrationTokenStore tokenStore;
 
+  /**
+   * Настройки приложения.
+   */
   private final AppProperties appProperties;
 
+  /**
+   * Настройки авторизации.
+   */
   private final OAuth2AuthorizationServerProperties authorizationServerProperties;
 
 
@@ -47,7 +67,7 @@ public class DefaultRegistrationService implements RegistrationService {
     var token = registrationToken.token();
 
     try {
-      registrationStore.save(requestDto, tokenHash);
+      registrationStore.saveToRegistration(requestDto, tokenHash);
     } catch (Exception e) {
       throw InformationException.builder("$happened.unexpected.error").build();
     }
@@ -63,7 +83,7 @@ public class DefaultRegistrationService implements RegistrationService {
             "email", requestDto.email(),
             "appName", appProperties.getMail().getSubject(),
             "supportEmail", appProperties.getMail().getFrom(),
-                "confirmationLink", getConfirmationLink(tokenHash),
+                "confirmationLink", getConfirmationLink(tokenHash, "/client/registration-confirm"),
                 "notificationBotLink", getNotificationBotLink()));
   }
 
@@ -72,13 +92,53 @@ public class DefaultRegistrationService implements RegistrationService {
     if (!tokenStore.isTokenValid(token)) {
       throw InformationException.builder("$happened.unexpected.error").build();
     }
-    registrationStore.take(token)
+    registrationStore.takeToRegistration(token)
         .ifPresentOrElse(userService::saveUser,
                 () -> log.error("Registration token not found for tokenHash: {}", token));
   }
 
-  private String getConfirmationLink(String token) {
-    var httpUrl = authorizationServerProperties.getIssuer() + "/client/registration-confirm";
+  @Override
+  public void recoveryPassword(RecoveryPasswordRequestDto requestDto) {
+    if (!userService.existsByEmail(requestDto.email())) {
+      throw InformationException.builder("$account.does.not.exist").build();
+    }
+
+    RegistrationToken registrationToken = tokenStore.generateToken();
+    var tokenHash = registrationToken.tokenHash();
+    var token = registrationToken.token();
+
+    try {
+      registrationStore.saveToRecovery(requestDto, tokenHash);
+    } catch (Exception e) {
+      throw InformationException.builder("$happened.unexpected.error").build();
+    }
+
+    log.info("Recovery password token = {}. Hash = {}", token, tokenHash);
+    emailService.sendMail(
+            requestDto.email(),
+            appProperties.getMail().getFrom(),
+            "[" + appProperties.getMail().getSubject() + "] Восстановление пароля",
+            "email-confirmation-reset-password.html",
+            Map.of(
+                    "email", requestDto.email(),
+                    "appName", appProperties.getMail().getSubject(),
+                    "supportEmail", appProperties.getMail().getFrom(),
+                    "confirmationLink", getConfirmationLink(tokenHash, "/client/reset")));
+  }
+
+  @Override
+  public void resetPassword(String token, ResetPasswordRequestDto requestDto) {
+    if (!tokenStore.isTokenValid(token)) {
+      throw InformationException.builder("$happened.unexpected.error").build();
+    }
+    registrationStore.takeToRecovery(token)
+      .ifPresentOrElse(dto ->
+              userService.resetPassword(dto.email(), requestDto.password()),
+              () -> log.error("Recovery token not found for tokenHash: {}", token));
+  }
+
+  private String getConfirmationLink(String token, String url) {
+    var httpUrl = authorizationServerProperties.getIssuer() + url;
     return UriComponentsBuilder.fromUriString(httpUrl, UriComponentsBuilder.ParserType.WHAT_WG)
         .queryParam("token", token)
         .build().toUriString();

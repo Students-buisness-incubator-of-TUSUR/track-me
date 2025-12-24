@@ -1,3 +1,38 @@
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+
+function getTestStore() {
+  // Простейший reducer для тестов, возвращает user с ролью ADMIN
+  return createStore(() => ({ user: { user: { roles: ['ADMIN'] } } }));
+}
+// Utility to fill all required fields for save
+async function fillAllRequiredFields(container) {
+  // Number
+  const numberInput = container.querySelector('input[name="number"]');
+  if (numberInput) fireEvent.change(numberInput, { target: { value: '1', name: 'number' } });
+  // Date
+  const dateInput = container.querySelector('input[type="date"]');
+  if (dateInput) fireEvent.change(dateInput, { target: { value: '2025-12-13', name: 'startDate' } });
+  // Textareas
+  const textareas = Array.from(container.querySelectorAll('textarea'));
+  if (textareas[0]) fireEvent.change(textareas[0], { target: { value: 'a', name: 'tasksCurrentMeeting' } });
+  if (textareas[1]) fireEvent.change(textareas[1], { target: { value: 'b', name: 'tasksNextMeeting' } });
+  // Status dropdown
+  const dropdown = container.querySelector('.status-selected');
+  if (dropdown) {
+    fireEvent.click(dropdown);
+    await act(async () => {
+      fireEvent.click(screen.getByText('Всё ок'));
+    });
+  }
+  // Image
+  const fileInput = container.querySelector('input[type="file"]');
+  if (fileInput) {
+    const file = new File(['test'], 'test.png', { type: 'image/png' });
+    Object.defineProperty(fileInput, 'files', { value: [file] });
+    fireEvent.change(fileInput);
+  }
+}
 import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
@@ -47,8 +82,6 @@ describe('MeetingCard Component', () => {
   });
 
   test('handles save with image upload', async () => {
-    const file = new File(['test'], 'test.png', { type: 'image/png' });
-    
     fetch.mockImplementationOnce(() =>
       Promise.resolve({
         ok: true,
@@ -61,22 +94,17 @@ describe('MeetingCard Component', () => {
     );
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
+    await fillAllRequiredFields(container);
     await act(async () => {
-      // Upload image first
-      const fileInput = container.querySelector('input[type="file"]');
-      Object.defineProperty(fileInput, 'files', {
-        value: [file]
-      });
-      fireEvent.change(fileInput);
-
-      // Click save
       fireEvent.click(screen.getByText('Сохранить'));
     });
 
@@ -98,11 +126,13 @@ describe('MeetingCard Component', () => {
     );
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await act(async () => {
@@ -124,11 +154,13 @@ describe('MeetingCard Component', () => {
 
   test('changes text fields and updates meeting data', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const textarea = screen.getAllByRole('textbox')[0];
@@ -139,11 +171,13 @@ describe('MeetingCard Component', () => {
   test('handles image upload', () => {
     const file = new File(['test'], 'test.png', { type: 'image/png' });
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const fileInput = container.querySelector('input[type="file"]');
@@ -156,11 +190,13 @@ describe('MeetingCard Component', () => {
     jest.spyOn(require('react-router-dom'), 'useNavigate').mockImplementation(() => mockNavigate);
 
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     fireEvent.click(screen.getByRole('button', { name: /закрыть/i }));
@@ -176,14 +212,17 @@ describe('MeetingCard Component', () => {
       })
     );
 
-    render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+    const { container } = render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
+    await fillAllRequiredFields(container);
     await act(async () => {
       fireEvent.click(screen.getByText('Сохранить'));
     });
@@ -192,16 +231,134 @@ describe('MeetingCard Component', () => {
       expect(screen.getByText(/Ошибка при сохранении/i)).toBeInTheDocument();
     });
   });
+describe('MeetingCard Delete Functionality', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    // Мокаем window.location.origin для корректного формирования абсолютных URL
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { origin: 'http://localhost' }
+    });
+  });
+  afterEach(() => {
+    // intentionally left blank: do not call mockRestore here
+  });
+
+  test('deletes meeting card successfully', async () => {
+    // Mock fetch for meeting data and image
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [{ id: '123', number: '10', startDate: '2023-01-01T00:00:00.000Z', link: '', tasksCurrentMeeting: '', tasksNextMeeting: '', teamStatus: '', status: 'SCHEDULED' }] })
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob()) })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({ ok: true }) // delete
+    );
+    const mockNavigate = jest.fn();
+    jest.spyOn(require('react-router-dom'), 'useNavigate').mockImplementation(() => mockNavigate);
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+    // Wait for edit button to appear
+    await waitFor(() => screen.getByText('Редактировать'));
+    // Open delete modal
+    fireEvent.click(screen.getByText('Редактировать'));
+    fireEvent.click(screen.getByText('Удалить'));
+    // Confirm delete
+    fireEvent.click(screen.getByTestId('delete-confirm-button'));
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/v1/delete-meeting/123'),
+        expect.objectContaining({ method: 'DELETE' })
+      );
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+  });
+
+  test('shows error on delete failure', async () => {
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [{ id: '123', number: '10', startDate: '2023-01-01T00:00:00.000Z', link: '', tasksCurrentMeeting: '', tasksNextMeeting: '', teamStatus: '', status: 'SCHEDULED' }] })
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob()) })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({ ok: false, text: () => Promise.resolve('Ошибка удаления') })
+    );
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+    await waitFor(() => screen.getByText('Редактировать'));
+    fireEvent.click(screen.getByText('Редактировать'));
+    fireEvent.click(screen.getByText('Удалить'));
+    fireEvent.click(screen.getByTestId('delete-confirm-button'));
+    await waitFor(() => {
+      expect(screen.getByText(/Ошибка удаления/i)).toBeInTheDocument();
+    });
+  });
+
+  test('can cancel delete modal', async () => {
+    fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [{ id: '123', number: '10', startDate: '2023-01-01T00:00:00.000Z', link: '', tasksCurrentMeeting: '', tasksNextMeeting: '', teamStatus: '', status: 'SCHEDULED' }] })
+      })
+    ).mockImplementationOnce(() =>
+      Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob()) })
+    );
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+    // --- Тестовый store для redux ---
+
+
+    function getTestStore() {
+      // Простейший reducer для тестов, возвращает user с ролью ADMIN
+      return createStore(() => ({ user: { user: { roles: ['ADMIN'] } } }));
+    }
+    await waitFor(() => screen.getByText('Редактировать'));
+    fireEvent.click(screen.getByText('Редактировать'));
+    fireEvent.click(screen.getByText('Удалить'));
+    fireEvent.click(screen.getByText('Отмена'));
+    // Modal should close, delete not called
+    expect(screen.queryByTestId('delete-modal-title')).not.toBeInTheDocument();
+  });
+});
 
   describe('MeetingCard Additional Tests', () => {
   test('should handle image upload when clicking the upload area (lines 271-307)', () => {
     const file = new File(['test'], 'test.png', { type: 'image/png' });
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Simulate clicking the upload area
@@ -217,11 +374,13 @@ describe('MeetingCard Component', () => {
   test('should handle keyboard events for image upload (lines 271-307)', () => {
     const file = new File(['test'], 'test.png', { type: 'image/png' });
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Simulate keyboard events
@@ -250,11 +409,13 @@ describe('MeetingCard Component', () => {
     );
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await act(async () => {
@@ -291,11 +452,13 @@ describe('MeetingCard Component', () => {
     );
 
     render(
-      <MemoryRouter initialEntries={['/meeting/123']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await waitFor(() => {
@@ -319,11 +482,13 @@ describe('MeetingCard Component', () => {
     );
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await act(async () => {
@@ -343,11 +508,13 @@ describe('MeetingCard Component', () => {
 
   test('should render image upload area with proper styling (lines 271-307)', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const uploadArea = screen.getByText('Выберите изображение').closest('.unique-image-upload');
@@ -361,11 +528,13 @@ describe('MeetingCard Component', () => {
 });
 test('displays placeholder when no image is uploaded (lines 271-307)', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     expect(screen.getByText('Выберите изображение')).toBeInTheDocument();
@@ -385,11 +554,13 @@ test('displays placeholder when no image is uploaded (lines 271-307)', () => {
       );
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await act(async () => {
@@ -409,11 +580,13 @@ test('displays placeholder when no image is uploaded (lines 271-307)', () => {
   });
   test('triggers file input click when clicking upload area (lines 271-307)', () => {
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const uploadArea = container.querySelector('.unique-image-upload');
@@ -480,11 +653,13 @@ describe('MeetingCard Specific Line Coverage', () => {
     );
 
     render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await waitFor(() => {
@@ -513,11 +688,13 @@ describe('MeetingCard Specific Line Coverage', () => {
       );
 
     const { container } = render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await act(async () => {
@@ -553,11 +730,13 @@ describe('MeetingCard Event Handlers', () => {
   
   test('should update teamStatus when status option is clicked (OK/WITH_ISSUES/MANY_ISSUES)', async () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Open status dropdown
@@ -599,11 +778,13 @@ describe('MeetingCard Button Interactions', () => {
 
   test('should set teamStatus to OK when clicked (team status dropdown)', async () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Open dropdown
@@ -619,11 +800,13 @@ describe('MeetingCard Button Interactions', () => {
 
   test('should set teamStatus to WITH_ISSUES when clicked (team status dropdown)', async () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Open dropdown
@@ -639,11 +822,13 @@ describe('MeetingCard Button Interactions', () => {
 
   test('should set teamStatus to MANY_ISSUES when clicked (team status dropdown)', async () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Open dropdown
@@ -705,11 +890,13 @@ describe('MeetingCard Completion and Editing', () => {
     );
 
     render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Wait for initial load and image preview to be set
@@ -747,11 +934,13 @@ describe('MeetingCard Completion and Editing', () => {
   );
 
   render(
-    <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-      <Routes>
-        <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-      </Routes>
-    </MemoryRouter>
+    <Provider store={getTestStore()}>
+      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
   );
 
   // Wait for initial load
@@ -795,11 +984,13 @@ describe('MeetingCard Completion and Editing', () => {
     );
 
     render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Wait for initial load and image preview to be set
@@ -864,11 +1055,13 @@ describe('MeetingCard Missing Fields Validation', () => {
 
     test('should allow "NOT_HAPPENED" status without validation', async () => {
       render(
-        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
-        </MemoryRouter>
+        <Provider store={getTestStore()}>
+          <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+            <Routes>
+              <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+            </Routes>
+          </MemoryRouter>
+        </Provider>
       );
 
       await screen.findByText(/Встреча 10/i);
@@ -907,11 +1100,13 @@ describe('MeetingCard Missing Fields Validation', () => {
       );
 
       render(
-        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
-        </MemoryRouter>
+        <Provider store={getTestStore()}>
+          <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+            <Routes>
+              <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+            </Routes>
+          </MemoryRouter>
+        </Provider>
       );
 
       await screen.findByText(/Встреча 10/i);
@@ -929,11 +1124,13 @@ describe('MeetingCard Missing Fields Validation', () => {
     global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
     
     render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await screen.findByText(/Встреча 10/i);
@@ -1020,11 +1217,13 @@ describe('MeetingCard Missing Fields Validation', () => {
     );
 
     render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await screen.findByText(/Встреча/i);
@@ -1133,11 +1332,13 @@ describe('MeetingCard Completion Validation', () => {
     global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
     
     render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await screen.findByText(/Встреча 10/i);
@@ -1167,11 +1368,13 @@ describe('MeetingCard Completion Validation', () => {
 
   test('should not validate fields for "NOT_HAPPENED" status (lines 186-190)', async () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     await screen.findByText(/Встреча 10/i);
@@ -1358,9 +1561,11 @@ describe("MeetingCard tooltip hover minimal", () => {
   
   test("вызывает onMouseEnter/onMouseLeave для обеих кнопок", () => {
     render(
-      <MemoryRouter>
-        <MeetingCard />
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter>
+          <MeetingCard />
+        </MemoryRouter>
+      </Provider>
     );
 
     // Получаем кнопки
@@ -1390,11 +1595,13 @@ describe('Textarea Auto-resize Functionality', () => {
 
   test('should auto-resize textarea on focus (lines 45-48)', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Находим все textarea элементы
@@ -1425,11 +1632,13 @@ describe('Textarea Auto-resize Functionality', () => {
 
   test('should auto-resize textarea on change (lines 35-38)', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Находим первую textarea
@@ -1458,11 +1667,13 @@ describe('Textarea Auto-resize Functionality', () => {
 
   test('should reset height to auto before calculating new height', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
@@ -1489,11 +1700,13 @@ describe('Textarea Auto-resize Functionality', () => {
 
   test('should handle different scrollHeight values correctly', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
@@ -1523,11 +1736,13 @@ describe('Textarea Auto-resize Functionality', () => {
 
   test('should apply correct inline styles to textarea', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
@@ -1544,11 +1759,13 @@ describe('Textarea Auto-resize Functionality', () => {
   test('should maintain auto-resize functionality when editing is enabled', () => {
     // Рендерим в режиме редактирования (isNewMeeting = true)
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');
@@ -1577,11 +1794,13 @@ describe('Textarea Auto-resize Functionality', () => {
 
   test('should handle textarea change with name attribute correctly', () => {
     render(
-      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-        <Routes>
-          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-        </Routes>
-      </MemoryRouter>
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const textareas = screen.getAllByRole('textbox').filter(el => el.tagName === 'TEXTAREA');

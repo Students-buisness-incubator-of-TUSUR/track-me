@@ -149,7 +149,7 @@
 .confirm-modal-buttons {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 30px;
 }
 
 .confirm-button {
@@ -208,6 +208,10 @@
     position: absolute;
     top: 40px;
     right: 140px;
+    padding: 10px 20px;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    text-align: center;
 }
 
 .unique-edit-button:hover {
@@ -790,6 +794,8 @@
     box-shadow: 0 0 0 2px rgba(131, 56, 235, 0.3);
 }
 
+
+
 /* Адаптивные стили для мобильных устройств */
 @media (max-width: 768px) {
     .unique-textarea,
@@ -1166,4 +1172,124 @@
     .confirm-modal {
         width: 90%;
     }
+}
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  justify-content: flex-start;
+}
+
+/* Общие стили для всех кнопок в режиме редактирования */
+
+/* Кнопка "Сохранить" — фиолетовая */
+.unique-edit-button:not(.secondary):not(.delete) {
+  background: #8338EB;
+  color: white;
+}
+
+.unique-edit-button:not(.secondary):not(.delete):hover {
+  background: #6a29c4;
+  transform: scale(1.03);
+}
+
+/* Кнопка "Отмена" — серая */
+.unique-edit-button.secondary {
+  background: #666666;
+  color: white;
+}
+
+.unique-edit-button.secondary:hover {
+  background: #757575;
+  transform: scale(1.03);
+}
+
+/* Кнопка "Удалить" — красная */
+.unique-edit-button.delete {
+  background: #d32f2f;
+  color: white;
+}
+
+.unique-edit-button.delete:hover {
+  background: #d32f2f;
+  transform: scale(1.03);
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+  .edit-actions {
+    gap: 10px;
+    justify-content: flex-start;
+  }
+
+  .unique-edit-button {
+    font-size: 18px;
+    padding: 9px 16px;
+    min-width: 110px;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .unique-edit-button {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px;
+    text-align: center;
+  }
+}
+
+.edit-actions-container {
+  position: absolute;
+  top: 40px;
+  right: 140px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+/* Убираем абсолютное позиционирование у самих кнопок */
+.edit-actions-container .unique-edit-button {
+  position: static; /* сбрасываем возможное наследование */
+  margin: 0;
+  width: auto; /* не фиксируем ширину */
+  height: auto; /* не фиксируем высоту */
+  padding: 10px 20px;
+  border-radius: 70px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .edit-actions-container {
+    top: 20px;
+    right: 70px;
+    gap: 10px;
+  }
+
+  .edit-actions-container .unique-edit-button {
+    font-size: 18px;
+    padding: 9px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-actions-container {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    right: 20px;
+  }
+
+  .edit-actions-container .unique-edit-button {
+    width: 120px;
+    font-size: 16px;
+    text-align: center;
+  }
 }

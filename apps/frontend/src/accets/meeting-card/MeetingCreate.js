@@ -15,8 +15,29 @@ const MeetingCreate = ({ onClose, teamId }) => {
         number: "1",
         startDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     });
+    const [meetings, setMeetings] = useState([]); // Храним загруженные встречи
     const popupRef = useRef(null);
 
+    // Получить понедельник недели для заданной даты
+    const getMonday = (date) => {
+        const d = new Date(date);
+        const day = d.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+        const diff = d.getDate() - (day === 0 ? 6 : day - 1); // Monday = 1 → -0, Sunday = 0 → -6
+        const monday = new Date(d);
+        monday.setDate(diff);
+        return monday.toISOString().split('T')[0];
+    };
+
+    // Посчитать встречи по неделям
+    const getMeetingsByWeek = (meetings) => {
+        const weeks = {};
+        meetings.forEach(meeting => {
+            const monday = getMonday(meeting.startDate);
+            weeks[monday] = (weeks[monday] || 0) + 1;
+            console.log('COVERAGE: weeks[monday] updated');
+        });
+        return weeks;
+    };
     useEffect(() => {
         const fetchMeetings = async () => {
             try {
@@ -36,20 +57,23 @@ const MeetingCreate = ({ onClose, teamId }) => {
                 }
 
                 const data = await response.json();
+
+                const meetingsList = data.content || [];
+                setMeetings(meetingsList);
+
                 let maxNumber = 0;
-                if (data.content && data.content.length > 0) {
-                    data.content.forEach(meeting => {
-                        const num = parseInt(meeting.number);
-                        if (!isNaN(num) && num > maxNumber) {
-                            maxNumber = num;
-                        }
-                    });
-                }
+                meetingsList.forEach(meeting => {
+                    const num = parseInt(meeting.number);
+                    if (!isNaN(num) && num > maxNumber) {
+                        maxNumber = num;
+                    }
+                });
 
                 setMeetingData(prev => ({
                     ...prev,
                     number: (maxNumber + 1).toString()
                 }));
+                console.log('COVERAGE: new meeting number set');
             } catch (err) {
                 console.error("Ошибка при загрузке встреч:", err);
                 setError("Не удалось загрузить список встреч");
@@ -87,7 +111,15 @@ const MeetingCreate = ({ onClose, teamId }) => {
         if (selectedDate <= currentDate) {
             throw new Error("Дата встречи должна быть в будущем");
         }
+        
+        const monday = getMonday(selectedDate);
+        const meetingsByWeek = getMeetingsByWeek(meetings);
+        const countThisWeek = meetingsByWeek[monday] || 0;
 
+        if (countThisWeek >= 2) {
+            throw new Error("Нельзя создать более 2 встреч в одной неделе (с понедельника по воскресенье)");
+        }
+        
         return true;
     };
 

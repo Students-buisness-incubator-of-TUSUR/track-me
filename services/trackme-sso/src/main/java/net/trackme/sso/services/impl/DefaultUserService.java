@@ -10,6 +10,7 @@ import net.trackme.sso.dao.repository.UserRepository;
 import net.trackme.sso.dto.RegistrationRequestDto;
 import net.trackme.sso.dto.UserDto;
 import net.trackme.sso.exception.AuthException;
+import net.trackme.sso.exception.EmailNotFoundException;
 import net.trackme.sso.exception.WrongOldPasswordException;
 import net.trackme.sso.mapper.UserMapper;
 import net.trackme.sso.services.UserService;
@@ -21,7 +22,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import static net.trackme.sso.dao.UserSpecification.*;
+import static net.trackme.sso.dao.UserSpecification.byRole;
+import static net.trackme.sso.dao.UserSpecification.withFilters;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +36,6 @@ public class DefaultUserService implements UserService {
   private final PasswordEncoder passwordEncoder;
 
   private final UserMapper userMapper;
-
 
   /**
    * Создание пользователя на основе регистрационных данных. Пользователь будет не активирован.
@@ -56,7 +57,7 @@ public class DefaultUserService implements UserService {
     return userRepository.save(user);
   }
 
-    @Override
+  @Override
   public void save(UserEntity userEntity) {
     Assert.notNull(userEntity, "UserEntity must not be null");
     userRepository.save(userEntity);
@@ -73,9 +74,22 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  public void resetPassword(String email, String password) {
+    var userEntity = findByEmail(email);
+    userEntity.setPasswordHash(passwordEncoder.encode(password));
+    save(userEntity);
+  }
+
+  @Override
   public UserEntity findByUsername(String name) {
     return userRepository.findByUsername(name)
         .orElseThrow(() -> new UsernameNotFoundException(name));
+  }
+
+  @Override
+  public UserEntity findByEmail(String email) {
+    return userRepository.findByEmail(email)
+            .orElseThrow(() -> new EmailNotFoundException(email));
   }
 
   @Override
@@ -88,7 +102,7 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void disableUser(String username) {
     var userEntity = findByUsername(username);
-    if (Boolean.FALSE.equals(userEntity.getActive())){
+    if (Boolean.FALSE.equals(userEntity.getActive())) {
       userEntity.setAccountNonLocked(false);
       save(userEntity);
     }
@@ -132,6 +146,11 @@ public class DefaultUserService implements UserService {
     @Override
     public boolean existsByEmailOrUsername(String email, String username) {
         return userRepository.existsByEmailOrUsername(email, username);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 
     private void changeActivity(String username, boolean active) {

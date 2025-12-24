@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import "./meeting-card.css";
 import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
@@ -7,7 +8,15 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import MobileHeader from "../adaptive-accets/MobileHeader";
 
 const MeetingCard = () => {
-    const backendHost = (process.env.REACT_APP_BACKEND_URI || '') + '/meeting';
+    // Формируем абсолютный backendHost для корректной работы new URL
+    let backendHost = 'http://localhost/meeting';
+
+    if (process.env.REACT_APP_BACKEND_URI?.trim()) {
+    backendHost = process.env.REACT_APP_BACKEND_URI.trim() + '/meeting';
+    } else if (typeof window !== 'undefined' && window.location?.origin) {
+    backendHost = window.location.origin + '/meeting';
+    }
+
     const { meetingId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -32,6 +41,7 @@ const MeetingCard = () => {
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const fileInputRef = useRef(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingCompletion, setPendingCompletion] = useState(null); // true = состоялась, false = не состоялась
     const [bbbLink, setBbbLink] = useState('');
@@ -71,6 +81,20 @@ const renderTextareaSection = (name, label, value) => (
             )}
         </div>
     );
+    const reduxUser = useSelector(state => state.user?.user);
+    const [role, setRole] = useState(null);
+
+    useEffect(() => {
+    if (reduxUser) {
+        setRole(reduxUser.roles?.[0] || null);
+    } else {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+        const user = JSON.parse(savedUser);
+        setRole(user.roles?.[0] || null);
+        }
+    }
+    }, [reduxUser]);
     useEffect(() => {
         if (!isNewMeeting && meetingId) {
             // Fetch meeting data
@@ -324,7 +348,39 @@ if (!isMeetingDatePassed()) {
         }));
     }
 };
+    const deleteMeeting = async () => {
+    try {
+        const response = await fetch(
+        `${backendHost}/api/v1/delete-meeting/${meetingId}?teamCardId=${teamId}`,
+        {
+            method: 'DELETE',
+            headers: {
+            'Content-Type': 'application/json',
+            ...getCsrfConfigForFetch()
+            },
+            credentials: 'include'
+        }
+        );
+
+        if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Ошибка при удалении: ${response.status} ${errorText}`);
+        }
+
+        // Успешно удалено → возвращаемся к карточке команды
+        navigate(`/teamcard/${teamId}?userId=${userId}`);
+    } catch (error) {
+        console.error('Ошибка удаления встречи:', error);
+        setError(error.message || 'Не удалось удалить встречу');
+        setShowDeleteModal(false);
+    }
+    };
     const handleEditClick = () => {
+        if (isMeetingLocked && (role === "ADMIN" || role === "SUPER_ADMIN")) {
+            // Показываем модальное окно удаления
+            setShowDeleteModal(true);
+            return;
+        }
     if (isMeetingLocked) {
         setError("Эту встречу нельзя редактировать, так как она завершена или не состоялась");
         // Добавим таймер для автоматического скрытия ошибки через 5 секунд
@@ -361,17 +417,52 @@ if (!isMeetingDatePassed()) {
                     <img src={closeIcon} alt="Закрыть" className="close-icon" />
                 </button>
                 
-               <button
-    onClick={isEditing ? handleSave : handleEditClick}
+               {isEditing ? (
+  <div className="edit-actions-container">
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleSave();
+      }}
+      className="unique-edit-button"
+    >
+      Сохранить
+    </button>
+
+    {(role === "ADMIN" || role === "SUPER_ADMIN") && (
+      <button
+        type="button"
+        className="unique-edit-button delete"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowDeleteModal(true);
+        }}
+        title="Удалить встречу"
+      >
+        Удалить
+      </button>
+    )}
+  </div>
+) : (
+  <button
+    onClick={handleEditClick}
     className="unique-edit-button"
-    disabled={isMeetingLocked && !isEditing}
     style={{
-        cursor: isMeetingLocked && !isEditing ? 'not-allowed' : 'pointer'
+      position: 'absolute',
+      top: '40px',
+      right: '140px',
+      width: '190px',
+      height: '40px',
+      zIndex: 10,
+      cursor: isMeetingLocked && (role !== "ADMIN" && role !== "SUPER_ADMIN") ? 'not-allowed' : 'pointer'
     }}
-    title={isMeetingLocked && !isEditing ? "Эту встречу нельзя редактировать, так как она завершена или не состоялась" : ""}
->
-    {isEditing ? "Сохранить" : "Редактировать"}
-</button>
+    disabled={isMeetingLocked && (role !== "ADMIN" && role !== "SUPER_ADMIN")}
+    title={isMeetingLocked ? "Нельзя редактировать" : ""}
+  >
+    Редактировать
+  </button>
+)}
+
 
                 {error && (
     <div className="error-message" style={{
@@ -715,6 +806,59 @@ if (!isMeetingDatePassed()) {
     </div>
   </div>
 )}
+{showDeleteModal && (
+  <button
+    type="button"
+    className="confirm-modal-overlay"
+    onClick={() => setShowDeleteModal(false)}
+    aria-label="Закрыть модальное окно"
+    data-testid="delete-modal-overlay"
+  >
+    <div
+      className="confirm-modal"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.stopPropagation();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-meeting-title"
+      tabIndex={-1}
+    >
+      <h3 id="delete-meeting-title" data-testid="delete-modal-title">
+        Удалить встречу?
+      </h3>
+      <p>
+        Вы уверены, что хотите удалить эту встречу? <br />
+        <strong>Это действие нельзя отменить.</strong>
+      </p>
+      <div className="confirm-modal-buttons">
+        <button
+          className="confirm-button no"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowDeleteModal(false);
+          }}
+        >
+          Отмена
+        </button>
+        <button
+          className="confirm-button yes"
+          onClick={(e) => {
+            e.stopPropagation();
+            deleteMeeting();
+          }}
+          data-testid="delete-confirm-button"
+        >
+          Удалить
+        </button>
+      </div>
+    </div>
+  </button>
+)}
+
 
         </div>
     );

@@ -16,11 +16,15 @@ public interface UserService {
    */
   UserEntity saveUser(RegistrationRequestDto userDto);
 
-    void save(UserEntity userEntity);
+  void save(UserEntity userEntity);
 
   void changePassword(String username, String newPassword, String oldPassword);
 
+  void resetPassword(String email, String password);
+
   UserEntity findByUsername(String name);
+
+  UserEntity findByEmail(String email);
 
   void enableUser(String username);
 
@@ -32,5 +36,7 @@ public interface UserService {
 
   Page<UserDto> getAdmins(FilterRequest filterRequest, Pageable pageable);
 
-    boolean existsByEmailOrUsername(String email, String username);
+  boolean existsByEmailOrUsername(String email, String username);
+
+  boolean existsByEmail(String email);
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import net.trackme.sso.components.RegistrationStore;
+import net.trackme.sso.dto.RecoveryPasswordRequestDto;
 import net.trackme.sso.dto.RegistrationRequestDto;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -25,21 +26,43 @@ public class RedisRegistrationStore implements RegistrationStore {
   private final ObjectMapper objectMapper;
 
   @SneakyThrows
-  @Override
-  public void save(RegistrationRequestDto dto, String sessionId) {
+  private <T> void save(T dto, String sessionId) {
     var json = objectMapper.writeValueAsString(dto);
     store.set(SESSION_ID_TO_REG_DATA + sessionId, json, expireAfter);
   }
 
   @SneakyThrows
-  @Override
-  public Optional<RegistrationRequestDto> take(String sessionId) {
+  private <T> Optional<T> take(String sessionId,  Class<T> type) {
     var json = store.get(SESSION_ID_TO_REG_DATA + sessionId);
     if (json == null) {
       return Optional.empty();
     }
 
     redisTemplate.delete(sessionId);
-    return Optional.of(objectMapper.readValue(json, RegistrationRequestDto.class));
+    return Optional.of(objectMapper.readValue(json, type));
+  }
+
+  @SneakyThrows
+  @Override
+  public void saveToRegistration(RegistrationRequestDto dto, String sessionId) {
+    save(dto, sessionId);
+  }
+
+  @SneakyThrows
+  @Override
+  public Optional<RegistrationRequestDto> takeToRegistration(String sessionId) {
+    return take(sessionId, RegistrationRequestDto.class);
+  }
+
+  @SneakyThrows
+  @Override
+  public void saveToRecovery(RecoveryPasswordRequestDto dto, String sessionId) {
+    save(dto, sessionId);
+  }
+
+  @SneakyThrows
+  @Override
+  public Optional<RecoveryPasswordRequestDto> takeToRecovery(String sessionId) {
+    return take(sessionId, RecoveryPasswordRequestDto.class);
   }
 }
