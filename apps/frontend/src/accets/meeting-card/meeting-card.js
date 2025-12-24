@@ -35,16 +35,6 @@ const MeetingCard = () => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingCompletion, setPendingCompletion] = useState(null); // true = состоялась, false = не состоялась
     const [bbbLink, setBbbLink] = useState('');
-    const width = 1000;
-    const height = 700;
-    const left = (window.innerWidth - width) / 2;
-    const top = (window.innerHeight - height) / 2;
-
-    window.open(
-        'https://demo.bigbluebutton.org/rooms/wyt-xl1-f7s-nlv',
-        'BBB_Meeting',
-        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-    );
 
 
 const renderTextareaSection = (name, label, value) => (
@@ -640,59 +630,61 @@ if (!isMeetingDatePassed()) {
                         <div className="unique-link">Ссылка не указана</div>
                     )}
                 </div>
-                {/* Ссылка на видеовстречу */}
                 <div className="bbb-input-section">
-                <div className="unique-meeting-info-row">
-                    <span className="unique-label">Ссылка на видеовстречу:</span>
-                </div>
-                <input
-                    type="url"
-                    value={bbbLink}
-                    onChange={(e) => setBbbLink(e.target.value)}
-                    placeholder="https://demo.bigbluebutton.org/rooms/..."
-                    className="bbb-link-input"
-                    aria-label="Ссылка на видеовстречу"
-                />
-                <div className="bbb-button-wrapper">
-                    <button
-                    className="bbb-join-button"
-                    onClick={() => {
-                        const url = bbbLink.trim();
-                        if (!url) {
-                        alert('Пожалуйста, введите ссылку на встречу');
-                        return;
-                        }
+            <div className="unique-meeting-info-row">
+                <span className="unique-label">Ссылка на видеовстречу:</span>
+            </div>
+            <input
+                type="url"
+                value={bbbLink}
+                onChange={(e) => setBbbLink(e.target.value)}
+                placeholder="https://demo.bigbluebutton.org/rooms/..."
+                className="bbb-link-input"
+                aria-label="Ссылка на видеовстречу"
+            />
+            <div className="bbb-button-wrapper">
+                <button
+                className="bbb-join-button"
+                onClick={() => {
+                    const url = bbbLink.trim();
+                    if (!url) {
+                    alert('Пожалуйста, введите ссылку на встречу');
+                    return;
+                    }
 
-                        // Добавляем https, если нет
-                        const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+                    // Добавляем https при необходимости
+                    const fullUrl = url.startsWith('http') ? url : `https://${url}`;
 
-                        // Параметры для центрированного окна
-                        const width = 1100;
-                        const height = 700;
-                        const left = window.screenX + (window.innerWidth - width) / 2;
-                        const top = window.screenY + (window.innerHeight - height) / 2;
+                    // Параметры окна
+                    const width = 1100;
+                    const height = 700;
+                    const left = window.screenX + (window.innerWidth - width) / 2;
+                    const top = window.screenY + (window.innerHeight - height) / 2;
 
-                        window.open(
-                        fullUrl,
-                        'bbb_meeting_window',
-                        `
-                            width=${width},
-                            height=${height},
-                            left=${left},
-                            top=${top},
-                            resizable=yes,
-                            scrollbars=yes,
-                            toolbar=no,
-                            menubar=no,
-                            location=yes
-                        `.replace(/\s/g, '')
-                        );
-                    }}
-                    >
-                    Подключиться
-                    </button>
-                </div>
-                </div>
+                    // Открываем в новом окне с безопасными флагами
+                    window.open(
+                    fullUrl,
+                    'bbb_meeting_window',
+                    `
+                        width=${width},
+                        height=${height},
+                        left=${left},
+                        top=${top},
+                        resizable=yes,
+                        scrollbars=yes,
+                        toolbar=no,
+                        menubar=no,
+                        location=yes,
+                        noopener,
+                        noreferrer
+                    `.replace(/\s/g, '')
+                    );
+                }}
+                >
+                Подключиться
+                </button>
+            </div>
+            </div>
 
 
             </div>
