@@ -104,6 +104,11 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
     void sendTeamCardSummary_success() {
         // Arrange
         LinkedHashMap<String, String> teamCardSummaryEvent = new LinkedHashMap<>();
+        teamCardSummaryEvent.put("streamName", "Test stream");
+        teamCardSummaryEvent.put("teamCardName", "Test team card");
+        teamCardSummaryEvent.put("teamCardUsername", "Test username");
+        teamCardSummaryEvent.put("meetingNumber", "2");
+        teamCardSummaryEvent.put("meetingLink", "Test link");
 
         List<LinkedHashMap<String, String>> teamCardSummaryEvents =
                 new ArrayList<>(){{
@@ -129,6 +134,10 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
     void sendTeamCardLowGradeSummary_success() {
         // Arrange
         LinkedHashMap<String, String> teamCardLowGradeSummaryEvent = new LinkedHashMap<>();
+        teamCardLowGradeSummaryEvent.put("streamName", "Test stream");
+        teamCardLowGradeSummaryEvent.put("teamCardName", "Test team card");
+        teamCardLowGradeSummaryEvent.put("teamCardUsername", "Test username");
+        teamCardLowGradeSummaryEvent.put("averageGrade", "0.2");
 
         List<LinkedHashMap<String, String>> teamCardLowGradeSummaryEvents =
                 new ArrayList<>(){{

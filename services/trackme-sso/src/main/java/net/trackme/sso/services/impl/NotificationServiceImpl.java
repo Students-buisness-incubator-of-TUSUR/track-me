@@ -54,10 +54,11 @@ public class NotificationServiceImpl implements NotificationService {
         int count = 1;
         List<String> infos = new ArrayList<>();
         for (var teamCardSummaryEvent : teamCardSummaryEvents) {
-            var info = String.format("%d. Поток: %s - Команда: %s - Встреча: %s<br>Ссылка на встречу: %s",
+            var info = String.format("%d. Поток: %s - Команда: %s (%s) - Встреча: %s<br>Ссылка на встречу: %s",
                     count,
                     teamCardSummaryEvent.get("streamName"),
                     teamCardSummaryEvent.get("teamCardName"),
+                    teamCardSummaryEvent.get("teamCardUsername"),
                     teamCardSummaryEvent.get("meetingNumber"),
                     teamCardSummaryEvent.get("meetingLink"));
             count++;
@@ -78,10 +79,11 @@ public class NotificationServiceImpl implements NotificationService {
         int count = 1;
         List<String> infos = new ArrayList<>();
         for (var teamCardSummaryEvent : teamCardLowGradeSummaryEvents) {
-            var info = String.format("%d. Поток: %s - Команда: %s - Рейтинг: %s",
+            var info = String.format("%d. Поток: %s - Команда: %s (%s) - Рейтинг: %s",
                     count,
                     teamCardSummaryEvent.get("streamName"),
                     teamCardSummaryEvent.get("teamCardName"),
+                    teamCardSummaryEvent.get("teamCardUsername"),
                     teamCardSummaryEvent.get("averageGrade"));
             count++;
             infos.add(info);

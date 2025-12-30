@@ -68,6 +68,7 @@ public class TeamCardSummaryService {
             getStreamByTeamCard(teamCard).ifPresentOrElse(stream -> {
                 TeamCardSummaryEvent teamCardSummaryEvent =
                         TeamCardSummaryEvent.builder()
+                                .teamCardUsername(teamCard.getUsername())
                                 .teamCardName(teamCard.getName())
                                 .streamName(stream.getName())
                                 .meetingNumber(meetingSummaryEvent.get("meetingNumber"))
@@ -102,6 +103,7 @@ public class TeamCardSummaryService {
         for (var teamCard : teamCards) {
             getStreamByTeamCard(teamCard).ifPresentOrElse(stream -> {
                 TeamCardLowGradeSummaryEvent event = TeamCardLowGradeSummaryEvent.builder()
+                        .teamCardUsername(teamCard.getUsername())
                         .teamCardName(teamCard.getName())
                         .streamName(stream.getName())
                         .averageGrade(teamCard.getAverageGrade())
