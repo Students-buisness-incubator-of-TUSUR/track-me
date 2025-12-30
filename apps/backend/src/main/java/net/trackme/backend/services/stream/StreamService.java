@@ -15,6 +15,8 @@ public interface StreamService {
 
   Page<Stream> findAllActive(Pageable pageable);
 
+  List<Stream> findAllActive();
+
   Page<Stream> findAll(Specification<Stream> specification, Pageable pageable);
 
   List<NTIMarket> getNTIMarkets();

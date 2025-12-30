@@ -36,6 +36,11 @@ public abstract class AbstractStreamService implements StreamService {
     }
 
     @Override
+    public List<Stream> findAllActive() {
+        return streamRepository.findAll(currentlyActive());
+    }
+
+    @Override
     public Page<Stream> findAll(Specification<Stream> specification, Pageable pageable) {
         return streamRepository.findAll(specification, pageable);
     }

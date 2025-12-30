@@ -3,11 +3,13 @@ package net.trackme.backend.rest.api.teamcard;
 import lombok.RequiredArgsConstructor;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
 import net.trackme.backend.usecases.TeamCardsUseCase;
 import net.trackme.commons.filters.FilterRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -57,5 +59,14 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
     public ResponseEntity<Void> deleteTeamCard(UUID id) {
         teamCardsUseCase.deleteTeamCard(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PagedModel<TeamCardReportRecordDto>> getTeamCardReport(
+            FilterRequest filters,
+            Pageable pageable) {
+        var page = teamCardsUseCase.getTeamCardReport(filters.filters(), pageable);
+        return ResponseEntity.ok(new PagedModel<>(page));
     }
 }
