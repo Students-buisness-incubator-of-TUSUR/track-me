@@ -6,6 +6,7 @@ import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import MobileHeader from "../adaptive-accets/MobileHeader";
+import { getMonday, getMeetingsByWeek, validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils"; 
 
 const MeetingCard = () => {
     // Формируем абсолютный backendHost для корректной работы new URL
@@ -45,6 +46,8 @@ const MeetingCard = () => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingCompletion, setPendingCompletion] = useState(null); // true = состоялась, false = не состоялась
     const [bbbLink, setBbbLink] = useState('');
+    const [allMeetings, setAllMeetings] = useState([]);
+
 
 
 const renderTextareaSection = (name, label, value) => (
@@ -194,79 +197,113 @@ const renderTextareaSection = (name, label, value) => (
         }
     };
 
-    const handleSave = async () => {
-        try {
-            if (!teamId) throw new Error("Отсутствует идентификатор команды");
+  const handleSave = async () => {
+  try {
+    if (!teamId) throw new Error("Отсутствует идентификатор команды");
+    
+    const isNew = isNewMeeting; 
+    
+    // ✅ ВАЖНО: создаем массив встреч для проверки
+    let meetingsForValidation = [...allMeetings];
+    
+    if (!isNew) {
+      // Для существующей встречи исключаем её из подсчета
+      meetingsForValidation = allMeetings.filter(m => m.id !== meetingId);
+    }
+    
+    const validation = validateMeetingWeekLimit(
+      meetingsForValidation,        // Встречи для проверки
+      meetingData.startDate,        // Дата редактируемой встречи
+      null,                         // Не нужно исключать, мы уже убрали
+      true                          // Всегда считаем как добавление новой
+    );
 
-            const meetingPayload = {
-                link: meetingData.link || "",
-                number: meetingData.number || "",
-                teamStatus: meetingData.teamStatus,
-                tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
-                tasksNextMeeting: meetingData.tasksNextMeeting || "",
-                startDate: meetingData.startDate || new Date().toISOString(),
-                status: meetingData.status || "SCHEDULED"
-            };
-
-            const url = isNewMeeting 
-                ? `${backendHost}/api/v1/meetings?teamCardId=${teamId}`
-                : `${backendHost}/api/v1/update-meeting/${meetingId}?teamCardId=${teamId}`;
-
-            const method = isNewMeeting ? "POST" : "PATCH";
-            const body = isNewMeeting 
-                ? JSON.stringify({ ...meetingPayload, startDate: meetingData.startDate })
-                : JSON.stringify(meetingPayload);
-
-            const response = await fetch(url, {
-                method,
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    ...getCsrfConfigForFetch()
-                },
-                credentials: 'include',
-                mode: 'cors',
-                body
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "Ошибка при сохранении встречи");
-            }
-
-            const result = await response.json();
-            const savedMeetingId = isNewMeeting ? result.id : meetingId;
-
-            if (image && savedMeetingId) {
-                const formData = new FormData();
-                formData.append('file', image);
-                
-                const imageResponse = await fetch(`${backendHost}/api/v1/image/${savedMeetingId}`, {
-                    method: 'POST',
-                    headers: {
-                        ...getCsrfConfigForFetch()
-                    },
-                    credentials: 'include',
-                    body: formData
-                });
-
-                if (!imageResponse.ok) {
-                    throw new Error('Ошибка при загрузке изображения');
-                }
-            }
-
-            if (isNewMeeting) {
-                navigate(`/meeting/${savedMeetingId}?teamId=${teamId}&username=${username}`);
-            } else {
-                setMeetingData(result);
-                setIsEditing(false);
-                setImage(null);
-            }
-        } catch (error) {
-            console.error("Ошибка при сохранении:", error);
-            setError(error.message || "Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
-        }
+    if (!validation.isValid) {
+      setError(validation.errorMessage);
+      setTimeout(() => setError(null), 5000);
+      return;
+    }
+    
+    const meetingPayload = {
+      link: meetingData.link || "",
+      number: meetingData.number || "",
+      teamStatus: meetingData.teamStatus,
+      tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
+      tasksNextMeeting: meetingData.tasksNextMeeting || "",
+      startDate: meetingData.startDate,
+      status: meetingData.status || "SCHEDULED",
+      userId  // ← явно передаём
     };
+
+    const url = isNewMeeting 
+      ? `${backendHost}/api/v1/meetings?teamCardId=${teamId}`
+      : `${backendHost}/api/v1/update-meeting/${meetingId}?teamCardId=${teamId}`;
+
+    const method = isNewMeeting ? "POST" : "PATCH";
+    const body = JSON.stringify(meetingPayload);
+
+    const response = await fetch(url, {
+      method,
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...getCsrfConfigForFetch()
+      },
+      credentials: 'include',
+      mode: 'cors',
+      body
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.message || "Ошибка на сервере");
+      } catch {
+        throw new Error(errorText || "Ошибка при сохранении");
+      }
+    }
+
+    const result = await response.json();
+    const savedMeetingId = isNewMeeting ? result.id : meetingId;
+
+    // ✅ Важно: обновить allMeetings ЛОКАЛЬНО
+    setAllMeetings(prev => {
+      const newMeetings = prev.filter(m => m.id !== savedMeetingId);
+      newMeetings.push(result);
+      return newMeetings.sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
+    });
+
+    // Загружаем изображение
+    if (image && savedMeetingId) {
+      const formData = new FormData();
+      formData.append('file', image);
+      
+      const imageResponse = await fetch(`${backendHost}/api/v1/image/${savedMeetingId}`, {
+        method: 'POST',
+        headers: { ...getCsrfConfigForFetch() },
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!imageResponse.ok) {
+        throw new Error('Ошибка при загрузке изображения');
+      }
+    }
+
+    if (isNewMeeting) {
+      navigate(`/meeting/${savedMeetingId}?teamId=${teamId}&username=${username}`);
+    } else {
+      setMeetingData(result);
+      setIsEditing(false);
+      setImage(null);
+    }
+  } catch (error) {
+    console.error("Ошибка при сохранении:", error);
+    setError(error.message || "Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
+  }
+};
+
     // Проверяем, прошла ли дата встречи
 const isMeetingDatePassed = () => {
     if (!meetingData.startDate) return false;
@@ -408,6 +445,39 @@ if (!isMeetingDatePassed()) {
                 // return "";
         // }
     // };
+useEffect(() => {
+  if (!teamId) return;
+
+  const fetchAllMeetings = async () => {
+    try {
+      const url = new URL(`${backendHost}/api/v1/meetings`);
+      url.searchParams.append('teamCardId', teamId);
+      url.searchParams.append('page', 0);
+      url.searchParams.append('size', 100);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (!response.ok) throw new Error('Ошибка загрузки встреч');
+      const data = await response.json();
+
+      const sorted = (data.content || []).sort((a, b) => {
+        const numA = parseInt(a.number) || 0;
+        const numB = parseInt(b.number) || 0;
+        return numA - numB;
+      });
+
+      setAllMeetings(sorted);
+    } catch (err) {
+      console.error('Ошибка при загрузке всех встреч:', err);
+    }
+  };
+
+  fetchAllMeetings();
+}, [teamId, backendHost]);
 
     return (
         <div className="unique-meeting-container">

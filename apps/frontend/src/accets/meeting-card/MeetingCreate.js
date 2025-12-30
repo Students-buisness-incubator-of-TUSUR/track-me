@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./meeting-card.css";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
+import { validateMeetingWeekLimit } from "../../utils/date-utils"; // Убрали getMonday, getMeetingsByWeek
+
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/meeting';
 
@@ -18,26 +20,6 @@ const MeetingCreate = ({ onClose, teamId }) => {
     const [meetings, setMeetings] = useState([]); // Храним загруженные встречи
     const popupRef = useRef(null);
 
-    // Получить понедельник недели для заданной даты
-    const getMonday = (date) => {
-        const d = new Date(date);
-        const day = d.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-        const diff = d.getDate() - (day === 0 ? 6 : day - 1); // Monday = 1 → -0, Sunday = 0 → -6
-        const monday = new Date(d);
-        monday.setDate(diff);
-        return monday.toISOString().split('T')[0];
-    };
-
-    // Посчитать встречи по неделям
-    const getMeetingsByWeek = (meetings) => {
-        const weeks = {};
-        meetings.forEach(meeting => {
-            const monday = getMonday(meeting.startDate);
-            weeks[monday] = (weeks[monday] || 0) + 1;
-            console.log('COVERAGE: weeks[monday] updated');
-        });
-        return weeks;
-    };
     useEffect(() => {
         const fetchMeetings = async () => {
             try {
@@ -101,27 +83,20 @@ const MeetingCreate = ({ onClose, teamId }) => {
     };
 
     const validateMeetingData = () => {
-        if (!meetingData.number || isNaN(parseInt(meetingData.number))) {
-            throw new Error("Номер встречи должен быть числом");
-        }
-
         const selectedDate = new Date(meetingData.startDate);
-        const currentDate = new Date();
         
-        if (selectedDate <= currentDate) {
-            throw new Error("Дата встречи должна быть в будущем");
+        // ✅ ОБНОВЛЕННЫЙ ВЫЗОВ: теперь только 3 параметра
+        const validation = validateMeetingWeekLimit(
+            meetings,           // Все текущие встречи
+            selectedDate,       // Дата новой встречи
+            true               // Это новая встреча
+        );
+        
+        if (!validation.isValid) {
+            throw new Error(validation.errorMessage);
         }
-        
-        const monday = getMonday(selectedDate);
-        const meetingsByWeek = getMeetingsByWeek(meetings);
-        const countThisWeek = meetingsByWeek[monday] || 0;
-
-        if (countThisWeek >= 2) {
-            throw new Error("Нельзя создать более 2 встреч в одной неделе (с понедельника по воскресенье)");
-        }
-        
-        return true;
     };
+
 
     const handleCreate = async () => {
         try {

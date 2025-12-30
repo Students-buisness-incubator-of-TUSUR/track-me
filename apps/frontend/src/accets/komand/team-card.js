@@ -6,6 +6,7 @@ import penIcon from "./pen.png";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import MobileHeader from "../adaptive-accets/MobileHeader";
+import { getMonday, getMeetingsByWeek, validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
@@ -486,55 +487,91 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
 
 
 const handleDateChange = (meetingId, currentDate) => {
-  try {
-    // Конвертируем дату в формат, понятный для input[type="datetime-local"]
-    const localDate = new Date(currentDate);
-    const offset = localDate.getTimezoneOffset() * 60000; // коррекция часового пояса
-    const localISOTime = new Date(localDate - offset).toISOString().slice(0, 16);
-    
-    setEditingMeetingId(meetingId);
-    setNewMeetingDate(localISOTime);
-  } catch (error) {
-    handleApiError(error, "изменении даты встречи");
-  }
-};
+    try {
+      const localDate = new Date(currentDate);
+      const offset = localDate.getTimezoneOffset() * 60000;
+      const localISOTime = new Date(localDate - offset).toISOString().slice(0, 16);
+
+      const selectedDate = new Date(localISOTime);
+      
+      // ✅ Используем функцию валидации для проверки переноса
+      const validation = validateMeetingDateChange(
+        meetings,           // Все встречи
+        meetingId,         // Исключаем редактируемую встречу из подсчета
+        selectedDate       // Новая дата
+      );
+
+      if (!validation.isValid) {
+        setMeetingError(validation.errorMessage);
+        setTimeout(() => setMeetingError(""), 5000); // Увеличиваем время показа ошибки
+        return;
+      }
+
+      setEditingMeetingId(meetingId);
+      setNewMeetingDate(localISOTime);
+    } catch (error) {
+      handleApiError(error, "изменении даты встречи");
+    }
+  };
+
+
 
 const saveMeetingDate = async () => {
-    if (!editingMeetingId || !newMeetingDate || !id) return;
+  if (!editingMeetingId || !newMeetingDate || !id) return;
 
-    try {
-        const isoDate = new Date(newMeetingDate).toISOString();
+  try {
+    const isoDate = new Date(newMeetingDate).toISOString();
+    
+    // ✅ ВАЖНО: создаем копию встреч БЕЗ текущей редактируемой
+    const meetingsWithoutCurrent = meetings.filter(m => m.id !== editingMeetingId);
+    
+    // ✅ Проверяем на копии данных
+    const validation = validateMeetingDateChange(
+      meetingsWithoutCurrent,  // Все встречи кроме редактируемой
+      null,                    // Не нужно исключать, мы уже убрали
+      isoDate                  // Новая дата
+    );
 
-        const response = await fetch(
-            `${backendHost2}/api/v1/update-meeting/${editingMeetingId}?teamCardId=${id}`,
-            {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...getCsrfConfigForFetch()
-                },
-                credentials: 'include',
-                body: JSON.stringify({ startDate: isoDate })
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error('Ошибка при обновлении даты');
-        }
-
-        // Обновляем только измененную встречу, сохраняя порядок
-        setMeetings(prevMeetings => 
-            prevMeetings.map(meeting => 
-                meeting.id === editingMeetingId 
-                    ? { ...meeting, startDate: isoDate } 
-                    : meeting
-            )
-        );
-        
-        setEditingMeetingId(null);
-    } catch (error) {
-        handleApiError(error, "сохранении даты встречи");
+    if (!validation.isValid) {
+      setMeetingError(validation.errorMessage);
+      setTimeout(() => setMeetingError(""), 5000);
+      setEditingMeetingId(null);
+      return;
     }
+
+    // Отправляем на сервер
+    const response = await fetch(
+      `${backendHost2}/api/v1/update-meeting/${editingMeetingId}?teamCardId=${id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCsrfConfigForFetch()
+        },
+        credentials: 'include',
+        body: JSON.stringify({ startDate: isoDate })
+      }
+    );
+
+    if (!response.ok) throw new Error('Ошибка при обновлении даты');
+
+    // ✅ Получаем обновленную встречу с сервера и обновляем стейт
+    const updatedMeeting = await response.json();
+    
+    setMeetings(prev => 
+      prev.map(meeting => 
+        meeting.id === editingMeetingId 
+          ? updatedMeeting 
+          : meeting
+      )
+    );
+    
+    setEditingMeetingId(null);
+    setMeetingError(""); // Сбрасываем ошибку при успехе
+  } catch (error) {
+    handleApiError(error, "сохранении даты встречи");
+    setEditingMeetingId(null);
+  }
 };
 
 const deleteMeeting = async () => {
