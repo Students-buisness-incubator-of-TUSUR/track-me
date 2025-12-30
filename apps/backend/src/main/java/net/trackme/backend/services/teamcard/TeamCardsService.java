@@ -8,27 +8,96 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.UUID;
 
 public interface TeamCardsService {
+    /**
+     * Создать карточку команды.
+     * @param createTeamCardDto Dto команды для создания
+     * @return Карточка команды
+     */
     TeamCard createTeamCard(TeamCard createTeamCardDto);
 
+    /**
+     * Обновить карточку команды.
+     * @param teamCardId Идентификатор команды
+     * @param updateTeamCardDto Dto команды для обновления
+     * @return Карточка команды
+     */
     TeamCard updateTeamCard(UUID teamCardId, TeamCard updateTeamCardDto);
 
+    /**
+     * Получить список команд.
+     * @param specification Фильтрация
+     * @param pageable Пагинация
+     * @return Страница команд
+     */
     Page<TeamCard> getTeamCards(Specification<TeamCard> specification, Pageable pageable);
 
+    /**
+     * Получить карточку команды.
+     * @param id Идентификатор команды
+     * @return Карточка команды
+     */
     TeamCard getTeamCard(UUID id);
 
+    /**
+     * Удалить карточку команды.
+     * @param id Идентификатор команды
+     */
     void deleteTeamCard(UUID id);
 
+    /**
+     * Создать карточку команды.
+     * @param teamCard Карточка команды
+     * @param username Имя пользователя
+     * @return Карточка команды
+     */
     TeamCard createTeamCard(TeamCard teamCard, String username);
 
+    /**
+     * Обновить карточку команды.
+     * @param teamCardId Идентификатор команды
+     * @param teamCard Карточка команды
+     * @param streamId Идентификатор потока
+     * @param username Имя пользователя
+     * @return Карточка команды
+     */
     TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCard, UUID streamId, String username);
 
+    /**
+     * Получить все команды.
+     * @param specification Фильтрация
+     * @param pageable Пагинация
+     * @return Страница команд
+     */
     Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable);
 
+    /**
+     * Получить карточку команды.
+     * @param id Идентификатор команды
+     * @param username Имя пользователя
+     * @return Карточка команды
+     */
     TeamCard getTeamCard(UUID id, String username);
 
+    /**
+     * Удалить карточку команды.
+     * @param id Идентификатор команды
+     * @param username Имя пользователя
+     */
     void deleteTeamCard(UUID id, String username);
 
+    /**
+     * Создать карточку команды.
+     * @param teamCard Карточка команды
+     * @param streamId Идентификатор потока
+     * @param username Имя пользователя
+     * @return Карточка команды
+     */
     TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username);
 
+    /**
+     * Получить количество команд в потоке.
+     * @param streamId Идентфикатор потока
+     * @return Количество команд в потоке
+     */
     Integer getTeamCardCount(UUID streamId);
 }

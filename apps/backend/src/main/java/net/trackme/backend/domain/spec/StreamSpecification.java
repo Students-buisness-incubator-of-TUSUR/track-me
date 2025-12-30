@@ -23,7 +23,7 @@ public class StreamSpecification implements Specification<Stream> {
   public static final List<String> ALLOWED_FIELDS = List.of(
       "name",
       "active",
-          "year",
+      "year",
       "ntiMarkets.name",
       READINESS_LEVEL_FIELD
   );

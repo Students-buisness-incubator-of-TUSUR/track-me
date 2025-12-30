@@ -3,6 +3,7 @@ package net.trackme.backend.mapping;
 import net.trackme.backend.domain.TeamCard;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -32,4 +33,40 @@ public interface TeamCardMapper {
             target = "readinessLevel", expression = "java( entity.getReadinessLevel().getValue() )")
     TeamCardDto mapToDto(TeamCard entity);
 
+    @Mapping(
+            target = "streamName",
+            expression = "java( entity"
+                    + ".getStreams().stream()"
+                    + ".filter(Stream::isActive)"
+                    + ".map(Stream::getName)"
+                    + ".findFirst().orElse(\"\") )")
+    @Mapping(
+            target = "startDate",
+            expression = "java( entity"
+                    + ".getStreams().stream()"
+                    + ".filter(Stream::isActive)"
+                    + ".map(Stream::getStartDate)"
+                    + ".findFirst().orElse(null) )")
+    @Mapping(
+            target = "endDate",
+            expression = "java( entity"
+                    + ".getStreams().stream()"
+                    + ".filter(Stream::isActive)"
+                    + ".map(Stream::getEndDate)"
+                    + ".findFirst().orElse(null) )")
+    @Mapping(target = "teamCardName", expression = "java( entity.getName() )")
+    @Mapping(target = "username", expression = "java( entity.getUsername() )")
+    @Mapping(target = "averageTeamGrade", expression = "java( entity.getAverageGrade() )")
+    @Mapping(target = "averageUserGrade", ignore = true)
+    @Mapping(target = "meetingsCountPlan", expression = "java( entity.getMeetingsCount() )")
+    @Mapping(
+            target = "meetingsCountFact",
+            expression = "java( entity.getMeetingsCompletedCount() )")
+    @Mapping(
+            target = "ntiMarkets",
+            expression = "java( entity.getNtiMarkets().stream().map(NTIMarket::getName).toList() )")
+    @Mapping(
+            target = "readinessLevel",
+            expression = "java( entity.getReadinessLevel().getValue() )")
+    TeamCardReportRecordDto mapToReportDto(TeamCard entity);
 }

@@ -25,10 +25,19 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamCardsServiceImpl implements TeamCardsService {
 
+    /**
+     * Репозиторий карточек команд.
+     */
     private final TeamCardsRepository teamCardsRepository;
 
+    /**
+     * Сервис потоков.
+     */
     private final StreamService streamService;
 
+    /**
+     * Сервис ACL.
+     */
     private final AclService aclService;
 
     @Override
