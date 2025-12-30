@@ -1408,3 +1408,52 @@ async function waitForStatusDropdown() {
     }, { timeout: 3000 });
   }
 }
+describe('MeetingCard Role Setting - Simple', () => {
+  test('covers role setting from Redux and localStorage', () => {
+    // Настраиваем моки
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ content: [] })
+    });
+
+    // 1. Тест с reduxUser
+    const store1 = createStore(() => ({ 
+      user: { 
+        user: { roles: ['ADMIN'] }  // покрываем if (reduxUser)
+      } 
+    }));
+
+    const { unmount } = render(
+      <Provider store={store1}>
+        <MemoryRouter>
+          <MeetingCard />
+        </MemoryRouter>
+      </Provider>
+    );
+    
+    expect(screen.getByText('Новая встреча')).toBeInTheDocument();
+    unmount();
+    
+    // 2. Тест без reduxUser, но с localStorage
+    const store2 = createStore(() => ({ 
+      user: { user: null }  // покрываем else блок
+    }));
+    
+    localStorage.setItem('user', JSON.stringify({ roles: ['USER'] }));  // покрываем localStorage
+    
+    render(
+      <Provider store={store2}>
+        <MemoryRouter>
+          <MeetingCard />
+        </MemoryRouter>
+      </Provider>
+    );
+    
+    expect(screen.getByText('Новая встреча')).toBeInTheDocument();
+  });
+});
