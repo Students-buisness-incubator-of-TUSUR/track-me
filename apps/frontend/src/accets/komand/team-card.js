@@ -6,7 +6,7 @@ import penIcon from "./pen.png";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import MobileHeader from "../adaptive-accets/MobileHeader";
-import { getMonday, getMeetingsByWeek, validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils";
+import {  validateMeetingDateChange } from "../../utils/date-utils";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
