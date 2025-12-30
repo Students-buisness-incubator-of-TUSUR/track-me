@@ -1048,6 +1048,36 @@
   font-style: italic;
 }
 
+.bbb-join-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  background-color: #e8f5e9;
+}
+
+.bbb-join-icon-button:hover {
+  background-color: #e8f5e9; /* Светло-зелёный фон при наведении */
+}
+
+.bbb-join-icon-button:focus {
+  outline: 2px solid #66bb6a;
+  outline-offset: 2px;
+}
+
+.bbb-join-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  /* Зелёный цвет через filter */
+}
+
 /* Адаптивные стили для кнопок статуса */
 @media (max-width: 768px) {
     .unique-meeting-status-buttons {

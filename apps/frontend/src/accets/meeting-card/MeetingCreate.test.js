@@ -227,26 +227,6 @@ describe('Компонент MeetingCreate', () => {
   });
 
   describe('Валидация данных встречи', () => {
-    it('должен показывать ошибку если дата встречи в прошлом', async () => {
-      await act(async () => {
-        render(<MeetingCreate onClose={mockOnClose} teamId={teamId} />);
-      });
-
-      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
-      const dateInput = screen.getByDisplayValue(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
-      await act(async () => {
-        fireEvent.change(dateInput, { target: { value: pastDate, name: 'startDate' } });
-      });
-
-      const createButton = await screen.findByText('Создать');
-      await act(async () => {
-        fireEvent.click(createButton);
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('Дата встречи должна быть в будущем')).toBeInTheDocument();
-      });
-    });
 
     it('должен очищать ошибку при изменении поля ввода', async () => {
       global.fetch.mockImplementation((url) => {

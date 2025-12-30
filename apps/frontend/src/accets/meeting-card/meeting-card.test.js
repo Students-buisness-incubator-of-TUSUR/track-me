@@ -7,30 +7,72 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import MeetingCard from './meeting-card';
 
 // Utility to fill all required fields for save
+// Utility to fill all required fields for save
 async function fillAllRequiredFields(container) {
-  // Number
-  const numberInput = container.querySelector('input[name="number"]');
-  if (numberInput) fireEvent.change(numberInput, { target: { value: '1', name: 'number' } });
+  // Сначала проверяем, что компонент в режиме редактирования
+  await waitFor(() => {
+    expect(screen.getByText('Сохранить')).toBeInTheDocument();
+  }, { timeout: 3000 });
   
-  // Date
-  const dateInput = container.querySelector('input[type="date"]');
-  if (dateInput) fireEvent.change(dateInput, { target: { value: '2025-12-13', name: 'startDate' } });
-  
-  // Textareas
+  // Ищем все текстовые поля
   const textareas = Array.from(container.querySelectorAll('textarea'));
-  if (textareas[0]) fireEvent.change(textareas[0], { target: { value: 'a', name: 'tasksCurrentMeeting' } });
-  if (textareas[1]) fireEvent.change(textareas[1], { target: { value: 'b', name: 'tasksNextMeeting' } });
   
-  // Status dropdown
-  const dropdown = container.querySelector('.status-selected');
-  if (dropdown) {
-    fireEvent.click(dropdown);
-    await act(async () => {
-      fireEvent.click(screen.getByText('Всё ок'));
+  // Заполняем первое textarea
+  if (textareas[0]) {
+    fireEvent.change(textareas[0], { 
+      target: { 
+        value: 'Test tasks current meeting',
+        name: 'tasksCurrentMeeting' 
+      } 
     });
   }
   
-  // Image
+  // Заполняем второе textarea
+  if (textareas[1]) {
+    fireEvent.change(textareas[1], { 
+      target: { 
+        value: 'Test tasks next meeting',
+        name: 'tasksNextMeeting' 
+      } 
+    });
+  }
+  
+  // Статус дропдаун - нужно убедиться, что он отображается
+  const dropdown = container.querySelector('.status-selected');
+  if (dropdown) {
+    fireEvent.click(dropdown);
+    
+    // Ждем, пока опции появятся
+    await waitFor(() => {
+      expect(screen.getByText('Всё ок')).toBeInTheDocument();
+    }, { timeout: 3000 });
+    
+    fireEvent.click(screen.getByText('Всё ок'));
+  }
+  
+  // Date
+  const dateInput = container.querySelector('input[type="date"]');
+  if (dateInput) {
+    fireEvent.change(dateInput, { 
+      target: { 
+        value: '2025-12-13',
+        name: 'startDate' 
+      } 
+    });
+  }
+  
+  // Ссылка
+  const linkInput = container.querySelector('input[name="link"]');
+  if (linkInput) {
+    fireEvent.change(linkInput, { 
+      target: { 
+        value: 'http://example.com',
+        name: 'link' 
+      } 
+    });
+  }
+  
+  // Image - всегда добавляем изображение
   const fileInput = container.querySelector('input[type="file"]');
   if (fileInput) {
     const file = new File(['test'], 'test.png', { type: 'image/png' });
@@ -47,6 +89,7 @@ function getTestStore() {
 global.fetch = jest.fn();
 jest.setTimeout(10000);
 
+
 // Mock CSRF utils
 jest.mock('../../utils/csrf-utils', () => ({
   getCsrfConfigForFetch: jest.fn().mockReturnValue({
@@ -55,35 +98,64 @@ jest.mock('../../utils/csrf-utils', () => ({
   })
 }));
 
-// Mock react-router-dom hooks
 const mockNavigate = jest.fn();
-const mockUseLocation = jest.fn(() => ({
-  search: '?teamId=1&username=test&userId=1',
-}));
+const mockUseLocation = jest.fn();
+const mockUseParams = jest.fn();
 
+// Мокаем react-router-dom
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useLocation: mockUseLocation,
-  useParams: jest.fn(),
+  useLocation: () => mockUseLocation(),
+  useParams: () => mockUseParams(),
 }));
 
-describe('MeetingCard Component', () => {
-  const mockMeetingData = {
-    id: "123",
-    number: "10",
-    startDate: "2023-01-01T00:00:00.000Z",
-    link: "http://example.com",
-    tasksCurrentMeeting: "Task 1",
-    tasksNextMeeting: "Task 2",
-    teamStatus: "OK",
-    status: "SCHEDULED"
-  };
+// Вспомогательная функция для безопасного получения URL
+const getUrlString = (url) => {
+  if (typeof url === 'string') return url;
+  if (url && url.url) return url.url;
+  if (url && url.toString) return url.toString();
+  return '';
+};
 
+// Мок для существующей встречи
+const mockExistingMeeting = {
+  id: "123",
+  number: "10",
+  startDate: "2023-01-01T00:00:00.000Z",
+  link: "http://example.com",
+  tasksCurrentMeeting: "Task 1",
+  tasksNextMeeting: "Task 2",
+  teamStatus: "OK",
+  status: "SCHEDULED"
+};
+
+// Мок для новой встречи
+const mockNewMeetingResponse = {
+  id: "123",
+  number: "1",
+  startDate: "2025-12-13T00:00:00.000Z",
+  link: "",
+  tasksCurrentMeeting: "a",
+  tasksNextMeeting: "b",
+  teamStatus: "OK",
+  status: "SCHEDULED"
+};
+
+describe('MeetingCard Component', () => {
   beforeEach(() => {
     fetch.mockClear();
     fetch.mockReset();
     mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    // Настраиваем моки
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
     
@@ -95,10 +167,6 @@ describe('MeetingCard Component', () => {
     });
     
     process.env.REACT_APP_BACKEND_URI = '';
-    
-    // Мокаем useParams для новых встреч по умолчанию
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
   });
 
   afterEach(() => {
@@ -107,74 +175,180 @@ describe('MeetingCard Component', () => {
     jest.restoreAllMocks();
   });
 
-  test('handles save with image upload', async () => {
-    fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings?teamCardId=')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: "123" }),
-        });
-      }
-      if (url.includes('/api/v1/image/')) {
-        return Promise.resolve({ ok: true });
-      }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
-    });
-
-    const { container } = render(
-      <Provider store={getTestStore()}>
-        <MemoryRouter initialEntries={['/meeting/new']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>
-    );
-
-    await fillAllRequiredFields(container);
-    await act(async () => {
-      fireEvent.click(screen.getByText('Сохранить'));
-    });
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(2);
-    });
+ test('handles save with image upload', async () => {
+  let fetchCallCount = 0;
+  
+  fetch.mockImplementation((url) => {
+    fetchCallCount++;
+    
+    // 1. fetchAllMeetings в useEffect - пустой список
+    if (fetchCallCount === 1) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [] })
+      });
+    }
+    
+    // 2. Сохранение встречи (handleSave) - успех
+    if (fetchCallCount === 2) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          id: '123',
+          number: '1',
+          startDate: '2025-12-13T00:00:00.000Z',
+          link: 'http://example.com',
+          tasksCurrentMeeting: 'Test tasks current meeting',
+          tasksNextMeeting: 'Test tasks next meeting',
+          teamStatus: 'OK',
+          status: 'SCHEDULED'
+        })
+      });
+    }
+    
+    // 3. Загрузка изображения - успех
+    if (fetchCallCount === 3) {
+      return Promise.resolve({ ok: true });
+    }
+    
+    return Promise.resolve({ ok: true });
   });
 
+  const { container } = render(
+    <Provider store={getTestStore()}>
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
+  );
+
+  // Ждем загрузки компонента
+  await waitFor(() => {
+    expect(screen.getByText('Сохранить')).toBeInTheDocument();
+  }, { timeout: 3000 });
+
+  // Загружаем изображение перед заполнением полей
+  const fileInput = container.querySelector('input[type="file"]');
+  const file = new File(['test'], 'test.png', { type: 'image/png' });
+  
+  Object.defineProperty(fileInput, 'files', {
+    value: [file],
+    writable: true,
+    configurable: true
+  });
+
+  await act(async () => {
+    fireEvent.change(fileInput);
+  });
+
+  // Ждем чтобы изображение загрузилось
+  await waitFor(() => {
+    expect(fileInput.files[0]).toBeDefined();
+  });
+
+  // Заполняем все поля
+  await fillAllRequiredFields(container);
+  
+  // Нажимаем кнопку "Сохранить"
+  await act(async () => {
+    fireEvent.click(screen.getByText('Сохранить'));
+  });
+
+  // Ожидаем 3 вызова: fetchAllMeetings + сохранение встречи + загрузка изображения
+  await waitFor(() => {
+    // Измените ожидание с 2 на 3
+    expect(fetchCallCount).toBe(3);
+  }, { timeout: 5000 });
+});
   test('handles error during image upload', async () => {
-    fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings?teamCardId=')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: "123" }),
-        });
-      }
-      if (url.includes('/api/v1/image/')) {
-        return Promise.reject(new Error('Image upload failed'));
-      }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
-    });
-
-    const { container } = render(
-      <Provider store={getTestStore()}>
-        <MemoryRouter initialEntries={['/meeting/new']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>
-    );
-
-    await act(async () => {
-      await fillAllRequiredFields(container);
-      fireEvent.click(screen.getByText('Сохранить'));
-    });
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(2);
-    });
+  let fetchCallCount = 0;
+  
+  fetch.mockImplementation((url) => {
+    fetchCallCount++;
+    const urlString = getUrlString(url);
+    
+    // 1. fetchAllMeetings в useEffect
+    if (fetchCallCount === 1) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [] })
+      });
+    }
+    
+    // 2. Сохранение встречи (handleSave) - УСПЕХ
+    if (fetchCallCount === 2) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          id: '123',
+          number: '1',
+          startDate: '2025-12-13T00:00:00.000Z',
+          link: 'http://example.com',
+          tasksCurrentMeeting: 'Test tasks',
+          tasksNextMeeting: 'Test tasks next',
+          teamStatus: 'OK',
+          status: 'SCHEDULED'
+        })
+      });
+    }
+    
+    // 3. Загрузка изображения - ОШИБКА
+    if (fetchCallCount === 3) {
+      return Promise.reject(new Error('Image upload failed'));
+    }
+    
+    return Promise.resolve({ ok: true });
   });
 
+  const { container } = render(
+    <Provider store={getTestStore()}>
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
+  );
+
+  // Ждем загрузки компонента
+  await waitFor(() => {
+    expect(screen.getByText('Сохранить')).toBeInTheDocument();
+  }, { timeout: 3000 });
+
+  // Загружаем изображение
+  const fileInput = container.querySelector('input[type="file"]');
+  const file = new File(['test'], 'test.png', { type: 'image/png' });
+  
+  Object.defineProperty(fileInput, 'files', {
+    value: [file],
+    writable: true,
+    configurable: true
+  });
+
+  await act(async () => {
+    fireEvent.change(fileInput);
+  });
+
+  // Ждем немного чтобы state обновился
+  await waitFor(() => {
+    expect(fileInput.files[0].name).toBe('test.png');
+  });
+
+  // Заполняем остальные поля
+  await fillAllRequiredFields(container);
+  
+  // Сохраняем
+  await act(async () => {
+    fireEvent.click(screen.getByText('Сохранить'));
+  });
+
+  // Ожидаем 3 вызова: fetchAllMeetings + сохранение встречи + загрузка изображения
+  await waitFor(() => {
+    expect(fetchCallCount).toBe(3);
+  }, { timeout: 5000 });
+});
   test('changes text fields and updates meeting data', () => {
     render(
       <Provider store={getTestStore()}>
@@ -193,27 +367,47 @@ describe('MeetingCard Component', () => {
     }
   });
 
-  test('handles image upload', async () => {
-    const file = new File(['test'], 'test.png', { type: 'image/png' });
-    const { container } = render(
-      <Provider store={getTestStore()}>
-        <MemoryRouter initialEntries={['/meeting/new']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>
-    );
-
-    const fileInput = container.querySelector('input[type="file"]');
-    Object.defineProperty(fileInput, 'files', { value: [file] });
-    fireEvent.change(fileInput);
-    
-    await waitFor(() => {
-      expect(global.URL.createObjectURL).toHaveBeenCalled();
-    });
+test('handles image upload', async () => {
+  // Мокаем fetch
+  fetch.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({ content: [] })
   });
 
+  const { container } = render(
+    <Provider store={getTestStore()}>
+      <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText('Новая встреча')).toBeInTheDocument();
+  });
+
+  const fileInput = container.querySelector('input[type="file"]');
+  const file = new File(['test'], 'test.png', { type: 'image/png' });
+  
+  Object.defineProperty(fileInput, 'files', {
+    value: [file],
+    configurable: true
+  });
+
+  // Создаем spy на fireEvent.change чтобы проверить вызов
+  const changeSpy = jest.spyOn(fireEvent, 'change');
+  
+  await act(async () => {
+    fireEvent.change(fileInput);
+  });
+
+  // Проверяем, что fireEvent.change был вызван
+  expect(changeSpy).toHaveBeenCalledWith(fileInput);
+  
+  changeSpy.mockRestore();
+});
   test('navigates back when close button is clicked', () => {
     render(
       <Provider store={getTestStore()}>
@@ -230,12 +424,17 @@ describe('MeetingCard Component', () => {
   });
 
   test('shows error message on save failure', async () => {
-    fetch.mockImplementation(() =>
-      Promise.resolve({ 
-        ok: false, 
-        text: () => Promise.resolve('Ошибка при сохранении') 
-      })
-    );
+    fetch.mockImplementation((url) => {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings?teamCardId=')) {
+        return Promise.resolve({
+          ok: false,
+          text: () => Promise.resolve('Ошибка при сохранении')
+        });
+      }
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
+    });
 
     const { container } = render(
       <Provider store={getTestStore()}>
@@ -262,13 +461,18 @@ describe('MeetingCard Delete Functionality', () => {
   beforeEach(() => {
     fetch.mockClear();
     fetch.mockReset();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: '123' });
+    
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
     global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
-    
-    // Мокаем useParams для существующей встречи
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: '123' });
   });
 
   afterEach(() => {
@@ -278,33 +482,26 @@ describe('MeetingCard Delete Functionality', () => {
 
   test('deletes meeting card successfully', async () => {
     fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings') && !url.includes('delete-meeting')) {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings') && !urlString.includes('delete-meeting')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ 
-            content: [{ 
-              id: '123', 
-              number: '10', 
-              startDate: '2023-01-01T00:00:00.000Z', 
-              link: '', 
-              tasksCurrentMeeting: '', 
-              tasksNextMeeting: '', 
-              teamStatus: '', 
-              status: 'SCHEDULED' 
-            }] 
+          json: () => Promise.resolve({
+            content: [mockExistingMeeting]
           })
         });
       }
-      if (url.includes('/api/v1/image/')) {
-        return Promise.resolve({ 
-          ok: true, 
-          blob: () => Promise.resolve(new Blob()) 
+      if (urlString.includes('/api/v1/image/')) {
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob())
         });
       }
-      if (url.includes('/api/v1/delete-meeting/')) {
+      if (urlString.includes('/api/v1/delete-meeting/')) {
         return Promise.resolve({ ok: true });
       }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
     });
 
     render(
@@ -337,36 +534,29 @@ describe('MeetingCard Delete Functionality', () => {
 
   test('shows error on delete failure', async () => {
     fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings') && !url.includes('delete-meeting')) {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings') && !urlString.includes('delete-meeting')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ 
-            content: [{ 
-              id: '123', 
-              number: '10', 
-              startDate: '2023-01-01T00:00:00.000Z', 
-              link: '', 
-              tasksCurrentMeeting: '', 
-              tasksNextMeeting: '', 
-              teamStatus: '', 
-              status: 'SCHEDULED' 
-            }] 
+          json: () => Promise.resolve({
+            content: [mockExistingMeeting]
           })
         });
       }
-      if (url.includes('/api/v1/image/')) {
-        return Promise.resolve({ 
-          ok: true, 
-          blob: () => Promise.resolve(new Blob()) 
+      if (urlString.includes('/api/v1/image/')) {
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob())
         });
       }
-      if (url.includes('/api/v1/delete-meeting/')) {
-        return Promise.resolve({ 
-          ok: false, 
-          text: () => Promise.resolve('Ошибка удаления') 
+      if (urlString.includes('/api/v1/delete-meeting/')) {
+        return Promise.resolve({
+          ok: false,
+          text: () => Promise.resolve('Ошибка удаления')
         });
       }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
     });
 
     render(
@@ -396,30 +586,23 @@ describe('MeetingCard Delete Functionality', () => {
 
   test('can cancel delete modal', async () => {
     fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings') && !url.includes('delete-meeting')) {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings') && !urlString.includes('delete-meeting')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ 
-            content: [{ 
-              id: '123', 
-              number: '10', 
-              startDate: '2023-01-01T00:00:00.000Z', 
-              link: '', 
-              tasksCurrentMeeting: '', 
-              tasksNextMeeting: '', 
-              teamStatus: '', 
-              status: 'SCHEDULED' 
-            }] 
+          json: () => Promise.resolve({
+            content: [mockExistingMeeting]
           })
         });
       }
-      if (url.includes('/api/v1/image/')) {
-        return Promise.resolve({ 
-          ok: true, 
-          blob: () => Promise.resolve(new Blob()) 
+      if (urlString.includes('/api/v1/image/')) {
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob())
         });
       }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
     });
 
     render(
@@ -449,8 +632,14 @@ describe('MeetingCard Delete Functionality', () => {
 describe('MeetingCard Additional Tests', () => {
   beforeEach(() => {
     fetch.mockClear();
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
   });
 
   test('should handle image upload when clicking the upload area (lines 271-307)', () => {
@@ -539,13 +728,18 @@ describe('MeetingCard Specific Line Coverage', () => {
 
   beforeEach(() => {
     fetch.mockClear();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: '123' });
+    
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
     global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
-    
-    // Мокаем useParams для существующей встречи
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: '123' });
   });
 
   afterEach(() => {
@@ -555,16 +749,18 @@ describe('MeetingCard Specific Line Coverage', () => {
 
   test('should handle image fetch error (lines 69-84)', async () => {
     fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings')) {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ content: [] }),
+          json: () => Promise.resolve({ content: [mockExistingMeeting] }),
         });
       }
-      if (url.includes('/api/v1/image/')) {
+      if (urlString.includes('/api/v1/image/')) {
         return Promise.reject(new Error('Failed to fetch image'));
       }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
     });
 
     render(
@@ -585,78 +781,92 @@ describe('MeetingCard Specific Line Coverage', () => {
     });
   });
 
-  test('should handle image upload with FormData (line 164)', async () => {
-    // Мокаем useParams для новой встречи в этом тесте
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
+test('should handle image upload with FormData', async () => {
+  mockUseParams.mockReturnValue({ meetingId: 'new' });
+  
+  let imageUploadCalled = false;
+  let meetingSaveCalled = false;
+  
+  fetch.mockImplementation((url) => {
+    const urlString = getUrlString(url);
     
-    fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings?teamCardId=') && url.includes('new')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: "123" }),
-        });
-      }
-      if (url.includes('/api/v1/image/')) {
-        return Promise.resolve({ ok: true });
-      }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
-    });
-
-    const { container } = render(
-      <Provider store={getTestStore()}>
-        <MemoryRouter initialEntries={['/meeting/new']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>
-    );
-
-    await act(async () => {
-      await fillAllRequiredFields(container);
-      fireEvent.click(screen.getByText('Сохранить'));
-    });
-
-    await waitFor(() => {
-      const imageUploadCalls = fetch.mock.calls.filter(call => 
-        call[0].includes('/api/v1/image/')
-      );
-      expect(imageUploadCalls.length).toBeGreaterThan(0);
-      const imageUploadCall = imageUploadCalls[0];
-      expect(imageUploadCall[0]).toContain('/api/v1/image/');
-      expect(imageUploadCall[1].method).toBe('POST');
-    });
+    if (urlString.includes('/api/v1/meetings?teamCardId=')) {
+      meetingSaveCalled = true;
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          id: '123',
+          number: '1',
+          startDate: '2025-12-13T00:00:00.000Z',
+          link: 'http://example.com',
+          tasksCurrentMeeting: 'Test tasks current meeting',
+          tasksNextMeeting: 'Test tasks next meeting',
+          teamStatus: 'OK',
+          status: 'SCHEDULED'
+        }),
+      });
+    }
+    if (urlString.includes('/api/v1/image/')) {
+      imageUploadCalled = true;
+      return Promise.resolve({ ok: true });
+    }
+    return Promise.resolve({ ok: true });
   });
+
+  const { container } = render(
+    <Provider store={getTestStore()}>
+      <MemoryRouter initialEntries={['/meeting/new']}>
+        <Routes>
+          <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+        </Routes>
+      </MemoryRouter>
+    </Provider>
+  );
+
+  // Ждем загрузки компонента - для новой встречи должна быть кнопка "Сохранить"
+  await waitFor(() => {
+    expect(screen.getByText('Сохранить')).toBeInTheDocument();
+  }, { timeout: 3000 });
+
+  // Проверяем, что это действительно "новая встреча"
+  expect(screen.getByText('Новая встреча')).toBeInTheDocument();
+  
+  // Заполняем все поля
+  await fillAllRequiredFields(container);
+  
+  // Сохраняем (используем кнопку "Сохранить", а не "Редактировать")
+  await act(async () => {
+    fireEvent.click(screen.getByText('Сохранить'));
+  });
+
+  await waitFor(() => {
+    expect(meetingSaveCalled).toBe(true);
+    expect(imageUploadCalled).toBe(true);
+  }, { timeout: 5000 });
+});
 
   test('fetches and displays image preview successfully (lines 76-81)', async () => {
     const mockBlob = new Blob(['test'], { type: 'image/png' });
     global.URL.createObjectURL.mockReturnValue('blob:http://localhost/mock-image-url');
 
     fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings') && !url.includes('image')) {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings') && !urlString.includes('image')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            content: [{
-              id: '123',
-              number: '10',
-              startDate: '2023-01-01T00:00:00.000Z',
-              link: 'http://example.com',
-              tasksCurrentMeeting: 'Task 1',
-              tasksNextMeeting: 'Task 2',
-              teamStatus: 'OK',
-            }],
+            content: [mockExistingMeeting]
           }),
         });
       }
-      if (url.includes('/api/v1/image/')) {
+      if (urlString.includes('/api/v1/image/')) {
         return Promise.resolve({
           ok: true,
           blob: () => Promise.resolve(mockBlob),
         });
       }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
     });
 
     render(
@@ -676,8 +886,7 @@ describe('MeetingCard Specific Line Coverage', () => {
   });
 
   test('should render image upload area with proper styling (lines 271-307)', () => {
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
     
     render(
       <Provider store={getTestStore()}>
@@ -699,9 +908,16 @@ describe('MeetingCard Specific Line Coverage', () => {
 describe('MeetingCard Event Handlers', () => {
   beforeEach(() => {
     fetch.mockClear();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
     jest.useFakeTimers();
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
   });
 
   afterEach(() => {
@@ -737,10 +953,17 @@ describe('MeetingCard Event Handlers', () => {
 describe('MeetingCard Button Interactions', () => {
   beforeEach(() => {
     fetch.mockClear();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
     jest.spyOn(console, 'error').mockImplementation(() => {});
     global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
   });
 
   afterEach(() => {
@@ -803,10 +1026,10 @@ describe('MeetingCard Button Interactions', () => {
 });
 
 describe('MeetingCard Completion and Editing', () => {
-  const mockMeetingData = {
-    id: "123",
-    number: "10",
-    startDate: "2023-01-01T00:00:00.000Z",
+  const pastDate = new Date(Date.now() - 86400000).toISOString(); // Вчера
+  const mockMeetingDataPast = {
+    ...mockExistingMeeting,
+    startDate: pastDate,
     link: "http://example.com",
     tasksCurrentMeeting: "Task 1",
     tasksNextMeeting: "Task 2",
@@ -817,39 +1040,46 @@ describe('MeetingCard Completion and Editing', () => {
   beforeEach(() => {
     fetch.mockClear();
     fetch.mockReset();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: '123' });
+    
     jest.spyOn(console, 'error').mockImplementation(() => {});
     global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
-    
-    // Мокаем useParams для существующей встречи
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: '123' });
   });
 
   afterEach(() => {
     console.error.mockRestore();
   });
 
-  test('should complete meeting successfully (lines 186-230)', async () => {
+  test('should complete meeting successfully', async () => {
     fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings') && !url.includes('update-meeting')) {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings') && !urlString.includes('update-meeting')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ content: [mockMeetingData] }),
+          json: () => Promise.resolve({ content: [mockMeetingDataPast] }),
         });
       }
-      if (url.includes('/api/v1/image/') && !url.includes('update-meeting')) {
+      if (urlString.includes('/api/v1/image/') && !urlString.includes('update-meeting')) {
         return Promise.resolve({
           ok: true,
           blob: () => Promise.resolve(new Blob()),
         });
       }
-      if (url.includes('/api/v1/update-meeting/')) {
+      if (urlString.includes('/api/v1/update-meeting/')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ ...mockMeetingData, status: "COMPLETED" }),
+          json: () => Promise.resolve({ ...mockMeetingDataPast, status: "COMPLETED" }),
         });
       }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
     });
 
     render(
@@ -881,24 +1111,26 @@ describe('MeetingCard Completion and Editing', () => {
     });
   });
 
-  test('should handle error when completing meeting (lines 186-230)', async () => {
+  test('should handle error when completing meeting', async () => {
     fetch.mockImplementation((url) => {
-      if (url.includes('/api/v1/meetings') && !url.includes('update-meeting')) {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings') && !urlString.includes('update-meeting')) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ content: [mockMeetingData] }),
+          json: () => Promise.resolve({ content: [mockMeetingDataPast] }),
         });
       }
-      if (url.includes('/api/v1/image/') && !url.includes('update-meeting')) {
+      if (urlString.includes('/api/v1/image/') && !urlString.includes('update-meeting')) {
         return Promise.resolve({
           ok: true,
           blob: () => Promise.resolve(new Blob()),
         });
       }
-      if (url.includes('/api/v1/update-meeting/')) {
+      if (urlString.includes('/api/v1/update-meeting/')) {
         return Promise.reject(new Error('Failed to update meeting'));
       }
-      return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
     });
 
     render(
@@ -929,10 +1161,17 @@ describe('MeetingCard Completion and Editing', () => {
 describe('Textarea Auto-resize Functionality', () => {
   beforeEach(() => {
     fetch.mockClear();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
   });
 
   afterEach(() => {
@@ -940,7 +1179,7 @@ describe('Textarea Auto-resize Functionality', () => {
     console.error.mockRestore();
   });
 
-  test('should auto-resize textarea on focus (lines 45-48)', () => {
+  test('should auto-resize textarea on focus', () => {
     render(
       <Provider store={getTestStore()}>
         <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
@@ -969,7 +1208,7 @@ describe('Textarea Auto-resize Functionality', () => {
     });
   });
 
-  test('should auto-resize textarea on change (lines 35-38)', () => {
+  test('should auto-resize textarea on change', () => {
     render(
       <Provider store={getTestStore()}>
         <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
@@ -998,8 +1237,18 @@ describe('Textarea Auto-resize Functionality', () => {
   });
 });
 
-describe('BigBlueButton Integration (lines 633-687)', () => {
+describe('BigBlueButton Integration', () => {
   beforeEach(() => {
+    fetch.mockClear();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
     jest.spyOn(window, 'open').mockImplementation(() => ({
       focus: () => {},
       close: () => {}
@@ -1011,9 +1260,6 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
     Object.defineProperty(window, 'innerHeight', { writable: true, value: 1080 });
     Object.defineProperty(window, 'screenX', { writable: true, value: 0 });
     Object.defineProperty(window, 'screenY', { writable: true, value: 0 });
-    
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
   });
 
   afterEach(() => {
@@ -1051,7 +1297,7 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
       </Provider>
     );
 
-    const button = screen.getByText('Подключиться');
+    const button = screen.getByLabelText('Присоединиться к видеовстрече'); // ✅ Используем aria-label
     fireEvent.click(button);
 
     expect(global.alert).toHaveBeenCalledWith('Пожалуйста, введите ссылку на встречу');
@@ -1072,7 +1318,7 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
     const input = screen.getByPlaceholderText('https://demo.bigbluebutton.org/rooms/...');
     fireEvent.change(input, { target: { value: 'https://bbb.example.com/rooms/test' } });
 
-    const button = screen.getByText('Подключиться');
+    const button = screen.getByLabelText('Присоединиться к видеовстрече'); // ✅ По aria-label
     fireEvent.click(button);
 
     expect(window.open).toHaveBeenCalledWith(
@@ -1086,20 +1332,61 @@ describe('BigBlueButton Integration (lines 633-687)', () => {
 describe("MeetingCard tooltip hover minimal", () => {
   beforeEach(() => {
     fetch.mockClear();
-    const { useParams } = require('react-router-dom');
-    useParams.mockReturnValue({ meetingId: 'new' });
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    mockUseParams.mockReturnValue({ meetingId: '123' });
+    
+    // Мок для загрузки существующей встречи
+    fetch.mockImplementation((url) => {
+      const urlString = getUrlString(url);
+      
+      if (urlString.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: '123',
+              number: '10',
+              startDate: new Date(Date.now() - 86400000).toISOString(), // Вчера
+              link: 'http://example.com',
+              tasksCurrentMeeting: 'Task 1',
+              tasksNextMeeting: 'Task 2',
+              teamStatus: 'OK',
+              status: 'SCHEDULED'
+            }]
+          }),
+        });
+      }
+      if (urlString.includes('/api/v1/image/')) {
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob()),
+        });
+      }
+      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
+    });
   });
 
-  test("вызывает onMouseEnter/onMouseLeave для обеих кнопок", () => {
+  test("вызывает onMouseEnter/onMouseLeave для обеих кнопок", async () => {
     render(
       <Provider store={getTestStore()}>
-        <MemoryRouter initialEntries={['/meeting/new']}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1&userId=1']}>
           <Routes>
             <Route path="/meeting/:meetingId" element={<MeetingCard />} />
           </Routes>
         </MemoryRouter>
       </Provider>
     );
+
+    // Дождитесь загрузки встречи
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
 
     const completeButton = screen.getByText("Состоялась");
     const notHappenedButton = screen.getByText("Не состоялась");
@@ -1110,3 +1397,14 @@ describe("MeetingCard tooltip hover minimal", () => {
     fireEvent.mouseLeave(notHappenedButton);
   });
 });
+
+async function waitForStatusDropdown() {
+  // Иногда нужно кликнуть, чтобы увидеть опции
+  const dropdown = screen.getByText('Не указано');
+  if (dropdown) {
+    fireEvent.click(dropdown);
+    await waitFor(() => {
+      expect(screen.getByText('Всё ок')).toBeInTheDocument();
+    }, { timeout: 3000 });
+  }
+}

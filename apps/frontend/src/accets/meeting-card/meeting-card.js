@@ -6,7 +6,8 @@ import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import MobileHeader from "../adaptive-accets/MobileHeader";
-import { getMonday, getMeetingsByWeek, validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils"; 
+import { validateMeetingWeekLimit } from "../../utils/date-utils"; 
+import VideoChat from "./video_chat.svg";
 
 const MeetingCard = () => {
     // Формируем абсолютный backendHost для корректной работы new URL
@@ -792,60 +793,62 @@ useEffect(() => {
                     )}
                 </div>
                 <div className="bbb-input-section">
-            <div className="unique-meeting-info-row">
-                <span className="unique-label">Ссылка на видеовстречу:</span>
-            </div>
-            <input
-                type="url"
-                value={bbbLink}
-                onChange={(e) => setBbbLink(e.target.value)}
-                placeholder="https://demo.bigbluebutton.org/rooms/..."
-                className="bbb-link-input"
-                aria-label="Ссылка на видеовстречу"
-            />
-            <div className="bbb-button-wrapper">
-                <button
-                className="bbb-join-button"
-                onClick={() => {
-                    const url = bbbLink.trim();
-                    if (!url) {
-                    alert('Пожалуйста, введите ссылку на встречу');
-                    return;
-                    }
+  <div className="unique-meeting-info-row">
+    <span className="unique-label">Ссылка на видеовстречу:</span>
+  </div>
+  <input
+    type="url"
+    value={bbbLink}
+    onChange={(e) => setBbbLink(e.target.value)}
+    placeholder="https://demo.bigbluebutton.org/rooms/..."
+    className="bbb-link-input"
+    aria-label="Ссылка на видеовстречу"
+  />
+  <div className="bbb-button-wrapper">
+    <button
+      className="bbb-join-icon-button"
+      onClick={() => {
+        const url = bbbLink.trim();
+        if (!url) {
+          alert('Пожалуйста, введите ссылку на встречу');
+          return;
+        }
 
-                    // Добавляем https при необходимости
-                    const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+        const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+        const width = 1100;
+        const height = 700;
+        const left = window.screenX + (window.innerWidth - width) / 2;
+        const top = window.screenY + (window.innerHeight - height) / 2;
 
-                    // Параметры окна
-                    const width = 1100;
-                    const height = 700;
-                    const left = window.screenX + (window.innerWidth - width) / 2;
-                    const top = window.screenY + (window.innerHeight - height) / 2;
-
-                    // Открываем в новом окне с безопасными флагами
-                    window.open(
-                    fullUrl,
-                    'bbb_meeting_window',
-                    `
-                        width=${width},
-                        height=${height},
-                        left=${left},
-                        top=${top},
-                        resizable=yes,
-                        scrollbars=yes,
-                        toolbar=no,
-                        menubar=no,
-                        location=yes,
-                        noopener,
-                        noreferrer
-                    `.replace(/\s/g, '')
-                    );
-                }}
-                >
-                Подключиться
-                </button>
-            </div>
-            </div>
+        window.open(
+          fullUrl,
+          'bbb_meeting_window',
+          `
+            width=${width},
+            height=${height},
+            left=${left},
+            top=${top},
+            resizable=yes,
+            scrollbars=yes,
+            toolbar=no,
+            menubar=no,
+            location=yes,
+            noopener,
+            noreferrer
+          `.replace(/\s/g, '')
+        );
+      }}
+      aria-label="Присоединиться к видеовстрече"
+      title="Присоединиться ко встрече"
+    >
+      <img
+        src={VideoChat}
+        alt="Присоединиться к встрече"
+        className="bbb-join-icon"
+      />
+    </button>
+  </div>
+</div>
 
 
             </div>
@@ -894,10 +897,15 @@ useEffect(() => {
       }}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="delete-meeting-title"
+      aria-labelledby="delete-modal-title"
       tabIndex={-1}
     >
-      <h3 id="delete-meeting-title" data-testid="delete-modal-title">
+      {isMeetingLocked && (
+        <p className="locked-warning">
+          <strong>Эта встреча уже состоялась и её нельзя редактировать!</strong>
+        </p>
+      )}
+      <h3 id="delete-modal-title" data-testid="delete-modal-title">
         Удалить встречу?
       </h3>
       <p>
