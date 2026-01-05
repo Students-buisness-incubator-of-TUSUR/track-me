@@ -6,7 +6,7 @@ import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import MobileHeader from "../adaptive-accets/MobileHeader";
-import { validateMeetingWeekLimit } from "../../utils/date-utils"; 
+import { validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils"; 
 import VideoChat from "./video_chat.svg";
 
 const MeetingCard = () => {
@@ -212,12 +212,9 @@ const renderTextareaSection = (name, label, value) => (
       meetingsForValidation = allMeetings.filter(m => m.id !== meetingId);
     }
     
-    const validation = validateMeetingWeekLimit(
-      meetingsForValidation,        // Встречи для проверки
-      meetingData.startDate,        // Дата редактируемой встречи
-      null,                         // Не нужно исключать, мы уже убрали
-      true                          // Всегда считаем как добавление новой
-    );
+    const validation = isNew 
+      ? validateMeetingWeekLimit(meetingsForValidation, meetingData.startDate, true)
+      : validateMeetingDateChange(meetingsForValidation, meetingId, meetingData.startDate);
 
     if (!validation.isValid) {
       setError(validation.errorMessage);
@@ -519,11 +516,6 @@ useEffect(() => {
     onClick={handleEditClick}
     className="unique-edit-button"
     style={{
-      position: 'absolute',
-      top: '40px',
-      right: '140px',
-      width: '190px',
-      height: '40px',
       zIndex: 10,
       cursor: isMeetingLocked && (role !== "ADMIN" && role !== "SUPER_ADMIN") ? 'not-allowed' : 'pointer'
     }}
@@ -796,7 +788,7 @@ useEffect(() => {
   <div className="unique-meeting-info-row">
     <span className="unique-label">Ссылка на видеовстречу:</span>
   </div>
-  <input
+    <input
     type="url"
     value={bbbLink}
     onChange={(e) => setBbbLink(e.target.value)}
@@ -848,6 +840,8 @@ useEffect(() => {
       />
     </button>
   </div>
+
+  
 </div>
 
 
