@@ -57,9 +57,23 @@ public class OAuth2ClientConfiguration {
     public CorsWebFilter corsWebFilter() {
         var corsProperties = appProperties.cors();
         var configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(corsProperties.allowedOrigins());
+        
+        // Set allowed origins or patterns (patterns are more flexible for development)
+        if (corsProperties.allowedOrigins() != null && !corsProperties.allowedOrigins().isEmpty()) {
+            configuration.setAllowedOrigins(corsProperties.allowedOrigins());
+        }
+        if (corsProperties.allowedOriginPatterns() != null && !corsProperties.allowedOriginPatterns().isEmpty()) {
+            configuration.setAllowedOriginPatterns(corsProperties.allowedOriginPatterns());
+        }
+        
         configuration.setAllowedMethods(corsProperties.allowedMethods());
         configuration.setAllowedHeaders(corsProperties.allowedHeaders());
+        
+        // Set exposed headers if configured
+        if (corsProperties.exposedHeaders() != null && !corsProperties.exposedHeaders().isEmpty()) {
+            configuration.setExposedHeaders(corsProperties.exposedHeaders());
+        }
+        
         configuration.setAllowCredentials(corsProperties.allowCredentials());
         configuration.setMaxAge(3600L);
 

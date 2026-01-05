@@ -8,9 +8,15 @@ app:
     secure: ${SESSION_COOKIE_SECURE:false}
     domain: ${SESSION_COOKIE_DOMAIN:}
   cors:
-    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
-    allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+    # Use allowedOriginPatterns for development to support localhost variations
+    # In production, use explicit allowedOrigins via environment variables
+    allowed-origin-patterns: ${CORS_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+    allowed-origins: ${CORS_ORIGINS:}
+    # Restrict allowed headers to commonly used ones instead of wildcard
+    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,Accept,Origin,X-Requested-With,X-CSRF-TOKEN}
     allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
+    # Expose custom headers that frontend might need to read
+    exposed-headers: ${CORS_EXPOSED_HEADERS:X-CSRF-TOKEN,Authorization}
     allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
 
 spring:
@@ -73,8 +79,9 @@ spring:
             issuer-uri: ${SSO_URI:http://localhost:9000}
 logging:
   level:
-    org.springframework.security: trace
-    org.springframework.cloud.gateway: debug
+    # Use info level by default, override to debug/trace only when needed
+    org.springframework.security: ${SECURITY_LOG_LEVEL:info}
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:info}
 
 springdoc:
   swagger-ui:
@@ -173,8 +180,10 @@ spring:
             client-secret: ${GITHUB_CLIENT_SECRET}
         provider:
           track-me-client:
+            # Use consistent host.docker.internal for all OAuth2 URIs
+            # This ensures proper discovery and token validation from within Docker
             issuer-uri: http://host.docker.internal:9000
-            authorization-uri: http://localhost:9000/oauth2/authorize
+            authorization-uri: http://host.docker.internal:9000/oauth2/authorize
 
 springdoc:
   swagger-ui:
@@ -191,8 +200,41 @@ springdoc:
         url: http://127.0.0.1:8081/backend/v3/api-docs
       - name: TrackMe Meeting Service
         display-name: TrackMe Meeting Service
-        url: http://127.0.1:8081/meeting/v3/api-docs
+        url: http://127.0.0.1:8081/meeting/v3/api-docs
     with-credentials: true
     use-root-path: true
   api-docs:
     enabled: true
+---
+# Production profile with strict security settings
+spring:
+  config:
+    activate:
+      on-profile: production
+
+app:
+  session-cookie:
+    # Production cookies must be secure and use strict same-site
+    same-site: ${SESSION_COOKIE_SAME_SITE:Strict}
+    secure: ${SESSION_COOKIE_SECURE:true}
+    domain: ${SESSION_COOKIE_DOMAIN:}
+  cors:
+    # Production MUST use explicit allowed origins, no patterns
+    # Configure via CORS_ORIGINS environment variable
+    allowed-origins: ${CORS_ORIGINS}
+    allowed-origin-patterns: ${CORS_ORIGIN_PATTERNS:}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,Accept,Origin,X-Requested-With,X-CSRF-TOKEN}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS,PATCH}
+    exposed-headers: ${CORS_EXPOSED_HEADERS:X-CSRF-TOKEN,Authorization}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+
+logging:
+  level:
+    # Production logging should be minimal for performance
+    org.springframework.security: ${SECURITY_LOG_LEVEL:warn}
+    org.springframework.cloud.gateway: ${GATEWAY_LOG_LEVEL:info}
+
+springdoc:
+  swagger-ui:
+    # Disable Swagger UI in production for security
+    enabled: ${SWAGGER_ENABLED:false}
