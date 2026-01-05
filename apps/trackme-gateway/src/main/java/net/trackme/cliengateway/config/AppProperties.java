@@ -33,13 +33,6 @@ public record AppProperties(
             List<String> exposedHeaders,
             @NotNull Boolean allowCredentials
     ) {
-        public CorsProperties {
-            // Ensure at least one origin configuration is provided
-            if ((allowedOrigins == null || allowedOrigins.isEmpty()) &&
-                (allowedOriginPatterns == null || allowedOriginPatterns.isEmpty())) {
-                throw new IllegalArgumentException(
-                    "Either allowedOrigins or allowedOriginPatterns must be specified");
-            }
-        }
+
     }
 }
