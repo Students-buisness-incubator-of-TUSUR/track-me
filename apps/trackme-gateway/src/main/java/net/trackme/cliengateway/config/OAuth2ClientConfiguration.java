@@ -59,14 +59,15 @@ public class OAuth2ClientConfiguration {
         var configuration = new CorsConfiguration();
 
         // Set allowed origins or patterns (patterns are more flexible for development)
-        boolean hasOrigins = corsProperties.allowedOrigins() != null &&
-                            !corsProperties.allowedOrigins().isEmpty();
-        boolean hasPatterns = corsProperties.allowedOriginPatterns() != null &&
-                             !corsProperties.allowedOriginPatterns().isEmpty();
+        boolean hasOrigins = corsProperties.allowedOrigins() != null
+                            && !corsProperties.allowedOrigins().isEmpty();
+        boolean hasPatterns = corsProperties.allowedOriginPatterns() != null
+                             && !corsProperties.allowedOriginPatterns().isEmpty();
 
         if (!hasOrigins && !hasPatterns) {
             throw new IllegalStateException(
-                "CORS configuration error: either allowedOrigins or allowedOriginPatterns must be specified");
+                "CORS configuration error: either allowedOrigins or "
+                + "allowedOriginPatterns must be specified");
         }
 
         if (hasOrigins) {
@@ -80,7 +81,8 @@ public class OAuth2ClientConfiguration {
         configuration.setAllowedHeaders(corsProperties.allowedHeaders());
 
         // Set exposed headers if configured
-        if (corsProperties.exposedHeaders() != null && !corsProperties.exposedHeaders().isEmpty()) {
+        if (corsProperties.exposedHeaders() != null
+            && !corsProperties.exposedHeaders().isEmpty()) {
             configuration.setExposedHeaders(corsProperties.exposedHeaders());
         }
 
