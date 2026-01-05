@@ -38,43 +38,43 @@ class CorsConfigurationTest {
     void testCorsPropertiesAreLoaded() {
         assertNotNull(appProperties, "AppProperties should not be null");
         assertNotNull(appProperties.cors(), "CORS properties should not be null");
-        
+
         var corsProperties = appProperties.cors();
-        
+
         // Verify credentials are enabled
         assertTrue(corsProperties.allowCredentials(), "Allow credentials should be true");
-        
+
         // Verify allowed methods are configured
         assertNotNull(corsProperties.allowedMethods(), "Allowed methods should not be null");
         assertFalse(corsProperties.allowedMethods().isEmpty(), "Allowed methods should not be empty");
-        
+
         // Verify allowed headers are configured (should not be wildcard)
         assertNotNull(corsProperties.allowedHeaders(), "Allowed headers should not be null");
         assertFalse(corsProperties.allowedHeaders().isEmpty(), "Allowed headers should not be empty");
-        assertFalse(corsProperties.allowedHeaders().contains("*"), 
+        assertFalse(corsProperties.allowedHeaders().contains("*"),
             "Allowed headers should not contain wildcard when credentials are enabled");
     }
 
     @Test
     void testEitherOriginsOrPatternsAreConfigured() {
         var corsProperties = appProperties.cors();
-        
-        boolean hasOrigins = corsProperties.allowedOrigins() != null && 
+
+        boolean hasOrigins = corsProperties.allowedOrigins() != null &&
                             !corsProperties.allowedOrigins().isEmpty();
-        boolean hasPatterns = corsProperties.allowedOriginPatterns() != null && 
+        boolean hasPatterns = corsProperties.allowedOriginPatterns() != null &&
                              !corsProperties.allowedOriginPatterns().isEmpty();
-        
-        assertTrue(hasOrigins || hasPatterns, 
+
+        assertTrue(hasOrigins || hasPatterns,
             "Either allowed origins or allowed origin patterns should be configured");
     }
 
     @Test
     void testExposedHeadersCanBeConfigured() {
         var corsProperties = appProperties.cors();
-        
+
         // Exposed headers are optional, but if configured they should not be empty
         if (corsProperties.exposedHeaders() != null) {
-            assertFalse(corsProperties.exposedHeaders().isEmpty(), 
+            assertFalse(corsProperties.exposedHeaders().isEmpty(),
                 "If exposed headers are configured, they should not be empty");
         }
     }
