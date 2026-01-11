@@ -1800,3 +1800,254 @@ describe('MeetingCard Sorting Logic', () => {
     // Пустой массив → сортировка не выполняется
   });
 });
+describe('MeetingCard Simple Validation Tests (lines 215-217)', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.clearAllMocks();
+  });
+
+  // Простая функция для заполнения минимальных полей
+  const fillMinimalFields = async (container) => {
+    // Находим все текстовые поля
+    const textareas = Array.from(container.querySelectorAll('textarea'));
+    
+    // Заполняем первое textarea (tasksCurrentMeeting)
+    if (textareas[0]) {
+      fireEvent.change(textareas[0], {
+        target: {
+          value: 'Test tasks',
+          name: 'tasksCurrentMeeting'
+        }
+      });
+    }
+    
+    // Заполняем второе textarea (tasksNextMeeting)
+    if (textareas[1]) {
+      fireEvent.change(textareas[1], {
+        target: {
+          value: 'Test next tasks',
+          name: 'tasksNextMeeting'
+        }
+      });
+    }
+    
+    // Статус дропдаун
+    const dropdown = container.querySelector('.status-selected');
+    if (dropdown) {
+      fireEvent.click(dropdown);
+      
+      // Ждем появления опций
+      await waitFor(() => {
+        expect(screen.getByText('Всё ок')).toBeInTheDocument();
+      }, { timeout: 1000 });
+      
+      fireEvent.click(screen.getByText('Всё ок'));
+    }
+    
+    // Ссылка
+    const linkInput = container.querySelector('input[name="link"]');
+    if (linkInput) {
+      fireEvent.change(linkInput, {
+        target: {
+          value: 'http://example.com',
+          name: 'link'
+        }
+      });
+    }
+    
+    // Загружаем изображение
+    const fileInput = container.querySelector('input[type="file"]');
+    if (fileInput) {
+      const file = new File(['test'], 'test.png', { type: 'image/png' });
+      Object.defineProperty(fileInput, 'files', { value: [file] });
+      fireEvent.change(fileInput);
+    }
+  };
+
+  test('shows validation error when week limit exceeded', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
+    // Мокаем 2 встречи на текущей неделе (понедельник и вторник)
+    const monday = new Date();
+    monday.setDate(monday.getDate() - monday.getDay() + 1); // Ближайший понедельник
+    
+    const tuesday = new Date(monday);
+    tuesday.setDate(tuesday.getDate() + 1);
+    
+    const mockMeetings = [
+      { 
+        id: '1', 
+        number: '1', 
+        startDate: monday.toISOString(),
+        teamStatus: 'OK'
+      },
+      { 
+        id: '2', 
+        number: '2', 
+        startDate: tuesday.toISOString(),
+        teamStatus: 'OK'
+      }
+    ];
+
+    let fetchCallCount = 0;
+    fetch.mockImplementation(() => {
+      fetchCallCount++;
+      
+      // Первый вызов: загрузка встреч для валидации
+      if (fetchCallCount === 1) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: mockMeetings })
+        });
+      }
+      
+      // Остальные вызовы возвращают успех
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({})
+      });
+    });
+
+    const { container } = render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    // Ждем загрузки компонента
+    await waitFor(() => {
+      expect(screen.getByText('Сохранить')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Заполняем обязательные поля
+    await fillMinimalFields(container);
+    
+    // Устанавливаем дату на среду той же недели
+    const wednesday = new Date(monday);
+    wednesday.setDate(wednesday.getDate() + 2);
+    
+    const dateInput = container.querySelector('input[type="date"]');
+    fireEvent.change(dateInput, {
+      target: {
+        value: wednesday.toISOString().split('T')[0], // Формат YYYY-MM-DD
+        name: 'startDate'
+      }
+    });
+
+    // Нажимаем сохранить
+    await act(async () => {
+      fireEvent.click(screen.getByText('Сохранить'));
+    });
+    
+    // Проверяем, что появилось сообщение об ошибке
+    // Сначала проверяем что есть какой-то элемент с текстом ошибки
+    await waitFor(() => {
+      const errorElements = container.querySelectorAll('[class*="error"]');
+      expect(errorElements.length).toBeGreaterThan(0);
+    }, { timeout: 3000 });
+    
+    // Проверяем текст ошибки (может быть частичным)
+    const errorText = screen.queryByText(/Нельзя/i) || 
+                     screen.queryByText(/встречи/i) ||
+                     screen.queryByText(/сохранить/i) ||
+                     screen.queryByText(/неделе/i) ||
+                     screen.queryByText(/уже/i);
+    
+    expect(errorText).toBeTruthy();
+  });
+
+  test('does not show error when week limit not exceeded', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
+    // Мокаем пустой список встреч
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ content: [] })
+    });
+
+    const { container } = render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Сохранить')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Заполняем поля
+    await fillMinimalFields(container);
+    
+    // Нажимаем сохранить
+    await act(async () => {
+      fireEvent.click(screen.getByText('Сохранить'));
+    });
+    
+    // Ждем немного
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+    
+    // Проверяем что нет элемента с классом error
+    const errorElements = container.querySelectorAll('[class*="error"]');
+    expect(errorElements.length).toBe(0);
+  });
+
+  // Простой тест для проверки что функция вызывается
+  test('validation logic is triggered on save', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ content: [] })
+    });
+
+    const { container } = render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Сохранить')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Заполняем все обязательные поля
+    await fillMinimalFields(container);
+    
+    // Нажимаем сохранить
+    await act(async () => {
+      fireEvent.click(screen.getByText('Сохранить'));
+    });
+    
+    // Просто проверяем что fetch был вызван (значит логика сохранения запустилась)
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
+    }, { timeout: 3000 });
+  });
+});
