@@ -65,19 +65,19 @@ export const validateMeetingWeekLimit = (allMeetings, newMeetingDate, isNewMeeti
     }
     
     // Форматируем даты для сообщения об ошибке
-    const formatDateForDisplay = (dateString) => {
-      const [year, month, day] = dateString.split('-');
-      return `${day}.${month}.${year}`;
-    };
+    // const formatDateForDisplay = (dateString) => {
+    //   const [year, month, day] = dateString.split('-');
+    //   return `${day}.${month}.${year}`;
+    // };
     
-    const weekStart = formatDateForDisplay(mondayKey);
+    //const weekStart = formatDateForDisplay(mondayKey);
     const weekEndDate = new Date(mondayKey);
     weekEndDate.setDate(weekEndDate.getDate() + 6);
-    const weekEnd = weekEndDate.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    // const weekEnd = weekEndDate.toLocaleDateString('ru-RU', {
+    //   day: '2-digit',
+    //   month: '2-digit',
+    //   year: 'numeric'
+    // });
     
     return {
       isValid: countThisWeek <= 2,

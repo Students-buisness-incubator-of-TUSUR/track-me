@@ -1,5 +1,7 @@
 // accets/report/ReportPage.js
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
+import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import { Link, useNavigate } from "react-router-dom";
 import ProfileIcon from "../stream-page/personal_account_1.png";
 import "./ReportPage.css";
@@ -9,6 +11,10 @@ import MobileHeader from "../adaptive-accets/MobileHeader";
 export default function ReportPage() {
   const navigate = useNavigate();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+const [reports, setReports] = useState([]);
+const [page] = useState(0);
+const [size] = useState(10);
+const [loading, setLoading] = useState(false);
 
   const toggleProfileMenu = () => setIsProfileMenuOpen(prev => !prev);
 
@@ -20,6 +26,34 @@ export default function ReportPage() {
   // фильтры (заглушки)
   const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
   const [streamFilterOpen, setStreamFilterOpen] = useState(false);
+  
+  const loadReports = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `https://api.trackme.test.startup-poligon.com/backend/api/v1/team-cards/reports?page=${page}&size=${size}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer `,
+            ...getCsrfConfigForFetch(),
+          },
+        }
+      );
+
+      const data = await response.json();
+      setReports(data.content);
+    } catch (error) {
+      console.error("Ошибка загрузки отчётов", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, size]);
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
+
+
 
   const dummyTrackers = [
     "Александров Александр Александрович",
@@ -183,21 +217,48 @@ export default function ReportPage() {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 30 }).map((_, i) => (
-                <tr key={i}>
-                  <td>{i + 1}</td>
-                  <td>Поток называется вот так</td>
-                  <td>01.09.2025 – 12.12.2025</td>
-                  <td>Название команды очень длинное</td>
-                  <td>Александров Александр Александрович</td>
-                  <td>5</td>
-                  <td>5</td>
-                  <td>1/3</td>
-                  <td>HealthNet</td>
-                  <td>0-2</td>
-                </tr>
-              ))}
-            </tbody>
+  {loading && (
+    <tr>
+      <td colSpan="10">Загрузка...</td>
+    </tr>
+  )}
+
+  {!loading && reports.length === 0 && (
+    <tr>
+      <td colSpan="10">Нет данных</td>
+    </tr>
+  )}
+
+  {!loading &&
+    reports.map((item, index) => (
+      <tr key={index}>
+        <td>{index + 1 + page * size}</td>
+
+        <td>{item.streamName}</td>
+
+        <td>
+          {item.startDate} – {item.endDate}
+        </td>
+
+        <td>{item.teamCardName}</td>
+
+        <td>{item.username}</td>
+
+        <td>{item.averageTeamGrade ?? "—"}</td>
+
+        <td>{item.averageUserGrade ?? "—"}</td>
+
+        <td>
+          {item.meetingsCountFact}/{item.meetingsCountPlan}
+        </td>
+
+        <td>{item.ntiMarkets.join(", ")}</td>
+
+        <td>{item.readinessLevel}</td>
+      </tr>
+    ))}
+</tbody>
+
           </table>
         </div>
       </main>
