@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './CustomDateTimePicker.css';
 
-const CustomDateTimePicker = ({ value, onChange, min, max, disabled }) => {
+const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled }) => {
     const [showPicker, setShowPicker] = useState(false);
     const [selectedDate, setSelectedDate] = useState(value ? value.split('T')[0] : '');
     const pickerRef = useRef(null);
@@ -156,14 +156,25 @@ const CustomDateTimePicker = ({ value, onChange, min, max, disabled }) => {
     return (
         <div className={`custom-datetime-wrapper ${showPicker ? 'open' : ''}`} ref={pickerRef}>
             <div 
-                className={`custom-datetime-display ${disabled ? 'disabled' : ''}`}
-                onClick={() => !disabled && setShowPicker(!showPicker)}
-            >
-                <span className="display-text">{formatDisplay()}</span>
-                <span className="custom-datetime-icon">
-                    {showPicker ? '▲' : '▼'}
-                </span>
-            </div>
+    className={`custom-datetime-display ${disabled ? 'disabled' : ''}`}
+    onClick={() => !disabled && setShowPicker(!showPicker)}
+    onKeyDown={(e) => {
+        if (!disabled && (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar')) {
+            e.preventDefault();
+            setShowPicker(!showPicker);
+        }
+    }}
+    tabIndex={disabled ? -1 : 0}
+    role="button"
+    aria-haspopup="dialog"
+    aria-expanded={showPicker}
+    aria-label={`Выбрать дату. Текущая дата: ${selectedDate ? formatDisplay() : 'не выбрана'}`}
+>
+    <span className="display-text">{formatDisplay()}</span>
+    <span className="custom-datetime-icon">
+        {showPicker ? '▲' : '▼'}
+    </span>
+</div>
             
             {showPicker && !disabled && (
                 <div className="custom-datetime-picker">
@@ -209,14 +220,24 @@ const CustomDateTimePicker = ({ value, onChange, min, max, disabled }) => {
                                 
                                 return (
                                     <div
-                                        key={index}
-                                        className={`calendar-day ${day.isToday ? 'today' : ''} ${day.isSelected ? 'selected' : ''} ${day.isDisabled ? 'disabled' : ''}`}
-                                        onClick={() => !day.isDisabled && handleDayClick(day.dateString)}
-                                        title={day.isDisabled ? 'Дата недоступна' : `Выбрать ${day.date}`}
-                                    >
-                                        <span className="day-number">{day.date}</span>
-                                        {day.isToday && <span className="today-indicator"></span>}
-                                    </div>
+    key={index}
+    className={`calendar-day ${day.isToday ? 'today' : ''} ${day.isSelected ? 'selected' : ''} ${day.isDisabled ? 'disabled' : ''}`}
+    onClick={() => !day.isDisabled && handleDayClick(day.dateString)}
+    onKeyDown={(e) => {
+        if (!day.isDisabled && (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar')) {
+            e.preventDefault();
+            handleDayClick(day.dateString);
+        }
+    }}
+    tabIndex={day.isDisabled ? -1 : 0}
+    role="button"
+    aria-label={`${day.date} ${getMonthName()} ${day.isSelected ? ', выбрано' : ''} ${day.isToday ? ', сегодня' : ''} ${day.isDisabled ? ', недоступно' : ''}`}
+    aria-disabled={day.isDisabled}
+    title={day.isDisabled ? 'Дата недоступна' : `Выбрать ${day.date}`}
+>
+    <span className="day-number">{day.date}</span>
+    {day.isToday && <span className="today-indicator"></span>}
+</div>
                                 );
                             })}
                         </div>
