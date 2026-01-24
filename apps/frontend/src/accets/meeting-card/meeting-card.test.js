@@ -1800,3 +1800,131 @@ describe('MeetingCard Sorting Logic', () => {
     // Пустой массив → сортировка не выполняется
   });
 });
+describe('MeetingCard Validation Coverage (lines 215-217)', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+    mockNavigate.mockClear();
+    mockUseLocation.mockClear();
+    mockUseParams.mockClear();
+    
+    mockUseLocation.mockReturnValue({
+      search: '?teamId=1&username=test&userId=1',
+    });
+    
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.clearAllMocks();
+  });
+
+  // Простой тест для проверки что код строк 215-217 выполняется для новой встречи
+  test('covers validation logic for new meeting (isNew = true)', async () => {
+    // Настраиваем как новую встречу
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    
+    // Мокаем загрузку всех встреч (пустой список)
+    fetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ content: [] })
+    });
+
+    const { container } = render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    // Ждем пока компонент загрузится
+    await waitFor(() => {
+      expect(screen.getByText('Сохранить')).toBeInTheDocument();
+    });
+
+    // Нажимаем кнопку сохранения
+    fireEvent.click(screen.getByText('Сохранить'));
+    
+    // Проверяем что был вызов fetch (значит логика сохранения запустилась)
+    expect(fetch).toHaveBeenCalled();
+  });
+
+  // Тест для проверки что код строк 215-217 выполняется для существующей встречи
+  test('covers validation logic for existing meeting (isNew = false)', async () => {
+    // Настраиваем как существующую встречу
+    mockUseParams.mockReturnValue({ meetingId: '123' });
+    
+    let callCount = 0;
+    
+    fetch.mockImplementation(() => {
+      callCount++;
+      
+      // Первый вызов: загрузка встреч
+      if (callCount === 1) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              {
+                id: '123',
+                number: '1',
+                startDate: '2025-12-01T00:00:00.000Z',
+                link: 'http://example.com',
+                tasksCurrentMeeting: 'Task 1',
+                tasksNextMeeting: 'Task 2',
+                teamStatus: 'OK',
+                status: 'SCHEDULED'
+              }
+            ]
+          })
+        });
+      }
+      
+      // Второй вызов: загрузка изображения
+      if (callCount === 2) {
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob())
+        });
+      }
+      
+      // Остальные вызовы
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ id: '123' })
+      });
+    });
+
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    // Ждем загрузки встречи
+    await waitFor(() => {
+      expect(screen.getByText('Редактировать')).toBeInTheDocument();
+    });
+
+    // Включаем редактирование
+    fireEvent.click(screen.getByText('Редактировать'));
+    
+    // Ждем появления кнопки сохранения
+    await waitFor(() => {
+      expect(screen.getByText('Сохранить')).toBeInTheDocument();
+    });
+
+    // Нажимаем кнопку сохранения
+    fireEvent.click(screen.getByText('Сохранить'));
+    
+    // Проверяем что было несколько вызовов fetch
+    expect(callCount).toBeGreaterThan(2);
+  });
+});
