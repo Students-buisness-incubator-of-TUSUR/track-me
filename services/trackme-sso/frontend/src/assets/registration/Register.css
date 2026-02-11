@@ -54,6 +54,13 @@
     transition: 0.3s;
 }
 
+.register-button:disabled {
+    color: #aaa;
+    cursor: default;
+    opacity: 0.6;
+    box-shadow: none;
+}
+
 .register-button:hover {
     background: #e6d7fb;
 }
@@ -164,5 +171,12 @@
         padding: 10px 20px;
         width: 70%;
         height: 35px;
+    }
+
+    .register-button:disabled {
+        color: #aaa;
+        cursor: default;
+        opacity: 0.6;
+        box-shadow: none;
     }
 }
