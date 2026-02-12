@@ -3,11 +3,13 @@ import "./InputBox.css";
 
 const InputBox = ({ placeholder, type, autoComplete, name, value, onChange, required, pattern, errorText }) => {
     const [isFocused, setIsFocused] = useState(false);
+    const id = "input-box-" + name + "-" + type;
 
     return (
         <div className="input-box_container-with-helper">
             <div className="input-box_container">
                 <input
+                    id={id}
                     type={type}
                     className=""
                     name={name}
@@ -20,7 +22,7 @@ const InputBox = ({ placeholder, type, autoComplete, name, value, onChange, requ
                     autoComplete={autoComplete}
                     placeholder="fake" // input is non empty if placeholder is not shown for CSS
                 />
-                <label>{placeholder}</label>
+                <label htmlFor={id}>{placeholder}</label>
             </div>
             <span>{isFocused ? errorText : (value !== "" ? errorText : "")}</span>
         </div>
