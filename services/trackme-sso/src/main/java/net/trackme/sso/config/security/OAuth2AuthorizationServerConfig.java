@@ -92,6 +92,7 @@ public class OAuth2AuthorizationServerConfig {
                                 .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
                                 .anyRequest().authenticated()
                 )
+                .cors(Customizer.withDefaults())
                 .exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
                         new LoginUrlAuthenticationEntryPoint(LOGIN_PAGE),
                         new MediaTypeRequestMatcher(MediaType.APPLICATION_JSON)

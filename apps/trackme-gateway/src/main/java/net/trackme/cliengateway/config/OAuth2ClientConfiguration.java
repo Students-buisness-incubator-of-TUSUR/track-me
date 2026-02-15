@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
@@ -14,12 +17,14 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import reactor.core.publisher.Mono;
 
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -38,12 +43,14 @@ public class OAuth2ClientConfiguration {
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
-                .cors(withDefaults()) // Enable CORS support
+                .cors(withDefaults())
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
                                 .pathMatchers("/csrf").permitAll()
                                 .anyExchange().authenticated())
+                .exceptionHandling(exceptions ->
+                        exceptions.authenticationEntryPoint(ajaxAwareEntryPoint()))
                 .oauth2Login(oauth2Login ->
                         oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler))
                 .oauth2Client(withDefaults())
@@ -51,6 +58,42 @@ public class OAuth2ClientConfiguration {
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutSuccessHandler))
                 .build();
+    }
+
+    /**
+     * Для AJAX-запросов (XHR / fetch с Accept: application/json) возвращаем 401
+     * с заголовком X-Login-Url, чтобы frontend мог сделать полный редирект.
+     * Для обычных браузерных запросов — стандартный 302 на OAuth2 login.
+     */
+    private ServerAuthenticationEntryPoint ajaxAwareEntryPoint() {
+        var loginUrl = "/oauth2/authorization/track-me-client";
+
+        return (exchange, ex) -> {
+            var request = exchange.getRequest();
+            var accept = request.getHeaders().getAccept();
+            var xRequestedWith = request.getHeaders().getFirst("X-Requested-With");
+
+            boolean isAjax = "XMLHttpRequest".equals(xRequestedWith)
+                    || accept.stream().anyMatch(mt ->
+                    mt.isCompatibleWith(MediaType.APPLICATION_JSON)
+                            && !mt.isCompatibleWith(MediaType.TEXT_HTML));
+
+            if (isAjax) {
+                var response = exchange.getResponse();
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                response.getHeaders().set("X-Login-Url", loginUrl);
+                response.getHeaders().set(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "X-Login-Url");
+                return response.setComplete();
+            }
+
+            // Обычный запрос — редирект на OAuth2
+            return exchange.getResponse().setComplete().then(Mono.fromRunnable(() -> {
+                var response = exchange.getResponse();
+                response.setStatusCode(HttpStatus.FOUND);
+                response.getHeaders().setLocation(
+                        java.net.URI.create(loginUrl));
+            }));
+        };
     }
 
     @Bean

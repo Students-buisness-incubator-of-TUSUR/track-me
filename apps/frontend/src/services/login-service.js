@@ -1,36 +1,17 @@
-import axios from "axios";
+import api from './api';
 import { getCsrfConfig } from '../utils/csrf-utils';
 import {useDispatch} from "react-redux";
 import { setUser, clearUser } from '../store/userSlice';
 
 function LoginService() {
-    const backendUrl = process.env.REACT_APP_BACKEND_URI || "http://localhost:8081";
     const dispatch = useDispatch();
-
-    // Применяем withCredentials ко всем запросам через отдельный экземпляр axios
-    const axiosWithCredentials = axios.create({
-        baseURL: backendUrl,
-        withCredentials: true,
-    });
-    axiosWithCredentials.interceptors.response.use(
-        response => response,
-        error => {
-            if (error.response && [401, 302].includes(error.response.status)) {
-                // Если получили 401 Unauthorized - сессия истекла
-                dispatch(clearUser());
-                window.location.href = '/'; // Перенаправляем на страницу входа
-            }
-            return Promise.reject(error);
-        }
-    );
 
     const register = async (userData) => {
         try {
-            // Регистрация чаще всего не использует кук, но на всякий случай добавим
-            const response = await axiosWithCredentials.post("/register", userData, {
+            const response = await api.post("/register", userData, {
                 headers: {
-                    "Content-Type": "application/json", // Обычно для регистрации используется JSON
-                    ...getCsrfConfig().headers // Добавляем CSRF-заголовки
+                    "Content-Type": "application/json",
+                    ...getCsrfConfig().headers
                 }
             });
             if (response.status === 200) {
@@ -46,7 +27,7 @@ function LoginService() {
 
     const logout = async () => {
         try {
-            await axiosWithCredentials.post("/logout", {}, {
+            await api.post("/logout", {}, {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                     ...getCsrfConfig().headers
@@ -61,7 +42,7 @@ function LoginService() {
 
     const getUserInfo = async () => {
         try {
-            const response = await axiosWithCredentials.get("/sso/api/v1/account/info");
+            const response = await api.get("/sso/api/v1/account/info");
             if (response.status === 200) {
                 dispatch(setUser(response.data));
                 return response.data;

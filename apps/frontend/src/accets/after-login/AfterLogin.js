@@ -1,9 +1,7 @@
 import {useEffect} from "react";
 import loginService from "../../services/login-service";
 import {useNavigate} from "react-router-dom";
-import axios from "axios";
-
-const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080');
+import api from "../../services/api";
 
 function AfterLogin() {
     let service = loginService();
@@ -14,9 +12,7 @@ function AfterLogin() {
         // Сначала получаем CSRF-токен
         const fetchCsrfToken = async () => {
             try {
-                const response = await axios.get(backendHost + '/csrf', {
-                    withCredentials: true
-                });
+                const response = await api.get('/csrf');
 
                 // Сохраняем токен в localStorage или в памяти
                 localStorage.setItem('csrfToken', response.data.token);
