@@ -3,18 +3,16 @@ import { render, waitFor } from "@testing-library/react";
 import { useNavigate } from "react-router-dom";
 import AfterLogin from "./AfterLogin";
 import loginService from "../../services/login-service";
-import axios from "axios";
+import api from "../../services/api";
 
-jest.mock("axios", () => ({
+jest.mock("../../services/api", () => ({
   __esModule: true,
   default: {
-    get: jest.fn(() => Promise.resolve({ 
-      data: { 
-        token: "test-csrf-token", 
-        headerName: "X-CSRF-TOKEN" 
-      } 
-    })),
-    create: jest.fn().mockReturnValue({ get: jest.fn() }),
+    get: jest.fn(),
+    post: jest.fn(),
+    interceptors: {
+      response: { use: jest.fn() },
+    },
   },
 }));
 
@@ -35,7 +33,14 @@ describe("AfterLogin", () => {
     mockGetUserInfo = jest.fn();
     loginService.mockReturnValue({ getUserInfo: mockGetUserInfo });
 
-    // Очищаем localStorage перед каждым тестом
+    // Мок для CSRF-запроса
+    api.get.mockResolvedValue({
+      data: {
+        token: "test-csrf-token",
+        headerName: "X-CSRF-TOKEN",
+      },
+    });
+
     localStorage.clear();
   });
 
@@ -50,15 +55,25 @@ describe("AfterLogin", () => {
     { roles: ["USER"], expectedPath: "/home" },
   ];
 
-  
+  scenarios.forEach(({ roles, expectedPath }) => {
+    it(`navigates to ${expectedPath} for roles ${roles}`, async () => {
+      mockGetUserInfo.mockResolvedValue({ roles });
+
+      render(<AfterLogin />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(expectedPath);
+      });
+    });
+  });
 
   it("logs an error if CSRF token fetch fails", async () => {
     const error = new Error("CSRF fetch failed");
-    axios.get.mockRejectedValueOnce(error);
+    api.get.mockRejectedValueOnce(error);
     console.error = jest.fn();
 
     render(<AfterLogin />);
-    
+
     await waitFor(() => {
       expect(console.error).toHaveBeenCalledWith("Error fetching CSRF token:", error);
     });
