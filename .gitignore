@@ -37,3 +37,7 @@ out/
 ### VS Code ###
 .vscode/
 /apps/backend/src/main/resources/.jwt
+
+### SSO build artifacts ###
+services/trackme-sso/src/main/resources/static/
+services/trackme-sso/src/main/resources/templates/
