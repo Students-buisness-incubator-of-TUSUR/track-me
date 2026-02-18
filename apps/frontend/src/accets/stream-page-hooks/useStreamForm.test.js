@@ -65,14 +65,6 @@ describe('useStreamForm', () => {
     expect(result.current.name).toBe('New Stream');
   });
 
-  it('должен форматировать дату при вводе', () => {
-    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
-    act(() => {
-      result.current.handleStartDateChange({ target: { value: '01022025' } });
-    });
-    expect(result.current.startDate).toBe('01.02.2025');
-  });
-
   it('должен переключать видимость чекбоксов', () => {
     const { result } = renderHook(() => useStreamForm(null, mockNavigate));
     act(() => {
@@ -109,30 +101,15 @@ it('не должен устанавливать изображение, есл�
   expect(result.current.error).toBe('Пожалуйста, выберите файл изображения (JPEG, PNG, GIF)');
 });
 
-it('валидирует форму корректно', () => {
-  const { result } = renderHook(() => useStreamForm(null, mockNavigate));
-
-  act(() => {
-    result.current.handleNameChange({ target: { value: 'Stream' } });
-    result.current.handleStartDateChange({ target: { value: '01012024' } });
-    result.current.handleEndDateChange({ target: { value: '02012024' } });
-    result.current.handleCheckboxChange(1);
-  });
-
-  expect(result.current.name).toBe('Stream');
-  expect(result.current.startDate).toBe('01.01.2024');
-  expect(result.current.endDate).toBe('02.01.2024');
-});
-
 
 // Тест на дату начала позже даты окончания
 it('не валидирует, если дата начала позже даты окончания', () => {
   const { result } = renderHook(() => useStreamForm(null, mockNavigate));
   act(() => {
     result.current.handleNameChange({ target: { value: 'Stream' } });
-    result.current.handleStartDateChange({ target: { value: '03012024' } });
-    result.current.handleEndDateChange({ target: { value: '02012024' } });
-    result.current.handleTrackStartDateChange({ target: { value: '02012024' } });
+    result.current.handleStartDateChange({ target: { value: '2024-01-03' } });
+    result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
@@ -149,9 +126,9 @@ it('не валидирует, если не выбрано ни одного ч
   const { result } = renderHook(() => useStreamForm(null, mockNavigate));
   act(() => {
     result.current.handleNameChange({ target: { value: 'Stream' } });
-    result.current.handleStartDateChange({ target: { value: '01012024' } });
-    result.current.handleEndDateChange({ target: { value: '02012024' } });
-    result.current.handleTrackStartDateChange({ target: { value: '01012024' } });
+    result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
   });
 
@@ -168,9 +145,9 @@ it('не валидирует неправильную дату', () => {
 
   act(() => {
     result.current.handleNameChange({ target: { value: 'Stream' } });
-    result.current.handleStartDateChange({ target: { value: '31022024' } }); // 31.02 — неверно
-    result.current.handleEndDateChange({ target: { value: '01032024' } });
-    result.current.handleTrackStartDateChange({ target: { value: '01022024' } });
+    result.current.handleStartDateChange({ target: { value: '2024-02-31' } }); // 31.02 — неверно
+    result.current.handleEndDateChange({ target: { value: '2024-03-01' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-02-01' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
@@ -192,9 +169,9 @@ it('should handle submission errors', async () => {
   
   act(() => {
     result.current.handleNameChange({ target: { value: 'Test Stream' } });
-    result.current.handleStartDateChange({ target: { value: '01012023' } });
-    result.current.handleEndDateChange({ target: { value: '02012023' } });
-    result.current.handleTrackStartDateChange({ target: { value: '01012023' } });
+    result.current.handleStartDateChange({ target: { value: '2023-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2023-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2023-01-01' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
@@ -242,9 +219,9 @@ it('should handle different error messages for create and edit modes', async () 
 
   act(() => {
     result.current.handleNameChange({ target: { value: 'Test Stream' } });
-    result.current.handleStartDateChange({ target: { value: '01012023' } });
-    result.current.handleEndDateChange({ target: { value: '02012023' } });
-    result.current.handleTrackStartDateChange({ target: { value: '01012023' } });
+    result.current.handleStartDateChange({ target: { value: '2023-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2023-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2023-01-01' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
@@ -324,9 +301,9 @@ describe('useStreamForm', () => {
   it('должен форматировать дату при вводе', () => {
     const { result } = renderHook(() => useStreamForm(null, mockNavigate));
     act(() => {
-      result.current.handleStartDateChange({ target: { value: '01022025' } });
+      result.current.handleStartDateChange({ target: { value: '2025-02-01' } });
     });
-    expect(result.current.startDate).toBe('01.02.2025');
+    expect(result.current.startDate).toBe('2025-02-01');
   });
 
   it('должен переключать видимость чекбоксов', () => {
@@ -371,14 +348,14 @@ describe('useStreamForm', () => {
 
     act(() => {
       result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '01012024' } });
-      result.current.handleEndDateChange({ target: { value: '02012024' } });
+      result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+      result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
       result.current.handleCheckboxChange(1);
     });
 
     expect(result.current.name).toBe('Stream');
-    expect(result.current.startDate).toBe('01.01.2024');
-    expect(result.current.endDate).toBe('02.01.2024');
+    expect(result.current.startDate).toBe('2024-01-01');
+    expect(result.current.endDate).toBe('2024-01-02');
   });
 
   
@@ -392,33 +369,6 @@ describe('useStreamForm', () => {
     });
 
     expect(result.current.error).toBe('Пожалуйста, заполните все обязательные поля.');
-  });
-it('should handle date formatting for different input lengths', () => {
-    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
-    
-    // Test partial date (day only)
-    act(() => {
-      result.current.handleStartDateChange({ target: { value: '01' } });
-    });
-    expect(result.current.startDate).toBe('01');
-    
-    // Test day and month
-    act(() => {
-      result.current.handleStartDateChange({ target: { value: '0102' } });
-    });
-    expect(result.current.startDate).toBe('01.02');
-    
-    // Test full date
-    act(() => {
-      result.current.handleStartDateChange({ target: { value: '01022023' } });
-    });
-    expect(result.current.startDate).toBe('01.02.2023');
-    
-    // Test with non-digit characters
-    act(() => {
-      result.current.handleStartDateChange({ target: { value: '01/02/2023' } });
-    });
-    expect(result.current.startDate).toBe('01.02.2023');
   });
   // Исправленный тест для разных сообщений ошибок
 it('should handle different error messages for create and edit modes', async () => {
@@ -455,9 +405,9 @@ it('should handle different error messages for create and edit modes', async () 
 
   act(() => {
     result.current.handleNameChange({ target: { value: 'Test Stream' } });
-    result.current.handleStartDateChange({ target: { value: '01012023' } });
-    result.current.handleEndDateChange({ target: { value: '02012023' } });
-    result.current.handleTrackStartDateChange({ target: { value: '01012023' } });
+    result.current.handleStartDateChange({ target: { value: '2023-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2023-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2023-01-01' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
@@ -526,8 +476,8 @@ it('должен форматировать дату из ISO в формат Д
 
   const { result } = renderHook(() => useStreamForm(1, mockNavigate));
   await waitFor(() => {
-    expect(result.current.startDate).toBe('01.07.2025');
-    expect(result.current.endDate).toBe('10.07.2025');
+    expect(result.current.startDate).toBe('2025-07-01');
+    expect(result.current.endDate).toBe('2025-07-10');
   });
 });
 it('должен скрывать чекбоксы при клике вне', () => {
@@ -619,9 +569,9 @@ describe('handleSubmit', () => {
 
   act(() => {
     result.current.handleNameChange({ target: { value: 'Stream Edit' } });
-    result.current.handleStartDateChange({ target: { value: '01012024' } });
-    result.current.handleEndDateChange({ target: { value: '02012024' } });
-    result.current.handleTrackStartDateChange({ target: { value: '01012024' } });
+    result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
@@ -644,9 +594,9 @@ describe('handleSubmit', () => {
 
     act(() => {
       result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '01012024' } });
-      result.current.handleEndDateChange({ target: { value: '02012024' } });
-      result.current.handleTrackStartDateChange({ target: { value: '01012024' } });
+      result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+      result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+      result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
       result.current.handleMeetingsCountChange({ target: { value: '5' } });
       result.current.handleCheckboxChange(1);
     });
@@ -667,9 +617,9 @@ describe('handleSubmit', () => {
 
     act(() => {
       result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '01012024' } });
-      result.current.handleEndDateChange({ target: { value: '02012024' } });
-      result.current.handleTrackStartDateChange({ target: { value: '01012024' } });
+      result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+      result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+      result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
       result.current.handleMeetingsCountChange({ target: { value: '5' } });
       result.current.handleCheckboxChange(1);
     });
@@ -693,9 +643,9 @@ describe('handleSubmit', () => {
 
     act(() => {
       result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '01012024' } });
-      result.current.handleEndDateChange({ target: { value: '02012024' } });
-      result.current.handleTrackStartDateChange({ target: { value: '01012024' } });
+      result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+      result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+      result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
       result.current.handleMeetingsCountChange({ target: { value: '5' } });
       result.current.handleCheckboxChange(1);
       result.current.imageFile = mockFile;
@@ -726,9 +676,9 @@ describe('Track meeting date validation', () => {
     
     act(() => {
       result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '02012024' } }); // 02.01.2024
-      result.current.handleEndDateChange({ target: { value: '03012024' } }); // 03.01.2024
-      result.current.handleTrackStartDateChange({ target: { value: '01012024' } }); // 01.01.2024 (before start)
+      result.current.handleStartDateChange({ target: { value: '2024-01-02' } }); // 02.01.2024
+      result.current.handleEndDateChange({ target: { value: '2024-01-03' } }); // 03.01.2024
+      result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } }); // 01.01.2024 (before start)
       result.current.handleMeetingsCountChange({ target: { value: '5' } });
       result.current.handleCheckboxChange(1);
     });
@@ -745,9 +695,9 @@ describe('Track meeting date validation', () => {
     
     act(() => {
       result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '01012024' } }); // 01.01.2024
-      result.current.handleEndDateChange({ target: { value: '02012024' } }); // 02.01.2024
-      result.current.handleTrackStartDateChange({ target: { value: '03012024' } }); // 03.01.2024 (after end)
+      result.current.handleStartDateChange({ target: { value: '2024-01-01' } }); // 01.01.2024
+      result.current.handleEndDateChange({ target: { value: '2024-01-02' } }); // 02.01.2024
+      result.current.handleTrackStartDateChange({ target: { value: '2024-01-03' } }); // 03.01.2024 (after end)
       result.current.handleMeetingsCountChange({ target: { value: '5' } });
       result.current.handleCheckboxChange(1);
     });
@@ -791,38 +741,6 @@ describe('Meetings count validation', () => {
   });
 });
 
-describe('Date formatting for partial input', () => {
-  it('should format partial date input correctly', () => {
-    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
-    
-    // Test for lines 83-84 - partial date formatting
-    act(() => {
-      result.current.handleStartDateChange({ target: { value: '01' } });
-    });
-    expect(result.current.startDate).toBe('01');
-
-    act(() => {
-      result.current.handleStartDateChange({ target: { value: '0102' } });
-    });
-    expect(result.current.startDate).toBe('01.02');
-
-    act(() => {
-      result.current.handleStartDateChange({ target: { value: '010220' } });
-    });
-    expect(result.current.startDate).toBe('01.02.20');
-
-    // Same for track start date
-    act(() => {
-      result.current.handleTrackStartDateChange({ target: { value: '03' } });
-    });
-    expect(result.current.trackStartDate).toBe('03');
-
-    act(() => {
-      result.current.handleTrackStartDateChange({ target: { value: '0304' } });
-    });
-    expect(result.current.trackStartDate).toBe('03.04');
-  });
-});
 describe('Meetings count functionality', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -985,9 +903,9 @@ describe('Meetings count functionality', () => {
       
       act(() => {
         result.current.handleNameChange({ target: { value: 'Stream' } });
-        result.current.handleStartDateChange({ target: { value: '01012024' } });
-        result.current.handleEndDateChange({ target: { value: '02012024' } });
-        result.current.handleTrackStartDateChange({ target: { value: '01012024' } });
+        result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+        result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+        result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
         result.current.handleMeetingsCountChange({ target: { value: 'custom' } }); // custom выбран
         result.current.handleCheckboxChange(1);
         // customMeetingsCount не установлен
