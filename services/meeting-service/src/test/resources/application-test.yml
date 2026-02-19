@@ -3,6 +3,8 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
   kafka:
+    admin:
+      auto-create: false
     listener:
       auto-startup: false
   jpa:
