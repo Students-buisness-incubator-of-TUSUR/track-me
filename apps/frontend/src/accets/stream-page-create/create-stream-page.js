@@ -72,20 +72,23 @@ export default function CreateStream() {
                 onChange={handleNameChange}
               />
               <input
+                type="date"
+                name="startDate"
                 className="create-stream-input-date"
-                placeholder="__.__.____"
                 value={startDate}
                 onChange={handleStartDateChange}
               />
               <input
+                type="date"
+                name="endDate"
                 className="create-stream-input-date"
-                placeholder="__.__.____"
                 value={endDate}
                 onChange={handleEndDateChange}
               />
               <input
+                type="date"
+                name="trackStartDate"
                 className="create-stream-input-date1"
-                placeholder="__.__.____"
                 value={trackStartDate}
                 onChange={handleTrackStartDateChange}
               />
