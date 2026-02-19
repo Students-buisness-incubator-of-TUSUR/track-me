@@ -5,8 +5,8 @@ database/* @akarmanov2022
 **/*.sql @akarmanov2022
 **/*.gradle @akarmanov2022
 **/Dockerfile @akarmanov2022
-**/*.js deniska_belodedov@mail.ru @akarmanov2022
-**/*.ts deniska_belodedov@mail.ru @akarmanov2022
-**/*.tsx deniska_belodedov@mail.ru @akarmanov2022
-**/*.jsx deniska_belodedov@mail.ru @akarmanov2022
-**/*.css deniska_belodedov@mail.ru @akarmanov2022
+**/*.js @BDA228 @akarmanov2022
+**/*.ts @BDA228 @akarmanov2022
+**/*.tsx @BDA228 @akarmanov2022
+**/*.jsx @BDA228 @akarmanov2022
+**/*.css @BDA228 @akarmanov2022
