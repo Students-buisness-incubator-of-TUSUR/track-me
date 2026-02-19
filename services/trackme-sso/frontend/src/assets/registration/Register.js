@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./Register.css";
 import LoginAPI from "../../services/login-service";
+import InputBox from "../input-box/InputBox";
 
 const Register = () => {
     const basePath = process.env.REACT_APP_BASE_PATH || "";
-    const [username, setUsername] = useState("");
+    const [username, _setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
@@ -14,6 +15,23 @@ const Register = () => {
     const [showModal, setShowModal] = useState(false);
     const [acceptedPolicy, setAcceptedPolicy] = useState(false);
     const [termsText, setTermsText] = useState("Загрузка...");
+
+    const setUsername = (newUsername) => {
+        _setUsername(newUsername.replace("@", ""));
+    }
+
+    // if non-empty then wrong
+    const passwordChecks = () => {
+        const passwordMin = 6;
+        return ""
+            + (!/[A-Z]/.test(password) ? "\u{2022} пароль должен содержать заглавную букву\n" : "")
+            + (!/[a-z]/.test(password) ? "\u{2022} пароль должен содержать строчную букву\n" : "")
+            + (!/[0-9]/.test(password) ? "\u{2022} пароль должен содержать цифру\n" : "")
+            + (!/[@$!%*?&]/.test(password) ? "\u{2022} пароль должен содержать специальный символ (@$!%*?&)\n" : "")
+            + ((password.length < passwordMin) ? `\u{2022} длина пароля должна быть не менее ${passwordMin} символов\n` : "")
+            + (password.length !== 0 && (!/[A-Za-z0-9@$!%*?&]+$/.test(password)) ? "\u{2022} пароль должен содержать только латинские символы\n" : "");
+
+    }
 
     const handleRegister = (e) => {
         e.preventDefault();
@@ -70,43 +88,40 @@ const Register = () => {
                 <h1 className="register-title">Регистрация</h1>
                 {errorMessage && <div className="error-message">{errorMessage}</div>}
                 <form className="register-form" onSubmit={handleRegister}>
-                    <input
+                    <InputBox
                         type="text"
-                        className="register-input"
                         placeholder="Имя пользователя в Telegram (без @)"
                         value={username}
+                        // TODO: почему некторые telegram ники не проходят (скорее всего бэкенд)
                         onChange={(e) => setUsername(e.target.value)}
                         required
-                        pattern="^[a-zA-Z0-9_]+$"
-                        title="Имя пользователя в Telegram без @, должно содержать только латинские буквы, цифры и _"
                     />
-                    <input
+                    <InputBox
                         type="password"
-                        className="register-input"
                         placeholder="Пароль"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        errorText={
+                            passwordChecks()
+                        }
                         required
                     />
-                    <input
+                    <InputBox
                         type="text"
-                        className="register-input"
                         placeholder="ФИО"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         required
                     />
-                    <input
+                    <InputBox
                         type="email"
-                        className="register-input"
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                     />
-                    <input
+                    <InputBox
                         type="tel"
-                        className="register-input"
                         placeholder="Номер телефона"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
@@ -122,7 +137,7 @@ const Register = () => {
                         <option value="ADMIN">Администратор</option>
                         <option value="SUPER_ADMIN">Супер Администратор</option>
                     </select>
-                    <button type="submit" className="register-button">
+                    <button type="submit" className="register-button" disabled={passwordChecks() !== ""}>
                         Зарегистрироваться
                     </button>
                 </form>
@@ -174,3 +189,4 @@ const Register = () => {
 };
 
 export default Register;
+

@@ -112,7 +112,7 @@ describe('CreateStream Component', () => {
 
   // Test form inputs
   test('should handle input changes for name, start date, and end date', () => {
-    render(<CreateStream />);
+    const { container } = render(<CreateStream />);
 
     // Test name input
     const nameInput = screen.getByPlaceholderText('Текст названия');
@@ -120,14 +120,13 @@ describe('CreateStream Component', () => {
     expect(mockUseStreamForm.handleNameChange).toHaveBeenCalled();
 
     // Test start date input
-    const dateInputs = screen.getAllByPlaceholderText('__.__.____');
-    const startDateInput = dateInputs[0]; // First input is start date
-    fireEvent.change(startDateInput, { target: { value: '01.01.2025' } });
+    const startDateInput = container.querySelector('input[name="startDate"]');
+    fireEvent.change(startDateInput, { target: { value: '2025-01-01' } });
     expect(mockUseStreamForm.handleStartDateChange).toHaveBeenCalled();
 
     // Test end date input
-    const endDateInput = dateInputs[1]; // Second input is end date
-    fireEvent.change(endDateInput, { target: { value: '02.01.2025' } });
+    const endDateInput = container.querySelector('input[name="endDate"]');
+    fireEvent.change(endDateInput, { target: { value: '2025-01-02' } });
     expect(mockUseStreamForm.handleEndDateChange).toHaveBeenCalled();
   });
 

@@ -28,6 +28,10 @@ const handleCustomMeetingsCountChange = (e) => {
   }
 };
 
+const formatDate = (dateStr) => {
+  return dateStr.split('T')[0]
+}
+
   useEffect(() => {
     if (error && errorRef.current) {
       errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -69,13 +73,9 @@ const handleCustomMeetingsCountChange = (e) => {
     if (!response.ok) throw new Error('Network error');
     const result = await response.json();
     setName(result.name);
-    const formatForDisplay = (dateStr) => {
-      const [year, month, day] = dateStr.split('T')[0].split('-');
-      return `${day}.${month}.${year}`;
-    };
-    setStartDate(formatForDisplay(result.startDate));
-    setEndDate(formatForDisplay(result.endDate));
-    setTrackStartDate(result.trackStartDate ? formatForDisplay(result.trackStartDate) : '');
+    setStartDate(formatDate(result.startDate));
+    setEndDate(formatDate(result.endDate));
+    setTrackStartDate(result.trackStartDate ? formatDate(result.trackStartDate) : '');
     
     // Исправляем установку meetingsCount
     if (result.meetingsCount) {
@@ -104,13 +104,7 @@ const handleCustomMeetingsCountChange = (e) => {
   }
 }, [backendHost, streamId, fetchStreamImage, meetingOptions]);
 const handleTrackStartDateChange = (e) => {
-  let value = e.target.value.replace(/\D/g, '');
-  if (value.length > 8) value = value.slice(0, 8);
-  if (value.length > 4) {
-    value = `${value.slice(0, 2)}.${value.slice(2, 4)}.${value.slice(4)}`;
-  } else if (value.length > 2) {
-    value = `${value.slice(0, 2)}.${value.slice(2)}`;
-  }
+  let value = formatDate(e.target.value);
   setTrackStartDate(value);
 }
 const handleMeetingsCountChange = (e) => {
@@ -165,30 +159,18 @@ useEffect(() => {
   const handleNameChange = (e) => setName(e.target.value);
 
   const handleStartDateChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 8) value = value.slice(0, 8);
-    if (value.length > 4) {
-      value = `${value.slice(0, 2)}.${value.slice(2, 4)}.${value.slice(4)}`;
-    } else if (value.length > 2) {
-      value = `${value.slice(0, 2)}.${value.slice(2)}`;
-    }
+    let value = formatDate(e.target.value);
     setStartDate(value);
   };
 
   const handleEndDateChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 8) value = value.slice(0, 8);
-    if (value.length > 4) {
-      value = `${value.slice(0, 2)}.${value.slice(2, 4)}.${value.slice(4)}`;
-    } else if (value.length > 2) {
-      value = `${value.slice(0, 2)}.${value.slice(2)}`;
-    }
+    let value = formatDate(e.target.value);
     setEndDate(value);
   };
 
  const isValidDate = (date) => {
   if (!date) return true; // Пустая дата допустима для trackStartDate
-  const [day, month, year] = date.split('.').map(Number);
+  const [year, month, day] = date.split('-').map(Number);
   if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
   if (month < 1 || month > 12) return false;
   if (day < 1 || day > 31) return false;
@@ -196,11 +178,6 @@ useEffect(() => {
   if (day > daysInMonth) return false;
   return true;
 };
-
-  const formatDate = (date) => {
-    const [day, month, year] = date.split('.').map(Number);
-    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -244,12 +221,9 @@ const deleteStream = async () => {
     setError('Некорректный формат даты. Используйте формат ДД.ММ.ГГГГ.');
     return false;
   }
-  const [startDay, startMonth, startYear] = startDate.split('.').map(Number);
-  const [endDay, endMonth, endYear] = endDate.split('.').map(Number);
-  const [trackDay, trackMonth, trackYear] = trackStartDate.split('.').map(Number);
-  const startDateObj = new Date(startYear, startMonth - 1, startDay);
-  const endDateObj = new Date(endYear, endMonth - 1, endDay);
-  const trackStartDateObj = new Date(trackYear, trackMonth - 1, trackDay);
+  const startDateObj = new Date(startDate);
+  const endDateObj = new Date(endDate);
+  const trackStartDateObj = new Date(trackStartDate);
   if (startDateObj > endDateObj) {
     setError('Дата начала должна быть раньше даты конца.');
     return false;
@@ -278,9 +252,9 @@ if (meetingsCount === 'custom' && (Number(customMeetingsCount) < 1 || Number(cus
 
 const requestData = {
   name,
-  startDate: formatDate(startDate),
-  endDate: formatDate(endDate),
-  trackStartDate: formatDate(trackStartDate),
+  startDate: startDate,
+  endDate: endDate,
+  trackStartDate: trackStartDate,
   meetingsCount: finalMeetingsCount,
   ntiMarketIds: selectedCheckboxes,
   description: 'useless описание',
