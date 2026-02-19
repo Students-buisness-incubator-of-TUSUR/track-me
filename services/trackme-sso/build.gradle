@@ -94,29 +94,36 @@ node {
     nodeProjectDir = file("${projectDir}/frontend")
 }
 
-tasks.register('installReact', NpmTask) {
-    args = ['install']
-    workingDir = file("${projectDir}/frontend")
-}
-
 tasks.register('buildReact', NpmTask) {
     args = ['run', 'build']
     workingDir = file("${projectDir}/frontend")
-    dependsOn installReact
+    dependsOn tasks.npmInstall
+    // Инкрементальность: пересобирать только если изменились исходники
+    inputs.dir("${projectDir}/frontend/src")
+    inputs.file("${projectDir}/frontend/package.json")
+    inputs.file("${projectDir}/frontend/package-lock.json")
+    outputs.dir("${projectDir}/frontend/build")
 }
 
-// Копируем ассеты
-tasks.register('copyReactStatic', Copy) {
+tasks.register('copyReactAssets', Copy) {
     dependsOn 'buildReact'
-    from("${projectDir}/frontend/build/static")
-    into("src/main/resources/static")
+    from("${projectDir}/frontend/build/static") {
+        into "static"
+    }
+    from("${projectDir}/frontend/build/index.html") {
+        into "templates"
+    }
+    into("src/main/resources")
+    // Инкрементальность: копировать только если build изменился
+    inputs.dir("${projectDir}/frontend/build")
+    outputs.dir("src/main/resources/static")
+    outputs.dir("src/main/resources/templates")
 }
 
-// Копируем index.html в шаблоны Thymeleaf
-tasks.register('copyReactIndex', Copy) {
-    dependsOn 'buildReact'
-    from("${projectDir}/frontend/build/index.html")
-    into("src/main/resources/templates")
+processResources.dependsOn('copyReactAssets')
+
+tasks.register('cleanReactAssets', Delete) {
+    delete "src/main/resources/static", "src/main/resources/templates/index.html"
 }
 
-processResources.dependsOn('copyReactStatic', 'copyReactIndex')
+clean.dependsOn('cleanReactAssets')

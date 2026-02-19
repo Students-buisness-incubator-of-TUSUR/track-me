@@ -17,6 +17,7 @@ services:
   # ─── Инфраструктура ───────────────────────────────────────────
 
   trackme-postgres:
+    container_name: trackme-postgres
     image: postgres:latest
     env_file:
       - .env
@@ -34,6 +35,7 @@ services:
       retries: 5
 
   trackme-redis:
+    container_name: trackme-redis
     image: redis:latest
     ports:
       - '6380:6379'
@@ -70,8 +72,8 @@ services:
       - trackme-net
 
   trackme-kafka:
-    image: bitnami/kafka:3.7
     container_name: trackme-kafka
+    image: bitnamilegacy/kafka:4.0.0-debian-12-r10
     ports:
       - '9092:9092'
       - '29092:29092'
@@ -100,8 +102,8 @@ services:
       retries: 10
 
   trackme-kafka-ui:
-    image: provectuslabs/kafka-ui:latest
     container_name: trackme-kafka-ui
+    image: provectuslabs/kafka-ui:latest
     depends_on:
       trackme-kafka:
         condition: service_healthy
@@ -116,6 +118,7 @@ services:
   # ─── Backend-сервисы (собираются из исходников) ────────────────
 
   trackme-backend:
+    container_name: trackme-backend
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
@@ -140,6 +143,7 @@ services:
       retries: 5
 
   trackme-sso:
+    container_name: trackme-sso
     build:
       context: .
       dockerfile: services/trackme-sso/Dockerfile
@@ -164,6 +168,7 @@ services:
       retries: 5
 
   trackme-client-gateway:
+    container_name: trackme-client-gateway
     build:
       context: .
       dockerfile: apps/trackme-gateway/Dockerfile
@@ -190,6 +195,7 @@ services:
       retries: 5
 
   trackme-meeting-service:
+    container_name: trackme-meeting-service
     build:
       context: .
       dockerfile: services/meeting-service/Dockerfile
@@ -212,6 +218,7 @@ services:
       retries: 5
 
   telegram-service:
+    container_name: telegram-service
     build:
       context: .
       dockerfile: services/telegram-service/Dockerfile
