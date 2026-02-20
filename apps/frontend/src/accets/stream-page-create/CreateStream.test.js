@@ -138,8 +138,8 @@ test('should clear error when close error button is clicked', () => {
 
   render(<CreateStream />);
   
-  const buttons = screen.getAllByRole('button', { name: '×' });
-  const closeErrorButton = buttons.find(btn => btn.className.includes('stream-error-close'));
+  const buttons = screen.getAllByRole('button');
+  const closeErrorButton = buttons.find(btn => btn.id == "create-stream_error-close");
 
   fireEvent.click(closeErrorButton);
   expect(mockUseStreamForm.setError).toHaveBeenCalledWith(null);
