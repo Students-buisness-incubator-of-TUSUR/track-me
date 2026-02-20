@@ -103,7 +103,6 @@
 
 .create-stream_input-pic {
     align-self: center;
-    background-color: rgba(217, 217, 217, 1);
     background-image: url("./download.png");
     background-size: auto;
     background-repeat: no-repeat;
@@ -142,7 +141,6 @@
     display: flex;
     justify-content: center;
     width: 100%;
-    display: flex;
     color: red;
     top: 50px;
 }
