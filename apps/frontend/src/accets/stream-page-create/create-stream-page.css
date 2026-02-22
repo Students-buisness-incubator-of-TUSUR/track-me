@@ -1,150 +1,116 @@
 @import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
 /* font-family: "Mulish", sans-serif; */
-.create-stream {
+.create-stream_main {
     box-sizing: border-box;
-    min-height: 100%;
     width: 100%;
     height: 100vh;
     display: flex;
     justify-content: center;
-    align-content: center;
+    align-items: center;
     flex-direction: column;
     background-color: rgba(68, 68, 68, 1);
 }
 
-
-
-.create-stream-cont-left,
-.create-stream-cont-right {
-    
+.create-stream_cont {
+    display: flex;
+    position: relative;
     flex-direction: column;
-    width: 50%;
-    justify-content: center;
-    align-content: center;
+    background-color: white;
+    padding: 24px;
+    width: 1280px;
+    border-radius: 36px;
 }
 
-.create-stream-row {
-   
+.create-stream_close {
+    position: absolute;
+    background: none;
+    border: none;
+    color: rgba(131, 56, 235, 1);
+    font-size: 24px;
+    padding: 12px;
+    cursor: pointer;
+    right: 24px;
+    top: 12px;
+}
+
+.create-stream_cont-row {
+    display: flex;
     flex-direction: row;
 }
 
-.create-stream-input-pic {
-    align-self: center;
-    width: 466px;
-    height: 369px;
-    border-radius: 70px;
-    background-color: rgba(217, 217, 217, 1);
-}
-
-.create-stream-input-button {
-    margin-top: 43px;
-    align-self: center;
-    width: 217px;
-    height: 70px;
-    border-radius: 70px;
-    background-color: rgba(131, 56, 235, 1);
-    color: white;
-    border: none;
-}
-
-.create-stream-col {
-    margin-left: 90px;
+.create-stream_cont-col {
     display: flex;
     flex-direction: column;
-    justify-content: stretch;
-    font-weight: 600;
-    font-size: 32px;
-    text-wrap: unset;
+    gap: 24px;
 }
 
-.create-stream-title {
-    font-family: "Mulish", sans-serif;
-    text-wrap: 100;
-    margin-left: 90px;
-    margin-bottom: 29px;
-    font-weight: 600;
-    font-size: 64px;
-    color: rgba(131, 56, 235, 1);
+.create-stream_cont-col-left {
+    width: 60%;
+}
+.create-stream_cont-col-right {
+    width: 40%;
 }
 
-.create-stream-h1 {
-
-    white-space: nowrap;
-    min-height: 80px;
-    font-family: "Mulish", sans-serif;
-    margin-block-start: 0.67em;
-    margin-block-end: 0.67em;
-    font-weight: 600;
-    font-size: 32px;
-    color: black;
-}
-
-.create-stream-custom-input {
-  width: 90%;
-    text-align: center;
-    text-align-last: center;
-    height: 70px;
-    border-radius: 70px;
-    background-color: rgba(131, 56, 235, 1);
-    color: white;
-    border: none;
-    font-weight: 600;
-    font-size: 32px;
-    margin-block-start: 0.67em;
-    margin-block-end: 0.67em;
-    position: relative;
-    top: 13px;
-    right: 200px;
-    padding: 0 20px;
-    
-    
-}
-.create-stream-custom-input::-webkit-outer-spin-button,
-.create-stream-custom-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.create-stream-input-date:focus::placeholder,
-.create-stream-input:focus::placeholder {
-    color: white;
-}
-
-.Stream-b {
-    position: relative;
-    left: 22%;
-    bottom: 100px;
-}
-
-.Stream-header-checkbox {
+.create-stream_input-cont {
     display: flex;
+    flex-direction: row;
+    height: 72px;
+    gap: 20px;
     align-items: center;
-    gap: 8px; /* Расстояние между чекбоксом и текстом */
-    
 }
 
-.Stream-header-checkbox-label {
+.create-stream_input-cont label {
+    min-width: 280px;
+    max-width: 280px;
+    font-family: "Mulish", sans-serif;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 24px;
+    color: black;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    hyphens: none;
+    white-space: normal;
 }
 
-.custom-checkbox {
-    width: 17px;
-    height: 17px;
+.create-stream_input-cont-input {
+    align-self: center;
+    min-width: 400px;
+    max-width: 400px;
+    height: 72px;
+    border-radius: 36px;
+    border: none;
+    font-size: 24px;
+    text-align: center;
+    padding: 0px 12px;
+    user-select: none;
+    color: white;
+    background-color: rgba(131, 56, 235, 1);
+    color-scheme: dark;
 }
 
-.create-stream-input-pic {
+.create-stream_input-cont-input::placeholder {
+  color: white;
+  opacity: 1;
+}
+
+.create-stream_title {
+    font-family: "Mulish", sans-serif;
+    font-weight: 600;
+    font-size: 48px;
+    color: rgba(131, 56, 235, 1);
+    padding-left: 48px;
+}
+
+.create-stream_input-pic {
+    align-self: center;
     background-image: url("./download.png");
     background-size: auto;
     background-repeat: no-repeat;
     background-position: 50%;
-}
-
-.create-stream-input-pic {
-    width: 466px; /* Ширина блока для картинки */
-    height: 369px; /* Высота блока для картинки */
+    width: 460px; /* Ширина блока для картинки */
+    height: 360px; /* Высота блока для картинки */
     border: 2px dashed #ccc; /* Рамка для визуального выделения */
-    border-radius: 40px; /* Закругление углов */
+    border-radius: 36px; /* Закругление углов */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -152,11 +118,12 @@
     overflow: hidden; /* Обрезать картинку, если она выходит за пределы блока */
     position: relative;
     background-color: #f9f9f9; /* Фоновый цвет для блока */
+    box-sizing: border-box;
 }
 
 
 
-.create-stream-uploaded-image {
+.create-stream_uploaded-image {
     width: 100%; /* Картинка занимает всю ширину блока */
     height: 100%; /* Картинка занимает всю высоту блока */
     object-fit: cover; /* Картинка масштабируется, чтобы заполнить блок без искажений */
@@ -168,18 +135,17 @@
     display: none; /* Скрываем input */
 }
 
-/* Стили для сообщения об ошибке */
-.stream-error-message {
+.create-stream_error-message {
     position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
     z-index: 1000;
-    width: 90%;
-    max-width: 600px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    color: red;
+    top: 50px;
 }
 
-.stream-error-content {
+.create-stream_error-content {
     background: #FFEBEE;
     color: #D32F2F;
     padding: 12px 20px;
@@ -189,161 +155,95 @@
     justify-content: space-between;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     border-left: 4px solid #F44336;
-    animation: fadeIn 0.3s ease-out;
+    animation: slideDownFadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    font-size: 20px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+@keyframes slideDownFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
-.stream-error-close {
+.create-stream_error-close {
     background: none;
     border: none;
     color: #D32F2F;
-    font-size: 18px;
+    font-size: 24px;
     cursor: pointer;
     margin-left: 15px;
-    padding: 0 5px;
 }
 
 
-.create-stream-input-number::-webkit-inner-spin-button,
-.create-stream-input-number::-webkit-outer-spin-button {
+.create-stream_input-number::-webkit-inner-spin-button,
+.create-stream_input-number::-webkit-outer-spin-button {
   opacity: 1;
 }
 
-.create-stream-input-number:focus {
+.create-stream_input-number:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
-.create-stream-input-number::placeholder {
+.create-stream_input-number::placeholder {
   color: white;
 }
-/* Удаляем старый стиль ошибки */
-.create-stream-error-message {
-    display: none;
+.create-stream_input-button {
+    align-self: center;
+    width: 217px;
+    height: 72px;
+    font-size: 24px;
+    font-weight: 700;
+    border-radius: 36px;
+    background-color: rgba(131, 56, 235, 1);
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
-/* ... остальные стили остаются без изменений ... */
-.create-stream-error-message {
-    left: 100px;
-    display: flex;
-    position: relative;
-    margin-bottom: 40px;
-    color: red;
-}
-
-/* Добавляем новые медиа-запросы и корректируем существующие */
-@media (max-width: 992px) {
-    .create-stream-cont {
-        width: 95%;
-        height: auto;
+@media only screen and (max-width: 1280px) {
+    .create-stream_cont-row {
         flex-direction: column;
-        padding: 30px;
-        border-radius: 40px;
-        align-items: center;
+        gap: 24px;
     }
-
-    .create-stream-cont-left,
-    .create-stream-cont-right {
-        width: 100%;
-        align-items: center;
+    .create-stream_main {
+        height: 100%;
     }
-
-    .create-stream-title {
-        font-size: 48px;
-        margin-left: 0;
+    .create-stream_cont {
+        width: 800px;
+    }
+    .create-stream_title {
+        padding-left: 0px;
         text-align: center;
     }
-
-    .create-stream-col {
-        width: 100%;
+    .create-stream_cont-col {
         align-items: center;
-        margin-left: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: stretch;
-        text-wrap: unset;
     }
-
-    .create-stream-h1 {
-        margin: 15px 0 5px 0 !important; /* Уменьшаем отступы */
-        width: 100% !important;
-        padding: 0 15px; /* Симметричные отступы */
-    }
-
-    .create-stream-input,
-    .create-stream-input-date {
-        font-size: 24px;
-        height: 60px;
-        margin-left: 0;
-        width: 90%;
-        max-width: 400px;
-        align-self: center;
-    }
-
-    .create-stream-input-button {
-        width: 200px;
-        height: 60px;
-        font-size: 18px;
-        order: 3;
-        flex-direction: column;
-        margin-top: 70px !important; /* Убираем верхний отступ */
-    }
-
-    .create-stream-input-pic {
-        width: 80%;
-        height: 300px;
-        margin-bottom: 30px;
-    }
-
-    .Stream-b {
-        margin-top: -50px !important;
-        order: 0;
-        width: 100%; /* Занимает всю ширину */
-        display: flex;
-        flex-direction: column;
-        align-items: center; /* Центрирование по горизонтали */
-        justify-content: center; /* Центрирование по вертикали */
-        margin-left: 150px !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .create-stream-cont {
-        padding: 20px 15px !important;
-        border-radius: 30px;
-    }
-
-    .create-stream-title {
-        font-size: 28px;
-        padding: 0 10px;
-        white-space: nowrap;
-    }
-
-    .create-stream-h1 {
-        text-align: left !important;
-        padding: 0 7px !important;
-        margin: 13px 0 -15px 0 !important;
-    }
-
-    .create-stream-input,
-    .create-stream-input-date {
-        height: 45px !important;
-        width: 100% !important;
-    }
-
-    .create-stream-input-button {
-        height: 50px;
-        font-size: 16px;
-    }
-
-    .Stream-b {
+    .create-stream_cont-col-left {
         width: 100%;
-        margin-top: -50px !important;
-        margin-left: 10px !important;
+    }
+    .create-stream_cont-col-right {
+        width: 100%;
     }
 }
+
+@media only screen and (max-width: 800px) {
+    .create-stream_cont {
+        width: 500px;
+    }
+    .create-stream_input-cont {
+        flex-direction: column;
+        height: unset;
+    }
+    .create-stream_input-cont label {
+        min-width: unset;
+        max-width: unset;
+    }
+}
+

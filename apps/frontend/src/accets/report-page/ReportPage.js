@@ -8,6 +8,7 @@ import "./ReportPage.css";
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
 import MobileHeader from "../adaptive-accets/MobileHeader";
+import { fetchReports } from "../../services/requests";
 export default function ReportPage() {
   const navigate = useNavigate();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -30,16 +31,11 @@ const [loading, setLoading] = useState(false);
   const loadReports = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://api.trackme.test.startup-poligon.com/backend/api/v1/team-cards/reports?page=${page}&size=${size}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer `,
-            ...getCsrfConfigForFetch(),
-          },
-        }
-      );
+      const response = await fetchReports(page, size);
+
+      if (!response.ok) {
+        throw new Error(`Ошибка HTTP: ${response.status}`);
+      }
 
       const data = await response.json();
       setReports(data.content);

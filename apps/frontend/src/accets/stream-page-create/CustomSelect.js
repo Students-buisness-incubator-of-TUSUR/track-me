@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './create-stream-page.css';
+// import './create-stream-page.css';
+import './CustomSelect.css';
 
 const CustomSelect = ({
   value,
@@ -44,10 +45,10 @@ const CustomSelect = ({
   }, []);
 
   return (
-    <div className="meetings-count-container" ref={selectRef}>
+    <div className="custom-select_select-cont" ref={selectRef}>
       {!showCustomInput ? (
         <div
-          className="create-stream-select"
+          className={ `custom-select_select ${isOpen ? 'custom-select_remove-above-border-radius' : '' }` }
           onClick={toggleDropdown}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -62,12 +63,12 @@ const CustomSelect = ({
           <span>
             {value === '' ? 'Выберите количество' : value === 'custom' ? 'Свое значение' : value}
           </span>
-          <div className="create-stream-select-arrow"></div>
+          <div className="custom-select_select-arrow"></div>
         </div>
       ) : (
         <input
           type="number"
-          className="create-stream-custom-input"
+          className="custom-select_custom-input"
           value={customValue}
           onChange={handleCustomInputChange}
           min="1"
@@ -77,9 +78,9 @@ const CustomSelect = ({
         />
       )}
       {isOpen && !showCustomInput && (
-        <div className="create-stream-select-dropdown">
+        <div className="custom-select_select-dropdown">
           <div
-  className="create-stream-select-option"
+  className="custom-select_select-option"
   onClick={() => handleOptionClick('')}
   onKeyDown={(e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -97,7 +98,7 @@ const CustomSelect = ({
 {options.map((option) => (
   <div
     key={option}
-    className="create-stream-select-option"
+    className="custom-select_select-option"
     onClick={() => handleOptionClick(option)}
     onKeyDown={(e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -114,7 +115,7 @@ const CustomSelect = ({
 ))}
 
 <div
-  className="create-stream-select-option"
+  className="custom-select_select-option"
   onClick={() => handleOptionClick('custom')}
   onKeyDown={(e) => {
     if (e.key === 'Enter' || e.key === ' ') {

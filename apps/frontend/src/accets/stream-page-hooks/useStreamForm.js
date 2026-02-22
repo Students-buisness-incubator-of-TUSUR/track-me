@@ -343,7 +343,8 @@ const requestData = {
   handleCheckboxChange,
   handleImageUpload,
   handleSubmit,
-  deleteStream
+  deleteStream,
+  setError
 };
 };
 
