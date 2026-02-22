@@ -15,7 +15,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}
     username: ${DB_USERNAME:project-place}
-    url: ${DB_URL:jdbc:postgresql://postgres:5432/project-place}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
     hikari:
       connection-timeout: 30000
       maximum-pool-size: 10
@@ -80,7 +80,7 @@ app:
 spring:
   config:
     activate:
-      on-profile: docker-local, development
+      on-profile: development
   liquibase:
     contexts: dev prod
 logging:
@@ -91,24 +91,27 @@ logging:
 spring:
   config:
     activate:
-      on-profile: production
-  liquibase:
-    contexts: prod
-
-logging:
-  level:
-    root: info
-
----
-spring:
-  config:
-    activate:
       on-profile: docker-local
+  liquibase:
+    contexts: dev prod
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: http://host.docker.internal:9000
-
+logging:
+  level:
+    org.springframework.security: trace
 app:
-  api-url: http://127.0.0.1:8081/meeting/
+  api-url: ${BACKEND_URI:http://localhost}/meeting/
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  liquibase:
+    contexts: prod
+logging:
+  level:
+    root: info

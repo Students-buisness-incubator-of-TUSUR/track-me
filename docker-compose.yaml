@@ -6,7 +6,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./database/init_schemas.sql:/docker-entrypoint-initdb.d/init_schemas.sql
     networks:
       - trackme-net
@@ -41,7 +41,6 @@ services:
         echo "user $REDIS_USER on >$REDIS_USER_PASSWORD ~* +@all" >> /usr/local/etc/redis/users.acl &&
         redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
       '
-    # Оставляем вашу healthcheck-строку (но с правильным синтаксисом CMD-SHELL, иначе переменная не подставится)
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli -a \"$REDIS_PASSWORD\" ping | grep PONG" ]
       interval: 30s
@@ -61,13 +60,18 @@ services:
       dockerfile: apps/backend/Dockerfile
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
+      - BACKEND_URI=http://localhost
+      - FRONTEND_URI=http://localhost
+      - SSO_URI=http://host.docker.internal:9000
     platform: linux/amd64
     restart: always
     env_file:
       - .env
     depends_on:
-      - trackme-postgres
-      - trackme-redis
+      trackme-postgres:
+        condition: service_healthy
+      trackme-redis:
+        condition: service_healthy
     ports:
       - '8080:8080'
     volumes:
@@ -79,6 +83,18 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    develop:
+      watch:
+        - action: rebuild
+          path: apps/backend/src
+        - action: rebuild
+          path: apps/backend/build.gradle
+        - action: rebuild
+          path: libs/commons/src
+        - action: rebuild
+          path: platform
+        - action: rebuild
+          path: build.gradle
 
   trackme-meeting-service:
     build:
@@ -87,7 +103,10 @@ services:
     platform: linux/amd64
     restart: always
     depends_on:
-      - trackme-postgres
+      trackme-postgres:
+        condition: service_healthy
+      trackme-kafka:
+        condition: service_healthy
     env_file:
       - .env
     ports:
@@ -96,11 +115,24 @@ services:
       - trackme-net
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
+      - BACKEND_URI=http://localhost
+      - FRONTEND_URI=http://localhost
+      - SSO_URI=http://host.docker.internal:9000
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
+    develop:
+      watch:
+        - action: rebuild
+          path: services/meeting-service/src
+        - action: rebuild
+          path: libs/commons/src
+        - action: rebuild
+          path: platform
+        - action: rebuild
+          path: build.gradle
 
   trackme-sso:
     build:
@@ -109,8 +141,10 @@ services:
     platform: linux/amd64
     restart: always
     depends_on:
-      - trackme-postgres
-      - trackme-redis
+      trackme-postgres:
+        condition: service_healthy
+      trackme-redis:
+        condition: service_healthy
     env_file:
       - .env
     ports:
@@ -119,11 +153,24 @@ services:
       - trackme-net
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
+      - BACKEND_URI=http://localhost
+      - AFTER_LOGOUT_URI=http://localhost
+      - SSO_URI=http://host.docker.internal:9000
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
+    develop:
+      watch:
+        - action: rebuild
+          path: services/trackme-sso/src
+        - action: rebuild
+          path: libs/commons/src
+        - action: rebuild
+          path: platform
+        - action: rebuild
+          path: build.gradle
 
   trackme-client-gateway:
     build:
@@ -131,14 +178,16 @@ services:
       dockerfile: apps/trackme-gateway/Dockerfile
     platform: linux/amd64
     restart: always
-    depends_on:
-      - trackme-sso
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
-      - SESSION_COOKIE_SAME_SITE=None
-      - SESSION_COOKIE_SECURE=True
-      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-
+      - BACKEND_URI=http://localhost
+      - AFTER_LOGIN_URL=http://localhost
+      - AFTER_LOGOUT_URI=http://localhost
+      - SESSION_COOKIE_SAME_SITE=Lax
+      - SESSION_COOKIE_SECURE=false
+      - GATEWAY_LOG_LEVEL=TRACE
+      - SECURITY_LOG_LEVEL=TRACE
+      - CORS_ORIGINS=http://localhost,http://localhost:3000,http://127.0.0.1:3000
     env_file:
       - .env
     networks:
@@ -150,6 +199,16 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    develop:
+      watch:
+        - action: rebuild
+          path: apps/trackme-gateway/src
+        - action: rebuild
+          path: apps/trackme-gateway/build.gradle
+        - action: rebuild
+          path: platform
+        - action: rebuild
+          path: build.gradle
 
   trackme-frontend:
     build:
@@ -169,9 +228,44 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    develop:
+      watch:
+        - action: rebuild
+          path: apps/frontend/src
+        - action: rebuild
+          path: apps/frontend/public
+        - action: rebuild
+          path: apps/frontend/package.json
+          ignore:
+            - apps/frontend/node_modules
+
+  trackme-nginx:
+    image: nginx:alpine
+    ports:
+      - '80:80'
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      trackme-client-gateway:
+        condition: service_healthy
+      trackme-frontend:
+        condition: service_healthy
+    networks:
+      - trackme-net
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "nginx", "-t" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    develop:
+      watch:
+        - action: sync+restart
+          path: docker/nginx/nginx.conf
+          target: /etc/nginx/conf.d/default.conf
 
   trackme-kafka:
-    image: bitnami/kafka:3.7
+    image: bitnamilegacy/kafka:latest
     container_name: trackme-kafka
     ports:
       - "9092:9092"
@@ -200,25 +294,6 @@ services:
       timeout: 10s
       retries: 10
 
-  # Веб-консоль для Kafka
-  trackme-kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: trackme-kafka-ui
-    depends_on:
-      - trackme-kafka
-    environment:
-      - KAFKA_CLUSTERS_0_NAME=trackme
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=trackme-kafka:9092
-    ports:
-      - "8085:8080"
-    networks:
-      - trackme-net
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
   telegram-service:
     build:
       context: .
@@ -226,7 +301,10 @@ services:
     platform: linux/amd64
     restart: always
     depends_on:
-      - trackme-postgres
+      trackme-postgres:
+        condition: service_healthy
+      trackme-kafka:
+        condition: service_healthy
     env_file:
       - .env
     ports:
@@ -236,10 +314,20 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
+    develop:
+      watch:
+        - action: rebuild
+          path: services/telegram-service/src
+        - action: rebuild
+          path: libs/commons/src
+        - action: rebuild
+          path: platform
+        - action: rebuild
+          path: build.gradle
 
 volumes:
   postgres_data:
@@ -247,4 +335,4 @@ volumes:
 
 networks:
   trackme-net:
-    external: true
+    driver: bridge
