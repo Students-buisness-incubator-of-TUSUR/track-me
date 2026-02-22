@@ -4,6 +4,7 @@ server:
 app:
   after-login-url: ${AFTER_LOGIN_URL:http://127.0.0.1:8081}
   after-logout-uri: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
+  logout-uri: ${LOGOUT_URI:http://localhost:9000/connect/logout}
   session-cookie:
     same-site: ${SESSION_COOKIE_SAME_SITE:Lax}
     secure: ${SESSION_COOKIE_SECURE:false}
@@ -148,7 +149,7 @@ spring:
             # host.docker.internal: used for internal OIDC discovery and JWT validation
             # (container-to-container via host). Must match SSO_URI / SSO issuer.
             issuer-uri: http://host.docker.internal:9000
-            # localhost:9000: used for browser redirect to SSO login page.
+            # localhost:9000: used for browser redirects to SSO login/logout pages.
             # SSO exposes port 9000, so the browser on the host reaches it directly.
             authorization-uri: http://localhost:9000/oauth2/authorize
 

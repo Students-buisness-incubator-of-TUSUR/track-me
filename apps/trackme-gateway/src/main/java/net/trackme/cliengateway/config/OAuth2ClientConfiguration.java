@@ -10,6 +10,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
@@ -20,6 +21,8 @@ import org.springframework.security.web.server.authentication.logout.ServerLogou
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+
+import java.util.HashMap;
 
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -115,9 +118,17 @@ public class OAuth2ClientConfiguration {
 
     @PostConstruct
     private void initializeHandlers() {
-        var serverLogoutSuccessHandler =
-                new OidcClientInitiatedServerLogoutSuccessHandler(
-                        this.clientRegistrationRepository);
+        ReactiveClientRegistrationRepository repo = registrationId ->
+                this.clientRegistrationRepository.findByRegistrationId(registrationId)
+                        .map(reg -> {
+                            var metadata = new HashMap<>(reg.getProviderDetails().getConfigurationMetadata());
+                            metadata.put("end_session_endpoint", appProperties.logoutUri());
+                            return ClientRegistration.withClientRegistration(reg)
+                                    .providerConfigurationMetadata(metadata)
+                                    .build();
+                        });
+
+        var serverLogoutSuccessHandler = new OidcClientInitiatedServerLogoutSuccessHandler(repo);
         serverLogoutSuccessHandler.setPostLogoutRedirectUri(appProperties.afterLogoutUri());
         this.logoutSuccessHandler = serverLogoutSuccessHandler;
 

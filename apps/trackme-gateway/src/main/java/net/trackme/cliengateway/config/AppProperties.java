@@ -12,6 +12,7 @@ import java.util.List;
 public record AppProperties(
         @NotBlank String afterLoginUrl,
         @NotBlank String afterLogoutUri,
+        @NotBlank String logoutUri,
         CorsProperties cors,
         SessionCookieProperties sessionCookie) {
 

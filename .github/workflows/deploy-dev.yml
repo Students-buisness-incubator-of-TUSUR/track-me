@@ -77,6 +77,7 @@ jobs:
             echo "MAIL_SUBJECT=TrackMe" >> .env
             echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env
             echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env
+            echo "LOGOUT_URI=$DEV_SSO_URI/connect/logout" >> .env
             
             
             cat .env.dev.redis | tr -d '\r' >> .env
