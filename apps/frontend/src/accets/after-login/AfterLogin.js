@@ -3,7 +3,7 @@ import loginService from "../../services/login-service";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 
-const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8081');
+const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080');
 
 function AfterLogin() {
     let service = loginService();
@@ -51,8 +51,6 @@ function AfterLogin() {
                 console.error("Error during login:", error);
             });
     }, [navigate, service]);
-
-    return null;
 }
 
 export default AfterLogin;

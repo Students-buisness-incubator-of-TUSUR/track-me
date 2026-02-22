@@ -37,3 +37,11 @@ out/
 ### VS Code ###
 .vscode/
 /apps/backend/src/main/resources/.jwt
+
+### Runtime data ###
+redisdata/
+node_modules/
+
+### Generated SSO static assets (built from frontend source) ###
+services/trackme-sso/src/main/resources/static/
+services/trackme-sso/src/main/resources/templates/index.html
