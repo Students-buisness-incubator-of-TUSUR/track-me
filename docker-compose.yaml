@@ -194,6 +194,9 @@ services:
       - trackme-net
     ports:
       - '8081:8081'
+    depends_on:
+      trackme-sso:
+        condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
       interval: 30s
@@ -215,6 +218,8 @@ services:
       context: apps/frontend
       dockerfile: Dockerfile
     platform: linux/amd64
+    environment:
+      - REACT_APP_BACKEND_URI=http://localhost
     env_file:
       - .env
     ports:

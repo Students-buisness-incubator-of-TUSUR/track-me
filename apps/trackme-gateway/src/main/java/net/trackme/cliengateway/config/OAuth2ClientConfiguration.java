@@ -44,8 +44,11 @@ public class OAuth2ClientConfiguration {
                                 .pathMatchers("/actuator/**").permitAll()
                                 .pathMatchers("/csrf").permitAll()
                                 .anyExchange().authenticated())
-                .oauth2Login(oauth2Login ->
-                        oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler))
+                .oauth2Login(oauth2Login -> {
+                        oauth2Login.authorizationRequestResolver(
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository));
+                        oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler);
+                })
                 .oauth2Client(withDefaults())
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -120,14 +123,14 @@ public class OAuth2ClientConfiguration {
 
         this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
             var exchange = webFilterExchange.getExchange();
-
-            var redirectUri = exchange.getRequest().getQueryParams().getFirst("redirect_uri");
-            if (redirectUri != null) {
-                return new RedirectServerAuthenticationSuccessHandler(redirectUri)
-                        .onAuthenticationSuccess(webFilterExchange, authentication);
-            }
-            return new RedirectServerAuthenticationSuccessHandler(appProperties.afterLoginUrl())
-                    .onAuthenticationSuccess(webFilterExchange, authentication);
+            return exchange.getSession()
+                    .flatMap(session -> {
+                        var redirectUri = (String) session.getAttributes()
+                                .remove(CustomAuthorizationRequestResolver.SESSION_KEY);
+                        var target = (redirectUri != null) ? redirectUri : appProperties.afterLoginUrl();
+                        return new RedirectServerAuthenticationSuccessHandler(target)
+                                .onAuthenticationSuccess(webFilterExchange, authentication);
+                    });
         };
     }
 }

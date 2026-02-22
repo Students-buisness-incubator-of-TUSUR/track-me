@@ -4,7 +4,7 @@ import "./HomePage.css";
 import {useLocation } from 'react-router-dom';
 
 const HomePage = () => {
-    const clientGatewayUri = process.env.REACT_APP_BACKEND_URI || "http://localhost:8080";
+    const clientGatewayUri = process.env.REACT_APP_BACKEND_URI || "http://localhost:8081";
     
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
