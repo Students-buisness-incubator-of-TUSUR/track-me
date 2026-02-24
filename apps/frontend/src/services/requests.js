@@ -25,11 +25,11 @@ export async function fetchTrackers(page, size, sort) {
   let sortString;
   if (Array.isArray(sort)) {
     if (sort.length === 0) {
-      sortString = "sort=name,asc";
+      sortString = "sort=username,asc";
     }
     sortString = "sort=" + sort.join("&sort=")
   } else {
-    sortString = "sort=name,asc";
+    sortString = "sort=username,asc";
   }
   const response = await fetch(
     `${backendURL}/sso/api/v1/users/trackers?page=${page}&size=${size}&${sortString}`,

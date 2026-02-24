@@ -14,7 +14,7 @@ describe('fetchReports', () => {
     await fetchReports(2, 20);
 
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/page=2.*size=20/),
+      expect.stringContaining('page=2&size=20'),
       expect.any(Object)
     );
   });
@@ -33,18 +33,18 @@ describe('fetchTrackers', () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/page=2.*size=20.*sort=name,asc/),
+      expect.stringContaining('page=2&size=20&sort=username,asc'),
       expect.any(Object)
     );
   });
   it('should use correct URL for different page/size and sort', async () => {
     fetch.mockResolvedValue({ ok: true });
 
-    await fetchTrackers(2, 20, ["name,desc"]);
+    await fetchTrackers(2, 20, ["username,desc"]);
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/page=2.*size=20.*sort=name,desc/),
+      expect.stringContaining('page=2&size=20&sort=username,desc'),
       expect.any(Object)
     );
   });
@@ -63,7 +63,7 @@ describe('fetchStreams', () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/page=2.*size=20.*sort=name,asc/),
+      expect.stringContaining('page=2&size=20&sort=name,asc'),
       expect.any(Object)
     );
   });
@@ -74,7 +74,7 @@ describe('fetchStreams', () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/page=2.*size=20.*sort=name,desc/),
+      expect.stringContaining('page=2&size=20&sort=name,desc'),
       expect.any(Object)
     );
   });
