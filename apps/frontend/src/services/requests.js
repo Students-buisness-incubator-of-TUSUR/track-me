@@ -23,10 +23,7 @@ export async function fetchReports(page, size, filters) {
 
 export async function fetchTrackers(page, size, sort) {
   let sortString;
-  if (Array.isArray(sort)) {
-    if (sort.length === 0) {
-      sortString = "sort=username,asc";
-    }
+  if (Array.isArray(sort) && sort.length !== 0) {
     sortString = "sort=" + sort.join("&sort=")
   } else {
     sortString = "sort=username,asc";
@@ -54,10 +51,7 @@ export async function fetchTrackers(page, size, sort) {
 
 export async function fetchStreams(page, size, sort) {
   let sortString;
-  if (Array.isArray(sort)) {
-    if (sort.length === 0) {
-      sortString = "sort=name,asc";
-    }
+  if (Array.isArray(sort) && sort.length !== 0) {
     sortString = "sort=" + sort.join("&sort=")
   } else {
     sortString = "sort=name,asc";
