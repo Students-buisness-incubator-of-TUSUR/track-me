@@ -609,7 +609,7 @@ describe('loadStreams and loadTrackers', () => {
     fireEvent.click(streamFilterButton);
 
     const dropdownMenu = await screen.findByTestId('streams-dropdown-menu');
-    const items = within(dropdownMenu).getAllByRole('generic'); // .dropdown-item divs
+    const items = within(dropdownMenu).getAllByRole('button'); // .dropdown-item divs
     expect(items).toHaveLength(3); // "—" + 2 streams
     expect(items[1]).toHaveTextContent('Stream A');
     expect(items[2]).toHaveTextContent('Stream B');
@@ -630,7 +630,7 @@ describe('loadStreams and loadTrackers', () => {
     fireEvent.click(trackerFilterButton);
 
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
-    const items = within(dropdownMenu).getAllByRole('generic');
+    const items = within(dropdownMenu).getAllByRole('button');
     expect(items).toHaveLength(3); // "—" + 2 trackers
     expect(items[1]).toHaveTextContent('Tracker One (tracker1)');
     expect(items[2]).toHaveTextContent('Tracker Two (tracker2)');
@@ -660,7 +660,7 @@ describe('loadStreams and loadTrackers', () => {
     const streamFilterButton = screen.getByText('Потоки');
     fireEvent.click(streamFilterButton);
     const dropdownMenu = await screen.findByTestId('streams-dropdown-menu');
-    const items = within(dropdownMenu).getAllByRole('generic');
+    const items = within(dropdownMenu).getAllByRole('button');
     expect(items).toHaveLength(1);
     expect(items[0]).toHaveTextContent('—');
   });
@@ -688,7 +688,7 @@ describe('loadStreams and loadTrackers', () => {
     const trackerFilterButton = screen.getByText('Трекеры');
     fireEvent.click(trackerFilterButton);
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
-    const items = within(dropdownMenu).getAllByRole('generic');
+    const items = within(dropdownMenu).getAllByRole('button');
     expect(items).toHaveLength(1);
     expect(items[0]).toHaveTextContent('—');
   });
