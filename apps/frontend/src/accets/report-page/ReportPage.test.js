@@ -632,8 +632,8 @@ describe('loadStreams and loadTrackers', () => {
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
     const items = within(dropdownMenu).getAllByRole('generic');
     expect(items).toHaveLength(3); // "—" + 2 trackers
-    expect(items[1]).toHaveTextContent('Tracker One');
-    expect(items[2]).toHaveTextContent('Tracker Two');
+    expect(items[1]).toHaveTextContent('Tracker One (tracker1)');
+    expect(items[2]).toHaveTextContent('Tracker Two (tracker2)');
   });
 
   test('loadStreams handles HTTP error', async () => {
@@ -769,7 +769,7 @@ describe('filter selection', () => {
     fireEvent.click(trackerFilterButton);
 
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
-    const trackerItem = within(dropdownMenu).getByText('Tracker One');
+    const trackerItem = within(dropdownMenu).getByText('Tracker One (tracker1)');
     fireEvent.click(trackerItem);
 
     // Dropdown should close
@@ -821,7 +821,7 @@ describe('filter selection', () => {
     const trackerFilterButton = screen.getByText('Трекеры');
     fireEvent.click(trackerFilterButton);
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
-    const trackerItem = within(dropdownMenu).getByText('Tracker One');
+    const trackerItem = within(dropdownMenu).getByText('Tracker One (tracker1)');
     fireEvent.click(trackerItem);
 
     await waitFor(() => {

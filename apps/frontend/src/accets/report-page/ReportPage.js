@@ -179,7 +179,7 @@ const [loading, setLoading] = useState(false);
           key={i}
           className="dropdown-item"
           onClick={() => setFilterTrackers(t.username)}
-        >{t.fullName}</div>
+        >{`${t.fullName} (${t.username})`}</div>
       ))}
     </div>
   )}
