@@ -169,17 +169,17 @@ const [loading, setLoading] = useState(false);
   </button>
   {trackerFilterOpen && (
     <div data-testid="trackers-dropdown-menu" className="dropdown-menu">
-      <div
+      <button
         key={0}
         className="dropdown-item"
         onClick={() => setFilterTrackers(null)}
-      >—</div>
+      >—</button>
       {trackers.map((t, i) => (
-        <div
+        <button
           key={i}
           className="dropdown-item"
           onClick={() => setFilterTrackers(t.username)}
-        >{`${t.fullName} (${t.username})`}</div>
+        >{`${t.fullName} (${t.username})`}</button>
       ))}
     </div>
   )}
@@ -202,17 +202,17 @@ const [loading, setLoading] = useState(false);
   </button>
   {streamFilterOpen && (
     <div data-testid="streams-dropdown-menu" className="dropdown-menu">
-      <div
+      <button
         key={0}
         className="dropdown-item"
         onClick={() => setFilterStreams(null)}
-      >—</div>
+      >—</button>
       {streams.map((t, i) => (
-        <div
+        <button
           key={i}
           className="dropdown-item"
           onClick={() => setFilterStreams(t.name)}
-        >{t.name}</div>
+        >{t.name}</button>
       ))}
     </div>
   )}
