@@ -1,18 +1,19 @@
 // accets/report/ReportPage.js
 import React, { useState, useEffect, useCallback } from "react";
 
-import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import { Link, useNavigate } from "react-router-dom";
 import ProfileIcon from "../stream-page/personal_account_1.png";
 import "./ReportPage.css";
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
 import MobileHeader from "../adaptive-accets/MobileHeader";
-import { fetchReports } from "../../services/requests";
+import { fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
 export default function ReportPage() {
   const navigate = useNavigate();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 const [reports, setReports] = useState([]);
+  const [trackers, setTrackers] = useState([]);
+  const [streams, setStreams] = useState([]);
 const [page] = useState(0);
 const [size] = useState(10);
 const [loading, setLoading] = useState(false);
@@ -27,66 +28,73 @@ const [loading, setLoading] = useState(false);
   // фильтры (заглушки)
   const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
   const [streamFilterOpen, setStreamFilterOpen] = useState(false);
+  const [filterTrackers, _setFilterTrackers] = useState(null);
+  const [filterStreams, _setFilterStreams] = useState(null);
+  const setFilterTrackers = (newTracker) => {
+    _setFilterTrackers(newTracker);
+    setTrackerFilterOpen(false);
+  }
+  const setFilterStreams = (newStreams) => {
+    _setFilterStreams(newStreams);
+    setStreamFilterOpen(false);
+  }
   
   const loadReports = useCallback(async () => {
-    setLoading(true);
     try {
-      const response = await fetchReports(page, size);
-
+      const filters = [];
+      if (filterTrackers) filters.push({
+          fieldName: "username",
+          type: "EQ",
+          value: filterTrackers,
+        });
+      if (filterStreams) filters.push({
+          fieldName: "streams.name",
+          type: "EQ",
+          value: filterStreams,
+        });
+      const response = await fetchReports(page, size, filters);
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
-
       const data = await response.json();
       setReports(data.content);
     } catch (error) {
       console.error("Ошибка загрузки отчётов", error);
-    } finally {
-      setLoading(false);
+    }
+  }, [page, size, filterTrackers, filterStreams]);
+
+  const loadStreams = useCallback(async () => {
+    try {
+      const response = await fetchStreams(page, size);
+      if (!response.ok) {
+        throw new Error(`Ошибка HTTP: ${response.status}`);
+      }
+      const data = await response.json();
+      setStreams(data.content);
+    } catch (error) {
+      console.error("Ошибка загрузки отчётов", error);
     }
   }, [page, size]);
+
+  const loadTrackers = useCallback(async () => {
+    try {
+      const response = await fetchTrackers(page, size);
+      if (!response.ok) {
+        throw new Error(`Ошибка HTTP: ${response.status}`);
+      }
+      const data = await response.json();
+      setTrackers(data.content);
+    } catch (error) {
+      console.error("Ошибка загрузки отчётов", error);
+    }
+  }, [page, size]);
+
   useEffect(() => {
-    loadReports();
-  }, [loadReports]);
-
-
-
-  const dummyTrackers = [
-    "Александров Александр Александрович",
-    "Иванов Иван Иванович",
-    "Петров Пётр Петрович",
-    "Сидоров Сидор Сидорович",
-    "Александров Александр Александрович",
-    "Иванов Иван Иванович",
-    "Петров Пётр Петрович",
-    "Сидоров Сидор Сидорович",
-    "Александров Александр Александрович",
-    "Иванов Иван Иванович",
-    "Петров Пётр Петрович",
-    "Сидоров Сидор Сидорович",
-  ];
-
-  // заглушка потоков как на картинке
-  const dummyStreams = [
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-  ];
+    setLoading(true);
+    Promise.all([loadReports(), loadStreams(), loadTrackers()]).finally(() => 
+      setLoading(false)
+    );
+  }, [loadReports, loadStreams, loadTrackers]);
 
   return (
     <div className="Report">
@@ -160,9 +168,18 @@ const [loading, setLoading] = useState(false);
 
   </button>
   {trackerFilterOpen && (
-    <div className="dropdown-menu">
-      {dummyTrackers.map((t, i) => (
-        <div key={i} className="dropdown-item">{t}</div>
+    <div data-testid="trackers-dropdown-menu" className="dropdown-menu">
+      <div
+        key={0}
+        className="dropdown-item"
+        onClick={() => setFilterTrackers(null)}
+      >—</div>
+      {trackers.map((t, i) => (
+        <div
+          key={i}
+          className="dropdown-item"
+          onClick={() => setFilterTrackers(t.username)}
+        >{t.fullName}</div>
       ))}
     </div>
   )}
@@ -184,9 +201,18 @@ const [loading, setLoading] = useState(false);
 
   </button>
   {streamFilterOpen && (
-    <div className="dropdown-menu">
-      {dummyStreams.map((s, i) => (
-        <div key={i} className="dropdown-item">{s}</div>
+    <div data-testid="streams-dropdown-menu" className="dropdown-menu">
+      <div
+        key={0}
+        className="dropdown-item"
+        onClick={() => setFilterStreams(null)}
+      >—</div>
+      {streams.map((t, i) => (
+        <div
+          key={i}
+          className="dropdown-item"
+          onClick={() => setFilterStreams(t.name)}
+        >{t.name}</div>
       ))}
     </div>
   )}
