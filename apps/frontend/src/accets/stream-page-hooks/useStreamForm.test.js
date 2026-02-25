@@ -581,7 +581,7 @@ describe('handleSubmit', () => {
   });
 
   expect(alertMock).toHaveBeenCalledWith('Поток успешно обновлен!');
-  expect(mockNavigate).toHaveBeenCalledWith('/streams');
+  expect(mockNavigate).toHaveBeenCalledWith('/team-cards');
 });
 
   it('создает поток и загружает дефолтное изображение, если imageFile не указан', async () => {
@@ -606,7 +606,7 @@ describe('handleSubmit', () => {
     });
     
     expect(alertMock).toHaveBeenCalledWith('Поток успешно создан!');
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
+    expect(mockNavigate).toHaveBeenCalledWith('/team-cards');
   });
 
   it('выводит ошибку, если не удалось создать поток', async () => {

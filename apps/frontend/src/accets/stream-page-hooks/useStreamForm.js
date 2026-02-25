@@ -307,7 +307,12 @@ const requestData = {
     }
 
     alert(isEditMode ? 'Поток успешно обновлен!' : 'Поток успешно создан!');
-    navigate('/streams');
+    console.log(streamResult)
+    localStorage.setItem("streamName", streamResult.name)
+    localStorage.setItem("streamId", streamResult.id)
+    localStorage.setItem("streamSDate", streamResult.startDate)
+    localStorage.setItem("streamEDate", streamResult.endDate)
+    navigate(`/team-cards`);
   } catch (error) {
     setError(
       isEditMode
