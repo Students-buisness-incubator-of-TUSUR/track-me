@@ -34,7 +34,7 @@ export default function CreateStream() {
     handleSubmit,
     showCustomInput,
     setShowCustomInput,
-  } = useStreamForm();
+  } = useStreamForm(null, navigate);
 
   // Варианты для выпадающего списка
   const meetingOptions = [5, 10, 15, 20];
