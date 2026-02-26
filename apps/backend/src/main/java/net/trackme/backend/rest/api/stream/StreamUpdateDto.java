@@ -18,6 +18,10 @@ public record StreamUpdateDto(
     @Schema(description = "Дата начала потока")
     @NotNull(message = "Дата начала потока не может быть пустой")
     @Future(message = "Дата начала потока должна быть в будущем")
+    LocalDate startDate,
+    @Schema(description = "Дата окончания потока")
+    @NotNull(message = "Дата окончания потока не может быть пустой")
+    @Future(message = "Дата окончания потока должна быть в будущем")
     LocalDate endDate,
     @Schema(description = "Дата начала трека")
     @NotNull(message = "Дата начала трека не может быть пустой")
