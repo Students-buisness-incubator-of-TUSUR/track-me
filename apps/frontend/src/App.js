@@ -7,7 +7,6 @@ import ProfilePage from "./accets/profile/ProfilePage.js";
 import CreateStream from "./accets/stream-page-create/create-stream-page.js";
 import TrackerList from "./accets/list-trackers/TrackerList.js";
 import AdminList from "./accets/list-admins/AdminList.js";
-import EditStream from "./accets/stream-page-redo/redo-stream-page.js";
 import MeetingCard from "./accets/meeting-card/meeting-card.js";
 import MeetingCard2 from "./accets/team-card-2/meeting-card-team.js";
 import TeamCard from "./accets/komand/team-card.js";
@@ -49,7 +48,7 @@ function App() {
                     } />
                     <Route path="/edit-stream/:id" element={
                         <ProtectedRoute>
-                            <EditStream />
+                            <CreateStream />
                         </ProtectedRoute>
                     } />
                     <Route path="/admin" element={
