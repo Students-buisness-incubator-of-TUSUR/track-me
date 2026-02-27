@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./meeting-card.css";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
-
+import { validateMeetingWeekLimit } from "../../utils/date-utils";
+import CustomDateTimePicker from './CustomDateTimePicker';
 const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/meeting';
+const API_HOST = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
 
 const MeetingCreate = ({ onClose, teamId }) => {
     const navigate = useNavigate();
@@ -15,30 +17,75 @@ const MeetingCreate = ({ onClose, teamId }) => {
         number: "1",
         startDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     });
-    const [meetings, setMeetings] = useState([]); // Храним загруженные встречи
+    const [meetings, setMeetings] = useState([]);
+    const [streamEndDate, setStreamEndDate] = useState(null);
+    const [streamName, setStreamName] = useState(null);
+    const [isStreamActive, setIsStreamActive] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
     const popupRef = useRef(null);
 
-    // Получить понедельник недели для заданной даты
-    const getMonday = (date) => {
-        const d = new Date(date);
-        const day = d.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-        const diff = d.getDate() - (day === 0 ? 6 : day - 1); // Monday = 1 → -0, Sunday = 0 → -6
-        const monday = new Date(d);
-        monday.setDate(diff);
-        return monday.toISOString().split('T')[0];
-    };
-
-    // Посчитать встречи по неделям
-    const getMeetingsByWeek = (meetings) => {
-        const weeks = {};
-        meetings.forEach(meeting => {
-            const monday = getMonday(meeting.startDate);
-            weeks[monday] = (weeks[monday] || 0) + 1;
-            console.log('COVERAGE: weeks[monday] updated');
-        });
-        return weeks;
-    };
     useEffect(() => {
+        const fetchTeamData = async () => {
+            try {
+                const teamUrl = new URL(`${API_HOST}/api/v1/admin/team-cards`);
+                teamUrl.searchParams.append('page', 0);
+                teamUrl.searchParams.append('size', 1000);
+                
+                const response = await fetch(teamUrl, {
+                    method: 'POST',
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        ...getCsrfConfigForFetch()
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ filters: [] })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка загрузки данных команды: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.content && data.content.length > 0) {
+                    const teamCard = data.content.find(card => card.id === teamId);
+                    
+                    if (teamCard) {
+                        // streams - это МАССИВ, берем первый элемент
+                        if (teamCard.streams && teamCard.streams.length > 0) {
+                            const stream = teamCard.streams[0];
+                            console.log('Данные потока:', stream);
+                            
+                            if (stream.endDate) {
+                                setStreamEndDate(stream.endDate);
+                                setStreamName(stream.name || 'Неизвестный поток');
+                                setIsStreamActive(stream.active === true);
+                                
+                                // Проверяем, завершен ли поток
+                                const today = new Date();
+                                const endDate = new Date(stream.endDate);
+                                endDate.setHours(23, 59, 59, 999);
+                                
+                                if (today > endDate) {
+                                    console.log('Поток завершен по дате');
+                                }
+                            }
+                        } else {
+                            console.warn('У карточки нет данных о потоке');
+                        }
+                    }
+                }
+
+                await fetchMeetings();
+            } catch (err) {
+                console.error("Ошибка при загрузке данных команды:", err);
+                setError(`Не удалось загрузить данные команды: ${err.message}`);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         const fetchMeetings = async () => {
             try {
                 const url = new URL(`${backendHost}/api/v1/meetings`);
@@ -57,7 +104,6 @@ const MeetingCreate = ({ onClose, teamId }) => {
                 }
 
                 const data = await response.json();
-
                 const meetingsList = data.content || [];
                 setMeetings(meetingsList);
 
@@ -73,14 +119,12 @@ const MeetingCreate = ({ onClose, teamId }) => {
                     ...prev,
                     number: (maxNumber + 1).toString()
                 }));
-                console.log('COVERAGE: new meeting number set');
             } catch (err) {
                 console.error("Ошибка при загрузке встреч:", err);
-                setError("Не удалось загрузить список встреч");
             }
         };
 
-        fetchMeetings();
+        fetchTeamData();
     }, [teamId]);
 
     useEffect(() => {
@@ -94,33 +138,46 @@ const MeetingCreate = ({ onClose, teamId }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [onClose]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setMeetingData(prev => ({ ...prev, [name]: value }));
-        if (error) setError(null);
-    };
+    // const handleChange = (e) => {
+    //     const { name, value } = e.target;
+    //     setMeetingData(prev => ({ ...prev, [name]: value }));
+    //     if (error) setError(null);
+    // };
 
     const validateMeetingData = () => {
-        if (!meetingData.number || isNaN(parseInt(meetingData.number))) {
-            throw new Error("Номер встречи должен быть числом");
-        }
-
         const selectedDate = new Date(meetingData.startDate);
-        const currentDate = new Date();
         
-        if (selectedDate <= currentDate) {
-            throw new Error("Дата встречи должна быть в будущем");
+        // Проверка 1: Поток активен
+        if (!isStreamActive) {
+            throw new Error(`Поток "${streamName}" не активен. Создание встреч запрещено.`);
         }
         
-        const monday = getMonday(selectedDate);
-        const meetingsByWeek = getMeetingsByWeek(meetings);
-        const countThisWeek = meetingsByWeek[monday] || 0;
+        // Проверка 2: Поток еще не завершен по дате
+        if (streamEndDate) {
+            const endDate = new Date(streamEndDate);
+            endDate.setHours(23, 59, 59, 999);
+            
+            if (selectedDate > endDate) {
+                throw new Error(`Поток "${streamName}" завершен ${endDate.toLocaleDateString()}. Дата встречи не может быть позже даты окончания потока.`);
+            }
+            
+            // Дополнительная проверка: если поток завершен (дата в прошлом)
+            const today = new Date();
+            if (today > endDate) {
+                throw new Error(`Поток "${streamName}" завершен ${endDate.toLocaleDateString()}. Создание новых встреч в завершенном потоке запрещено.`);
+            }
+        }
 
-        if (countThisWeek >= 2) {
-            throw new Error("Нельзя создать более 2 встреч в одной неделе (с понедельника по воскресенье)");
-        }
+        // Проверка 3: Ограничение на количество встреч в неделю
+        const validation = validateMeetingWeekLimit(
+            meetings,
+            selectedDate,
+            true
+        );
         
-        return true;
+        if (!validation.isValid) {
+            throw new Error(validation.errorMessage);
+        }
     };
 
     const handleCreate = async () => {
@@ -157,6 +214,43 @@ const MeetingCreate = ({ onClose, teamId }) => {
         }
     };
 
+    const getMaxDate = () => {
+        if (!streamEndDate) return null;
+        
+        const endDate = new Date(streamEndDate);
+        endDate.setHours(23, 59, 59, 999);
+        return endDate.toISOString().slice(0, 16);
+    };
+
+    const getMinDate = () => {
+        const now = new Date();
+        now.setHours(now.getHours() + 1);
+        return now.toISOString().slice(0, 16);
+    };
+
+    // Проверяем, завершен ли поток
+    const isStreamFinished = () => {
+        if (!streamEndDate) return false;
+        
+        const endDate = new Date(streamEndDate);
+        endDate.setHours(23, 59, 59, 999);
+        const today = new Date();
+        
+        return today > endDate;
+    };
+
+    if (isLoading) {
+        return (
+            <div className="meeting-create-popup" ref={popupRef}>
+                <div className="popup-content">
+                    <p>Загрузка данных команды...</p>
+                </div>
+            </div>
+        );
+    }
+
+    const streamFinished = isStreamFinished();
+
     return (
         <div className="meeting-create-popup" ref={popupRef}>
             <button className="popup-close-button" onClick={onClose}>
@@ -164,25 +258,54 @@ const MeetingCreate = ({ onClose, teamId }) => {
             </button>
             <div className="popup-content">
                 <h3>Запланировать встречу #{meetingData.number}</h3>
+                
+                {streamName && streamEndDate && (
+                    <div className={`stream-info ${!isStreamActive || streamFinished ? 'error' : ''}`}>
+                        <p className="stream-info-text">
+                            Поток: <strong>{streamName}</strong><br />
+                            Дата окончания: <strong>{new Date(streamEndDate).toLocaleDateString()}</strong><br />
+                            Статус: <strong>{isStreamActive ? 'Активен' : 'Неактивен'}</strong>
+                        </p>
+                        {(!isStreamActive || streamFinished) && (
+                            <p className="stream-warning-text">
+                                ⚠️ {!isStreamActive ? 'Поток не активен' : 'Поток завершен'}. Создание встреч невозможно.
+                            </p>
+                        )}
+                    </div>
+                )}
+                
                 {error && (
                     <div className="error-message">
                         {error}
                         <button className="error-close" onClick={() => setError(null)}>×</button>
                     </div>
                 )}
+                
                 <div className="date-selection">
-                    <span className="date-label">Дата и время:</span>
-                    <input
-                        type="datetime-local"
-                        name="startDate"
-                        value={meetingData.startDate.slice(0, 16)}
-                        onChange={handleChange}
-                        className="date-input"
-                        min={new Date().toISOString().slice(0, 16)}
-                    />
-                </div>
-                <button onClick={handleCreate} className="create-button">
-                    Создать
+    <span className="date-label">Дата и время:</span>
+    <CustomDateTimePicker
+        value={meetingData.startDate.slice(0, 16)}
+        onChange={(newValue) => {
+            setMeetingData(prev => ({ 
+                ...prev, 
+                startDate: newValue 
+            }));
+            if (error) setError(null);
+        }}
+        min={getMinDate()}
+        max={getMaxDate()}
+        disabled={!isStreamActive || streamFinished || !streamEndDate}
+    />
+</div>
+                
+                <button 
+                    onClick={handleCreate} 
+                    className="create-button"
+                    disabled={!isStreamActive || streamFinished || !streamEndDate}
+                >
+                    {(!isStreamActive || streamFinished) ? 
+                        "Создание запрещено" : 
+                        streamEndDate ? "Создать" : "Дождитесь загрузки данных"}
                 </button>
             </div>
         </div>

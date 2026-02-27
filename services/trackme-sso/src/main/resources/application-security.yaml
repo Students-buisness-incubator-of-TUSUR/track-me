@@ -25,9 +25,11 @@ spring:
                 - ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
                 - http://localhost:8081
                 - http://localhost:3000
+                - http://localhost
               redirect-uris:
                 - ${BACKEND_URI:http://127.0.0.1:8081}/login/oauth2/code/track-me-client
                 - http://127.0.0.1:8081/login/oauth2/code/track-me-client
+                - http://localhost/login/oauth2/code/track-me-client
       resourceserver:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}

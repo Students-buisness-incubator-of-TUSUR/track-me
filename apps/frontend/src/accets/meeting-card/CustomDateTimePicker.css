@@ -1,0 +1,268 @@
+/* CustomDateTimePicker.css */
+.custom-datetime-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.custom-datetime-display {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-width: 200px;
+}
+
+
+
+.custom-datetime-display.disabled {
+    cursor: not-allowed;
+    background-color: #f5f5f5;
+    border-color: #ccc;
+    color: #999;
+    opacity: 0.7;
+}
+
+
+.custom-datetime-icon {
+    margin-left: 8px;
+    transition: transform 0.3s ease;
+    color: #8338EB;
+    font-size: 14px;
+}
+
+.custom-datetime-wrapper.open .custom-datetime-icon {
+    transform: rotate(180deg);
+}
+
+.custom-datetime-picker {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: white;
+    border: 2px solid #8338EB;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(131, 56, 235, 0.25);
+    z-index: 10001;
+    margin-bottom: 10px;
+    width: 320px;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #F0E6FF;
+}
+
+.month-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #44069A;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.nav-button {
+    background: #F8F3FF;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    color: #8338EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+    background: #8338EB;
+    color: white;
+    transform: scale(1.1);
+}
+
+.close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: #666;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    margin-left: 10px;
+}
+
+.close-button:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.calendar-grid {
+    margin-bottom: 20px;
+}
+
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.weekday {
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    padding: 5px;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-day {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.calendar-day:hover:not(.disabled):not(.selected) {
+    background: #F0E6FF;
+    transform: scale(1.1);
+}
+
+.calendar-day.today {
+    border: 2px solid #8338EB;
+}
+
+.calendar-day.today .day-number {
+    color: #8338EB;
+    font-weight: 700;
+}
+
+.calendar-day.selected {
+    background: #8338EB;
+    color: white;
+    transform: scale(1.1);
+}
+
+.calendar-day.selected .day-number {
+    color: white;
+    font-weight: 700;
+}
+
+.calendar-day.disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+    color: #ccc;
+}
+
+.calendar-day.empty {
+    cursor: default;
+}
+
+.day-number {
+    z-index: 1;
+}
+
+.today-indicator {
+    position: absolute;
+    bottom: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #8338EB;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 2px solid #F0E6FF;
+}
+
+.quick-button {
+    flex: 1;
+    padding: 10px;
+    background: #F8F3FF;
+    border: 2px solid #F0E6FF;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #8338EB;
+    transition: all 0.3s ease;
+}
+
+.quick-button:hover {
+    background: #8338EB;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Адаптивные стили */
+@media (max-width: 480px) {
+    .custom-datetime-picker {
+        width: 280px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .calendar-day {
+        font-size: 14px;
+    }
+    
+    .weekday {
+        font-size: 12px;
+    }
+    
+    .month-name {
+        font-size: 16px;
+    }
+}
+
+/* Для MeetingCreate */
+.date-selection .custom-datetime-wrapper {
+    flex: 1;
+}

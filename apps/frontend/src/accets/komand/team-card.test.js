@@ -985,7 +985,7 @@ test('TRACKER branch uses /account/info for fullName', async () => {
     expect(screen.getAllByText('MyStream').length).toBeGreaterThan(1);
   });
 
-test('нажатие на кнопку × вызывает navigate(from)', async () => {
+test('нажатие на кнопку × вызывает navigate(-1)', async () => {
   const RR = require('react-router-dom');
   RR.__setSearch('');
   RR.__setState({ from: '/custom-return-path' });
@@ -1001,7 +1001,7 @@ test('нажатие на кнопку × вызывает navigate(from)', asyn
   const closeButton = screen.getByRole('button', { name: '×' });
   fireEvent.click(closeButton);
 
-  expect(mockedNavigate).toHaveBeenCalledWith('/custom-return-path');
+  expect(mockedNavigate).toHaveBeenCalledWith(-1);
 });
 
 
@@ -1806,6 +1806,7 @@ describe('Stream selection functionality', () => {
 
 // Tests for lines 875-911 (Meeting date editing)
 describe('Meeting date editing', () => {
+
   test('clicking meeting date opens date editor', async () => {
     require('react-router-dom').__setSearch('');
     await act(async () => {
@@ -2942,3 +2943,306 @@ test('confirm-modal: onClick и onKeyDown вызывают stopPropagation (ед
 
 });
 
+test('redux user initialization - simple coverage', async () => {
+  // 1. localStorage пустой
+  Storage.prototype.getItem = jest.fn(() => null);
+  
+  // 2. useSelector возвращает любые данные
+  redux.useSelector.mockImplementation(() => ({
+    user: { 
+      username: 'testuser',
+      roles: ['ADMIN']
+    }
+  }));
+  
+  // 3. Рендерим компонент
+  await act(async () => {
+    render(
+      <MemoryRouter initialEntries={['/team-card/42']}>
+        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+      </MemoryRouter>
+    );
+  });
+  
+  expect(Storage.prototype.setItem).toHaveBeenCalled();
+});
+
+describe('Meeting date validation errors', () => {
+  let setTimeoutSpy;
+  
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    
+    // Мокаем setTimeout
+    setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+    
+    require('react-router-dom').__setSearch('');
+    redux.useSelector.mockImplementation(() => ({
+      user: { username: 'reduxUser', roles: ['ADMIN'] }
+    }));
+    Storage.prototype.getItem = jest.fn(() =>
+      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
+    );
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    if (setTimeoutSpy) {
+      setTimeoutSpy.mockRestore();
+    }
+  });
+
+  test('shows validation error when handleDateChange is called with invalid date (exceeds weekly limit)', async () => {
+    // Мокаем validateMeetingDateChange для возврата ошибки о превышении лимита
+    const dateUtils = require('../../utils/date-utils');
+    const originalValidate = dateUtils.validateMeetingDateChange;
+    
+    dateUtils.validateMeetingDateChange = jest.fn(() => ({
+      isValid: false,
+      errorMessage: 'Нельзя сохранить: на этой неделе уже 2 встречи',
+      count: 3,
+      monday: '2025-01-06'
+    }));
+
+    // Создаем мок с встречами
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, startDate: '2025-01-06T10:00:00Z', number: 1 },
+              { id: 101, startDate: '2025-01-07T11:00:00Z', number: 2 },
+              { id: 102, startDate: '2025-01-08T12:00:00Z', number: 3 }
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      if (url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: 42,
+              name: 'OldName',
+              description: 'OldDesc',
+              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+              readinessLevel: '0-2',
+              streams: [{ id: 1, name: 'Stream1' }],
+              username: 'reduxUser'
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      if (url.endsWith('/api/v1/users/reduxUser/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ fullName: 'Admin FullName' })
+        });
+      }
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve({ content: [], totalPages: 1 }) 
+      });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Находим и кликаем дату первой встречи (06.01)
+    const meetingDate = await screen.findByText('06.01');
+    
+    await act(async () => {
+      fireEvent.click(meetingDate);
+    });
+
+    // Проверяем что появилось сообщение об ошибке с правильным текстом
+    await waitFor(() => {
+      const errorElement = screen.getByTestId('meeting-error');
+      expect(errorElement).toBeInTheDocument();
+      expect(errorElement.textContent).toContain('Нельзя сохранить: на этой неделе уже 2 встречи');
+    });
+
+    // Проверяем что setTimeout был вызван с 5000ms
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 5000);
+
+    // Восстанавливаем оригинальную функцию
+    dateUtils.validateMeetingDateChange = originalValidate;
+  });
+
+  test('shows validation error when saveMeetingDate is called with invalid date (exceeds weekly limit)', async () => {
+    const dateUtils = require('../../utils/date-utils');
+    const originalValidate = dateUtils.validateMeetingDateChange;
+    
+    // Настраиваем мок так, чтобы:
+    // 1. Первый вызов (в handleDateChange) прошел успешно
+    // 2. Второй вызов (в saveMeetingDate) вернул ошибку
+    let callCount = 0;
+    dateUtils.validateMeetingDateChange = jest.fn(() => {
+      callCount++;
+      if (callCount === 1) {
+        // Первый вызов в handleDateChange - успешно
+        return { isValid: true, errorMessage: '', count: 1, monday: '2025-01-06' };
+      } else {
+        // Второй вызов в saveMeetingDate - ошибка
+        return { 
+          isValid: false, 
+          errorMessage: 'Нельзя сохранить: на этой неделе уже 2 встречи',
+          count: 3,
+          monday: '2025-01-06'
+        };
+      }
+    });
+
+    global.fetch = jest.fn((url, options = {}) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: 100, startDate: '2025-01-06T10:00:00Z', number: 1 },
+              { id: 101, startDate: '2025-01-07T11:00:00Z', number: 2 }
+            ],
+            totalPages: 1
+          })
+        });
+      }
+      if (url.includes('/api/v1/admin/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: 42,
+              name: 'OldName',
+              description: 'OldDesc',
+              ntiMarkets: [{ id: 10, displayName: 'OldMarket' }],
+              readinessLevel: '0-2',
+              streams: [{ id: 1, name: 'Stream1' }],
+              username: 'reduxUser'
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      if (url.endsWith('/api/v1/users/reduxUser/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ fullName: 'Admin FullName' })
+        });
+      }
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve({ content: [], totalPages: 1 }) 
+      });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // 1. Открываем редактор даты первой встречи
+    const meetingDate = await screen.findByText('06.01');
+    
+    await act(async () => {
+      fireEvent.click(meetingDate);
+    });
+
+    // 2. Ждем, пока появится форма редактирования с кнопкой "Сохранить"
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Сохранить/i })).toBeInTheDocument();
+    });
+
+    // 3. Нажимаем кнопку "Сохранить" - это вызовет saveMeetingDate
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
+    });
+
+    // 4. Проверяем, что появилось сообщение об ошибке
+    await waitFor(() => {
+      const errorElement = screen.getByTestId('meeting-error');
+      expect(errorElement).toBeInTheDocument();
+      expect(errorElement.textContent).toContain('Нельзя сохранить: на этой неделе уже 2 встречи');
+    });
+
+    // 5. Проверяем, что setTimeout был вызван
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 5000);
+    
+    // 6. Проверяем, что editingMeetingId был сброшен (форма редактирования закрылась)
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: /Сохранить/i })).not.toBeInTheDocument();
+    });
+
+    // Восстанавливаем оригинальную функцию
+    dateUtils.validateMeetingDateChange = originalValidate;
+  });
+
+  test('covers invalid date error in handleDateChange (simpler version)', async () => {
+    const dateUtils = require('../../utils/date-utils');
+    const originalValidate = dateUtils.validateMeetingDateChange;
+    
+    // Возвращаем ошибку "Некорректная дата встречи"
+    dateUtils.validateMeetingDateChange = jest.fn(() => ({
+      isValid: false,
+      errorMessage: 'Некорректная дата встречи',
+      count: 0,
+      monday: null
+    }));
+
+    // Используем валидную дату в моке, чтобы избежать проблем с навигацией
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ 
+              id: 100, 
+              startDate: '2025-01-06T10:00:00Z', // Валидная дата
+              number: 1 
+            }],
+            totalPages: 1
+          })
+        });
+      }
+      return Promise.resolve({ 
+        ok: true, 
+        json: () => Promise.resolve({ content: [], totalPages: 1 }) 
+      });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/team-card/42']}>
+          <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
+        </MemoryRouter>
+      );
+    });
+
+    // Находим и кликаем на дату встречи (не на саму карточку, а на элемент даты)
+    // Этот клик вызовет handleDateChange
+    const meetingDateElement = await screen.findByRole('button', { 
+      name: /Изменить дату встречи 1/i 
+    });
+    
+    await act(async () => {
+      fireEvent.click(meetingDateElement);
+    });
+
+    // Проверяем что setTimeout был вызван
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 5000);
+
+    // Восстанавливаем
+    dateUtils.validateMeetingDateChange = originalValidate;
+  });
+});

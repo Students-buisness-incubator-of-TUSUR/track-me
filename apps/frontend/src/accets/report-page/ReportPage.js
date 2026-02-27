@@ -1,14 +1,22 @@
 // accets/report/ReportPage.js
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
 import { Link, useNavigate } from "react-router-dom";
 import ProfileIcon from "../stream-page/personal_account_1.png";
 import "./ReportPage.css";
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
 import MobileHeader from "../adaptive-accets/MobileHeader";
+import { fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
 export default function ReportPage() {
   const navigate = useNavigate();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+const [reports, setReports] = useState([]);
+  const [trackers, setTrackers] = useState([]);
+  const [streams, setStreams] = useState([]);
+const [page] = useState(0);
+const [size] = useState(10);
+const [loading, setLoading] = useState(false);
 
   const toggleProfileMenu = () => setIsProfileMenuOpen(prev => !prev);
 
@@ -20,43 +28,73 @@ export default function ReportPage() {
   // фильтры (заглушки)
   const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
   const [streamFilterOpen, setStreamFilterOpen] = useState(false);
+  const [filterTrackers, _setFilterTrackers] = useState(null);
+  const [filterStreams, _setFilterStreams] = useState(null);
+  const setFilterTrackers = (newTracker) => {
+    _setFilterTrackers(newTracker);
+    setTrackerFilterOpen(false);
+  }
+  const setFilterStreams = (newStreams) => {
+    _setFilterStreams(newStreams);
+    setStreamFilterOpen(false);
+  }
+  
+  const loadReports = useCallback(async () => {
+    try {
+      const filters = [];
+      if (filterTrackers) filters.push({
+          fieldName: "username",
+          type: "EQ",
+          value: filterTrackers,
+        });
+      if (filterStreams) filters.push({
+          fieldName: "streams.name",
+          type: "EQ",
+          value: filterStreams,
+        });
+      const response = await fetchReports(page, size, filters);
+      if (!response.ok) {
+        throw new Error(`Ошибка HTTP: ${response.status}`);
+      }
+      const data = await response.json();
+      setReports(data.content);
+    } catch (error) {
+      console.error("Ошибка загрузки отчётов", error);
+    }
+  }, [page, size, filterTrackers, filterStreams]);
 
-  const dummyTrackers = [
-    "Александров Александр Александрович",
-    "Иванов Иван Иванович",
-    "Петров Пётр Петрович",
-    "Сидоров Сидор Сидорович",
-    "Александров Александр Александрович",
-    "Иванов Иван Иванович",
-    "Петров Пётр Петрович",
-    "Сидоров Сидор Сидорович",
-    "Александров Александр Александрович",
-    "Иванов Иван Иванович",
-    "Петров Пётр Петрович",
-    "Сидоров Сидор Сидорович",
-  ];
+  const loadStreams = useCallback(async () => {
+    try {
+      const response = await fetchStreams(page, size);
+      if (!response.ok) {
+        throw new Error(`Ошибка HTTP: ${response.status}`);
+      }
+      const data = await response.json();
+      setStreams(data.content);
+    } catch (error) {
+      console.error("Ошибка загрузки отчётов", error);
+    }
+  }, [page, size]);
 
-  // заглушка потоков как на картинке
-  const dummyStreams = [
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-    "Поток называется вот так",
-  ];
+  const loadTrackers = useCallback(async () => {
+    try {
+      const response = await fetchTrackers(page, size);
+      if (!response.ok) {
+        throw new Error(`Ошибка HTTP: ${response.status}`);
+      }
+      const data = await response.json();
+      setTrackers(data.content);
+    } catch (error) {
+      console.error("Ошибка загрузки отчётов", error);
+    }
+  }, [page, size]);
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([loadReports(), loadStreams(), loadTrackers()]).finally(() => 
+      setLoading(false)
+    );
+  }, [loadReports, loadStreams, loadTrackers]);
 
   return (
     <div className="Report">
@@ -130,9 +168,18 @@ export default function ReportPage() {
 
   </button>
   {trackerFilterOpen && (
-    <div className="dropdown-menu">
-      {dummyTrackers.map((t, i) => (
-        <div key={i} className="dropdown-item">{t}</div>
+    <div data-testid="trackers-dropdown-menu" className="dropdown-menu">
+      <button
+        key={0}
+        className="dropdown-item"
+        onClick={() => setFilterTrackers(null)}
+      >—</button>
+      {trackers.map((t, i) => (
+        <button
+          key={i}
+          className="dropdown-item"
+          onClick={() => setFilterTrackers(t.username)}
+        >{`${t.fullName} (${t.username})`}</button>
       ))}
     </div>
   )}
@@ -154,9 +201,18 @@ export default function ReportPage() {
 
   </button>
   {streamFilterOpen && (
-    <div className="dropdown-menu">
-      {dummyStreams.map((s, i) => (
-        <div key={i} className="dropdown-item">{s}</div>
+    <div data-testid="streams-dropdown-menu" className="dropdown-menu">
+      <button
+        key={0}
+        className="dropdown-item"
+        onClick={() => setFilterStreams(null)}
+      >—</button>
+      {streams.map((t, i) => (
+        <button
+          key={i}
+          className="dropdown-item"
+          onClick={() => setFilterStreams(t.name)}
+        >{t.name}</button>
       ))}
     </div>
   )}
@@ -183,21 +239,48 @@ export default function ReportPage() {
               </tr>
             </thead>
             <tbody>
-              {Array.from({ length: 30 }).map((_, i) => (
-                <tr key={i}>
-                  <td>{i + 1}</td>
-                  <td>Поток называется вот так</td>
-                  <td>01.09.2025 – 12.12.2025</td>
-                  <td>Название команды очень длинное</td>
-                  <td>Александров Александр Александрович</td>
-                  <td>5</td>
-                  <td>5</td>
-                  <td>1/3</td>
-                  <td>HealthNet</td>
-                  <td>0-2</td>
-                </tr>
-              ))}
-            </tbody>
+  {loading && (
+    <tr>
+      <td colSpan="10">Загрузка...</td>
+    </tr>
+  )}
+
+  {!loading && reports.length === 0 && (
+    <tr>
+      <td colSpan="10">Нет данных</td>
+    </tr>
+  )}
+
+  {!loading &&
+    reports.map((item, index) => (
+      <tr key={index}>
+        <td>{index + 1 + page * size}</td>
+
+        <td>{item.streamName}</td>
+
+        <td>
+          {item.startDate} – {item.endDate}
+        </td>
+
+        <td>{item.teamCardName}</td>
+
+        <td>{item.username}</td>
+
+        <td>{item.averageTeamGrade ?? "—"}</td>
+
+        <td>{item.averageUserGrade ?? "—"}</td>
+
+        <td>
+          {item.meetingsCountFact}/{item.meetingsCountPlan}
+        </td>
+
+        <td>{item.ntiMarkets.join(", ")}</td>
+
+        <td>{item.readinessLevel}</td>
+      </tr>
+    ))}
+</tbody>
+
           </table>
         </div>
       </main>

@@ -14,7 +14,52 @@
     min-height: 100vh;
     padding: 20px;
 }
+.stream-info {
+    margin: 10px 0;
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 4px solid #4a90e2;
+    background-color: #f0f8ff;
+}
 
+.stream-info.error {
+    background-color: #ffebee;
+    border-left: 4px solid #f44336;
+}
+
+.stream-info-text {
+    margin: 0;
+    font-size: 0.9em;
+    color: #333;
+}
+
+.stream-warning-text {
+    margin: 8px 0 0 0;
+    padding: 5px;
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 3px;
+    font-size: 0.85em;
+    color: #856404;
+}
+
+.input-warning.error {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.create-button:disabled {
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    line-height: 1;
+    text-align: center;
+}
 .unique-meeting-card {
     width: 1400px;
     min-height: 300px;
@@ -195,7 +240,6 @@
     background: #8338EB;
     color: white;
     border: none;
-    width: 190px;
     height: 40px;
     font-family: 'Montserrat', sans-serif;
     line-height: 100%;    /* или просто 1 */
@@ -204,7 +248,7 @@
     cursor: pointer;
     font-size: 20px;
     font-weight: 700;
-   
+    width: 190px;
     position: absolute;
     top: 40px;
     right: 140px;
@@ -333,6 +377,7 @@
 .popup-content {
     display: flex;
     flex-direction: column;
+    
     gap: 15px;
 }
 
@@ -383,7 +428,8 @@
 .unique-task,
 .unique-input,
 .unique-dropdown,
-.unique-link {
+.unique-link,
+.bbb-link-input {
     flex: 1 1 auto;      /* сохраняем гибкость */
      max-width: 800px; 
      font-family: 'Montserrat', sans-serif;
@@ -619,14 +665,6 @@
       right: 20px;
     }
   
-    .unique-edit-button {
-      width: 120px;
-      height: 30px;
-      font-size: 14px;
-      top: 20px;
-      right: 70px;
-    }
-  
     .unique-meeting-info-row {
       flex-direction: column;
       margin-bottom: 20px;
@@ -696,12 +734,6 @@
   
   /* Очень маленькие экраны (до 480px) */
   @media (max-width: 480px) {
-    .unique-edit-button {
-      width: 100px;
-      font-size: 12px;
-      right: 60px;
-    }
-  
     .unique-meeting-number {
       font-size: 16px;
       padding: 5px 20px;
@@ -980,6 +1012,103 @@
     display: none;
 }
 
+.bbb-button-wrapper {
+  text-align: center;
+}
+
+.bbb-join-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #2c5aa0; /* Официальный цвет BBB */
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 70px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 40px;
+  margin: 10px;
+}
+
+.bbb-join-button:hover:not(:disabled) {
+  background: #25467a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.bbb-join-button:active {
+  transform: translateY(0);
+}
+
+.bbb-join-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bbb-input-section {
+  margin: 24px 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.bbb-link-input {
+  font-size: 20px;
+  padding: 20px 30px;
+  border-radius: 70px;
+  color:black;
+  border: none;
+  max-height: 20px;
+  font-weight: 300;
+  display: block;
+  word-break: break-all;
+  white-space: normal;
+}
+
+.bbb-link-input:focus {
+  border-color: #8338eb;
+  box-shadow: 0 0 0 4px rgba(131, 56, 235, 0.1);
+}
+
+.bbb-link-input::placeholder {
+  color: #aaa;
+  font-style: italic;
+}
+
+.bbb-join-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  background-color: #e8f5e9;
+}
+
+.bbb-join-icon-button:hover {
+  background-color: #e8f5e9; /* Светло-зелёный фон при наведении */
+}
+
+.bbb-join-icon-button:focus {
+  outline: 2px solid #66bb6a;
+  outline-offset: 2px;
+}
+
+.bbb-join-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  /* Зелёный цвет через filter */
+}
+
 /* Адаптивные стили для кнопок статуса */
 @media (max-width: 768px) {
     .unique-meeting-status-buttons {
@@ -1037,7 +1166,7 @@
       max-width: 60px;
     }
     .unique-input {
-      width: 93%;
+      width: 90%;
     }
     .unique-task, .unique-link, .unique-textarea, .unique-input {
         border: 1px solid #8338EB;
@@ -1170,7 +1299,6 @@
   }
 
   .unique-edit-button {
-    width: 100%;
     font-size: 16px;
     padding: 10px;
     text-align: center;
@@ -1209,6 +1337,23 @@
     font-size: 18px;
     padding: 9px 16px;
   }
+  .unique-edit-button {
+    top: 20px;
+    right: 70px;
+  }
+  .bbb-input-section {
+      flex-direction: column;
+    }
+
+  .bbb-link-input {
+    font-size: 14px;
+    padding: 12px 20px;
+    width: 90%;
+  }
+
+  .bbb-join-icon-button {
+    margin-top: 5px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1216,7 +1361,7 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
-    right: 20px;
+    right: 70px;
   }
 
   .edit-actions-container .unique-edit-button {

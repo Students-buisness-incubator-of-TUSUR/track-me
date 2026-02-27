@@ -6,6 +6,8 @@ import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import MobileHeader from "../adaptive-accets/MobileHeader";
+import { validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils"; 
+import VideoChat from "./video_chat.svg";
 
 const MeetingCard = () => {
     // Формируем абсолютный backendHost для корректной работы new URL
@@ -43,7 +45,10 @@ const MeetingCard = () => {
     const fileInputRef = useRef(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-const [pendingCompletion, setPendingCompletion] = useState(null); // true = состоялась, false = не состоялась
+    const [pendingCompletion, setPendingCompletion] = useState(null); // true = состоялась, false = не состоялась
+    const [bbbLink, setBbbLink] = useState('');
+    const [allMeetings, setAllMeetings] = useState([]);
+
 
 
 const renderTextareaSection = (name, label, value) => (
@@ -193,79 +198,110 @@ const renderTextareaSection = (name, label, value) => (
         }
     };
 
-    const handleSave = async () => {
-        try {
-            if (!teamId) throw new Error("Отсутствует идентификатор команды");
+  const handleSave = async () => {
+  try {
+    if (!teamId) throw new Error("Отсутствует идентификатор команды");
+    
+    const isNew = isNewMeeting; 
+    
+    // ✅ ВАЖНО: создаем массив встреч для проверки
+    let meetingsForValidation = [...allMeetings];
+    
+    if (!isNew) {
+      // Для существующей встречи исключаем её из подсчета
+      meetingsForValidation = allMeetings.filter(m => m.id !== meetingId);
+    }
+    
+    const validation = isNew 
+      ? validateMeetingWeekLimit(meetingsForValidation, meetingData.startDate, true)
+      : validateMeetingDateChange(meetingsForValidation, meetingId, meetingData.startDate);
 
-            const meetingPayload = {
-                link: meetingData.link || "",
-                number: meetingData.number || "",
-                teamStatus: meetingData.teamStatus,
-                tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
-                tasksNextMeeting: meetingData.tasksNextMeeting || "",
-                startDate: meetingData.startDate || new Date().toISOString(),
-                status: meetingData.status || "SCHEDULED"
-            };
-
-            const url = isNewMeeting 
-                ? `${backendHost}/api/v1/meetings?teamCardId=${teamId}`
-                : `${backendHost}/api/v1/update-meeting/${meetingId}?teamCardId=${teamId}`;
-
-            const method = isNewMeeting ? "POST" : "PATCH";
-            const body = isNewMeeting 
-                ? JSON.stringify({ ...meetingPayload, startDate: meetingData.startDate })
-                : JSON.stringify(meetingPayload);
-
-            const response = await fetch(url, {
-                method,
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                    ...getCsrfConfigForFetch()
-                },
-                credentials: 'include',
-                mode: 'cors',
-                body
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "Ошибка при сохранении встречи");
-            }
-
-            const result = await response.json();
-            const savedMeetingId = isNewMeeting ? result.id : meetingId;
-
-            if (image && savedMeetingId) {
-                const formData = new FormData();
-                formData.append('file', image);
-                
-                const imageResponse = await fetch(`${backendHost}/api/v1/image/${savedMeetingId}`, {
-                    method: 'POST',
-                    headers: {
-                        ...getCsrfConfigForFetch()
-                    },
-                    credentials: 'include',
-                    body: formData
-                });
-
-                if (!imageResponse.ok) {
-                    throw new Error('Ошибка при загрузке изображения');
-                }
-            }
-
-            if (isNewMeeting) {
-                navigate(`/meeting/${savedMeetingId}?teamId=${teamId}&username=${username}`);
-            } else {
-                setMeetingData(result);
-                setIsEditing(false);
-                setImage(null);
-            }
-        } catch (error) {
-            console.error("Ошибка при сохранении:", error);
-            setError(error.message || "Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
-        }
+    if (!validation.isValid) {
+      setError(validation.errorMessage);
+      setTimeout(() => setError(null), 5000);
+      return;
+    }
+    
+    const meetingPayload = {
+      link: meetingData.link || "",
+      number: meetingData.number || "",
+      teamStatus: meetingData.teamStatus,
+      tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
+      tasksNextMeeting: meetingData.tasksNextMeeting || "",
+      startDate: meetingData.startDate,
+      status: meetingData.status || "SCHEDULED",
+      userId  // ← явно передаём
     };
+
+    const url = isNewMeeting 
+      ? `${backendHost}/api/v1/meetings?teamCardId=${teamId}`
+      : `${backendHost}/api/v1/update-meeting/${meetingId}?teamCardId=${teamId}`;
+
+    const method = isNewMeeting ? "POST" : "PATCH";
+    const body = JSON.stringify(meetingPayload);
+
+    const response = await fetch(url, {
+      method,
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...getCsrfConfigForFetch()
+      },
+      credentials: 'include',
+      mode: 'cors',
+      body
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const errorJson = JSON.parse(errorText);
+        throw new Error(errorJson.message || "Ошибка на сервере");
+      } catch {
+        throw new Error(errorText || "Ошибка при сохранении");
+      }
+    }
+
+    const result = await response.json();
+    const savedMeetingId = isNewMeeting ? result.id : meetingId;
+
+    // ✅ Важно: обновить allMeetings ЛОКАЛЬНО
+    setAllMeetings(prev => {
+      const newMeetings = prev.filter(m => m.id !== savedMeetingId);
+      newMeetings.push(result);
+      return newMeetings.sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
+    });
+
+    // Загружаем изображение
+    if (image && savedMeetingId) {
+      const formData = new FormData();
+      formData.append('file', image);
+      
+      const imageResponse = await fetch(`${backendHost}/api/v1/image/${savedMeetingId}`, {
+        method: 'POST',
+        headers: { ...getCsrfConfigForFetch() },
+        credentials: 'include',
+        body: formData
+      });
+
+      if (!imageResponse.ok) {
+        throw new Error('Ошибка при загрузке изображения');
+      }
+    }
+
+    if (isNewMeeting) {
+      navigate(`/meeting/${savedMeetingId}?teamId=${teamId}&username=${username}`);
+    } else {
+      setMeetingData(result);
+      setIsEditing(false);
+      setImage(null);
+    }
+  } catch (error) {
+    console.error("Ошибка при сохранении:", error);
+    setError(error.message || "Произошла ошибка при сохранении. Проверьте консоль для подробностей.");
+  }
+};
+
     // Проверяем, прошла ли дата встречи
 const isMeetingDatePassed = () => {
     if (!meetingData.startDate) return false;
@@ -407,6 +443,39 @@ if (!isMeetingDatePassed()) {
                 // return "";
         // }
     // };
+useEffect(() => {
+  if (!teamId) return;
+
+  const fetchAllMeetings = async () => {
+    try {
+      const url = new URL(`${backendHost}/api/v1/meetings`);
+      url.searchParams.append('teamCardId', teamId);
+      url.searchParams.append('page', 0);
+      url.searchParams.append('size', 100);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (!response.ok) throw new Error('Ошибка загрузки встреч');
+      const data = await response.json();
+
+      const sorted = (data.content || []).sort((a, b) => {
+        const numA = parseInt(a.number) || 0;
+        const numB = parseInt(b.number) || 0;
+        return numA - numB;
+      });
+
+      setAllMeetings(sorted);
+    } catch (err) {
+      console.error('Ошибка при загрузке всех встреч:', err);
+    }
+  };
+
+  fetchAllMeetings();
+}, [teamId, backendHost]);
 
     return (
         <div className="unique-meeting-container">
@@ -447,11 +516,6 @@ if (!isMeetingDatePassed()) {
     onClick={handleEditClick}
     className="unique-edit-button"
     style={{
-      position: 'absolute',
-      top: '40px',
-      right: '140px',
-      width: '190px',
-      height: '40px',
       zIndex: 10,
       cursor: isMeetingLocked && (role !== "ADMIN" && role !== "SUPER_ADMIN") ? 'not-allowed' : 'pointer'
     }}
@@ -720,6 +784,67 @@ if (!isMeetingDatePassed()) {
                         <div className="unique-link">Ссылка не указана</div>
                     )}
                 </div>
+                <div className="bbb-input-section">
+  <div className="unique-meeting-info-row">
+    <span className="unique-label">Ссылка на видеовстречу:</span>
+  </div>
+    <input
+    type="url"
+    value={bbbLink}
+    onChange={(e) => setBbbLink(e.target.value)}
+    placeholder="https://demo.bigbluebutton.org/rooms/..."
+    className="bbb-link-input"
+    aria-label="Ссылка на видеовстречу"
+  />
+  <div className="bbb-button-wrapper">
+    <button
+      className="bbb-join-icon-button"
+      onClick={() => {
+        const url = bbbLink.trim();
+        if (!url) {
+          alert('Пожалуйста, введите ссылку на встречу');
+          return;
+        }
+
+        const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+        const width = 1100;
+        const height = 700;
+        const left = window.screenX + (window.innerWidth - width) / 2;
+        const top = window.screenY + (window.innerHeight - height) / 2;
+
+        window.open(
+          fullUrl,
+          'bbb_meeting_window',
+          `
+            width=${width},
+            height=${height},
+            left=${left},
+            top=${top},
+            resizable=yes,
+            scrollbars=yes,
+            toolbar=no,
+            menubar=no,
+            location=yes,
+            noopener,
+            noreferrer
+          `.replace(/\s/g, '')
+        );
+      }}
+      aria-label="Присоединиться к видеовстрече"
+      title="Присоединиться ко встрече"
+    >
+      <img
+        src={VideoChat}
+        alt="Присоединиться к встрече"
+        className="bbb-join-icon"
+      />
+    </button>
+  </div>
+
+  
+</div>
+
+
             </div>
             {showConfirmModal && (
   <div className="confirm-modal-overlay">
@@ -766,10 +891,15 @@ if (!isMeetingDatePassed()) {
       }}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="delete-meeting-title"
+      aria-labelledby="delete-modal-title"
       tabIndex={-1}
     >
-      <h3 id="delete-meeting-title" data-testid="delete-modal-title">
+      {isMeetingLocked && (
+        <p className="locked-warning">
+          <strong>Эта встреча уже состоялась и её нельзя редактировать!</strong>
+        </p>
+      )}
+      <h3 id="delete-modal-title" data-testid="delete-modal-title">
         Удалить встречу?
       </h3>
       <p>
