@@ -1,17 +1,24 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useStreamForm } from '../stream-page-hooks/useStreamForm';
 import CreateStream from './create-stream-page';
 import '@testing-library/jest-dom'; // Import jest-dom for custom matchers
 
-// Mock the useNavigate hook
+import { fetchTeams } from '../../services/requests';
+
 jest.mock('react-router-dom', () => ({
+  useNavigate: jest.fn(),
+  useParams: jest.fn(),
   useNavigate: jest.fn(),
 }));
 
-// Mock the useStreamForm hook
 jest.mock('../stream-page-hooks/useStreamForm', () => ({
   useStreamForm: jest.fn(),
+}));
+
+jest.mock('../../services/requests', () => ({
+  fetchTeams: jest.fn(),
 }));
 
 describe('CreateStream Component', () => {
@@ -44,6 +51,7 @@ describe('CreateStream Component', () => {
     // Reset mocks before each test
     jest.clearAllMocks();
     useNavigate.mockReturnValue(mockNavigate);
+    useParams.mockReturnValue({});
     useStreamForm.mockReturnValue(mockUseStreamForm);
   });
 
@@ -177,4 +185,102 @@ test('should render checkboxes and handle checkbox interactions', () => {
   expect(mockUseStreamForm.handleCheckboxChange).toHaveBeenCalledWith('2');
 });
 
+  describe('CreateStream Component in edit mode (id passed)', () => {
+    const mockId = '123';
+    const mockStreamName = 'Test Stream';
+    const mockTeams = [
+      { id: 1, name: 'Team Alpha', streams: [{ name: 'Test Stream' }] },
+      { id: 2, name: 'Team Beta', streams: [{ name: 'Other Stream' }] },
+      { id: 3, name: 'Team Gamma', streams: [{ name: 'Test Stream' }] },
+    ];
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      useNavigate.mockReturnValue(mockNavigate);
+      useParams.mockReturnValue({ id: mockId });
+
+      fetchTeams.mockResolvedValue({
+        ok: true,
+        json: async () => ({ content: mockTeams }),
+      });
+
+      useStreamForm.mockReturnValue({
+        ...mockUseStreamForm,
+        name: mockStreamName,
+        deleteStream: jest.fn(),
+      });
+    });
+
+    test('should render and delete button', () => {
+      render(<CreateStream />);
+      expect(screen.getByTestId('button-delete')).toBeInTheDocument();
+    });
+
+    test('should fetch teams on mount', async () => {
+      render(<CreateStream />);
+      await waitFor(() => {
+        expect(fetchTeams).toHaveBeenCalledWith(0, 1000);
+      });
+    });
+
+    test('should filter attached teams correctly based on stream name', async () => {
+      render(<CreateStream />);
+      await waitFor(() => {
+        const deleteButton = screen.getByTestId('button-delete');
+        fireEvent.click(deleteButton);
+
+        expect(screen.getByTestId("delete-teams-modal")).toBeInTheDocument();
+        expect(screen.getByText('Team Alpha')).toBeInTheDocument();
+        expect(screen.getByText('Team Gamma')).toBeInTheDocument();
+        expect(screen.queryByText('Team Beta')).not.toBeInTheDocument();
+      });
+    });
+
+    test('should show delete confirmation modal when no attached teams', async () => {
+      fetchTeams.mockResolvedValue({
+        ok: true,
+        json: async () => ({ content: [] }),
+      });
+
+      render(<CreateStream />);
+      await waitFor(() => {
+        const deleteButton = screen.getByTestId('button-delete');
+        fireEvent.click(deleteButton);
+        expect(screen.getByTestId("delete-confirm-modal")).toBeInTheDocument();
+      });
+    });
+
+    test('should call deleteStream when delete is confirmed', async () => {
+      const mockDeleteStream = jest.fn();
+      useStreamForm.mockReturnValue({
+        ...mockUseStreamForm,
+        name: mockStreamName,
+        deleteStream: mockDeleteStream,
+      });
+
+      fetchTeams.mockResolvedValue({
+        ok: true,
+        json: async () => ({ content: [] }),
+      });
+
+      render(<CreateStream />);
+      await waitFor(() => {
+        const deleteButton = screen.getByTestId('button-delete');
+        fireEvent.click(deleteButton);
+      });
+
+      const confirmYesButton = screen.getByTestId('delete-confirm-yes');
+      fireEvent.click(confirmYesButton);
+
+      expect(mockDeleteStream).toHaveBeenCalled();
+    });
+
+    test('should call handleSubmit with isEditMode=true when update button is clicked', () => {
+      render(<CreateStream />);
+      const updateButton = screen.getByTestId("action-button");
+      fireEvent.click(updateButton);
+      expect(mockUseStreamForm.handleSubmit).toHaveBeenCalledWith(true);
+    });
+
+  });
 });

@@ -76,3 +76,23 @@ export async function fetchStreams(page, size, sort) {
 
   return response;
 }
+
+export async function fetchTeams(page, size, filters) {
+  const response = await fetch(
+    `${backendURL}/backend/api/v1/admin/team-cards?page=${page}&size=${size}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        filters: filters ?? []
+      }),
+    }
+  );
+
+  return response;
+}

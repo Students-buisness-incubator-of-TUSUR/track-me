@@ -655,7 +655,7 @@ const deleteMeeting = async () => {
                         {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                 )}
-            <button className="close-button-widget" onClick={() => navigate(from)}>×</button>
+            <button className="close-button-widget" onClick={() => navigate(-1)}>×</button>
 
             <button
                 className="edit-button-widget"
