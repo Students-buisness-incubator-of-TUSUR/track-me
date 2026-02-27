@@ -101,6 +101,9 @@ spring:
           issuer-uri: http://host.docker.internal:9000
 logging:
   level:
+    net.trackme.meetingservice.services.MeetingServiceImpl: TRACE
+    net.trackme.meetingservice.services.integration.backend.BackendApiClientImpl: TRACE
+    net.trackme.meetingservice.services.integration.SecurityPropagationInterceptor: TRACE
     org.springframework.security: trace
 app:
   api-url: ${BACKEND_URI:http://localhost}/meeting/
