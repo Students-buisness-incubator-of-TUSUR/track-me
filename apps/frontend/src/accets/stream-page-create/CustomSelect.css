@@ -1,0 +1,100 @@
+.custom-select_select-cont {
+  user-select: none;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.custom-select_select {
+  min-width: 400px;
+  max-width: 400px;
+  padding: 0px 12px;
+  height: 72px;
+  border-radius: 36px;
+  background-color: rgba(131, 56, 235, 1);
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  position: relative;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.custom-select_remove-above-border-radius {
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+
+.custom-select_select span {
+  width: 100%;
+  text-align: center;
+}
+
+.custom-select_select-arrow {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.custom-select_select-dropdown {
+  position:absolute;
+  bottom:100%;
+  left: 0;
+  min-width: 400px;
+  max-width: 400px;
+  padding: 0px 12px;
+  background-color: rgba(131, 56, 235, 1);
+  border-radius: 36px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.custom-select_select-option {
+  padding: 12px 0px;
+  color: white;
+  font-size: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.custom-select_select-option:hover {
+  background-color: rgba(167, 11, 206, 0.8);
+}
+
+.custom-select_custom-input {
+  min-width: 400px;
+  max-width: 400px;
+  text-align: center;
+  height: 70px;
+  border-radius: 36px;
+  background-color: rgba(131, 56, 235, 1);
+  color: white;
+  border: none;
+  padding: 0px 12px;
+  font-size: 24px;
+  position: relative;
+}
+
+.custom-select_custom-input::-webkit-outer-spin-button,
+.custom-select_custom-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.custom-select_custom-input:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(167, 11, 206, 0.3);
+}
+
+.custom-select_custom-input::placeholder {
+  color: white;
+}
+

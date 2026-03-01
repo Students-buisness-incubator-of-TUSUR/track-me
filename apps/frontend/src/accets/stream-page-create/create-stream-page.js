@@ -1,11 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './create-stream-page.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useStreamForm } from '../stream-page-hooks/useStreamForm';
 import CustomSelect from './CustomSelect'; // Импортируем новый компонент
+import StreamCheckboxes from '../stream-checkboxes/stream-checkboxes';
+import { fetchTeams } from '../../services/requests';
 
+// id == null: Create stream; id != null: Edit stream
 export default function CreateStream() {
+  const params = useParams();
+  const id = params?.id || null;
+  const isEditMode = id !== null;
   const navigate = useNavigate();
+
+  const meetingOptions = [5, 10, 15, 20];
+
   const {
     name,
     startDate,
@@ -33,62 +42,194 @@ export default function CreateStream() {
     handleSubmit,
     showCustomInput,
     setShowCustomInput,
-  } = useStreamForm();
+    deleteStream,
+  } = useStreamForm(id, navigate);
 
-  // Варианты для выпадающего списка
-  const meetingOptions = [5, 10, 15, 20];
+  // Edit mode stuff next
+  const streamName = name;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showTeamsWarning, setShowTeamsWarning] = useState(false);
+  const [attachedTeams, setAttachedTeams] = useState([]);
+  const [allTeamCards, setAllTeamCards] = useState([]);
+
+  useEffect(() => {
+    if (!isEditMode) return;
+    const fetchAllTeams = async () => {
+      try {
+        const response = await fetchTeams(0, 1000)
+
+        if (!response.ok) throw new Error("Ошибка при получении карточек команд");
+
+        const data = await response.json();
+        setAllTeamCards(data.content || []);
+      } catch (error) {
+        console.error("Ошибка при загрузке команд:", error);
+      }
+    };
+
+    fetchAllTeams();
+  }, [isEditMode]);
+
+  useEffect(() => {
+    if (!isEditMode) return;
+    if (streamName && allTeamCards.length > 0) {
+      const teamsAttachedToThisStream = allTeamCards.filter(team =>
+        team.streams && team.streams.some(stream => stream.name === streamName)
+      );
+
+      setAttachedTeams(teamsAttachedToThisStream.map(team => ({
+        id: team.id,
+        name: team.name || `Команда ${team.id}`,
+        isHyperlink: true
+      })));
+    }
+  }, [streamName, allTeamCards, isEditMode]);
+
+  const handleTeamClick = (teamId) => {
+    navigate(`/teamcard/${teamId}`, {
+      state: {
+        returnTo: `/edit-stream/${id}`,
+        showTeamsWarning: true
+      }
+    });
+  };
+
+  const handleDeleteClick = () => {
+    if (attachedTeams.length > 0) {
+      setShowTeamsWarning(true);
+    } else {
+      setShowDeleteConfirm(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!isEditMode) return;
+    if (attachedTeams.length === 0 && showTeamsWarning) {
+      setShowTeamsWarning(false);
+      setShowDeleteConfirm(true);
+    }
+  }, [attachedTeams, showTeamsWarning, isEditMode]);
 
   return (
-    <div className="create-stream">
+    <div className="create-stream_main">
+      {showTeamsWarning && (
+        <div data-testid="delete-teams-modal" className="create-stream_delete-confirm-modal">
+          <div className="create-stream_delete-confirm-content">
+            <h3>К этому потоку привязаны следующие команды:</h3>
+            <ul className="create-stream_attached-teams-list">
+              {attachedTeams.map(team => (
+                <li key={team.id}>
+                  <a
+                    href={`/teamcard/${team.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleTeamClick(team.id);
+                    }}
+                    className="create-stream_team-hyperlink"
+                  >
+                    {team.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p>Удалите или перепривяжите их перед удалением потока</p>
+            <div className="create-stream_delete-confirm-buttons">
+              <button
+                className="create-stream_delete-confirm-no"
+                onClick={() => setShowTeamsWarning(false)}
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div data-testid="delete-confirm-modal" className="create-stream_delete-confirm-modal">
+          <div className="create-stream_delete-confirm-content">
+            <h3>Вы уверены, что хотите безвозвратно удалить поток?</h3>
+            <div className="create-stream_delete-confirm-buttons">
+              <button
+                data-testid="delete-confirm-yes"
+                className="create-stream_delete-confirm-yes"
+                onClick={() => {
+                  deleteStream();
+                  setShowDeleteConfirm(false);
+                }}
+              >
+                Да
+              </button>
+              <button
+                className="create-stream_delete-confirm-no"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Нет
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
-        <div className="stream-error-message" ref={errorRef}>
-          <div className="stream-error-content">
+        <div className="create-stream_error-message" ref={errorRef}>
+          <div className="create-stream_error-content">
             {error}
-            <button className="stream-error-close" onClick={() => setError(null)}>
+            <button id="create-stream_error-close" className="create-stream_error-close" onClick={() => setError(null)}>
               ×
             </button>
           </div>
         </div>
       )}
-      <div className="create-stream-cont">
-        <button className="create-stream-close" onClick={() => navigate(-1)}>
+      <div className="create-stream_cont">
+        <button id="create-stream_stream-close" className="create-stream_close" onClick={() => navigate(-1)}>
           ×
         </button>
-        <div className="create-stream-cont-left">
-          <label className="create-stream-title">Создание потока</label>
-          <div className="create-stream-row">
-            <div className="create-stream-col">
-              <h1 className="create-stream-h1">Название потока:</h1>
-              <h1 className="create-stream-h1">Дата начала:</h1>
-              <h1 className="create-stream-h1">Дата конца:</h1>
-              <h1 className="create-stream-h1">Дата начала трекшен-митинга:</h1>
-              <h1 className="create-stream-h1">Количество встреч:</h1>
-            </div>
-            <div className="create-stream-col">
+        <h1 className="create-stream_title">{isEditMode ? "Редактирование потока" : "Создание потока"}</h1>
+        <div className='create-stream_cont-row'>
+          <div className="create-stream_cont-col create-stream_cont-col-left">
+            <div className='create-stream_input-cont'>
+              <label>Название потока:</label>
               <input
-                className="create-stream-input"
+                className='create-stream_input-cont-input'
+                type="text"
                 placeholder="Текст названия"
                 value={name}
                 onChange={handleNameChange}
               />
+            </div>
+            <div className='create-stream_input-cont'>
+              <label>Дата начала:</label>
               <input
-                className="create-stream-input-date"
-                placeholder="__.__.____"
+                className='create-stream_input-cont-input'
+                type="date"
+                name="startDate"
                 value={startDate}
                 onChange={handleStartDateChange}
               />
+            </div>
+            <div className='create-stream_input-cont'>
+              <label>Дата конца:</label>
               <input
-                className="create-stream-input-date"
-                placeholder="__.__.____"
+                className='create-stream_input-cont-input'
+                type="date"
+                name="endDate"
                 value={endDate}
                 onChange={handleEndDateChange}
               />
+            </div>
+            <div className='create-stream_input-cont'>
+              <label>Дата начала трекшен-митинга:</label>
               <input
-                className="create-stream-input-date1"
-                placeholder="__.__.____"
+                className='create-stream_input-cont-input'
+                type="date"
+                name="trackStartDate"
                 value={trackStartDate}
                 onChange={handleTrackStartDateChange}
               />
+            </div>
+            <div className='create-stream_input-cont'>
+              <label>Количество встреч:</label>
               <CustomSelect
                 value={meetingsCount}
                 onChange={handleMeetingsCountChange}
@@ -99,79 +240,60 @@ export default function CreateStream() {
                 setShowCustomInput={setShowCustomInput}
               />
             </div>
-          </div>
-          <div className="Stream-bb Stream-header-chosefrom-buttw2323131">
-            <div className="Stream-header-chosefrom-butt2" ref={checkboxesRef}>
-              <div
-                className="Stream-header-chosefrom-butt-cont"
-                onClick={handleShowCheckboxes2}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleShowCheckboxes2();
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label="Выбрать рынок"
-              >
-                <b className="Stream-header-chosefrom-butt-label">Рынок</b>
-                <div className="Stream-header-chosefrom-butt-pic"></div>
-              </div>
-              {showCheckboxes2 && (
-                <div className="Stream-header-checkboxes">
-                  {checkboxesData2.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className={`Stream-header-checkbox ${index < 5 ? 'first-row' : 'second-row'}`}
-                    >
-                      <input
-                        type="checkbox"
-                        id={`checkbox-${item.id}`}
-                        checked={selectedCheckboxes.includes(item.id)}
-                        onChange={() => handleCheckboxChange(item.id)}
-                      />
-                      <label className="Stream-header-checkbox-label" htmlFor={`checkbox-${item.id}`}>
-                        {item.displayName || item.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="create-stream-cont-right">
-          <div
-            className="create-stream-input-pic"
-            onClick={() => document.getElementById('image-upload').click()}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                document.getElementById('image-upload').click();
-              }
-            }}
-            tabIndex={0}
-            role="button"
-            aria-label="Загрузить изображение"
-            title="Поддерживаемые форматы: JPEG, PNG, GIF"
-          >
-            {image ? (
-              <img src={image} alt="Uploaded" className="create-stream-uploaded-image" />
-            ) : (
-              <div className="create-stream-input-pic-placeholder"></div>
-            )}
-            <input
-              type="file"
-              id="image-upload"
-              accept="image/jpeg, image/png, image/gif"
-              style={{ display: 'none' }}
-              onChange={handleImageUpload}
+            <StreamCheckboxes
+              checkboxesRef={checkboxesRef}
+              checkboxesData={checkboxesData2}
+              selectedCheckboxes={selectedCheckboxes}
+              handleCheckboxChange={handleCheckboxChange}
+              handleShowCheckboxes={handleShowCheckboxes2}
+              showCheckboxes={showCheckboxes2}
             />
           </div>
-          <button className="create-stream-input-button" onClick={() => handleSubmit()}>
-            Создать
-          </button>
+          <div className="create-stream_cont-col create-stream_cont-col-right">
+            <div
+              className="create-stream_input-pic"
+              onClick={() => document.getElementById('image-upload').click()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  document.getElementById('image-upload').click();
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label="Загрузить изображение"
+              title="Поддерживаемые форматы: JPEG, PNG, GIF"
+            >
+              {image ? (
+                <img src={image} alt="Uploaded" className="create-stream_uploaded-image" />
+              ) : (
+                <div className="create-stream_input-pic-placeholder"></div>
+              )}
+              <input
+                type="file"
+                id="image-upload"
+                accept="image/jpeg, image/png, image/gif"
+                style={{ display: 'none' }}
+                onChange={handleImageUpload}
+              />
+            </div>
+            <div className="create-stream_action-button-cont">
+              <button
+                data-testid="action-button"
+                className="create-stream_input-button"
+                onClick={() => handleSubmit(isEditMode)}
+              >
+                {isEditMode ? "Обновить" : "Создать"}
+              </button>
+              {isEditMode && <button
+                data-testid="button-delete"
+                className="create-stream_input-button create-stream_input-button-delete"
+                onClick={() => handleDeleteClick()}
+              >
+                X
+              </button>}
+            </div>
+          </div>
         </div>
       </div>
     </div>

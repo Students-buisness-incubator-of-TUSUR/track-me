@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {useLocation} from "react-router-dom";
+import InputBox from "../input-box/InputBox";
 import "./Login.css";
 
 const Login = () => {
@@ -39,7 +40,7 @@ const Login = () => {
                     method="POST"
                     action={`${basePath}/client/login`}
                     autoComplete="username">
-                    <input
+                    <InputBox
                         type="text"
                         name="username"
                         className="login-input"
@@ -49,7 +50,7 @@ const Login = () => {
                         required
                         autoComplete="username"
                     />
-                    <input
+                    <InputBox
                         type="password"
                         name="password"
                         className="login-input"

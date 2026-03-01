@@ -34,7 +34,8 @@ public class SecurityConfiguration {
             "/v3/api-docs",
             "/api/csrf",
             "/api/v1/registration/**",
-            "/v3/api-docs/swagger-config"
+            "/v3/api-docs/swagger-config",
+            "/.well-known/**"
     };
 
     private final UserDetailsService userDetailService;

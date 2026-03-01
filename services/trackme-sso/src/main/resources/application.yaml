@@ -1,5 +1,9 @@
 server:
   port: 9000
+  servlet:
+    session:
+      cookie:
+        name: SSO_SESSION
 
 logging:
   level:
@@ -66,4 +70,9 @@ spring:
     activate:
       on-profile: docker-local
 app:
-  api-url: http://127.0.0.1:8081/sso
+  api-url: ${BACKEND_URI:http://localhost}/sso
+
+management:
+  health:
+    mail:
+      enabled: false

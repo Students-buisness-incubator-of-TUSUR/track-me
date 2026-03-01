@@ -12,7 +12,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}
     username: ${DB_USERNAME:project-place}
-    url: ${DB_URL:jdbc:postgresql://postgres:5432/project-place}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
     hikari:
       schema: telegram_service
   liquibase:
@@ -33,6 +33,39 @@ app:
   telegram-bot-properties:
     bot-token: ${TELEGRAM_BOT_TOKEN}
     bot-username: ${TELEGRAM_BOT_USERNAME}
+---
+spring:
+  config:
+    activate:
+      on-profile: development
+  liquibase:
+    contexts: dev prod
+logging:
+  level:
+    org.springframework.security: trace
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker-local
+  liquibase:
+    contexts: dev prod
+logging:
+  level:
+    org.springframework.security: trace
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  liquibase:
+    contexts: prod
+logging:
+  level:
+    root: info
+
 ---
 spring:
   config:

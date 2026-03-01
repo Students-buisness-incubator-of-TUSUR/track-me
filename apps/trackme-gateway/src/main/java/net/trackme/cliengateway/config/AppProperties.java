@@ -12,6 +12,7 @@ import java.util.List;
 public record AppProperties(
         @NotBlank String afterLoginUrl,
         @NotBlank String afterLogoutUri,
+        @NotBlank String logoutUri,
         CorsProperties cors,
         SessionCookieProperties sessionCookie) {
 
@@ -26,9 +27,11 @@ public record AppProperties(
     }
 
     public record CorsProperties(
-            @NotNull List<String> allowedOrigins,
+            List<String> allowedOrigins,
+            List<String> allowedOriginPatterns,
             @NotNull List<String> allowedMethods,
             @NotNull List<String> allowedHeaders,
+            List<String> exposedHeaders,
             @NotNull Boolean allowCredentials
     ) {
 
