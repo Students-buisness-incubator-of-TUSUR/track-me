@@ -52,7 +52,7 @@ const [loading, setLoading] = useState(false);
           type: "EQ",
           value: filterStreams,
         });
-      const response = await fetchReports(page, size, filters);
+      const response = await fetchReports({ page: page, size: size, filters: filters });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
@@ -65,7 +65,7 @@ const [loading, setLoading] = useState(false);
 
   const loadStreams = useCallback(async () => {
     try {
-      const response = await fetchStreams(page, size);
+      const response = await fetchStreams({ page: page, size: size });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
@@ -78,7 +78,7 @@ const [loading, setLoading] = useState(false);
 
   const loadTrackers = useCallback(async () => {
     try {
-      const response = await fetchTrackers(page, size);
+      const response = await fetchTrackers({ page: page, size: size });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }

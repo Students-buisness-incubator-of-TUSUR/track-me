@@ -120,7 +120,7 @@ describe('ReportPage Component', () => {
     expect(screen.getByText('4.5')).toBeInTheDocument();
     expect(screen.getAllByText('—')).toHaveLength(2);
 
-    expect(fetchReports).toHaveBeenCalledWith(0, 10, []);
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
   });
 
   test('unsuccessful fetch (response not ok) logs error and shows no data', async () => {
@@ -152,7 +152,7 @@ describe('ReportPage Component', () => {
       })
     );
 
-    expect(fetchReports).toHaveBeenCalledWith(0, 10, []);
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
   });
   beforeEach(() => {
     jest.clearAllMocks();
@@ -601,7 +601,7 @@ describe('loadStreams and loadTrackers', () => {
     );
 
     await waitFor(() => {
-      expect(fetchStreams).toHaveBeenCalledWith(0, 10);
+      expect(fetchStreams).toHaveBeenCalledWith({ page: 0, size: 10 });
     });
 
     // Open streams dropdown to verify the data appears
@@ -623,7 +623,7 @@ describe('loadStreams and loadTrackers', () => {
     );
 
     await waitFor(() => {
-      expect(fetchTrackers).toHaveBeenCalledWith(0, 10);
+      expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: 10 });
     });
 
     const trackerFilterButton = screen.getByText('Трекеры');
@@ -762,7 +762,7 @@ describe('filter selection', () => {
 
     // Wait for initial load
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith(0, 10, []);
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
     });
 
     const trackerFilterButton = screen.getByText('Трекеры');
@@ -777,9 +777,9 @@ describe('filter selection', () => {
 
     // fetchReports should be called again with the filter
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith(0, 10, [
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
         { fieldName: "username", type: "EQ", value: "tracker1" }
-      ]);
+      ] });
     });
   });
 
@@ -791,7 +791,7 @@ describe('filter selection', () => {
     );
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith(0, 10, []);
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
     });
 
     const streamFilterButton = screen.getByText('Потоки');
@@ -804,9 +804,9 @@ describe('filter selection', () => {
     expect(screen.queryByTestId('streams-dropdown-menu')).not.toBeInTheDocument();
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith(0, 10, [
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
         { fieldName: "streams.name", type: "EQ", value: "Stream A" }
-      ]);
+      ] });
     });
   });
 
@@ -825,9 +825,9 @@ describe('filter selection', () => {
     fireEvent.click(trackerItem);
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith(0, 10, [
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
         { fieldName: "username", type: "EQ", value: "tracker1" }
-      ]);
+      ] });
     });
 
     // Now reset using "—"
@@ -836,7 +836,7 @@ describe('filter selection', () => {
     fireEvent.click(resetItem);
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith(0, 10, []);
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
     });
   });
 
@@ -854,9 +854,9 @@ describe('filter selection', () => {
     fireEvent.click(streamItem);
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith(0, 10, [
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
         { fieldName: "streams.name", type: "EQ", value: "Stream A" }
-      ]);
+      ] });
     });
 
     fireEvent.click(streamFilterButton);
@@ -864,7 +864,7 @@ describe('filter selection', () => {
     fireEvent.click(resetItem);
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith(0, 10, []);
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
     });
   });
 });

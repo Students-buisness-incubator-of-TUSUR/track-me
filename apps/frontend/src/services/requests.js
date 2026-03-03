@@ -1,7 +1,7 @@
 import { getCsrfConfigForFetch } from "../utils/csrf-utils";
 import { backendURL } from "./constants";
 
-export async function fetchReports(page, size, filters) {
+export async function fetchReports({ page, size, filters }) {
   const response = await fetch(
     `${backendURL}/backend/api/v1/team-cards/reports?page=${page}&size=${size}`,
     {
@@ -21,7 +21,7 @@ export async function fetchReports(page, size, filters) {
   return response;
 }
 
-export async function fetchTrackers(page, size, sort) {
+export async function fetchTrackers({ page, size, sort }) {
   let sortString;
   if (Array.isArray(sort) && sort.length !== 0) {
     sortString = "sort=" + sort.join("&sort=")
@@ -49,7 +49,7 @@ export async function fetchTrackers(page, size, sort) {
   return response;
 }
 
-export async function fetchStreams(page, size, sort) {
+export async function fetchStreams({ page, size, sort }) {
   let sortString;
   if (Array.isArray(sort) && sort.length !== 0) {
     sortString = "sort=" + sort.join("&sort=")
@@ -77,7 +77,7 @@ export async function fetchStreams(page, size, sort) {
   return response;
 }
 
-export async function fetchTeams(page, size, filters) {
+export async function fetchTeams({ page, size, filters }) {
   const response = await fetch(
     `${backendURL}/backend/api/v1/admin/team-cards?page=${page}&size=${size}`,
     {
