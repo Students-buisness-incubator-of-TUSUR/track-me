@@ -217,13 +217,30 @@ const deleteStream = async () => {
     setError('Пожалуйста, укажите хотя бы один рынок НТИ.');
     return false;
   }
-  if (!isValidDate(startDate) || !isValidDate(endDate) || !isValidDate(trackStartDate)) {
-    setError('Некорректный формат даты. Используйте формат ДД.ММ.ГГГГ.');
+  if (!isValidDate(startDate)) {
+    setError('Некорректная дата начала потока');
     return false;
   }
+  if (!isValidDate(endDate)) {
+    setError('Некорректная дата конца потока');
+    return false;
+  }
+  if (!isValidDate(trackStartDate)) {
+    setError('Некорректная дата начала трекшен-митинга');
+    return false;
+  }
+  const todayDateObj = new Date(new Date().toISOString().split('T')[0]);
   const startDateObj = new Date(startDate);
   const endDateObj = new Date(endDate);
   const trackStartDateObj = new Date(trackStartDate);
+  if (todayDateObj >= endDateObj) {
+    setError('Дата конца потока должна быть в будущем.');
+    return false;
+  }
+  if (todayDateObj >= trackStartDateObj) {
+    setError('Дата начала трекшен-митинга должна быть в будущем.');
+    return false;
+  }
   if (startDateObj > endDateObj) {
     setError('Дата начала должна быть раньше даты конца.');
     return false;
