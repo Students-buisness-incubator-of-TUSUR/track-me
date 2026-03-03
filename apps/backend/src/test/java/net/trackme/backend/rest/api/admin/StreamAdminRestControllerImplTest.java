@@ -95,16 +95,18 @@ class StreamAdminRestControllerImplTest extends BaseApplicationTest {
                     .content("""
                                 {
                                   "name": "Test name",
+                                  "startDate: %s",
                                   "endDate": "%s",
                                   "trackStartDate": "%s",
                                   "ntiMarketIds": ["%s"]
                                 }
-                                """.formatted(endDate,
+                                """.formatted(startDate, endDate,
                             trackStartDate,
                             String.join("\", \"", ntiMarkets))))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is("Test name")))
+                .andExpect(jsonPath("$.startDate", is(startDate.toString())))
                 .andExpect(jsonPath("$.endDate", is(endDate.toString())))
                 .andExpect(jsonPath("$.trackStartDate", is(trackStartDate.toString())));
     }
