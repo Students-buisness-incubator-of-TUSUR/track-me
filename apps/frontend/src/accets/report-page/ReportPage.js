@@ -1,6 +1,5 @@
 // accets/report/ReportPage.js
 import { useState, useEffect, useCallback } from "react";
-import {useSelector} from "react-redux";
 import "./ReportPage.css";
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
@@ -14,7 +13,6 @@ const [page] = useState(0);
 const [size] = useState(10);
 const [loading, setLoading] = useState(false);
 const [userRole, setUserRole] = useState('');
-const user = useSelector((state) => state.user);
 
   // фильтры (заглушки)
   const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
@@ -94,11 +92,8 @@ const user = useSelector((state) => state.user);
       const userData = JSON.parse(savedUser);
       setUserRole(userData.roles[0]);
       /* istanbul ignore next */
-    } else if (user?.user) {
-      localStorage.setItem('user', JSON.stringify(user.user));
-      setUserRole(user.user.roles[0]);
     }
-  }, [user]);
+  }, []);
   return (
     <div className="Report">
       <Header userRole={userRole}></Header>
