@@ -1,29 +1,20 @@
 // accets/report/ReportPage.js
-import React, { useState, useEffect, useCallback } from "react";
-
-import { Link, useNavigate } from "react-router-dom";
-import ProfileIcon from "../stream-page/personal_account_1.png";
+import { useState, useEffect, useCallback } from "react";
+import {useSelector} from "react-redux";
 import "./ReportPage.css";
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
-import MobileHeader from "../adaptive-accets/MobileHeader";
 import { fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
+import Header from "../header/header";
 export default function ReportPage() {
-  const navigate = useNavigate();
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 const [reports, setReports] = useState([]);
   const [trackers, setTrackers] = useState([]);
   const [streams, setStreams] = useState([]);
 const [page] = useState(0);
 const [size] = useState(10);
 const [loading, setLoading] = useState(false);
-
-  const toggleProfileMenu = () => setIsProfileMenuOpen(prev => !prev);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/";
-  };
+const [userRole, setUserRole] = useState('');
+const user = useSelector((state) => state.user);
 
   // фильтры (заглушки)
   const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
@@ -95,55 +86,22 @@ const [loading, setLoading] = useState(false);
       setLoading(false)
     );
   }, [loadReports, loadStreams, loadTrackers]);
-
+  useEffect(() => {
+    /* istanbul ignore next */
+    const savedUser = localStorage.getItem('user');
+    /* istanbul ignore next */
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUserRole(userData.roles[0]);
+      /* istanbul ignore next */
+    } else if (user?.user) {
+      localStorage.setItem('user', JSON.stringify(user.user));
+      setUserRole(user.user.roles[0]);
+    }
+  }, [user]);
   return (
     <div className="Report">
-      <MobileHeader onNavigate={navigate} />
-      {/* Хеддер */}
-      <header className="Stream-header">
-        <div className="Stream-header-cont">
-          <div
-  className="Stream-header-logo"
-  onClick={() => navigate("/streams")}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      navigate("/streams");
-    }
-  }}
-  tabIndex={0}
-  role="button"
-  style={{ cursor: "pointer" }}
-/>
-
-<h1
-  className="Stream-title"
-  onClick={() => navigate("/streams")}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      navigate("/streams");
-    }
-  }}
-  tabIndex={0}
-  role="button"
-  style={{ cursor: "pointer" }}
->
-  TrackMe
-</h1>
-
-
-          <div className="Stream-buttons">
-            <button className="Stream-pic" onClick={toggleProfileMenu}>
-              <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
-            </button>
-            {isProfileMenuOpen && (
-              <div className="ProfileDropdown">
-                <Link to="/profile" className="ProfileDropdown-item">Личный кабинет</Link>
-                <Link onClick={handleLogout} to="/" className="ProfileDropdown-item logout">Выход</Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header userRole={userRole}></Header>
 
       {/* Контент */}
       <main className="Report-main">

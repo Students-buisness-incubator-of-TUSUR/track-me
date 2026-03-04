@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./team-card.css";
 import {useSelector} from "react-redux";
