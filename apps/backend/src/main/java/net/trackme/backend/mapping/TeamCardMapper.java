@@ -37,21 +37,18 @@ public interface TeamCardMapper {
             target = "streamName",
             expression = "java( entity"
                     + ".getStreams().stream()"
-                    + ".filter(Stream::isActive)"
                     + ".map(Stream::getName)"
                     + ".findFirst().orElse(\"\") )")
     @Mapping(
             target = "startDate",
             expression = "java( entity"
                     + ".getStreams().stream()"
-                    + ".filter(Stream::isActive)"
                     + ".map(Stream::getStartDate)"
                     + ".findFirst().orElse(null) )")
     @Mapping(
             target = "endDate",
             expression = "java( entity"
                     + ".getStreams().stream()"
-                    + ".filter(Stream::isActive)"
                     + ".map(Stream::getEndDate)"
                     + ".findFirst().orElse(null) )")
     @Mapping(target = "teamCardName", expression = "java( entity.getName() )")

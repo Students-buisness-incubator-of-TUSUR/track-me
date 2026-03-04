@@ -19,6 +19,8 @@ public interface StreamService {
 
   Page<Stream> findAll(Specification<Stream> specification, Pageable pageable);
 
+  List<Stream> findAll();
+
   List<NTIMarket> getNTIMarkets();
 
   Stream findActive(UUID id);
