@@ -1,8 +1,3 @@
-jest.mock("../adaptive-accets/MobileHeader", () => ({
-  __esModule: true,
-  default: () => null  // Компонент ничего не рендерит
-}));
-
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
