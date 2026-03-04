@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./header.css"
 import { Link, useNavigate } from 'react-router-dom';
+import { adminRoleName, backendURL, superadminRoleName } from "../../services/constants";
 
 export default function Header({ userRole = "" }) {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function Header({ userRole = "" }) {
         localStorage.removeItem("csrfHeaderName");
 
     };
-    const logoutHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/logout';
+    const logoutHost = backendURL + '/logout';
     const openFeedback = () => {
         window.dispatchEvent(new Event('open-feedback'));
     };
@@ -33,35 +34,35 @@ export default function Header({ userRole = "" }) {
                 </div>
                 <div className="header_right-side">
                     <div className="header_nav-wrapper">
-                        {userRole === "SUPER_ADMIN" &&
-                            <Link to="/list-admins">
+                        {userRole === superadminRoleName &&
+                            <Link data-testid="superadmin-link" to="/list-admins">
                                 <button className="header_nav-btn">Администраторы</button>
                             </Link>
                         }
-                        {(userRole === "SUPER_ADMIN" || userRole === "ADMIN") && 
-                            <Link to="/list-trackers">
+                        {(userRole === superadminRoleName || userRole === adminRoleName) &&
+                            <Link data-testid="admin-link" to="/list-trackers">
                                 <button className="header_nav-btn">Трекеры</button>
                             </Link>
                         }
-                        <Link to="/all-team-cards"><button className="header_nav-btn">Все команды</button></Link>
+                        <Link data-testid="everyone-link" to="/all-team-cards"><button className="header_nav-btn">Все команды</button></Link>
                         <Link to="/report"><button className="header_nav-btn">Отчётность</button></Link>
                     </div>
-                    <button className="header_account-btn" onClick={toggleProfileMenu}>
+                    <button data-testid="personal-acc-btn" className="header_account-btn" onClick={toggleProfileMenu}>
                         <img src="/images/personal-acc.svg" alt="Account" className="header_account-icon" />
                     </button>
                     {isProfileMenuOpen && (
-                        <div className="ProfileDropdown">
+                        <div data-testid="profile-dropdown" className="ProfileDropdown">
                             <Link to="/profile" className="ProfileDropdown-item">
                                 Личный кабинет
                             </Link>
-                            <Link onClick={handleLogout} to={logoutHost} className="ProfileDropdown-item logout">
+                            <Link data-testid="profile-logout-btn" onClick={handleLogout} to={logoutHost} className="ProfileDropdown-item logout">
                                 Выход
                             </Link>
                         </div>
                     )}
                 </div>
                 <div className="header_mobile-container">
-                    <button className="header_menu-button" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                    <button data-testid="hamburger-btn" className="header_menu-button" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                         <div className="header_hamburger">
                             <span></span>
                             <span></span>
@@ -69,12 +70,17 @@ export default function Header({ userRole = "" }) {
                         </div>
                     </button>
                     {isMenuOpen && (
-                        <div className="header_mobile-menu">
-                            {userRole === "SUPER_ADMIN" &&
+                        <div data-testid="hamburger-dropdown" className="header_mobile-menu">
+                            {userRole === superadminRoleName &&
                                 <Link to="/list-admins">
                                     <button className="header_menu-item">Администраторы</button>
-                                </Link>}
-                            <Link to="/list-trackers"><button className="header_menu-item">Трекеры</button></Link>
+                                </Link>
+                            }
+                            {(userRole === superadminRoleName || userRole === adminRoleName) &&
+                                <Link to="/list-trackers">
+                                    <button className="header_menu-item">Трекеры</button>
+                                </Link>
+                            }
                             <Link to="/all-team-cards"><button className="header_menu-item">Все команды</button></Link>
                             <Link to="/report"> <button className="header_menu-item separator">Отчётность</button></Link>
                             <Link to="/profile"><button className="header_menu-item">Личный кабинет</button></Link>
