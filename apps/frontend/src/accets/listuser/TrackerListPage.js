@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTrackerList } from "../hooks/useTrackerList";
 import "./TrackerList.css";
 import trueIcon from "./true.png";
@@ -7,9 +7,7 @@ import falseIcon from "./false.png";
 import editIcon from "./edit.png";
 import trueIcon2 from "./true2.png";
 import falseIcon2 from "./false2.png";
-import ProfileIcon from "./personal_account_1.png";
-import { useNavigate } from "react-router-dom";
-import MobileHeader from "../adaptive-accets/MobileHeader";
+import Header from "../header/header";
 
 function TrackerListPage({ endpoint }) {
   const {
@@ -33,30 +31,12 @@ function TrackerListPage({ endpoint }) {
     toggleShowLocked,
   } = useTrackerList(endpoint);
   
-  const location = useLocation();
-  const logoutHost = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + "/logout";
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const toggleProfileMenu = () => setIsProfileMenuOpen((prev) => !prev);
   const [userRole, setUserRole] = useState('');
     
   const [activeMobileMenu, setActiveMobileMenu] = useState(null);
 
   const longPressTimers = useRef({});
   // Состояние для отслеживания активного меню на мобильных
-  
-
-
-  const handleLogout = async () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("streamName");
-    localStorage.removeItem("streamId");
-    localStorage.removeItem("streamSDate");
-    localStorage.removeItem("streamEDate");
-    localStorage.removeItem("csrfToken");
-    localStorage.removeItem("csrfHeaderName");
-  };
 
   useEffect(() => {
     // Проверяем данные пользователя в localStorage
@@ -105,143 +85,51 @@ function TrackerListPage({ endpoint }) {
   };
   return (
     <div className="tracker-container">
-       <MobileHeader onNavigate={navigate} />
-      <header className="Stream-header">
-        <div className="Stream-header-cont">
-          <div // NOSONAR
-            className="Stream-header-logo" // NOSONAR
-            onClick={() => navigate("/streams")} // NOSONAR
-            onKeyDown={(e) => { // NOSONAR
-              if (e.key === 'Enter' || e.key === ' ') { // NOSONAR
-                navigate("/streams"); // NOSONAR
-              } // NOSONAR
-            }} // NOSONAR
-            tabIndex={0} // NOSONAR
-            role="button" // NOSONAR
-            aria-label="Вернуться на главную страницу" // NOSONAR
-            style={{ cursor: "pointer" }} // NOSONAR
-          /> 
-          <h1 // NOSONAR
-            className="Stream-title" // NOSONAR
-            onClick={() => navigate("/streams")} // NOSONAR
-            onKeyDown={(e) => { // NOSONAR
-              if (e.key === 'Enter' || e.key === ' ') { // NOSONAR
-                navigate("/streams"); // NOSONAR
-              } // NOSONAR
-            }} // NOSONAR
-            tabIndex={0} // NOSONAR
-            role="button" // NOSONAR
-            aria-label="Вернуться на главную страницу" // NOSONAR
-            style={{ cursor: "pointer" }} // NOSONAR
-          > {/*NOSONAR*/}
-            TrackMe {/*NOSONAR*/}
-          </h1> {/*NOSONAR*/}
-          <div className="Stream-buttons">
-            {userRole === 'SUPER_ADMIN' && location.pathname === "/list-trackers" && (
-              <Link to="/list-admins">
-                <button className="Stream-butt">Администраторы</button>
-              </Link>
-            )}
-            
-            {userRole === 'SUPER_ADMIN' && location.pathname === "/list-admins" && (
-              <Link to="/list-trackers">
-                <button className="Stream-butt">Трекеры</button>
-              </Link>
-            )}
-            
-            {userRole === 'SUPER_ADMIN' && location.pathname !== "/list-trackers" && location.pathname !== "/list-admins" && (
-              <>
-                <Link to="/list-admins">
-                  <button className="Stream-butt">Администраторы</button>
-                </Link>
-                <Link to="/list-trackers">
-                  <button className="Stream-butt">Трекеры</button>
-                </Link>
-              </>
-            )}
-            
-            {/* Для администраторов показываем только кнопку "Трекеры" */}
-            {userRole === 'ADMIN' && location.pathname === "/list-trackers" && (
-              <Link to="/list-trackers">
-                <button className="Stream-butt">Трекеры</button>
-              </Link>
-            )}
-            
-            {userRole === 'ADMIN' && location.pathname === "/list-admins" && (
-              <Link to="/list-trackers">
-                <button className="Stream-butt">Трекеры</button>
-              </Link>
-            )}
-            
-            {userRole === 'ADMIN' && location.pathname !== "/list-trackers" && location.pathname !== "/list-admins" && (
-              <Link to="/list-trackers">
-                <button className="Stream-butt">Трекеры</button>
-              </Link>
-            )}
+      <Header userRole={userRole}></Header>
+      <div className="Users-header-bottom-cont">
+        <div className="Stream-search-cont">
+          <div className="Stream-search-contcont">
+            <button className="Stream-settings-pic2"></button>
+            <input
+              type="search"
+              placeholder="Найти"
+              className="Stream-search"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+        </div>
 
-            <Link to="/streams">
-              <button className="Stream-butt">Потоки</button>
-            </Link>
-            <Link to="/all-team-cards">
-              <button className="Stream-butt">Все команды</button>
-            </Link>
-            <button className="Stream-pic" onClick={toggleProfileMenu}>
-              <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
-            </button>
-            {isProfileMenuOpen && (
-              <div className="ProfileDropdown">
-                <Link to="/profile" className="ProfileDropdown-item">Личный кабинет</Link>
-                <Link onClick={handleLogout} to={logoutHost} className="ProfileDropdown-item logout">Выход</Link>
+        {/* Добавляем кнопку переключения фильтра */}
+        <div className="filter-toggle-container">
+          <button
+            className={`filter-toggle ${showLockedOnly ? 'active' : ''}`}
+            onClick={toggleShowLocked}
+            onMouseEnter={() => setHoveredButton("filter")}
+            onMouseLeave={() => setHoveredButton(null)}
+            aria-label={showLockedOnly ? "Показать активных пользователей" : "Показать заблокированных пользователей"}
+          >
+            <div className="filter-toggle-icon">
+              {showLockedOnly ? (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  {/* Иконка крестика (заблокированные) */}
+                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM6.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-3.293 3.293a1 1 0 101.414 1.414L10 11.414l3.293 3.293a1 1 0 001.414-1.414L11.414 10l3.293-3.293a1 1 0 00-1.414-1.414L10 8.586 6.707 5.293z" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  {/* Иконка пользователя (активные) */}
+                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                </svg>
+              )}
+            </div>
+            {hoveredButton === "filter" && (
+              <div className="filter-tooltip">
+                {showLockedOnly ? "Показать активных пользователей" : "Показать заблокированных пользователей"}
               </div>
             )}
-          </div>
+          </button>
         </div>
-        <div className="Users-header-bottom-cont">
-          <div className="Stream-search-cont">
-            <div className="Stream-search-contcont">
-              <button className="Stream-settings-pic2"></button>
-              <input
-                type="search"
-                placeholder="Найти"
-                className="Stream-search"
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-            </div>
-          </div>
-          
-          {/* Добавляем кнопку переключения фильтра */}
-          <div className="filter-toggle-container">
-  <button 
-    className={`filter-toggle ${showLockedOnly ? 'active' : ''}`}
-    onClick={toggleShowLocked}
-    onMouseEnter={() => setHoveredButton("filter")}
-    onMouseLeave={() => setHoveredButton(null)}
-    aria-label={showLockedOnly ? "Показать активных пользователей" : "Показать заблокированных пользователей"}
-  >
-    <div className="filter-toggle-icon">
-      {showLockedOnly ? (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          {/* Иконка крестика (заблокированные) */}
-          <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM6.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-3.293 3.293a1 1 0 101.414 1.414L10 11.414l3.293 3.293a1 1 0 001.414-1.414L11.414 10l3.293-3.293a1 1 0 00-1.414-1.414L10 8.586 6.707 5.293z"/>
-        </svg>
-      ) : (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-          {/* Иконка пользователя (активные) */}
-          <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
-        </svg>
-      )}
-    </div>
-    {hoveredButton === "filter" && (
-      <div className="filter-tooltip">
-        {showLockedOnly ? "Показать активных пользователей" : "Показать заблокированных пользователей"}
-      </div>
-    )}
-  </button>
-</div>
         </div>
-      </header>
-
      <main 
   className="tracker-list-content" 
   onClick={closeMobileMenu}

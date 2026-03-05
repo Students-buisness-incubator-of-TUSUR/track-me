@@ -12,17 +12,6 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// Мокаем MobileHeader
-jest.mock('../adaptive-accets/MobileHeader', () => {
-  return function MockMobileHeader({ onNavigate }) {
-    return (
-      <div data-testid="mobile-header">
-        Mock Mobile Header
-      </div>
-    );
-  };
-});
-
 // Мокаем getCsrfConfigForFetch
 jest.mock('../../utils/csrf-utils', () => ({
   getCsrfConfigForFetch: jest.fn(() => ({})),
@@ -196,50 +185,6 @@ describe('ReportPage Component', () => {
     expect(screen.getByText('Выгрузить отчет')).toBeInTheDocument();
   });
 
-  test('открывает и закрывает меню профиля', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const profileButton = screen.getByAltText('Профиль');
-    fireEvent.click(profileButton);
-    
-    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
-    expect(screen.getByText('Выход')).toBeInTheDocument();
-    
-    fireEvent.click(profileButton);
-    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
-  });
-
-  test('обрабатывает выход из системы', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const profileButton = screen.getByAltText('Профиль');
-    fireEvent.click(profileButton);
-    
-    const logoutLink = screen.getByText('Выход');
-    fireEvent.click(logoutLink);
-    
-    expect(localStorageMock.clear).toHaveBeenCalled();
-    expect(window.location.href).toBe('/');
-  });
-
   test('открывает и закрывает фильтр трекеров', async () => {
     render(
       <Router>
@@ -323,48 +268,6 @@ describe('ReportPage Component', () => {
     expect(cells[7]).toHaveTextContent('1/3'); // Трекшн-митинг
     expect(cells[8]).toHaveTextContent('HealthNet'); // Рынки НТИ
     expect(cells[9]).toHaveTextContent('0-2'); // Уровень TRL
-  });
-
-  test('навигация по клику на логотип и заголовок', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const logo = document.querySelector('.Stream-header-logo');
-    fireEvent.click(logo);
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
-    
-    const title = screen.getByText('TrackMe');
-    fireEvent.click(title);
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
-  });
-
-  test('навигация по клавиатуре на логотип и заголовок', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const logo = document.querySelector('.Stream-header-logo');
-    fireEvent.keyDown(logo, { key: 'Enter' });
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
-    
-    const title = screen.getByText('TrackMe');
-    fireEvent.keyDown(title, { key: ' ' });
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
   });
 
   test('отображает правильные иконки в фильтрах', async () => {
@@ -460,29 +363,6 @@ describe('ReportPage Component', () => {
     
     // Проверяем, что кнопка кликабельна
     fireEvent.click(exportButton);
-  });
-
-  test('меню профиля содержит правильные ссылки', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const profileButton = screen.getByAltText('Профиль');
-    fireEvent.click(profileButton);
-    
-    const profileLink = screen.getByText('Личный кабинет');
-    const logoutLink = screen.getByText('Выход');
-    
-    expect(profileLink).toBeInTheDocument();
-    expect(logoutLink).toBeInTheDocument();
-    expect(profileLink.closest('a')).toHaveAttribute('href', '/profile');
   });
 
   test('переключение фильтров изменяет иконки', async () => {

@@ -1,12 +1,12 @@
-import React, {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./team-card.css";
 import {useSelector} from "react-redux";
 import penIcon from "./pen.png";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
-import MobileHeader from "../adaptive-accets/MobileHeader";
 import {  validateMeetingDateChange } from "../../utils/date-utils";
+import Header from "../header/header";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
@@ -648,8 +648,9 @@ const deleteMeeting = async () => {
    
 
     return (
+    <>
+            <Header userRole={role} />
             <div className="team-card-widget-container">
-              <MobileHeader onNavigate={navigate} />
                 {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
                     <div className="team-rating">
                         {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1148,6 +1149,7 @@ const deleteMeeting = async () => {
               </button>
             )}
             </div>
+            </>
     );
 };
 

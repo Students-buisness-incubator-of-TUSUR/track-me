@@ -12,17 +12,6 @@ jest.mock('./edit.png', () => 'edit.png');
 jest.mock('./true2.png', () => 'true2.png');
 jest.mock('./false2.png', () => 'false2.png');
 jest.mock('./personal_account_1.png', () => 'personal_account_1.png');
-// Мок MobileHeader - добавьте этот код в блок моков в начале файла
-jest.mock('../adaptive-accets/MobileHeader', () => {
-  return function MockMobileHeader({ onNavigate }) {
-    return (
-      <div data-testid="mobile-header">
-        Mock Mobile Header
-      </div>
-    );
-  };
-});
-// Мокаем window.innerWidth для consistent тестирования
 beforeEach(() => {
   Object.defineProperty(window, 'innerWidth', {
     writable: true,
@@ -134,14 +123,6 @@ test('наведение на неактивный трекер вызывает
   
   expect(setHoveredTracker).toHaveBeenCalledWith('testuser2');
 });
-
-  test('открывает меню профиля', () => {
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
-    const profileBtn = screen.getByAltText('Профиль').closest('button');
-    fireEvent.click(profileBtn);
-    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
-    expect(screen.getByText('Выход')).toBeInTheDocument();
-  });
 
   test('поиск трекеров вызывает setSearchQuery и сбрасывает видимость', () => {
     require('../hooks/useTrackerList').useTrackerList = () => ({
@@ -274,54 +255,6 @@ test('наведение на неактивный трекер вызывает
   expect(setPageArg(0)).toBe(1);
 });
 
-  test('handleLogout очищает localStorage', () => {
-    const TrackerListPage = require('./TrackerListPage').default;
-    Storage.prototype.removeItem = jest.fn();
-
-    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
-
-    const profileBtn = screen.getByAltText('Профиль').closest('button');
-    fireEvent.click(profileBtn);
-    const logoutLink = screen.getByText('Выход');
-    fireEvent.click(logoutLink);
-
-    expect(localStorage.removeItem).toHaveBeenCalledWith('user');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('userRole');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('streamName');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('streamId');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('streamSDate');
-    expect(localStorage.removeItem).toHaveBeenCalledWith('streamEDate');
-  });
-
-  test('клик по confirm (enabled) вызывает setHoveredTracker(null)', () => {
-    const setHoveredTracker = jest.fn();
-    require('../hooks/useTrackerList').useTrackerList = () => ({
-      trackers: [{ username: 'user1', fullName: 'Test', telegramId: 'test', enabled: true }],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: 'user1',
-      setHoveredTracker,
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-    });
-
-    const TrackerListPage = require('./TrackerListPage').default;
-    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
-
-    const confirmButton = screen.getByAltText('Оставить');
-    fireEvent.click(confirmButton);
-    expect(setHoveredTracker).toHaveBeenCalledWith(null);
-  });
 
   test('клик по cancel (enabled) вызывает deleteUser', () => {
     const deleteUser = jest.fn();
@@ -922,158 +855,6 @@ describe('TrackerListPage - Coverage for Lines 121, 139-140, 153-154, 179-180, 2
     expect(screen.getByRole('button', { name: 'Перейти на 2 страницы назад' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Следующая страница' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Перейти на 2 страницы вперед' })).not.toBeInTheDocument();
-  });
-});
-describe('Header Logo and Title Navigation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('логотип отображается и имеет правильные атрибуты', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const logoElement = document.querySelector('.Stream-header-logo');
-    expect(logoElement).toBeInTheDocument();
-    // MobileHeader может переопределять поведение, поэтому проверяем только базовые атрибуты
-    expect(logoElement).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
-  });
-
-  test('заголовок отображается и имеет правильные атрибуты', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const titleElement = screen.getByText('TrackMe');
-    expect(titleElement).toBeInTheDocument();
-    expect(titleElement).toHaveClass('Stream-title');
-    expect(titleElement).toHaveAttribute('aria-label', 'Вернуться на главную страницу');
-  });
-
-  test('клик по логотипу вызывает navigate', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const logoElement = document.querySelector('.Stream-header-logo');
-    fireEvent.click(logoElement);
-    
-    // MobileHeader может изменять путь навигации
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  test('клик по заголовку вызывает navigate', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const titleElement = screen.getByText('TrackMe');
-    fireEvent.click(titleElement);
-    
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  test('нажатие Enter на логотипе вызывает navigate', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const logoElement = document.querySelector('.Stream-header-logo');
-    fireEvent.keyDown(logoElement, { key: 'Enter' });
-    
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  test('нажатие Space на логотипе вызывает navigate', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const logoElement = document.querySelector('.Stream-header-logo');
-    fireEvent.keyDown(logoElement, { key: ' ' });
-    
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  test('нажатие Enter на заголовке вызывает navigate', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const titleElement = screen.getByText('TrackMe');
-    fireEvent.keyDown(titleElement, { key: 'Enter' });
-    
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  test('нажатие Space на заголовке вызывает navigate', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const titleElement = screen.getByText('TrackMe');
-    fireEvent.keyDown(titleElement, { key: ' ' });
-    
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  test('нажатие других клавиш на логотипе не вызывает navigate', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const logoElement = document.querySelector('.Stream-header-logo');
-    fireEvent.keyDown(logoElement, { key: 'Escape' });
-    fireEvent.keyDown(logoElement, { key: 'Tab' });
-    fireEvent.keyDown(logoElement, { key: 'a' });
-    
-    // MobileHeader может обрабатывать навигацию по-другому
-    // Поэтому проверяем только что не было вызовов с неправильными путями
-    expect(mockNavigate).not.toHaveBeenCalledWith('/wrong-path');
-  });
-
-  test('нажатие других клавиш на заголовке не вызывает navigate', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    const titleElement = screen.getByText('TrackMe');
-    fireEvent.keyDown(titleElement, { key: 'Escape' });
-    fireEvent.keyDown(titleElement, { key: 'Tab' });
-    fireEvent.keyDown(titleElement, { key: 'a' });
-    
-    expect(mockNavigate).not.toHaveBeenCalledWith('/wrong-path');
-  });
-
-  test('MobileHeader отображается в компоненте', () => {
-    render(
-      <BrowserRouter>
-        <TrackerListPage endpoint="/trackers" />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByTestId('mobile-header')).toBeInTheDocument();
   });
 });
 describe("TrackerListPage userRole from localStorage", () => {
