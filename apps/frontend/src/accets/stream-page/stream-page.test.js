@@ -6,6 +6,11 @@ import { MemoryRouter, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
+const mockUseGetUserInfo = jest.fn();
+jest.mock('../../services/util', () => ({
+  useGetUserInfo: () => mockUseGetUserInfo(),
+}));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -48,6 +53,10 @@ describe('Stream Component', () => {
 
   beforeEach(() => {
   window.dispatchEvent(new Event("resize")); // если компонент слушает resize
+    mockUseGetUserInfo.mockReturnValue({
+      roles: ['SUPER_ADMIN'],
+      username: "username12",
+    });
     axios.post.mockResolvedValue({ data: mockData });
     axios.get.mockImplementation((url) => {
       if (url.includes('nti-markets')) {

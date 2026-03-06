@@ -4,6 +4,22 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import ReportPage from '../report-page/ReportPage.js';
 import '@testing-library/jest-dom';
 import { fetchReports, fetchStreams, fetchTrackers } from '../../services/requests';
+import { useSelector } from 'react-redux';
+const mockUseGetUserInfo = jest.fn();
+jest.mock('../../services/util', () => ({
+  useGetUserInfo: () => mockUseGetUserInfo(),
+}));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+beforeEach(() => {
+  mockUseGetUserInfo.mockReturnValue({
+    roles: ['SUPER_ADMIN'],
+    username: "username12",
+  });
+});
 
 const size = 10000;
 
@@ -242,7 +258,7 @@ describe('ReportPage Component', () => {
       expect(screen.getByText('TrackMe')).toBeInTheDocument();
     });
     
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     
     // Проверяем, что dropdown-menu появился
@@ -332,7 +348,7 @@ describe('ReportPage Component', () => {
     expect(trackerIcons[0]).toHaveAttribute('alt', 'Открыто');
     
     // Открываем фильтр и проверяем изменение иконки
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     
     const updatedIcons = document.querySelectorAll('.dropdown-icon-img');
@@ -369,7 +385,7 @@ describe('ReportPage Component', () => {
     });
     
     // Открываем фильтр трекеров
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     
     await waitFor(() => {
@@ -422,7 +438,7 @@ describe('ReportPage Component', () => {
       expect(screen.getByText('TrackMe')).toBeInTheDocument();
     });
     
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     const streamFilterButton = screen.getByText('Потоки');
     
     // Проверяем начальное состояние
@@ -551,7 +567,7 @@ describe('loadStreams and loadTrackers', () => {
       expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: size });
     });
 
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
 
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
@@ -610,7 +626,7 @@ describe('loadStreams and loadTrackers', () => {
       );
     });
 
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
     const items = within(dropdownMenu).getAllByRole('button');
@@ -690,7 +706,7 @@ describe('filter selection', () => {
       expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
     });
 
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
 
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
@@ -743,7 +759,7 @@ describe('filter selection', () => {
     );
 
     // First set a filter
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
     const trackerItem = within(dropdownMenu).getByText('Tracker One (tracker1)');

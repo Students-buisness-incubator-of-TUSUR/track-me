@@ -6,6 +6,7 @@ import IconClose from "./icon-close.png";
 import { fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
 import Header from "../header/header";
 import PropTypes from "prop-types";
+import { useGetUserInfo } from "../../services/util";
 
 export default function ReportPage({ defaultIsActive = true }) {
 const [reports, setReports] = useState([]);
@@ -99,16 +100,12 @@ const [userRole, setUserRole] = useState('');
       setLoading(false)
     );
   }, [loadReports, loadStreams, loadTrackers]);
+
+  const user = useGetUserInfo();
   useEffect(() => {
-    /* istanbul ignore next */
-    const savedUser = localStorage.getItem('user');
-    /* istanbul ignore next */
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      setUserRole(userData.roles[0]);
-      /* istanbul ignore next */
-    }
-  }, []);
+    setUserRole(user.roles[0]);
+  }, [user]);
+
   return (
     <div className="Report">
       <Header userRole={userRole}></Header>
@@ -137,6 +134,7 @@ const [userRole, setUserRole] = useState('');
             </button>
            <div className="dropdown1">
   <button
+                data-testid="trackers-btn"
     className={`dropdown-btn ${trackerFilterOpen ? 'open' : ''}`}
     onClick={() => setTrackerFilterOpen(!trackerFilterOpen)}
   >

@@ -6,6 +6,18 @@ import TeamCard from './team-card.js';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import * as redux from 'react-redux';
 import { getMeetingStatusClass } from './team-card.js';
+import { useSelector } from 'react-redux';
+import { current } from '@reduxjs/toolkit';
+
+const mockUseGetUserInfo = jest.fn();
+jest.mock('../../services/util', () => ({
+  useGetUserInfo: () => mockUseGetUserInfo(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 const mockedNavigate = jest.fn();
 
@@ -37,23 +49,13 @@ jest.mock('react-router-dom', () => {
   };
 });
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
-
 beforeEach(() => {
   mockedNavigate.mockClear();
   jest.clearAllMocks();
 
-  redux.useSelector.mockImplementation(() => ({
-    user: { username: 'reduxUser', roles: ['ADMIN'] }
-  }));
-  Storage.prototype.getItem = jest.fn(() =>
-    JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
-  );
   window.confirm = jest.fn(() => true);
 
+  mockUseGetUserInfo.mockReturnValue({ username: 'reduxUser', roles: ['ADMIN'] });
   global.fetch = jest.fn((url, opts = {}) => {
     // 1) PATCH (handleSave)
     if (opts.method === 'PATCH') {
@@ -443,37 +445,6 @@ test('handleSave выбрасывает ошибку при незаполнен
   });
   consoleSpy.mockRestore();
 });
-test('берет данные из localStorage, если он есть', async () => {
-  const saved = JSON.stringify({ username: 'localUser', roles: ['SUPER_ADMIN'] });
-  Storage.prototype.getItem = jest.fn(() => saved);
-  
-  const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
-
-  redux.useSelector.mockImplementation(() => ({
-    user: { username: 'reduxUser', roles: ['ADMIN'] }
-  }));
-
-  require('react-router-dom').__setState({});
-  require('react-router-dom').__setSearch('');
-
-  await act(async () => {
-    render(
-      <MemoryRouter initialEntries={['/team-card/42']}>
-        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
-      </MemoryRouter>
-    );
-  });
-
-  // Проверим, что localStorage использовался
-  expect(Storage.prototype.getItem).toHaveBeenCalledWith('user');
-  // И не было вызова setItem, потому что localStorage уже был
-  expect(setItemSpy).not.toHaveBeenCalled();
-});
-
-
-
-
-
 test('ошибка при удалении карточки вызывает handleApiError', async () => {
   const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {}); // ⬅️ добавлено
 
@@ -636,9 +607,7 @@ test('handleSave заменяет username на объектный, если о�
 });
 
 test('tooltip отображается при наведении (для TRACKER)', async () => {
-  redux.useSelector.mockImplementation(() => ({
-    user: { username: 'trackerUser', roles: ['TRACKER'] }
-  }));
+  mockUseGetUserInfo.mockReturnValue({ username: 'trackerUser', roles: ["TRACKER"] });
 
   Storage.prototype.getItem = jest.fn(() =>
     JSON.stringify({ username: 'trackerUser', roles: ['TRACKER'] })
@@ -810,9 +779,7 @@ test('TRACKER branch uses /account/info for fullName', async () => {
     const RR = require('react-router-dom');
     RR.__setSearch('');
     // Ставим роль TRACKER
-    redux.useSelector.mockImplementation(() => ({
-      user: { username: 'trackerUser', roles: ['TRACKER'] }
-    }));
+    mockUseGetUserInfo.mockReturnValue({ username: 'trackerUser', roles: ["TRACKER"] });
     Storage.prototype.getItem = jest.fn(() =>
       JSON.stringify({ username: 'trackerUser', roles: ['TRACKER'] })
     );
@@ -1249,12 +1216,7 @@ describe('Additional coverage for specific lines', () => {
 
   // Lines 133-135, 140, 143: TRACKER fetchFullName error
   test('TRACKER fetchFullName error triggers handleApiError', async () => {
-    redux.useSelector.mockImplementation(() => ({
-      user: { username: 'trackerUser', roles: ['TRACKER'] }
-    }));
-    Storage.prototype.getItem = jest.fn(() =>
-      JSON.stringify({ username: 'trackerUser', roles: ['TRACKER'] })
-    );
+    mockUseGetUserInfo.mockReturnValue({ username: 'trackerUser', roles: ["TRACKER"] });
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     global.fetch = jest.fn((url) => {
       if (url.endsWith('/api/v1/account/info')) {
@@ -1754,12 +1716,7 @@ describe('Stream selection functionality', () => {
   });
 
   test('stream selection is disabled for TRACKER role', async () => {
-    redux.useSelector.mockImplementation(() => ({
-      user: { username: 'trackerUser', roles: ['TRACKER'] }
-    }));
-    Storage.prototype.getItem = jest.fn(() =>
-      JSON.stringify({ username: 'trackerUser', roles: ['TRACKER'] })
-    );
+    mockUseGetUserInfo.mockReturnValue({ username: 'trackerUser', roles: ['TRACKER'] });
 
     require('react-router-dom').__setSearch('?edit=true');
     await act(async () => {
@@ -1776,12 +1733,7 @@ describe('Stream selection functionality', () => {
   });
 
   test('shows tooltip for TRACKER when hovering stream dropdown', async () => {
-    redux.useSelector.mockImplementation(() => ({
-      user: { username: 'trackerUser', roles: ['TRACKER'] }
-    }));
-    Storage.prototype.getItem = jest.fn(() =>
-      JSON.stringify({ username: 'trackerUser', roles: ['TRACKER'] })
-    );
+    mockUseGetUserInfo.mockReturnValue({ username: 'trackerUser', roles: ['TRACKER'] });
 
     require('react-router-dom').__setSearch('?edit=true');
     await act(async () => {
@@ -1853,12 +1805,6 @@ describe('Stream selection functionality (lines 455-488)', () => {
     jest.clearAllMocks();
     require('react-router-dom').__setSearch('?edit=true');
     require('react-router-dom').__setState({});
-    redux.useSelector.mockImplementation(() => ({
-      user: { username: 'reduxUser', roles: ['ADMIN'] }
-    }));
-    Storage.prototype.getItem = jest.fn(() =>
-      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
-    );
   });
 
   test('stream selection updates selectedStreamId on click', async () => {
@@ -2079,12 +2025,7 @@ describe('Meeting date editing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     require('react-router-dom').__setSearch('');
-    redux.useSelector.mockImplementation(() => ({
-      user: { username: 'reduxUser', roles: ['ADMIN'] }
-    }));
-    Storage.prototype.getItem = jest.fn(() =>
-      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
-    );
+    mockUseGetUserInfo.mockReturnValue({ username: 'reduxUser', roles: ['ADMIN'] });
     global.fetch = jest.fn((url, opts = {}) => {
       if (url.includes('/api/v1/meetings')) {
         return Promise.resolve({
@@ -2286,12 +2227,7 @@ describe('Meetings sorting functionality', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     require('react-router-dom').__setSearch('');
-    redux.useSelector.mockImplementation(() => ({
-      user: { username: 'reduxUser', roles: ['ADMIN'] }
-    }));
-    Storage.prototype.getItem = jest.fn(() =>
-      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
-    );
+    mockUseGetUserInfo.mockReturnValue({ username: 'reduxUser', roles: ['ADMIN'] });
   });
 
   test('sorts meetings by number in ascending order', async () => {
@@ -2603,9 +2539,7 @@ describe('TeamCard Delete Meeting Functionality (Guaranteed Pass)', () => {
 
   const renderWithMockData = async (currentUserRole = "ADMIN") => {
     // Мокаем useSelector
-    redux.useSelector.mockReturnValue({
-      user: { username: 'testUser', roles: [currentUserRole] }
-    });
+    mockUseGetUserInfo.mockReturnValue({ username: 'testUser', roles: [currentUserRole] });
 
     // Мокаем fetch
     global.fetch.mockImplementation(async (url) => {
@@ -2947,30 +2881,6 @@ test('confirm-modal: onClick и onKeyDown вызывают stopPropagation (ед
 
 });
 
-test('redux user initialization - simple coverage', async () => {
-  // 1. localStorage пустой
-  Storage.prototype.getItem = jest.fn(() => null);
-  
-  // 2. useSelector возвращает любые данные
-  redux.useSelector.mockImplementation(() => ({
-    user: { 
-      username: 'testuser',
-      roles: ['ADMIN']
-    }
-  }));
-  
-  // 3. Рендерим компонент
-  await act(async () => {
-    render(
-      <MemoryRouter initialEntries={['/team-card/42']}>
-        <Routes><Route path="/team-card/:id" element={<TeamCard />} /></Routes>
-      </MemoryRouter>
-    );
-  });
-  
-  expect(Storage.prototype.setItem).toHaveBeenCalled();
-});
-
 describe('Meeting date validation errors', () => {
   let setTimeoutSpy;
   
@@ -2982,12 +2892,7 @@ describe('Meeting date validation errors', () => {
     setTimeoutSpy = jest.spyOn(global, 'setTimeout');
     
     require('react-router-dom').__setSearch('');
-    redux.useSelector.mockImplementation(() => ({
-      user: { username: 'reduxUser', roles: ['ADMIN'] }
-    }));
-    Storage.prototype.getItem = jest.fn(() =>
-      JSON.stringify({ username: 'reduxUser', roles: ['ADMIN'] })
-    );
+    mockUseGetUserInfo.mockReturnValue({ username: 'reduxUser', roles: ["ADMIN"] });
   });
 
   afterEach(() => {
