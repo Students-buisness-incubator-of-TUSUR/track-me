@@ -5,16 +5,19 @@ import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
 import { fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
 import Header from "../header/header";
-export default function ReportPage() {
+import PropTypes from "prop-types";
+
+export default function ReportPage({ defaultIsActive = true }) {
 const [reports, setReports] = useState([]);
   const [trackers, setTrackers] = useState([]);
   const [streams, setStreams] = useState([]);
 const [page] = useState(0);
-const [size] = useState(10);
+const [size] = useState(10000);
 const [loading, setLoading] = useState(false);
 const [userRole, setUserRole] = useState('');
 
   // фильтры (заглушки)
+  const [isActive, setIsActive] = useState(defaultIsActive);
   const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
   const [streamFilterOpen, setStreamFilterOpen] = useState(false);
   const [filterTrackers, _setFilterTrackers] = useState(null);
@@ -41,6 +44,18 @@ const [userRole, setUserRole] = useState('');
           type: "EQ",
           value: filterStreams,
         });
+      if (isActive) {
+        const todayDate = new Date().toISOString().split('T')[0];
+        filters.push({
+          fieldName: "streams.startDate",
+          type: "LTE",
+          value: todayDate,
+        }, {
+          fieldName: "streams.endDate",
+          type: "GTE",
+          value: todayDate,
+        });
+      }
       const response = await fetchReports({ page: page, size: size, filters: filters });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
@@ -50,7 +65,7 @@ const [userRole, setUserRole] = useState('');
     } catch (error) {
       console.error("Ошибка загрузки отчётов", error);
     }
-  }, [page, size, filterTrackers, filterStreams]);
+  }, [page, size, filterTrackers, filterStreams, isActive]);
 
   const loadStreams = useCallback(async () => {
     try {
@@ -105,6 +120,21 @@ const [userRole, setUserRole] = useState('');
 
           {/* фильтры */}
           <div className="report-filters">
+            <button
+              data-testid="button-isactive"
+              className="report-page_btn-isactive"
+              onClick={() => setIsActive(!isActive)}
+            >
+              <input
+                id="isActive"
+                type="checkbox"
+                disabled={true}
+                checked={!isActive}
+              />
+              <label
+                htmlFor="isActive"
+              >Показывать неактивные</label>
+            </button>
            <div className="dropdown1">
   <button
     className={`dropdown-btn ${trackerFilterOpen ? 'open' : ''}`}
@@ -240,3 +270,7 @@ const [userRole, setUserRole] = useState('');
     </div>
   );
 }
+
+ReportPage.propTypes = {
+  defaultIsActive: PropTypes.bool,
+};
