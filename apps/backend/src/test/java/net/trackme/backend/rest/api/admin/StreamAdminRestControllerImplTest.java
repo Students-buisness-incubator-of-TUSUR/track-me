@@ -95,7 +95,7 @@ class StreamAdminRestControllerImplTest extends BaseApplicationTest {
                     .content("""
                                 {
                                   "name": "Test name",
-                                  "startDate: %s",
+                                  "startDate": %s",
                                   "endDate": "%s",
                                   "trackStartDate": "%s",
                                   "ntiMarketIds": ["%s"]
