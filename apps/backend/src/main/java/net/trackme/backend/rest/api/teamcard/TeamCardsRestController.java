@@ -103,4 +103,12 @@ public interface TeamCardsRestController {
             @ParameterObject
             @PageableDefault
             Pageable pageable);
+
+    @PostMapping(
+            value = "team-cards/reports/excel",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @Operation(summary = "Получение отчета о командах в excel")
+    ResponseEntity<byte[]> getTeamCardReportExcel(
+            @Parameter(description = "Фильтры для поиска записей отчета")
+            @RequestBody @Valid FilterRequest filters);
 }

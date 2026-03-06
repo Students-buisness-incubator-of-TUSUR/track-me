@@ -8,11 +8,17 @@ import net.trackme.backend.usecases.TeamCardsUseCase;
 import net.trackme.commons.filters.FilterRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @RestController
@@ -68,5 +74,28 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
             Pageable pageable) {
         var page = teamCardsUseCase.getTeamCardReport(filters.filters(), pageable);
         return ResponseEntity.ok(new PagedModel<>(page));
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> getTeamCardReportExcel(
+            FilterRequest filters) {
+        String filename = "отчёт-по-командам-" +
+                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +
+                ".xlsx";
+
+        String filenameEncoded = URLEncoder
+                .encode(filename, StandardCharsets.UTF_8)
+                .replace("+", "%20");
+
+        byte[] excelBytes = teamCardsUseCase.getTeamCardReportExcel(filters.filters());
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename*=UTF-8''" + filenameEncoded
+            )
+            .contentType(MediaType.parseMediaType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ))
+            .body(excelBytes);
     }
 }

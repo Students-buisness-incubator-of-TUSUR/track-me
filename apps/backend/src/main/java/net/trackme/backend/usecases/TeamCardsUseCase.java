@@ -8,8 +8,10 @@ import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
+import net.trackme.backend.services.exceptions.ExcelExportException;
 import net.trackme.backend.services.nti.NtiMarketService;
 import net.trackme.backend.services.stream.MutableStreamService;
+import net.trackme.backend.services.teamcard.TeamCardsReportService;
 import net.trackme.backend.services.teamcard.TeamCardsService;
 import net.trackme.commons.filters.Filter;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +35,8 @@ public class TeamCardsUseCase {
     private final TeamCardsService teamCardsService;
 
     private final MutableStreamService streamService;
+
+    private final TeamCardsReportService teamCardsReportService;
 
     private final TeamCardMapper teamCardMapper;
 
@@ -71,7 +76,7 @@ public class TeamCardsUseCase {
     public Page<TeamCardDto> getTeamCards(List<Filter> filters,
                                           Authentication authentication,
                                           Pageable pageable) {
-        var page = teamCardsService.getTeamCards(
+        var page = teamCardsService.getTeamCardsPageable(
                 withFilters(filters)
                         .and(userEquals(authentication.getName())),
                 pageable);
@@ -95,9 +100,26 @@ public class TeamCardsUseCase {
     public Page<TeamCardReportRecordDto> getTeamCardReport(List<Filter> filters,
                                                            Pageable pageable) {
         var streams = streamService.findAllActive().stream().map(Stream::getName).toList();
-        var teamCardPage = teamCardsService.getTeamCards(
+        var teamCardPage = teamCardsService.getTeamCardsPageable(
                 withFilters(filters).and(withStreamsAndNtiMarkets(streams)),
                 pageable);
         return teamCardPage.map(teamCardMapper::mapToReportDto);
+    }
+
+    public byte[] getTeamCardReportExcel(List<Filter> filters) {
+        var streams = streamService.findAllActive().stream().map(Stream::getName).toList();
+        var spec = withFilters(filters).and(withStreamsAndNtiMarkets(streams));
+
+        var records = teamCardsService
+                .getTeamCards(spec)
+                .stream()
+                .map(teamCardMapper::mapToReportDto)
+                .toList();
+
+        try {
+            return teamCardsReportService.exportToExcel(records);
+        } catch (IOException e) {
+            throw new ExcelExportException("Ошибка генерации Excel отчёта", e);
+        }
     }
 }
