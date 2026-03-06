@@ -10,6 +10,8 @@ import net.trackme.backend.services.stream.MutableStreamService;
 import net.trackme.commons.filters.Filter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,8 +35,14 @@ public class StreamUseCase {
   }
 
   public Page<StreamDto> getStreams(List<Filter> filters, Pageable pageable) {
+    Sort sort = pageable.getSort().and(Sort.by("id").descending());
+    Pageable stablePageable = PageRequest.of(
+        pageable.getPageNumber(), 
+        pageable.getPageSize(), 
+        sort
+    );
     var specification = StreamSpecification.withFilters(filters);
-    var streams = streamService.findAll(specification, pageable);
+    var streams = streamService.findAll(specification, stablePageable);
     return streams.map(streamMapper::mapToDto);
   }
 

@@ -73,6 +73,7 @@ public class StreamSpecification implements Specification<Stream> {
       }
       predicates.add(filter.toPredicate(root, criteriaBuilder));
     }
+    query.distinct(true);
     return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
   }
 }
