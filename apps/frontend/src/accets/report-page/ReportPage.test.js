@@ -56,6 +56,49 @@ const mockReports = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 describe('ReportPage Component', () => {
+
+  test('isActive checkbox toggles correctly and triggers report reload', async () => {
+  render(
+    <Router>
+      <ReportPage defaultIsActive={false} />
+    </Router>
+  );
+
+  await waitFor(() => {
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
+  });
+
+  const checkboxButton = screen.getByTestId('button-isactive');
+  expect(checkboxButton).toBeInTheDocument();
+
+  fireEvent.click(checkboxButton);
+
+  await waitFor(() => {
+    const todayDate = new Date().toISOString().split('T')[0];
+    expect(fetchReports).toHaveBeenCalledWith({
+      page: 0,
+      size: size,
+      filters: expect.arrayContaining([
+        {
+          fieldName: "streams.startDate",
+          type: "LTE",
+          value: todayDate,
+        },
+        {
+          fieldName: "streams.endDate", 
+          type: "GTE",
+          value: todayDate,
+        }
+      ])
+    });
+  });
+
+  fireEvent.click(checkboxButton);
+
+  await waitFor(() => {
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
+  });
+});
   test('successful fetch sets reports and displays them', async () => {
     const mockReportsData = {
       content: [
