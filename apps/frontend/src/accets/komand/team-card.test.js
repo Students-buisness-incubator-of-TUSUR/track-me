@@ -985,7 +985,7 @@ test('TRACKER branch uses /account/info for fullName', async () => {
     expect(screen.getAllByText('MyStream').length).toBeGreaterThan(1);
   });
 
-test('нажатие на кнопку × вызывает navigate(from)', async () => {
+test('нажатие на кнопку × вызывает navigate(-1)', async () => {
   const RR = require('react-router-dom');
   RR.__setSearch('');
   RR.__setState({ from: '/custom-return-path' });
@@ -1001,7 +1001,7 @@ test('нажатие на кнопку × вызывает navigate(from)', asyn
   const closeButton = screen.getByRole('button', { name: '×' });
   fireEvent.click(closeButton);
 
-  expect(mockedNavigate).toHaveBeenCalledWith('/custom-return-path');
+  expect(mockedNavigate).toHaveBeenCalledWith(-1);
 });
 
 
@@ -2261,7 +2261,11 @@ beforeEach(() => {
 });
 
 test("Кнопка 'Показать встречи' отображается на мобильном, onClick работает", () => {
-  render(<TeamCard /* нужные пропсы, если требуются */ />);
+  render(
+    <MemoryRouter>
+      <TeamCard /* нужные пропсы, если требуются */ />
+    </MemoryRouter>
+  );
   // Важно! Подбери правильные пропсы для рендера компонента, если требуется
 
   // Кнопка появляется только на мобильной ширине (<768)

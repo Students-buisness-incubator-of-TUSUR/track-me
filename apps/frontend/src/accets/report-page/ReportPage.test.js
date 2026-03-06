@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { BrowserRouter as Router } from 'react-router-dom';
 import ReportPage from '../report-page/ReportPage.js';
 import '@testing-library/jest-dom';
-import { fetchReports } from '../../services/requests';
+import { fetchReports, fetchStreams, fetchTrackers } from '../../services/requests';
 
 // Мокаем useNavigate
 const mockNavigate = jest.fn();
@@ -11,17 +11,6 @@ jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
 }));
-
-// Мокаем MobileHeader
-jest.mock('../adaptive-accets/MobileHeader', () => {
-  return function MockMobileHeader({ onNavigate }) {
-    return (
-      <div data-testid="mobile-header">
-        Mock Mobile Header
-      </div>
-    );
-  };
-});
 
 // Мокаем getCsrfConfigForFetch
 jest.mock('../../utils/csrf-utils', () => ({
@@ -120,7 +109,7 @@ describe('ReportPage Component', () => {
     expect(screen.getByText('4.5')).toBeInTheDocument();
     expect(screen.getAllByText('—')).toHaveLength(2);
 
-    expect(fetchReports).toHaveBeenCalledWith(0, 10);
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
   });
 
   test('unsuccessful fetch (response not ok) logs error and shows no data', async () => {
@@ -152,7 +141,7 @@ describe('ReportPage Component', () => {
       })
     );
 
-    expect(fetchReports).toHaveBeenCalledWith(0, 10);
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
   });
   beforeEach(() => {
     jest.clearAllMocks();
@@ -194,50 +183,6 @@ describe('ReportPage Component', () => {
     });
     
     expect(screen.getByText('Выгрузить отчет')).toBeInTheDocument();
-  });
-
-  test('открывает и закрывает меню профиля', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const profileButton = screen.getByAltText('Профиль');
-    fireEvent.click(profileButton);
-    
-    expect(screen.getByText('Личный кабинет')).toBeInTheDocument();
-    expect(screen.getByText('Выход')).toBeInTheDocument();
-    
-    fireEvent.click(profileButton);
-    expect(screen.queryByText('Личный кабинет')).not.toBeInTheDocument();
-  });
-
-  test('обрабатывает выход из системы', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const profileButton = screen.getByAltText('Профиль');
-    fireEvent.click(profileButton);
-    
-    const logoutLink = screen.getByText('Выход');
-    fireEvent.click(logoutLink);
-    
-    expect(localStorageMock.clear).toHaveBeenCalled();
-    expect(window.location.href).toBe('/');
   });
 
   test('открывает и закрывает фильтр трекеров', async () => {
@@ -325,48 +270,6 @@ describe('ReportPage Component', () => {
     expect(cells[9]).toHaveTextContent('0-2'); // Уровень TRL
   });
 
-  test('навигация по клику на логотип и заголовок', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const logo = document.querySelector('.Stream-header-logo');
-    fireEvent.click(logo);
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
-    
-    const title = screen.getByText('TrackMe');
-    fireEvent.click(title);
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
-  });
-
-  test('навигация по клавиатуре на логотип и заголовок', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const logo = document.querySelector('.Stream-header-logo');
-    fireEvent.keyDown(logo, { key: 'Enter' });
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
-    
-    const title = screen.getByText('TrackMe');
-    fireEvent.keyDown(title, { key: ' ' });
-    expect(mockNavigate).toHaveBeenCalledWith('/streams');
-  });
-
   test('отображает правильные иконки в фильтрах', async () => {
     render(
       <Router>
@@ -425,9 +328,8 @@ describe('ReportPage Component', () => {
     fireEvent.click(trackerFilterButton);
     
     await waitFor(() => {
-      const dropdownMenu = document.querySelector('.dropdown-menu');
-      const trackerItems = dropdownMenu.querySelectorAll('.dropdown-item');
-      expect(trackerItems).toHaveLength(12);
+      const dropdownMenu = screen.getByTestId('trackers-dropdown-menu');
+      expect(dropdownMenu.children).toHaveLength(1);
     });
     
     // Закрываем фильтр трекеров
@@ -438,9 +340,8 @@ describe('ReportPage Component', () => {
     fireEvent.click(streamFilterButton);
     
     await waitFor(() => {
-      const dropdownMenu = document.querySelector('.dropdown-menu');
-      const streamItems = dropdownMenu.querySelectorAll('.dropdown-item');
-      expect(streamItems).toHaveLength(18);
+      const dropdownMenu = screen.getByTestId('streams-dropdown-menu');
+      expect(dropdownMenu.children).toHaveLength(1);
     });
   });
 
@@ -462,29 +363,6 @@ describe('ReportPage Component', () => {
     
     // Проверяем, что кнопка кликабельна
     fireEvent.click(exportButton);
-  });
-
-  test('меню профиля содержит правильные ссылки', async () => {
-    render(
-      <Router>
-        <ReportPage />
-      </Router>
-    );
-    
-    // Ждем загрузки
-    await waitFor(() => {
-      expect(screen.getByText('TrackMe')).toBeInTheDocument();
-    });
-    
-    const profileButton = screen.getByAltText('Профиль');
-    fireEvent.click(profileButton);
-    
-    const profileLink = screen.getByText('Личный кабинет');
-    const logoutLink = screen.getByText('Выход');
-    
-    expect(profileLink).toBeInTheDocument();
-    expect(logoutLink).toBeInTheDocument();
-    expect(profileLink.closest('a')).toHaveAttribute('href', '/profile');
   });
 
   test('переключение фильтров изменяет иконки', async () => {
@@ -563,6 +441,310 @@ describe('ReportPage Component', () => {
     // Ждем пока компонент перестанет показывать "Загрузка..."
     await waitFor(() => {
       expect(screen.getByText('Нет данных')).toBeInTheDocument();
+    });
+  });
+});
+
+describe('loadStreams and loadTrackers', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Default successful responses for streams and trackers
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { name: 'Stream A' },
+          { name: 'Stream B' },
+        ]
+      })
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { username: 'tracker1', fullName: 'Tracker One' },
+          { username: 'tracker2', fullName: 'Tracker Two' },
+        ]
+      })
+    });
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] })
+    });
+  });
+
+  test('loadStreams successfully fetches and sets streams', async () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(fetchStreams).toHaveBeenCalledWith({ page: 0, size: 10 });
+    });
+
+    // Open streams dropdown to verify the data appears
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+
+    const dropdownMenu = await screen.findByTestId('streams-dropdown-menu');
+    const items = within(dropdownMenu).getAllByRole('button'); // .dropdown-item divs
+    expect(items).toHaveLength(3); // "—" + 2 streams
+    expect(items[1]).toHaveTextContent('Stream A');
+    expect(items[2]).toHaveTextContent('Stream B');
+  });
+
+  test('loadTrackers successfully fetches and sets trackers', async () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: 10 });
+    });
+
+    const trackerFilterButton = screen.getByText('Трекеры');
+    fireEvent.click(trackerFilterButton);
+
+    const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
+    const items = within(dropdownMenu).getAllByRole('button');
+    expect(items).toHaveLength(3); // "—" + 2 trackers
+    expect(items[1]).toHaveTextContent('Tracker One (tracker1)');
+    expect(items[2]).toHaveTextContent('Tracker Two (tracker2)');
+  });
+
+  test('loadStreams handles HTTP error', async () => {
+    fetchStreams.mockResolvedValue({
+      ok: false,
+      status: 500,
+    });
+    console.error = jest.fn();
+
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith(
+        'Ошибка загрузки отчётов',
+        expect.objectContaining({ message: 'Ошибка HTTP: 500' })
+      );
+    });
+
+    // Streams dropdown should only have the "—" item
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+    const dropdownMenu = await screen.findByTestId('streams-dropdown-menu');
+    const items = within(dropdownMenu).getAllByRole('button');
+    expect(items).toHaveLength(1);
+    expect(items[0]).toHaveTextContent('—');
+  });
+
+  test('loadTrackers handles HTTP error', async () => {
+    fetchTrackers.mockResolvedValue({
+      ok: false,
+      status: 500,
+    });
+    console.error = jest.fn();
+
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith(
+        'Ошибка загрузки отчётов',
+        expect.objectContaining({ message: 'Ошибка HTTP: 500' })
+      );
+    });
+
+    const trackerFilterButton = screen.getByText('Трекеры');
+    fireEvent.click(trackerFilterButton);
+    const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
+    const items = within(dropdownMenu).getAllByRole('button');
+    expect(items).toHaveLength(1);
+    expect(items[0]).toHaveTextContent('—');
+  });
+
+  test('loadStreams handles network error', async () => {
+    const networkError = new Error('Network error');
+    fetchStreams.mockRejectedValue(networkError);
+    console.error = jest.fn();
+
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith(
+        'Ошибка загрузки отчётов',
+        networkError
+      );
+    });
+  });
+
+  test('loadTrackers handles network error', async () => {
+    const networkError = new Error('Network error');
+    fetchTrackers.mockRejectedValue(networkError);
+    console.error = jest.fn();
+
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith(
+        'Ошибка загрузки отчётов',
+        networkError
+      );
+    });
+  });
+});
+
+describe('filter selection', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] })
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [{ name: 'Stream A' }, { name: 'Stream B' }]
+      })
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [{ username: 'tracker1', fullName: 'Tracker One' }]
+      })
+    });
+  });
+
+  test('selecting a tracker filter triggers fetchReports with filter', async () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+    });
+
+    const trackerFilterButton = screen.getByText('Трекеры');
+    fireEvent.click(trackerFilterButton);
+
+    const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
+    const trackerItem = within(dropdownMenu).getByText('Tracker One (tracker1)');
+    fireEvent.click(trackerItem);
+
+    // Dropdown should close
+    expect(screen.queryByTestId('trackers-dropdown-menu')).not.toBeInTheDocument();
+
+    // fetchReports should be called again with the filter
+    await waitFor(() => {
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
+        { fieldName: "username", type: "EQ", value: "tracker1" }
+      ] });
+    });
+  });
+
+  test('selecting a stream filter triggers fetchReports with filter', async () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+    });
+
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+
+    const dropdownMenu = await screen.findByTestId('streams-dropdown-menu');
+    const streamItem = within(dropdownMenu).getByText('Stream A');
+    fireEvent.click(streamItem);
+
+    expect(screen.queryByTestId('streams-dropdown-menu')).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
+        { fieldName: "streams.name", type: "EQ", value: "Stream A" }
+      ] });
+    });
+  });
+
+  test('selecting "—" resets tracker filter', async () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    // First set a filter
+    const trackerFilterButton = screen.getByText('Трекеры');
+    fireEvent.click(trackerFilterButton);
+    const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
+    const trackerItem = within(dropdownMenu).getByText('Tracker One (tracker1)');
+    fireEvent.click(trackerItem);
+
+    await waitFor(() => {
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
+        { fieldName: "username", type: "EQ", value: "tracker1" }
+      ] });
+    });
+
+    // Now reset using "—"
+    fireEvent.click(trackerFilterButton);
+    const resetItem = within(await screen.findByTestId('trackers-dropdown-menu')).getByText('—');
+    fireEvent.click(resetItem);
+
+    await waitFor(() => {
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+    });
+  });
+
+  test('selecting "—" resets stream filter', async () => {
+    render(
+      <Router>
+        <ReportPage />
+      </Router>
+    );
+
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+    const dropdownMenu = await screen.findByTestId('streams-dropdown-menu');
+    const streamItem = within(dropdownMenu).getByText('Stream A');
+    fireEvent.click(streamItem);
+
+    await waitFor(() => {
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
+        { fieldName: "streams.name", type: "EQ", value: "Stream A" }
+      ] });
+    });
+
+    fireEvent.click(streamFilterButton);
+    const resetItem = within(await screen.findByTestId('streams-dropdown-menu')).getByText('—');
+    fireEvent.click(resetItem);
+
+    await waitFor(() => {
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
     });
   });
 });

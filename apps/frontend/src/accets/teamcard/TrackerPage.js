@@ -1,12 +1,11 @@
-import React, {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import "./TrackerPage.css";
 import { useLocation } from "react-router-dom";
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {useSelector} from "react-redux";
-import ProfileIcon from "./personal_account_1.png";
 import StreamPlaceholder from './Заглушка для потока в TrackMe.png';
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
-import MobileHeader from "../adaptive-accets/MobileHeader";
+import Header from "../header/header";
 
 function TrackerPage() {
     const [cards, setCards] = useState([]);
@@ -24,20 +23,12 @@ function TrackerPage() {
     const [userRole, setUserRole] = useState(null);
     const [username, setusername] = useState(null);
     const [selectedYears, setSelectedYears] = useState([]);
-    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const location = useLocation();
 const showAllCards = location.pathname === "/all-team-cards";
 const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
 const [page, setPage] = useState(0);
 const pageSize = 18; // или 10, если хочешь другой размер
 const [totalPages, setTotalPages] = useState(1);
-
-
-
-    
-    const toggleProfileMenu = () => {
-        setIsProfileMenuOpen(prev => !prev);
-    };
     const formatDateToYMD = (dateString) => {
     if (!dateString) return "";
   
@@ -56,7 +47,6 @@ const [totalPages, setTotalPages] = useState(1);
 
 
     const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
-    const logoutHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/logout';
     // Состояния для отображения панели фильтров и групп чекбоксов
     const [isVisible, setIsVisible] = useState(false);
     const [showCheckboxesStream, setShowCheckboxesStream] = useState(false); // Для "Все потоки"
@@ -449,16 +439,6 @@ const options = {
         setSelectedYears([]);
 
     };
-    const handleLogout = async () => {
-        localStorage.removeItem("user");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("streamName");
-        localStorage.removeItem("streamId");
-        localStorage.removeItem("streamSDate");
-        localStorage.removeItem("streamEDate");
-        localStorage.removeItem("csrfToken");
-        localStorage.removeItem("csrfHeaderName");
-    };
     useEffect(() => {
     if (userRole && username && streamName) {
         fetchCards([]);
@@ -468,286 +448,240 @@ const options = {
 
     return (
         <div className="tracker-container">
-            <MobileHeader onNavigate={navigate} />
-            <header className="Stream-header">
-                <div className="Stream-header-cont">
-                    <div 
-  className='Stream-header-logo'
-  onClick={() => {
-    const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
-      ? "/streams" 
-      : "/team-cards";
-    navigate(targetPath);
-  }}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
-        ? "/streams" 
-        : "/team-cards";
-      navigate(targetPath);
-    }
-  }}
-  tabIndex={0}
-  role="button"
-  aria-label="Вернуться на главную страницу"
-  style={{ cursor: "pointer" }}
-/>
-<h1 
-  className="Stream-title" 
-  onClick={() => {
-    const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
-      ? "/streams" 
-      : "/team-cards";
-    navigate(targetPath);
-  }}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") 
-        ? "/streams" 
-        : "/team-cards";
-      navigate(targetPath);
-    }
-  }}
-  tabIndex={0}
-  role="button"
-  aria-label="Вернуться на главную страницу"
-  style={{ cursor: "pointer" }}
->
-  TrackMe
-</h1>
-                    <div className="Stream-header-cont-cont">
-    {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && !showAllCards ? (
-        <h1 className="Stream-title11">
-            {streamName 
-                ? `${streamName}: сроки акселератора: ${formatDateToYMD(streamSDate)} - ${formatDateToYMD(streamEDate)}`
-                : "Название потока не получено"}
-        </h1>
-    ) : (
-        <h1 className="Stream-title11">Все команды</h1>
-    )}
-</div>
-
-                    <div className="Stream-buttons">
-                        <button className="Stream-pic" onClick={toggleProfileMenu}>
-                          <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
-                        </button>
-                        
-                        
-                        {isProfileMenuOpen && (
-                          <div className="ProfileDropdown">
-                            <Link to="/profile" className="ProfileDropdown-item">
-                              Личный кабинет
-                            </Link>
-                            <Link onClick={handleLogout} to={logoutHost} className="ProfileDropdown-item logout">
-                              Выход
-                            </Link>
-                          </div>
-                        )}
-                           
-                    </div>
-                </div>
-                <div className="Stream-header-bottom-cont">
-                    <div className="Stream-search-cont">
-                        {/* При клике открывается панель фильтров */}
-                        <button onClick={handleClick} className="Stream-settings-pic"></button>
-                        <div className="Stream-search-contcont">
-                            <button className="Stream-settings-pic2"></button>
-                            <input
-                                type="search"
-                                placeholder="Найти"
-                                className="Stream-search"
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                            />
-                        </div>
-                    </div>
-                    <button
-                        className="Stream-butt"
-                        onClick={() => {
-                            navigate(`/teamcard/create`);
-                        }}>
-                        + Создать карточку
-                    </button>
-                </div>
-                {/* Панель фильтров */}
-                {isVisible && (
-                    <div className="Stream-header-afterclick-cont">
-                        <div className="Stream-header-afterclick-left">
-                            {/* Верхний ряд – заголовки фильтров */}
-                            <div className="Stream-header-afterclick-left-up">
-                                <button className="Stream-header-chose-butt">Поток
-                                    [{selectedStreams.length}]
-                                </button>
-                                <button className="Stream-header-chose-butt">Рынки
-                                    [{selectedNtiMarkets.length}]
-                                </button>
-                                <button className="Stream-header-chose-butt">
-                                    TRL [{selectedTrl.length}]
-                                </button>
-                                <button className="Stream-header-chose-butt">Год [{selectedYears.length}]</button>
-                            </div>
-                            {/* Нижний ряд – группы чекбоксов */}
-                            <div className="Stream-header-chosefrom-cont">
-                                <div className="Stream-header-chosefrom-buttw">
-                                    <div className="Stream-header-chosefrom-butt2"
-                                         onClick={() => setShowCheckboxesStream(!showCheckboxesStream)}>
-                                        <div className="Stream-header-chosefrom-butt-cont">
-                                            <b className="Stream-header-chosefrom-butt-label">Все
-                                                потоки</b>
-                                            <div className="Stream-header-chosefrom-butt-pic"></div>
-                                        </div>
-                                    </div>
-                                    {showCheckboxesStream && (
-                                        <div className="Stream-header-checkboxes">
-                                            {streams.map((stream) => (
-                                                <div key={stream.id}
-                                                     className="Stream-header-checkbox">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={stream.id}
-                                                        checked={selectedStreams.includes(stream.name)}
-                                                        onChange={() => handleStreamChange(stream.name)}
-                                                    />
-                                                    <label className="Stream-header-checkbox-label"
-                                                           htmlFor={stream.id}>
-                                                        {stream.name}
-                                                    </label>
-                                                </div>
-                                            ))}
-
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="Stream-header-chosefrom-buttw">
-                                    <div
-                                        className="Stream-header-chosefrom-butt2"
-                                        onClick={() => setShowCheckboxes2(!showCheckboxes2)}
-                                    >
-                                        <div className="Stream-header-chosefrom-butt-cont">
-                                            <b className="Stream-header-chosefrom-butt-label">
-                                                Рынки Нти
-                                            </b>
-                                            <div className="Stream-header-chosefrom-butt-pic"></div>
-                                        </div>
-                                    </div>
-                                    {showCheckboxes2 && (
-                                        <div className="Stream-header-checkboxes">
-                                            {ntiMarkets.map((market) => (
-                                                <div key={market.id}
-                                                     className="Stream-header-checkbox">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={market.id}
-                                                        checked={selectedNtiMarkets.includes(market.name)}
-                                                        onChange={() => handleNtiMarketChange(market)} // Pass the entire market object
-                                                    />
-                                                    <label class="Stream-header-checkbox-label"
-                                                           htmlFor={market.id}>{market.displayName}</label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                </div>
-                                <div className="Stream-header-chosefrom-buttw">
-                                    <div
-                                        className="Stream-header-chosefrom-butt2"
-                                        onClick={() => setShowCheckboxes3(!showCheckboxes3)}
-                                    >
-                                        <div className="Stream-header-chosefrom-butt-cont">
-                                            <b className="Stream-header-chosefrom-butt-label">
-                                                TRL
-                                            </b>
-                                            <div className="Stream-header-chosefrom-butt-pic"></div>
-                                        </div>
-                                    </div>
-                                    {showCheckboxes3 && (
-                                        <div className="Stream-header-checkboxes">
-                                            {trlRanges.map((option) => (
-                                                <div key={option.id}
-                                                     className="Stream-header-checkbox">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={option.id}
-                                                        value={option.label}
-                                                        checked={selectedTrl.includes(option.label)}
-                                                        onChange={() => handleTrlChange(option.label)}
-                                                    />
-                                                    <label class="Stream-header-checkbox-label"
-                                                           htmlFor={option.id}>{option.label}</label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="Stream-header-chosefrom-buttw">
-                                    <div
-                                        className="Stream-header-chosefrom-butt2"
-                                        onClick={() => setShowCheckboxes(!showCheckboxes)}
-                                    >
-                                        <div class="Stream-header-chosefrom-butt-cont">
-                                            <b className="Stream-header-chosefrom-butt-label">
-                                                Год
-                                            </b>
-                                            <div className="Stream-header-chosefrom-butt-pic"></div>
-                                        </div>
-                                    </div>
-                                    {showCheckboxes && (
-                                        <div className="Stream-header-checkboxes">
-                                            {checkboxesData.map((checkbox, index) => (
-    <div
-        key={checkbox.id}
-        className={`Stream-header-checkbox ${index < 5 ? "first-row" : "second-row"}`}
-    >
-        <input
-            type="checkbox"
-            id={checkbox.id}
-            checked={selectedYears.includes(parseInt(checkbox.label))}
-            onChange={() => handleYearChange(parseInt(checkbox.label))}
-        />
-        <label className="Stream-header-checkbox-label" htmlFor={checkbox.id}>
-            {checkbox.label}
-        </label>
-    </div>
-))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && 
- (location.pathname === "/all-team-cards" || location.pathname.startsWith("/team-cards")) ? (
-  <div className="switch-wrapper">
-    <div className="tooltip-wrapper">
-      <label className="ios-switch">
-        <input
-          type="checkbox"
-          checked={showMyTeamsOnly}
-          onChange={() => setShowMyTeamsOnly(prev => !prev)}
-        />
-        <span className="slider"></span>
-      </label>
-      <span className="tooltip-text">Показать карточки, где вы назначены трекером</span>
-      <span className="slider-text"> Показать карточки, где вы назначены трекером </span>
-    </div>
-  </div>
-) : null}
-
-
-
-                        <div className="Stream-header-afterclick-right">
-                            <button onClick={resetFilters} className="Stream-header-chose-butt2">
-                                Сбросить
-                            </button>
-                            <button onClick={applyFilters} className="Stream-header-chose-butt">
-                                Применить
-                            </button>
-                        </div>
-                    </div>
+            <Header userRole={userRole}></Header>
+            <h1
+                className="Stream-title"
+                onClick={() => {
+                    const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+                        ? "/streams"
+                        : "/team-cards";
+                    navigate(targetPath);
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        const targetPath = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+                            ? "/streams"
+                            : "/team-cards";
+                        navigate(targetPath);
+                    }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label="Вернуться на главную страницу"
+                style={{ cursor: "pointer" }}
+            >
+            </h1>
+            <div className="Stream-header-cont-cont">
+                {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") && !showAllCards ? (
+                    <h1 className="Stream-title11">
+                        {streamName
+                            ? `${streamName}: сроки акселератора: ${formatDateToYMD(streamSDate)} - ${formatDateToYMD(streamEDate)}`
+                            : "Название потока не получено"}
+                    </h1>
+                ) : (
+                    <h1 className="Stream-title11">Все команды</h1>
                 )}
-            </header>
+            </div>
+            <div className="Stream-header-bottom-cont">
+                <div className="Stream-search-cont">
+                    {/* При клике открывается панель фильтров */}
+                    <button onClick={handleClick} className="Stream-settings-pic"></button>
+                    <div className="Stream-search-contcont">
+                        <button className="Stream-settings-pic2"></button>
+                        <input
+                            type="search"
+                            placeholder="Найти"
+                            className="Stream-search"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                        />
+                    </div>
+                </div>
+                <button
+                    className="Stream-butt"
+                    onClick={() => {
+                        navigate(`/teamcard/create`);
+                    }}>
+                    + Создать карточку
+                </button>
+            </div>
+            {/* Панель фильтров */}
+            {isVisible && (
+                <div className="Stream-header-afterclick-cont">
+                    <div className="Stream-header-afterclick-left">
+                        {/* Верхний ряд – заголовки фильтров */}
+                        <div className="Stream-header-afterclick-left-up">
+                            <button className="Stream-header-chose-butt">Поток
+                                [{selectedStreams.length}]
+                            </button>
+                            <button className="Stream-header-chose-butt">Рынки
+                                [{selectedNtiMarkets.length}]
+                            </button>
+                            <button className="Stream-header-chose-butt">
+                                TRL [{selectedTrl.length}]
+                            </button>
+                            <button className="Stream-header-chose-butt">Год [{selectedYears.length}]</button>
+                        </div>
+                        {/* Нижний ряд – группы чекбоксов */}
+                        <div className="Stream-header-chosefrom-cont">
+                            <div className="Stream-header-chosefrom-buttw">
+                                <div className="Stream-header-chosefrom-butt2"
+                                    onClick={() => setShowCheckboxesStream(!showCheckboxesStream)}>
+                                    <div className="Stream-header-chosefrom-butt-cont">
+                                        <b className="Stream-header-chosefrom-butt-label">Все
+                                            потоки</b>
+                                        <div className="Stream-header-chosefrom-butt-pic"></div>
+                                    </div>
+                                </div>
+                                {showCheckboxesStream && (
+                                    <div className="Stream-header-checkboxes">
+                                        {streams.map((stream) => (
+                                            <div key={stream.id}
+                                                className="Stream-header-checkbox">
+                                                <input
+                                                    type="checkbox"
+                                                    id={stream.id}
+                                                    checked={selectedStreams.includes(stream.name)}
+                                                    onChange={() => handleStreamChange(stream.name)}
+                                                />
+                                                <label className="Stream-header-checkbox-label"
+                                                    htmlFor={stream.id}>
+                                                    {stream.name}
+                                                </label>
+                                            </div>
+                                        ))}
 
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="Stream-header-chosefrom-buttw">
+                                <div
+                                    className="Stream-header-chosefrom-butt2"
+                                    onClick={() => setShowCheckboxes2(!showCheckboxes2)}
+                                >
+                                    <div className="Stream-header-chosefrom-butt-cont">
+                                        <b className="Stream-header-chosefrom-butt-label">
+                                            Рынки Нти
+                                        </b>
+                                        <div className="Stream-header-chosefrom-butt-pic"></div>
+                                    </div>
+                                </div>
+                                {showCheckboxes2 && (
+                                    <div className="Stream-header-checkboxes">
+                                        {ntiMarkets.map((market) => (
+                                            <div key={market.id}
+                                                className="Stream-header-checkbox">
+                                                <input
+                                                    type="checkbox"
+                                                    id={market.id}
+                                                    checked={selectedNtiMarkets.includes(market.name)}
+                                                    onChange={() => handleNtiMarketChange(market)} // Pass the entire market object
+                                                />
+                                                <label class="Stream-header-checkbox-label"
+                                                    htmlFor={market.id}>{market.displayName}</label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                            </div>
+                            <div className="Stream-header-chosefrom-buttw">
+                                <div
+                                    className="Stream-header-chosefrom-butt2"
+                                    onClick={() => setShowCheckboxes3(!showCheckboxes3)}
+                                >
+                                    <div className="Stream-header-chosefrom-butt-cont">
+                                        <b className="Stream-header-chosefrom-butt-label">
+                                            TRL
+                                        </b>
+                                        <div className="Stream-header-chosefrom-butt-pic"></div>
+                                    </div>
+                                </div>
+                                {showCheckboxes3 && (
+                                    <div className="Stream-header-checkboxes">
+                                        {trlRanges.map((option) => (
+                                            <div key={option.id}
+                                                className="Stream-header-checkbox">
+                                                <input
+                                                    type="checkbox"
+                                                    id={option.id}
+                                                    value={option.label}
+                                                    checked={selectedTrl.includes(option.label)}
+                                                    onChange={() => handleTrlChange(option.label)}
+                                                />
+                                                <label class="Stream-header-checkbox-label"
+                                                    htmlFor={option.id}>{option.label}</label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="Stream-header-chosefrom-buttw">
+                                <div
+                                    className="Stream-header-chosefrom-butt2"
+                                    onClick={() => setShowCheckboxes(!showCheckboxes)}
+                                >
+                                    <div class="Stream-header-chosefrom-butt-cont">
+                                        <b className="Stream-header-chosefrom-butt-label">
+                                            Год
+                                        </b>
+                                        <div className="Stream-header-chosefrom-butt-pic"></div>
+                                    </div>
+                                </div>
+                                {showCheckboxes && (
+                                    <div className="Stream-header-checkboxes">
+                                        {checkboxesData.map((checkbox, index) => (
+                                            <div
+                                                key={checkbox.id}
+                                                className={`Stream-header-checkbox ${index < 5 ? "first-row" : "second-row"}`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    id={checkbox.id}
+                                                    checked={selectedYears.includes(parseInt(checkbox.label))}
+                                                    onChange={() => handleYearChange(parseInt(checkbox.label))}
+                                                />
+                                                <label className="Stream-header-checkbox-label" htmlFor={checkbox.id}>
+                                                    {checkbox.label}
+                                                </label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    {(userRole === "ADMIN" || userRole === "SUPER_ADMIN") &&
+                        (location.pathname === "/all-team-cards" || location.pathname.startsWith("/team-cards")) ? (
+                        <div className="switch-wrapper">
+                            <div className="tooltip-wrapper">
+                                <label className="ios-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={showMyTeamsOnly}
+                                        onChange={() => setShowMyTeamsOnly(prev => !prev)}
+                                    />
+                                    <span className="slider"></span>
+                                </label>
+                                <span className="tooltip-text">Показать карточки, где вы назначены трекером</span>
+                                <span className="slider-text"> Показать карточки, где вы назначены трекером </span>
+                            </div>
+                        </div>
+                    ) : null}
+
+
+
+                    <div className="Stream-header-afterclick-right">
+                        <button onClick={resetFilters} className="Stream-header-chose-butt2">
+                            Сбросить
+                        </button>
+                        <button onClick={applyFilters} className="Stream-header-chose-butt">
+                            Применить
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="cards-wrapper">
                 {error ? (
                     <p className="error-message">{error}</p>
