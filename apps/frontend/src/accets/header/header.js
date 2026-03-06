@@ -25,12 +25,7 @@ export default function Header({ userRole = "" }) {
     const toggleProfileMenu = () => {
         setIsProfileMenuOpen(!isProfileMenuOpen);
     };
-    const defaultPage = (function() {
-        switch (userRole) {
-            default:
-                return "/streams";
-        }
-    })();
+    const defaultPage = "/after-login";
     return (
         <header className="header_container">
             <Link className="header_left-side" to={defaultPage}>
