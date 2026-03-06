@@ -35,12 +35,15 @@ public class StreamUseCase {
   }
 
   public Page<StreamDto> getStreams(List<Filter> filters, Pageable pageable) {
-    Sort sort = pageable.getSort().and(Sort.by("id").descending());
-    Pageable stablePageable = PageRequest.of(
-        pageable.getPageNumber(), 
-        pageable.getPageSize(), 
-        sort
-    );
+    Pageable stablePageable = pageable;
+    if (pageable.getSort().isSorted()) {
+      Sort sort = pageable.getSort().and(Sort.by("id").descending());
+      stablePageable = PageRequest.of(
+          pageable.getPageNumber(),
+          pageable.getPageSize(),
+          sort
+      );
+    }
     var specification = StreamSpecification.withFilters(filters);
     var streams = streamService.findAll(specification, stablePageable);
     return streams.map(streamMapper::mapToDto);
