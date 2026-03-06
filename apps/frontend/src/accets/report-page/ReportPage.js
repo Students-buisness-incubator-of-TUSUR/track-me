@@ -7,7 +7,7 @@ import "./ReportPage.css";
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
 import MobileHeader from "../adaptive-accets/MobileHeader";
-import { fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
+import { fetchReportExcel, fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
 export default function ReportPage() {
   const navigate = useNavigate();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -39,6 +39,39 @@ const [loading, setLoading] = useState(false);
     setStreamFilterOpen(false);
   }
   
+  const handleExportExcel = async () => {
+    try {
+      const filters = [];
+      if (filterTrackers)
+        filters.push({ fieldName: "username", type: "EQ", value: filterTrackers });
+      if (filterStreams) 
+        filters.push({ fieldName: "streams.name", type: "EQ", value: filterStreams });
+
+      const response = await fetchReportExcel({ filters });
+      if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
+
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = "отчёт-по-командам.xlsx";
+      if (disposition) {
+        const match = disposition.match(/filename\*=UTF-8''(.+)/);
+        if (match) {
+          filename = decodeURIComponent(match[1]);
+        }
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Ошибка выгрузки отчёта", error);
+    }
+  };
+
+
   const loadReports = useCallback(async () => {
     try {
       const filters = [];
@@ -148,7 +181,10 @@ const [loading, setLoading] = useState(false);
       {/* Контент */}
       <main className="Report-main">
         <div className="report-header">
-          <button className="report-btn">Выгрузить отчет</button>
+          {/* Кнопка выгрузки отчета */}
+          <button className="report-btn" onClick={handleExportExcel}>
+            Выгрузить отчет
+          </button>
 
           {/* фильтры */}
           <div className="report-filters">
