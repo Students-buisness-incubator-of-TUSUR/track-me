@@ -100,7 +100,6 @@ public class TeamCardsUseCase {
                 .map(Stream::getName)
                 .toList();
 
-
         var teamCardSpec = withFilters(filters).and(withStreamsAndNtiMarkets(streams));
         var teamCardPage = teamCardsService.getTeamCards(teamCardSpec, pageable);
         return teamCardPage.map(teamCardMapper::mapToReportDto);
