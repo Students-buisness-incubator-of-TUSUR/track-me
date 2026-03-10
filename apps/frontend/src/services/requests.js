@@ -96,3 +96,76 @@ export async function fetchTeams({ page, size, filters, admin = false }) {
 
   return response;
 }
+
+export async function fetchUserInfo({ username = null }) {
+  const endpoint = username === null ?
+    `${backendURLSSO}/api/v1/account/info` :
+    `${backendURLSSO}/api/v1/users/${username}/info`;
+  const response = await fetch(
+    endpoint,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+    }
+  );
+
+  return response;
+}
+
+export async function fetchUserPhoto({ username = null }) {
+  const endpoint = username === null ?
+    `${backendURLSSO}/api/v1/account/photo` :
+    `${backendURLSSO}/api/v1/users/${username}/photo`;
+  const response = await fetch(
+    endpoint,
+    {
+      method: "GET",
+      headers: {
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+    }
+  );
+
+  return response;
+}
+
+export async function updateUserInfo({ newUserData }) {
+  const response = await fetch(
+    `${backendURLSSO}/api/v1/account/update`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+      body: JSON.stringify(newUserData),
+    }
+  );
+
+  return response;
+}
+
+export async function updateUserPhoto({ newUserPhotoFile }) {
+  const formData = new FormData();
+  formData.append("file", newUserPhotoFile);
+  const response = await fetch(
+    `${backendURLSSO}/api/v1/users/mangustc/photo`,
+    {
+      method: "POST",
+      headers: {
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+      body: formData,
+    }
+  );
+
+  return response;
+}
