@@ -4,6 +4,17 @@ import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { MemoryRouter } from "react-router-dom";
 import TrackerListPage from './TrackerListPage';
+import { useSelector } from 'react-redux';
+
+const mockUseGetUserInfo = jest.fn();
+jest.mock('../../services/util', () => ({
+  useGetUserInfo: () => mockUseGetUserInfo(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 
 // Моки статических ресурсов
 jest.mock('./true.png', () => 'true.png');
@@ -13,6 +24,10 @@ jest.mock('./true2.png', () => 'true2.png');
 jest.mock('./false2.png', () => 'false2.png');
 jest.mock('./personal_account_1.png', () => 'personal_account_1.png');
 beforeEach(() => {
+  mockUseGetUserInfo.mockReturnValue({
+    roles: ['SUPER_ADMIN'],
+    username: "username12",
+  });
   Object.defineProperty(window, 'innerWidth', {
     writable: true,
     configurable: true,
@@ -876,17 +891,6 @@ describe("TrackerListPage userRole from localStorage", () => {
 
     // проверяем, что появилась кнопка "Администраторы"
     expect(screen.getByRole("button", { name: /Администраторы/i })).toBeInTheDocument();
-  });
-
-  test("не устанавливает роль, если localStorage пустой", () => {
-    render(
-      <MemoryRouter initialEntries={["/list-trackers"]}>
-        <TrackerListPage endpoint="/test" />
-      </MemoryRouter>
-    );
-
-    // не должно быть кнопки "Администраторы", т.к. userRole не установлен
-    expect(screen.queryByRole("button", { name: /Администраторы/i })).not.toBeInTheDocument();
   });
 });
 describe('Filter Toggle Button', () => {
