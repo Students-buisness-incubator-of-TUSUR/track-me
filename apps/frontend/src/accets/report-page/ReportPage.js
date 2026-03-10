@@ -1,31 +1,24 @@
 // accets/report/ReportPage.js
-import React, { useState, useEffect, useCallback } from "react";
-
-import { Link, useNavigate } from "react-router-dom";
-import ProfileIcon from "../stream-page/personal_account_1.png";
+import { useState, useEffect, useCallback } from "react";
 import "./ReportPage.css";
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
-import MobileHeader from "../adaptive-accets/MobileHeader";
 import { fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
-export default function ReportPage() {
-  const navigate = useNavigate();
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+import Header from "../header/header";
+import PropTypes from "prop-types";
+import { useGetUserInfo } from "../../services/util";
+
+export default function ReportPage({ defaultIsActive = true }) {
 const [reports, setReports] = useState([]);
   const [trackers, setTrackers] = useState([]);
   const [streams, setStreams] = useState([]);
 const [page] = useState(0);
-const [size] = useState(10);
+const [size] = useState(10000);
 const [loading, setLoading] = useState(false);
-
-  const toggleProfileMenu = () => setIsProfileMenuOpen(prev => !prev);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/";
-  };
+const [userRole, setUserRole] = useState('');
 
   // фильтры (заглушки)
+  const [isActive, setIsActive] = useState(defaultIsActive);
   const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
   const [streamFilterOpen, setStreamFilterOpen] = useState(false);
   const [filterTrackers, _setFilterTrackers] = useState(null);
@@ -52,7 +45,19 @@ const [loading, setLoading] = useState(false);
           type: "EQ",
           value: filterStreams,
         });
-      const response = await fetchReports(page, size, filters);
+      if (isActive) {
+        const todayDate = new Date().toISOString().split('T')[0];
+        filters.push({
+          fieldName: "streams.startDate",
+          type: "LTE",
+          value: todayDate,
+        }, {
+          fieldName: "streams.endDate",
+          type: "GTE",
+          value: todayDate,
+        });
+      }
+      const response = await fetchReports({ page: page, size: size, filters: filters });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
@@ -61,11 +66,11 @@ const [loading, setLoading] = useState(false);
     } catch (error) {
       console.error("Ошибка загрузки отчётов", error);
     }
-  }, [page, size, filterTrackers, filterStreams]);
+  }, [page, size, filterTrackers, filterStreams, isActive]);
 
   const loadStreams = useCallback(async () => {
     try {
-      const response = await fetchStreams(page, size);
+      const response = await fetchStreams({ page: page, size: size });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
@@ -78,7 +83,7 @@ const [loading, setLoading] = useState(false);
 
   const loadTrackers = useCallback(async () => {
     try {
-      const response = await fetchTrackers(page, size);
+      const response = await fetchTrackers({ page: page, size: size });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
@@ -96,54 +101,14 @@ const [loading, setLoading] = useState(false);
     );
   }, [loadReports, loadStreams, loadTrackers]);
 
+  const user = useGetUserInfo();
+  useEffect(() => {
+    setUserRole(user.roles[0]);
+  }, [user]);
+
   return (
     <div className="Report">
-      <MobileHeader onNavigate={navigate} />
-      {/* Хеддер */}
-      <header className="Stream-header">
-        <div className="Stream-header-cont">
-          <div
-  className="Stream-header-logo"
-  onClick={() => navigate("/streams")}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      navigate("/streams");
-    }
-  }}
-  tabIndex={0}
-  role="button"
-  style={{ cursor: "pointer" }}
-/>
-
-<h1
-  className="Stream-title"
-  onClick={() => navigate("/streams")}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      navigate("/streams");
-    }
-  }}
-  tabIndex={0}
-  role="button"
-  style={{ cursor: "pointer" }}
->
-  TrackMe
-</h1>
-
-
-          <div className="Stream-buttons">
-            <button className="Stream-pic" onClick={toggleProfileMenu}>
-              <img src={ProfileIcon} alt="Профиль" className="Stream-pic-img" />
-            </button>
-            {isProfileMenuOpen && (
-              <div className="ProfileDropdown">
-                <Link to="/profile" className="ProfileDropdown-item">Личный кабинет</Link>
-                <Link onClick={handleLogout} to="/" className="ProfileDropdown-item logout">Выход</Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header userRole={userRole}></Header>
 
       {/* Контент */}
       <main className="Report-main">
@@ -152,8 +117,24 @@ const [loading, setLoading] = useState(false);
 
           {/* фильтры */}
           <div className="report-filters">
+            <button
+              data-testid="button-isactive"
+              className="report-page_btn-isactive"
+              onClick={() => setIsActive(!isActive)}
+            >
+              <input
+                id="isActive"
+                type="checkbox"
+                disabled={true}
+                checked={!isActive}
+              />
+              <label
+                htmlFor="isActive"
+              >Показывать неактивные</label>
+            </button>
            <div className="dropdown1">
   <button
+                data-testid="trackers-btn"
     className={`dropdown-btn ${trackerFilterOpen ? 'open' : ''}`}
     onClick={() => setTrackerFilterOpen(!trackerFilterOpen)}
   >
@@ -287,3 +268,7 @@ const [loading, setLoading] = useState(false);
     </div>
   );
 }
+
+ReportPage.propTypes = {
+  defaultIsActive: PropTypes.bool,
+};

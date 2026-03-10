@@ -219,7 +219,7 @@ test('should render checkboxes and handle checkbox interactions', () => {
     test('should fetch teams on mount', async () => {
       render(<CreateStream />);
       await waitFor(() => {
-        expect(fetchTeams).toHaveBeenCalledWith(0, 1000);
+        expect(fetchTeams).toHaveBeenCalledWith({ page: 0, size: 1000 });
       });
     });
 

@@ -3,7 +3,14 @@ const { useStreamForm } = require('./useStreamForm');
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date('2024-01-01'));
   global.fetch = jest.fn();
+  global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve([]) });
+});
+
+afterAll(() => {
+  jest.useRealTimers();
 });
 // Добавим в начало файла, после других импортов
 const mockNavigate = jest.fn();
@@ -156,7 +163,7 @@ it('не валидирует неправильную дату', () => {
     result.current.handleSubmit();
   });
 
-  expect(result.current.error).toBe('Некорректный формат даты. Используйте формат ДД.ММ.ГГГГ.');
+  expect(result.current.error).toBe('Некорректная дата начала потока');
 });
 
 // Тест на ошибки submit
@@ -169,10 +176,10 @@ it('should handle submission errors', async () => {
   
   act(() => {
     result.current.handleNameChange({ target: { value: 'Test Stream' } });
-    result.current.handleStartDateChange({ target: { value: '2023-01-01' } });
-    result.current.handleEndDateChange({ target: { value: '2023-01-02' } });
-    result.current.handleTrackStartDateChange({ target: { value: '2023-01-01' } });
-    result.current.handleMeetingsCountChange({ target: { value: '5' } });
+    result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleMeetingsCountChange({ target: { value: '-1' } });
     result.current.handleCheckboxChange(1);
   });
   
@@ -185,56 +192,96 @@ it('should handle submission errors', async () => {
 
 // Тест на разные сообщения ошибок
 // Исправленный тест для разных сообщений ошибок
-it('should handle different error messages for create and edit modes', async () => {
-  // Мокируем сначала успешную загрузку чекбоксов
-  global.fetch
-    .mockImplementationOnce(() => 
+  it('should handle different error messages for create and edit modes', async () => {
+  // Мокируем fetch для разных сценариев
+  const mockFetch = jest.fn();
+  global.fetch = mockFetch;
+
+  // Для create mode (streamId = null)
+  mockFetch
+    .mockImplementationOnce(() =>  // fetchCheckboxesData для create mode
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve([])
       })
     )
-    // Затем ошибку при создании
-    .mockImplementationOnce(() => 
-      Promise.reject(new Error('Network error'))
-    )
-    // Затем снова чекбоксы для edit mode
-    .mockImplementationOnce(() => 
-      Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve([])
-      })
-    )
-    // Затем ошибку при редактировании
-    .mockImplementationOnce(() => 
+    .mockImplementationOnce(() =>  // POST запрос при создании - ошибка
       Promise.reject(new Error('Network error'))
     );
 
-  const { result, rerender } = renderHook((props) => useStreamForm(props.streamId, mockNavigate), {
-    initialProps: { streamId: null }
-  });
+  const { result, rerender } = renderHook(
+    (props) => useStreamForm(props.streamId, mockNavigate),
+    { initialProps: { streamId: null } }
+  );
 
   // Ждем загрузки чекбоксов
   await waitFor(() => expect(result.current.checkboxesData2).toEqual([]));
 
+  // Заполняем форму
   act(() => {
     result.current.handleNameChange({ target: { value: 'Test Stream' } });
-    result.current.handleStartDateChange({ target: { value: '2023-01-01' } });
-    result.current.handleEndDateChange({ target: { value: '2023-01-02' } });
-    result.current.handleTrackStartDateChange({ target: { value: '2023-01-01' } });
+    result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
 
+  // Пытаемся создать - должна быть ошибка создания
   await act(async () => {
     await result.current.handleSubmit(false);
   });
 
   expect(result.current.error).toBe('Не удалось создать поток или загрузить изображение.');
 
+  // Очищаем ошибку перед переключением режима
+  act(() => {
+    result.current.setError(null);
+  });
+
+  // Сбрасываем моки и настраиваем для edit mode
+  mockFetch.mockClear();
+  
+  // Для edit mode (streamId = 1)
+  mockFetch
+    .mockImplementationOnce(() =>  // fetchCheckboxesData для edit mode
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([])
+      })
+    )
+    .mockImplementationOnce(() =>  // fetchStreamData для edit mode - успешно
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          name: 'Test Stream',
+          startDate: '2024-01-01T00:00:00Z',
+          endDate: '2024-01-02T00:00:00Z',
+          trackStartDate: '2024-01-02T00:00:00Z',
+          meetingsCount: 5,
+          ntiMarkets: [{ id: 1, name: 'Market 1' }]
+        })
+      })
+    )
+    .mockImplementationOnce(() =>  // fetchStreamImage - успешно
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob())
+      })
+    )
+    .mockImplementationOnce(() =>  // PATCH запрос при обновлении - ошибка
+      Promise.reject(new Error('Network error'))
+    );
+
   // Переключаемся в edit mode
   rerender({ streamId: 1 });
 
+  // Ждем загрузки данных потока
+  await waitFor(() => {
+    expect(result.current.name).toBe('Test Stream');
+  });
+
+  // Пытаемся обновить - должна быть ошибка обновления
   await act(async () => {
     await result.current.handleSubmit(true);
   });
@@ -371,47 +418,74 @@ describe('useStreamForm', () => {
     expect(result.current.error).toBe('Пожалуйста, заполните все обязательные поля.');
   });
   // Исправленный тест для разных сообщений ошибок
-it('should handle different error messages for create and edit modes', async () => {
-  // Мокируем сначала успешную загрузку чекбоксов
+  it('should handle different error messages for create and edit modes', async () => {
+  // Мокируем запросы
   global.fetch
+    // Для create mode: загрузка чекбоксов
     .mockImplementationOnce(() => 
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve([])
       })
     )
-    // Затем ошибку при создании
+    // Для create mode: ошибка при создании
     .mockImplementationOnce(() => 
       Promise.reject(new Error('Network error'))
     )
-    // Затем снова чекбоксы для edit mode
+    // Для edit mode: загрузка чекбоксов
     .mockImplementationOnce(() => 
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve([])
       })
     )
-    // Затем ошибку при редактировании
+    // Для edit mode: загрузка данных потока (успешная)
+    .mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          name: 'Existing Stream',
+          startDate: '2024-01-01T00:00:00Z',
+          endDate: '2024-01-10T00:00:00Z',
+          trackStartDate: '2024-01-05T00:00:00Z',
+          meetingsCount: 5,
+          ntiMarkets: []
+        })
+      })
+    )
+    // Для edit mode: загрузка изображения (успешная)
+    .mockImplementationOnce(() => 
+      Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob())
+      })
+    )
+    // Для edit mode: ошибка при обновлении
     .mockImplementationOnce(() => 
       Promise.reject(new Error('Network error'))
     );
 
-  const { result, rerender } = renderHook((props) => useStreamForm(props.streamId, mockNavigate), {
-    initialProps: { streamId: null }
-  });
+  const { result, rerender } = renderHook(
+    (props) => useStreamForm(props.streamId, mockNavigate), 
+    {
+      initialProps: { streamId: null }
+    }
+  );
 
-  // Ждем загрузки чекбоксов
+  // Ждем загрузки чекбоксов для create mode
   await waitFor(() => expect(result.current.checkboxesData2).toEqual([]));
 
+  // Заполняем форму для создания
   act(() => {
     result.current.handleNameChange({ target: { value: 'Test Stream' } });
-    result.current.handleStartDateChange({ target: { value: '2023-01-01' } });
-    result.current.handleEndDateChange({ target: { value: '2023-01-02' } });
-    result.current.handleTrackStartDateChange({ target: { value: '2023-01-01' } });
+    result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
 
+  // Пытаемся создать поток (должна быть ошибка создания)
   await act(async () => {
     await result.current.handleSubmit(false);
   });
@@ -421,6 +495,22 @@ it('should handle different error messages for create and edit modes', async () 
   // Переключаемся в edit mode
   rerender({ streamId: 1 });
 
+  // Ждем загрузки данных потока для edit mode
+  await waitFor(() => {
+    expect(result.current.name).toBe('Existing Stream');
+  });
+
+  // Очищаем ошибку от загрузки данных (если она была)
+  act(() => {
+    result.current.setError(null);
+  });
+
+  // Обновляем какие-то данные перед отправкой
+  act(() => {
+    result.current.handleNameChange({ target: { value: 'Updated Stream' } });
+  });
+
+  // Пытаемся обновить поток (должна быть ошибка обновления)
   await act(async () => {
     await result.current.handleSubmit(true);
   });
@@ -541,11 +631,6 @@ it('fetchCheckboxesData устанавливает данные чекбоксо
 describe('handleSubmit', () => {
   const alertMock = jest.spyOn(window, 'alert').mockImplementation(() => {});
 
-  beforeEach(() => {
-    global.fetch
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) }); // fetchCheckboxesData
-  });
-
   afterEach(() => {
     alertMock.mockClear();
   });
@@ -571,7 +656,7 @@ describe('handleSubmit', () => {
     result.current.handleNameChange({ target: { value: 'Stream Edit' } });
     result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
     result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
-    result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
     result.current.handleMeetingsCountChange({ target: { value: '5' } });
     result.current.handleCheckboxChange(1);
   });
@@ -584,53 +669,67 @@ describe('handleSubmit', () => {
   expect(mockNavigate).toHaveBeenCalledWith('/team-cards');
 });
 
-  it('создает поток и загружает дефолтное изображение, если imageFile не указан', async () => {
-    global.fetch
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ id: 999 }) }) // POST
-      .mockResolvedValueOnce({ ok: true, blob: () => Promise.resolve(new Blob()) }) // rabbit.png
-      .mockResolvedValueOnce({ ok: true }); // image upload
-    
-    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+    it('создает поток и загружает дефолтное изображение, если imageFile не указан', async () => {
+  // Mock checkboxes first - this needs to be successful
+  global.fetch
+    .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) }) // fetchCheckboxesData
+    .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ id: 999 }) }) // POST stream
+    .mockResolvedValueOnce({ ok: true, blob: () => Promise.resolve(new Blob()) }) // rabbit.png fetch
+    .mockResolvedValueOnce({ ok: true }); // image upload
+  
+  const { result } = renderHook(() => useStreamForm(null, mockNavigate));
 
-    act(() => {
-      result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
-      result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
-      result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
-      result.current.handleMeetingsCountChange({ target: { value: '5' } });
-      result.current.handleCheckboxChange(1);
-    });
-    
-    await act(async () => {
-      await result.current.handleSubmit(false);
-    });
-    
-    expect(alertMock).toHaveBeenCalledWith('Поток успешно создан!');
-    expect(mockNavigate).toHaveBeenCalledWith('/team-cards');
+  // Wait for checkboxes to load
+  await waitFor(() => {
+    expect(result.current.checkboxesData2).toEqual([]);
   });
+
+  act(() => {
+    result.current.handleNameChange({ target: { value: 'Stream' } });
+    result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleMeetingsCountChange({ target: { value: '5' } });
+    result.current.handleCheckboxChange(1);
+  });
+  
+  await act(async () => {
+    await result.current.handleSubmit(false);
+  });
+  
+  expect(alertMock).toHaveBeenCalledWith('Поток успешно создан!');
+  expect(mockNavigate).toHaveBeenCalledWith('/team-cards');
+});
 
   it('выводит ошибку, если не удалось создать поток', async () => {
-    global.fetch
-      .mockRejectedValueOnce(new Error('Network error')); // POST
-    
-    const { result } = renderHook(() => useStreamForm(null, mockNavigate));
+  // Mock checkboxes successfully first
+  global.fetch
+    .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve([]) }) // fetchCheckboxesData - SUCCESS
+    .mockRejectedValueOnce(new Error('Network error')); // POST - FAILURE
+  
+  const { result } = renderHook(() => useStreamForm(null, mockNavigate));
 
-    act(() => {
-      result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
-      result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
-      result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
-      result.current.handleMeetingsCountChange({ target: { value: '5' } });
-      result.current.handleCheckboxChange(1);
-    });
-    
-    await act(async () => {
-      await result.current.handleSubmit(false);
-    });
-    
-    expect(result.current.error).toBe('Не удалось создать поток или загрузить изображение.');
-    expect(alertMock).not.toHaveBeenCalled();
+  // Wait for checkboxes to load
+  await waitFor(() => {
+    expect(result.current.checkboxesData2).toEqual([]);
   });
+
+  act(() => {
+    result.current.handleNameChange({ target: { value: 'Stream' } });
+    result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
+    result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
+    result.current.handleMeetingsCountChange({ target: { value: '5' } });
+    result.current.handleCheckboxChange(1);
+  });
+  
+  await act(async () => {
+    await result.current.handleSubmit(false);
+  });
+  
+  expect(result.current.error).toBe('Не удалось создать поток или загрузить изображение.');
+  expect(alertMock).not.toHaveBeenCalled();
+});
 
   it('выводит ошибку, если загрузка изображения не удалась', async () => {
     const mockFile = new File(['dummy'], 'image.png', { type: 'image/png' });
@@ -645,7 +744,7 @@ describe('handleSubmit', () => {
       result.current.handleNameChange({ target: { value: 'Stream' } });
       result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
       result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
-      result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
+      result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
       result.current.handleMeetingsCountChange({ target: { value: '5' } });
       result.current.handleCheckboxChange(1);
       result.current.imageFile = mockFile;
@@ -663,22 +762,14 @@ describe('handleSubmit', () => {
 
 
 describe('Track meeting date validation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([]),
-    });
-  });
-
   it('should show error when track start date is before stream start date', () => {
     const { result } = renderHook(() => useStreamForm(null, mockNavigate));
     
     act(() => {
       result.current.handleNameChange({ target: { value: 'Stream' } });
-      result.current.handleStartDateChange({ target: { value: '2024-01-02' } }); // 02.01.2024
-      result.current.handleEndDateChange({ target: { value: '2024-01-03' } }); // 03.01.2024
-      result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } }); // 01.01.2024 (before start)
+      result.current.handleStartDateChange({ target: { value: '2024-01-03' } }); // 02.01.2024
+      result.current.handleEndDateChange({ target: { value: '2024-01-04' } }); // 03.01.2024
+      result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } }); // 01.01.2024 (before start)
       result.current.handleMeetingsCountChange({ target: { value: '5' } });
       result.current.handleCheckboxChange(1);
     });
@@ -711,16 +802,6 @@ describe('Track meeting date validation', () => {
 });
 
 describe('Meetings count validation', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([]),
-    });
-  });
-
- 
-
   it('should accept valid meetings count between 1 and 100', () => {
     const { result } = renderHook(() => useStreamForm(null, mockNavigate));
     
@@ -742,14 +823,6 @@ describe('Meetings count validation', () => {
 });
 
 describe('Meetings count functionality', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([]),
-    });
-  });
-
   // Тест для строк 82-90: Установка meetingsCount при загрузке данных потока
   describe('fetchStreamData meetings count handling', () => {
     it('should set meetingsCount from predefined options', async () => {
@@ -905,7 +978,7 @@ describe('Meetings count functionality', () => {
         result.current.handleNameChange({ target: { value: 'Stream' } });
         result.current.handleStartDateChange({ target: { value: '2024-01-01' } });
         result.current.handleEndDateChange({ target: { value: '2024-01-02' } });
-        result.current.handleTrackStartDateChange({ target: { value: '2024-01-01' } });
+        result.current.handleTrackStartDateChange({ target: { value: '2024-01-02' } });
         result.current.handleMeetingsCountChange({ target: { value: 'custom' } }); // custom выбран
         result.current.handleCheckboxChange(1);
         // customMeetingsCount не установлен
@@ -923,14 +996,6 @@ describe('Meetings count functionality', () => {
     
   });
   describe('handleCustomMeetingsCountChange', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([]),
-    });
-  });
-
   it('should set customMeetingsCount for empty string', () => {
     const { result } = renderHook(() => useStreamForm(null, mockNavigate));
     

@@ -181,12 +181,11 @@ body {
 
 .Stream-title2,
 .Stream-title {
-    margin: 0;
+    margin:  0;
     margin-block: 0;
-
     position: absolute;
-    color: white;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: #8202CD;
+    font-family: "Montserrat", sans-serif;
 }
 
 .Stream-buttons {

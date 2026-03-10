@@ -11,7 +11,7 @@ describe('fetchReports', () => {
   it('should use correct URL for different page/size', async () => {
     fetch.mockResolvedValue({ ok: true });
 
-    await fetchReports(2, 20);
+    await fetchReports({ page: 2, size: 20 });
 
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('page=2&size=20'),
@@ -29,7 +29,7 @@ describe('fetchTrackers', () => {
   it('should use correct URL for different page/size', async () => {
     fetch.mockResolvedValue({ ok: true });
 
-    await fetchTrackers(2, 20);
+    await fetchTrackers({ page: 2, size: 20 });
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
@@ -40,7 +40,7 @@ describe('fetchTrackers', () => {
   it('should use correct URL for different page/size and sort', async () => {
     fetch.mockResolvedValue({ ok: true });
 
-    await fetchTrackers(2, 20, ["username,desc"]);
+    await fetchTrackers({ page: 2, size: 20, sort: ["username,desc"] });
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
@@ -59,7 +59,7 @@ describe('fetchStreams', () => {
   it('should use correct URL for different page/size', async () => {
     fetch.mockResolvedValue({ ok: true });
 
-    await fetchStreams(2, 20);
+    await fetchStreams({ page: 2, size: 20 });
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
@@ -70,7 +70,7 @@ describe('fetchStreams', () => {
   it('should use correct URL for different page/size and sort', async () => {
     fetch.mockResolvedValue({ ok: true });
 
-    await fetchStreams(2, 20, ["name,desc"]);
+    await fetchStreams({ page: 2, size: 20, sort: ["name,desc"] });
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
