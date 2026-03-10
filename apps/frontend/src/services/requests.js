@@ -77,9 +77,9 @@ export async function fetchStreams({ page, size, sort }) {
   return response;
 }
 
-export async function fetchTeams({ page, size, filters }) {
+export async function fetchTeams({ page, size, filters, admin = false }) {
   const response = await fetch(
-    `${backendURL}/backend/api/v1/admin/team-cards?page=${page}&size=${size}`,
+    `${backendURLBackend}/api/v1/${admin ? "admin/" : ""}team-cards?page=${page}&size=${size}`,
     {
       method: "POST",
       headers: {
