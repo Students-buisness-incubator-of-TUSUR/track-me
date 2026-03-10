@@ -1,9 +1,9 @@
 import { getCsrfConfigForFetch } from "../utils/csrf-utils";
-import { backendURL } from "./constants";
+import { backendURLBackend, backendURLSSO } from "./constants";
 
 export async function fetchReports({ page, size, filters }) {
   const response = await fetch(
-    `${backendURL}/backend/api/v1/team-cards/reports?page=${page}&size=${size}`,
+    `${backendURLBackend}/api/v1/team-cards/reports?page=${page}&size=${size}`,
     {
       method: "POST",
       headers: {
@@ -29,7 +29,7 @@ export async function fetchTrackers({ page, size, sort }) {
     sortString = "sort=username,asc";
   }
   const response = await fetch(
-    `${backendURL}/sso/api/v1/users/trackers?page=${page}&size=${size}&${sortString}`,
+    `${backendURLSSO}/api/v1/users/trackers?page=${page}&size=${size}&${sortString}`,
     {
       method: "POST",
       headers: {
@@ -57,7 +57,7 @@ export async function fetchStreams({ page, size, sort }) {
     sortString = "sort=name,asc";
   }
   const response = await fetch(
-    `${backendURL}/backend/api/v1/streams?page=${page}&size=${size}&${sortString}`,
+    `${backendURLBackend}/api/v1/streams?page=${page}&size=${size}&${sortString}`,
     {
       method: "POST",
       headers: {
