@@ -2,11 +2,11 @@ import {useCallback, useEffect, useState} from 'react';
 import {Link} from "react-router-dom";
 import axios from 'axios';
 import './stream-page.css';
-import {useSelector} from "react-redux";
 import StreamPlaceholder from "./Заглушка для потока в TrackMe.png";
 import { getCsrfConfig } from '../../utils/csrf-utils'; // Импортируем функцию для CSRF конфигурации
 // import LoginService from '../../services/login-service'; // Импортируем сервис для логина
 import Header from '../header/header';
+import { useGetUserInfo } from '../../services/util';
 
 export default function Stream() {
     const [isVisible, setIsVisible] = useState(false);
@@ -36,7 +36,6 @@ export default function Stream() {
     const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
     const numberOfCheckboxes = year - 2015;
 const [userRole, setUserRole] = useState('');
-const user = useSelector((state) => state.user);
     // Убираем использование и проверку токена
     const fetchData = useCallback(async (filters = {filters: []}) => {
         setLoading(true);
@@ -117,19 +116,11 @@ const user = useSelector((state) => state.user);
             return null;
         }
     }, [backendHost]);
-useEffect(() => {
-    /* istanbul ignore next */
-    const savedUser = localStorage.getItem('user');
-    /* istanbul ignore next */
-    if (savedUser) {
-        const userData = JSON.parse(savedUser);
-        setUserRole(userData.roles[0]);
-    /* istanbul ignore next */
-    } else if (user?.user) {
-        localStorage.setItem('user', JSON.stringify(user.user));
-        setUserRole(user.user.roles[0]);
-    }
-}, [user]);
+    const user = useGetUserInfo();
+    useEffect(() => {
+        setUserRole(user.roles[0]);
+    }, [user]);
+
 
     useEffect(() => {
         const fetchImages = async () => {

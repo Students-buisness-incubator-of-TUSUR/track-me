@@ -1,12 +1,12 @@
 import {useEffect, useMemo, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./team-card.css";
-import {useSelector} from "react-redux";
 import penIcon from "./pen.png";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import {  validateMeetingDateChange } from "../../utils/date-utils";
 import Header from "../header/header";
+import { useGetUserInfo } from "../../services/util";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
@@ -35,7 +35,6 @@ const TeamCard = () => {
 
     const [role, setRole] = useState(null);
 const [username, setUsername] = useState(null);
-const reduxUser = useSelector(state => state.user?.user);
 
 const [allTeamCards, setAllTeamCards] = useState([]); // eslint-disable-line no-unused-vars
 const [teamCardsCount, setTeamCardsCount] = useState(0);
@@ -149,19 +148,12 @@ const checkMeetingCreation = () => {
   return true;
 };
 
+  const user = useGetUserInfo();
+  useEffect(() => {
+    setRole(user.roles[0]);
+    setUsername(user.username);
+  }, [user]);
 
-    useEffect(() => {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            const parsed = JSON.parse(savedUser);
-            setRole(parsed.roles?.[0] || null);
-            setUsername(parsed.username || null);
-        } else if (reduxUser) {
-            localStorage.setItem('user', JSON.stringify(reduxUser));
-            setRole(reduxUser.roles?.[0] || null);
-            setUsername(reduxUser.username || null);
-        }
-    }, [reduxUser]);
     useEffect(() => {
   const streamIdFromTeam = teamData?.streams?.[0]?.id;
 

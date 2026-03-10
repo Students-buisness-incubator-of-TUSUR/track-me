@@ -8,6 +8,7 @@ import editIcon from "./edit.png";
 import trueIcon2 from "./true2.png";
 import falseIcon2 from "./false2.png";
 import Header from "../header/header";
+import { useGetUserInfo } from "../../services/util";
 
 function TrackerListPage({ endpoint }) {
   const {
@@ -38,14 +39,11 @@ function TrackerListPage({ endpoint }) {
   const longPressTimers = useRef({});
   // Состояние для отслеживания активного меню на мобильных
 
+  const user = useGetUserInfo();
   useEffect(() => {
-    // Проверяем данные пользователя в localStorage
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      setUserRole(userData.roles[0]);
-    }
-  }, []);
+    setUserRole(user.roles[0]);
+  }, [user]);
+
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);

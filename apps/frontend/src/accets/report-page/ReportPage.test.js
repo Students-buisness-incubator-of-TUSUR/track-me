@@ -4,6 +4,24 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import ReportPage from '../report-page/ReportPage.js';
 import '@testing-library/jest-dom';
 import { fetchReports, fetchStreams, fetchTrackers } from '../../services/requests';
+import { useSelector } from 'react-redux';
+const mockUseGetUserInfo = jest.fn();
+jest.mock('../../services/util', () => ({
+  useGetUserInfo: () => mockUseGetUserInfo(),
+}));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+beforeEach(() => {
+  mockUseGetUserInfo.mockReturnValue({
+    roles: ['SUPER_ADMIN'],
+    username: "username12",
+  });
+});
+
+const size = 10000;
 
 // Мокаем useNavigate
 const mockNavigate = jest.fn();
@@ -54,6 +72,49 @@ const mockReports = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 describe('ReportPage Component', () => {
+
+  test('isActive checkbox toggles correctly and triggers report reload', async () => {
+  render(
+    <Router>
+      <ReportPage defaultIsActive={false} />
+    </Router>
+  );
+
+  await waitFor(() => {
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
+  });
+
+  const checkboxButton = screen.getByTestId('button-isactive');
+  expect(checkboxButton).toBeInTheDocument();
+
+  fireEvent.click(checkboxButton);
+
+  await waitFor(() => {
+    const todayDate = new Date().toISOString().split('T')[0];
+    expect(fetchReports).toHaveBeenCalledWith({
+      page: 0,
+      size: size,
+      filters: expect.arrayContaining([
+        {
+          fieldName: "streams.startDate",
+          type: "LTE",
+          value: todayDate,
+        },
+        {
+          fieldName: "streams.endDate", 
+          type: "GTE",
+          value: todayDate,
+        }
+      ])
+    });
+  });
+
+  fireEvent.click(checkboxButton);
+
+  await waitFor(() => {
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
+  });
+});
   test('successful fetch sets reports and displays them', async () => {
     const mockReportsData = {
       content: [
@@ -94,7 +155,7 @@ describe('ReportPage Component', () => {
 
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -109,7 +170,7 @@ describe('ReportPage Component', () => {
     expect(screen.getByText('4.5')).toBeInTheDocument();
     expect(screen.getAllByText('—')).toHaveLength(2);
 
-    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
   });
 
   test('unsuccessful fetch (response not ok) logs error and shows no data', async () => {
@@ -122,7 +183,7 @@ describe('ReportPage Component', () => {
 
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -141,7 +202,7 @@ describe('ReportPage Component', () => {
       })
     );
 
-    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+    expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
   });
   beforeEach(() => {
     jest.clearAllMocks();
@@ -173,7 +234,7 @@ describe('ReportPage Component', () => {
   test('рендерит компонент без ошибок', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
     
@@ -188,7 +249,7 @@ describe('ReportPage Component', () => {
   test('открывает и закрывает фильтр трекеров', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
     
@@ -197,7 +258,7 @@ describe('ReportPage Component', () => {
       expect(screen.getByText('TrackMe')).toBeInTheDocument();
     });
     
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     
     // Проверяем, что dropdown-menu появился
@@ -215,7 +276,7 @@ describe('ReportPage Component', () => {
   test('открывает и закрывает фильтр потоков', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
     
@@ -242,7 +303,7 @@ describe('ReportPage Component', () => {
   test('рендерит таблицу с данными', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -273,7 +334,7 @@ describe('ReportPage Component', () => {
   test('отображает правильные иконки в фильтрах', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
     
@@ -287,7 +348,7 @@ describe('ReportPage Component', () => {
     expect(trackerIcons[0]).toHaveAttribute('alt', 'Открыто');
     
     // Открываем фильтр и проверяем изменение иконки
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     
     const updatedIcons = document.querySelectorAll('.dropdown-icon-img');
@@ -297,7 +358,7 @@ describe('ReportPage Component', () => {
   test('рендерит правильное количество строк в таблице', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
     
@@ -314,7 +375,7 @@ describe('ReportPage Component', () => {
   test('фильтры содержат правильное количество элементов', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
     
@@ -324,7 +385,7 @@ describe('ReportPage Component', () => {
     });
     
     // Открываем фильтр трекеров
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     
     await waitFor(() => {
@@ -348,7 +409,7 @@ describe('ReportPage Component', () => {
   test('кнопка "Выгрузить отчет" отображается и кликабельна', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
     
@@ -368,7 +429,7 @@ describe('ReportPage Component', () => {
   test('переключение фильтров изменяет иконки', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
     
@@ -377,7 +438,7 @@ describe('ReportPage Component', () => {
       expect(screen.getByText('TrackMe')).toBeInTheDocument();
     });
     
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     const streamFilterButton = screen.getByText('Потоки');
     
     // Проверяем начальное состояние
@@ -413,7 +474,7 @@ describe('ReportPage Component', () => {
 
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -434,7 +495,7 @@ describe('ReportPage Component', () => {
 
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -476,12 +537,12 @@ describe('loadStreams and loadTrackers', () => {
   test('loadStreams successfully fetches and sets streams', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
     await waitFor(() => {
-      expect(fetchStreams).toHaveBeenCalledWith({ page: 0, size: 10 });
+      expect(fetchStreams).toHaveBeenCalledWith({ page: 0, size: size });
     });
 
     // Open streams dropdown to verify the data appears
@@ -498,15 +559,15 @@ describe('loadStreams and loadTrackers', () => {
   test('loadTrackers successfully fetches and sets trackers', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
     await waitFor(() => {
-      expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: 10 });
+      expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: size });
     });
 
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
 
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
@@ -525,7 +586,7 @@ describe('loadStreams and loadTrackers', () => {
 
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -554,7 +615,7 @@ describe('loadStreams and loadTrackers', () => {
 
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -565,7 +626,7 @@ describe('loadStreams and loadTrackers', () => {
       );
     });
 
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
     const items = within(dropdownMenu).getAllByRole('button');
@@ -580,7 +641,7 @@ describe('loadStreams and loadTrackers', () => {
 
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -599,7 +660,7 @@ describe('loadStreams and loadTrackers', () => {
 
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -636,16 +697,16 @@ describe('filter selection', () => {
   test('selecting a tracker filter triggers fetchReports with filter', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
     // Wait for initial load
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
     });
 
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
 
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
@@ -657,7 +718,7 @@ describe('filter selection', () => {
 
     // fetchReports should be called again with the filter
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [
         { fieldName: "username", type: "EQ", value: "tracker1" }
       ] });
     });
@@ -666,12 +727,12 @@ describe('filter selection', () => {
   test('selecting a stream filter triggers fetchReports with filter', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
     });
 
     const streamFilterButton = screen.getByText('Потоки');
@@ -684,7 +745,7 @@ describe('filter selection', () => {
     expect(screen.queryByTestId('streams-dropdown-menu')).not.toBeInTheDocument();
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [
         { fieldName: "streams.name", type: "EQ", value: "Stream A" }
       ] });
     });
@@ -693,19 +754,19 @@ describe('filter selection', () => {
   test('selecting "—" resets tracker filter', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
     // First set a filter
-    const trackerFilterButton = screen.getByText('Трекеры');
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     const dropdownMenu = await screen.findByTestId('trackers-dropdown-menu');
     const trackerItem = within(dropdownMenu).getByText('Tracker One (tracker1)');
     fireEvent.click(trackerItem);
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [
         { fieldName: "username", type: "EQ", value: "tracker1" }
       ] });
     });
@@ -716,14 +777,14 @@ describe('filter selection', () => {
     fireEvent.click(resetItem);
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
     });
   });
 
   test('selecting "—" resets stream filter', async () => {
     render(
       <Router>
-        <ReportPage />
+        <ReportPage defaultIsActive={false} />
       </Router>
     );
 
@@ -734,7 +795,7 @@ describe('filter selection', () => {
     fireEvent.click(streamItem);
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [
         { fieldName: "streams.name", type: "EQ", value: "Stream A" }
       ] });
     });
@@ -744,7 +805,7 @@ describe('filter selection', () => {
     fireEvent.click(resetItem);
 
     await waitFor(() => {
-      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: 10, filters: [] });
+      expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
     });
   });
 });
