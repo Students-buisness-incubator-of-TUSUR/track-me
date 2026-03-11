@@ -1,6 +1,5 @@
 package net.trackme.meetingservice.services.integration;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -11,11 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 @Slf4j
 @Component
@@ -46,10 +42,10 @@ public class SecurityPropagationInterceptor implements ClientHttpRequestIntercep
         }
 
         log.debug("[Propagation] Финальные заголовки {} {}: {}",
-                request.getMethod(), request.getURI(),
-                request.getHeaders().entrySet().stream()
-                        .filter(e -> !e.getKey().equalsIgnoreCase("Authorization"))
-                        .toList());
+                request.getMethod(),
+                request.getURI(),
+                request.getHeaders().keySet()
+        );
 
         return execution.execute(request, body);
     }

@@ -1,4 +1,4 @@
-﻿databaseChangeLog:
+databaseChangeLog:
   - changeSet:
       id: team-card-add-meeting-link
       author: trackme-backend

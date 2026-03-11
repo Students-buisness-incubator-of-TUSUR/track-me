@@ -1,4 +1,4 @@
-﻿databaseChangeLog:
+databaseChangeLog:
   - changeSet:
       id: meeting-rename-link-to-record-link
       author: trackme-backend

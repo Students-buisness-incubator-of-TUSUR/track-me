@@ -5,9 +5,10 @@ import lombok.RequiredArgsConstructor;
 import net.trackme.backend.domain.Stream;
 import net.trackme.backend.mapping.TeamCardMapper;
 import net.trackme.backend.models.TeamCardStatus;
-import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardUpdateDto;
 import net.trackme.backend.services.nti.NtiMarketService;
 import net.trackme.backend.services.stream.MutableStreamService;
 import net.trackme.backend.services.teamcard.TeamCardsService;
@@ -21,9 +22,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
-import static net.trackme.backend.domain.spec.TeamCardSpecification.userEquals;
-import static net.trackme.backend.domain.spec.TeamCardSpecification.withFilters;
-import static net.trackme.backend.domain.spec.TeamCardSpecification.withStreamsAndNtiMarkets;
+import static net.trackme.backend.domain.spec.TeamCardSpecification.*;
 
 @Component
 @RequiredArgsConstructor
@@ -38,7 +37,7 @@ public class TeamCardsUseCase {
     private final NtiMarketService ntiMarketService;
 
     @Transactional
-    public TeamCardDto createTeamCard(TeamCardCreateOrUpdateDto teamCardDto, UUID streamId,
+    public TeamCardDto createTeamCard(TeamCardCreateDto teamCardDto, UUID streamId,
                                       Authentication authentication) {
         var username = authentication.getName();
         var ntiMarketIds = teamCardDto.ntiMarketIds();
@@ -56,9 +55,8 @@ public class TeamCardsUseCase {
         return teamCardMapper.mapToDto(createdTeamCard);
     }
 
-
     public TeamCardDto updateTeamCard(UUID teamCardId,
-                                      TeamCardCreateOrUpdateDto createOrUpdateDto) {
+                                      TeamCardUpdateDto createOrUpdateDto) {
         var ntiMarketIds = createOrUpdateDto.ntiMarketIds();
         var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
         var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);

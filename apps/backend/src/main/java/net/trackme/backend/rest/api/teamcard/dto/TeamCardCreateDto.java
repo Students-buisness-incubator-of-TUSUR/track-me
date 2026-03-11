@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Builder
-@Schema(description = "DTO для создания/обновления карточки команды")
-public record TeamCardCreateOrUpdateDto(
+@Schema(description = "DTO для создания карточки команды")
+public record TeamCardCreateDto(
         @NotBlank(message = "Название карточки команды не может быть пустым")
         @Schema(
                 description = "Название карточки команды",

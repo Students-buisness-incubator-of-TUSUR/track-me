@@ -18,7 +18,7 @@ public record MeetingDto(
         String recordLink,
 
         @Nullable
-        @Schema(description = "Ссылка на комнату встречу")
+        @Schema(description = "Ссылка на комнату встречи")
         String roomLink,
 
         @Schema(description = "Номер встречи")

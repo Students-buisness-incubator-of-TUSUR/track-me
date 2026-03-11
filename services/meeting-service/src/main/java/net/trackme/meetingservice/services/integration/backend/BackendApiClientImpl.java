@@ -1,7 +1,6 @@
 package net.trackme.meetingservice.services.integration.backend;
 
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.services.integration.SecurityPropagationInterceptor;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
@@ -10,7 +9,6 @@ import net.trackme.meetingservice.services.integration.exceptions.ServiceUnavail
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-
 
 @Slf4j
 @Service
