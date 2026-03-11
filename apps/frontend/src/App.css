@@ -8,6 +8,9 @@
     --color-black: #000000;
     --color-disabled: #E6D7FB;
     --color-warning: #f4c90c;
+    --color-purple: #8202CD;
+    --color-dark-purple: #44069A;
+    --color-light-purple: #8b50f9;
 }
 
 body {
