@@ -11,13 +11,14 @@ const InputBox = ({
     type,
     value,
     onEditClick = null,
+    className,
     ...props
 }) => {
     const [isFocused, setIsFocused] = useState(false);
     const id = useId();
 
     return (
-        <div className="input-box_container-with-helper">
+        <div className={`input-box_container-with-helper ${className ?? ''}`}>
             {placeholderIsAbove && (
                 <label className="input-box_label-above" htmlFor={id}>
                     {placeholder}
