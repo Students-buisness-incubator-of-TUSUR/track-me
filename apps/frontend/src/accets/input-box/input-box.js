@@ -20,7 +20,7 @@ const InputBox = ({
     return (
         <div className={`input-box_container-with-helper ${className ?? ''}`}>
             {placeholderIsAbove && (
-                <label className="input-box_label-above" htmlFor={id}>
+                <label data-testid="label-above" className="input-box_label-above" htmlFor={id}>
                     {placeholder}
                 </label>
             )}
@@ -28,6 +28,7 @@ const InputBox = ({
                 className={`input-box_container${placeholderIsAbove ? " input-box_container--above" : ""}`}
             >
                 <input
+                    data-testid="input"
                     id={id}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
@@ -37,9 +38,10 @@ const InputBox = ({
                     value={value}
                     {...props}
                 />
-                {!placeholderIsAbove && <label htmlFor={id}>{placeholder}</label>}
+                {!placeholderIsAbove && <label data-testid="label-inside" htmlFor={id}>{placeholder}</label>}
                 {onEditClick && (
                     <button
+                        data-testid="edit-btn"
                         type="button"
                         onClick={onEditClick}
                     >
@@ -47,7 +49,7 @@ const InputBox = ({
                     </button>
                 )}
             </div>
-            <span>
+            <span data-testid="error-text">
                 {isFocused ? errorText : value !== "" ? errorText : ""}
             </span>
         </div>
