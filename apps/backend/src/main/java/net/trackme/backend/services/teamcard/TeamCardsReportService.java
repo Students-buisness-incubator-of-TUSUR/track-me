@@ -1,14 +1,19 @@
 package net.trackme.backend.services.teamcard;
 
 import java.io.IOException;
-import java.util.List;
+import java.io.OutputStream;
+import java.util.stream.Stream;
+
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
 
 public interface TeamCardsReportService {
     /**
-     * Экспортировать отчет в excel-формат.
-     * @param records Список карточек команд
-     * @return Список карточек команд
+     * Экспортировать отчёт по карточкам команд в Excel-файл,
+     * записывая результат напрямую в переданный поток.
+     *
+     * @param records      стрим записей отчёта для выгрузки
+     * @param outputStream поток вывода для записи xlsx
+     * @throws IOException в случае ошибки при генерации файла
      */
-    public byte[] exportToExcel(List<TeamCardReportRecordDto> records) throws IOException;
+    void exportToExcel(Stream<TeamCardReportRecordDto> records, OutputStream outputStream) throws IOException;
 }

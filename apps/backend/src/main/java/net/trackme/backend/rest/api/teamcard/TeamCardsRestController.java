@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.UUID;
 
@@ -108,7 +109,7 @@ public interface TeamCardsRestController {
             value = "team-cards/reports/excel",
             produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     @Operation(summary = "Получение отчета о командах в excel")
-    ResponseEntity<byte[]> getTeamCardReportExcel(
+    ResponseEntity<StreamingResponseBody> getTeamCardReportExcel(
             @Parameter(description = "Фильтры для поиска записей отчета")
             @RequestBody @Valid FilterRequest filters);
 }

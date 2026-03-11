@@ -64,8 +64,10 @@ const [loading, setLoading] = useState(false);
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 75);
     } catch (error) {
       console.error("Ошибка выгрузки отчёта", error);
     }

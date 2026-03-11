@@ -28,6 +28,7 @@ const response = await fetch(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ...getCsrfConfigForFetch(),
       },
       credentials: "include",

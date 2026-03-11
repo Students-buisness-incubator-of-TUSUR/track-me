@@ -88,7 +88,9 @@ app:
     class-identity-query: "select currval(pg_get_serial_sequence('acl_class', 'id'))"
   api-url: ${BACKEND_URI:http://127.0.0.1:8081}/backend
   app-url: ${FRONTEND_URI:http://127.0.0.1:3000}
-
+  report:
+    export-limit: 10000
+    fetch-page-size: 500
 ---
 spring:
   config:

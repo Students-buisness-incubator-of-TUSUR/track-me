@@ -3,12 +3,13 @@ package net.trackme.backend.services.teamcard;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
+import java.io.OutputStream;
+import java.util.stream.Stream;
 
 @Service
 public class TeamCardsReportServiceImpl implements TeamCardsReportService {
@@ -28,15 +29,15 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
     };
 
     @Override
-    public byte[] exportToExcel(List<TeamCardReportRecordDto> records) throws IOException {
-        try (var workbook = new XSSFWorkbook();
-             var out = new ByteArrayOutputStream()) {
+    public void exportToExcel(Stream<TeamCardReportRecordDto> records, OutputStream outputStream) throws IOException {
+        try (var workbook = new SXSSFWorkbook(500)) {
+            workbook.setCompressTempFiles(true);
 
-            var sheet = workbook.createSheet(SHEET_NAME);
+            var sheet  = workbook.createSheet(SHEET_NAME);
             sheet.setDefaultColumnWidth(20);
+            sheet.trackAllColumnsForAutoSizing();
 
             var styles = new Styles(workbook);
-
             writeTitle(sheet, styles);
             writeHeaders(sheet, styles);
             writeData(sheet, records, styles);
@@ -46,12 +47,11 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
                 sheet.setColumnWidth(i, sheet.getColumnWidth(i) + 1024);
             }
 
-            workbook.write(out);
-            return out.toByteArray();
+            workbook.write(outputStream);
         }
     }
 
-    private void writeTitle(Sheet sheet, Styles styles) {
+    private void writeTitle(SXSSFSheet sheet, Styles styles) {
         var titleRow = sheet.createRow(0);
         titleRow.setHeightInPoints(28);
         var titleCell = titleRow.createCell(0);
@@ -60,7 +60,7 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, HEADERS.length - 1));
     }
 
-    private void writeHeaders(Sheet sheet, Styles styles) {
+    private void writeHeaders(SXSSFSheet sheet, Styles styles) {
         var headerRow = sheet.createRow(1);
         headerRow.setHeightInPoints(20);
         for (int i = 0; i < HEADERS.length; i++) {
@@ -70,11 +70,10 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
         }
     }
 
-    private void writeData(Sheet sheet, List<TeamCardReportRecordDto> records, Styles styles) {
-        int rowNum = 2;
-
-        for (var record : records) {
-            var row = sheet.createRow(rowNum++);
+    private void writeData(SXSSFSheet sheet, Stream<TeamCardReportRecordDto> records, Styles styles) {
+        var rowNum = new int[]{2};
+        records.forEach(record -> {
+            var row = sheet.createRow(rowNum[0]++);
             row.setHeightInPoints(18);
 
             setString(row, 0,
@@ -121,7 +120,7 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
                     record.readinessLevel(),
                     styles.text
             );
-        }
+        });
     }
 
     private void setString(Row row, int col, String value, CellStyle style) {
@@ -134,15 +133,15 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
         var cell = row.createCell(col);
         if (value != null) {
             cell.setCellValue(value);
-        } else {
-            cell.setCellValue("");
         }
         cell.setCellStyle(style);
     }
 
     private void setInteger(Row row, int col, Integer value, CellStyle style) {
         var cell = row.createCell(col);
-        cell.setCellValue(value != null ? value : 0);
+        if (value != null) {
+            cell.setCellValue(value);
+        }
         cell.setCellStyle(style);
     }
 
@@ -155,7 +154,7 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
         final CellStyle text;
         final CellStyle number;
 
-        Styles(Workbook wb) {
+        Styles(SXSSFWorkbook wb) {
             var titleFont = wb.createFont();
             titleFont.setFontName("Arial");
             titleFont.setBold(true);

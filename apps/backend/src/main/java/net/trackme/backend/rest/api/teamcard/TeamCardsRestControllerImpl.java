@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -78,8 +79,7 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<byte[]> getTeamCardReportExcel(
-            FilterRequest filters) {
+    public ResponseEntity<StreamingResponseBody> getTeamCardReportExcel(FilterRequest filters) {
         String filename = "отчёт-по-командам-" +
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +
                 ".xlsx";
@@ -88,7 +88,9 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
                 .encode(filename, StandardCharsets.UTF_8)
                 .replace("+", "%20");
 
-        byte[] excelBytes = teamCardsUseCase.getTeamCardReportExcel(filters.filters());
+        StreamingResponseBody body = outputStream ->
+                teamCardsUseCase.streamTeamCardReportExcel(filters.filters(), outputStream);
+
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename*=UTF-8''" + filenameEncoded
@@ -96,6 +98,6 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
             .contentType(MediaType.parseMediaType(
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             ))
-            .body(excelBytes);
+            .body(body);
     }
 }
