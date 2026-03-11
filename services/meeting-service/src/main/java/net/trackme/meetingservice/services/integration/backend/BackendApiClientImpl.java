@@ -33,6 +33,9 @@ public class BackendApiClientImpl implements BackendApiClient {
             TeamCardDto result = restClient.get()
                     .uri("/api/v1/team-card?id={id}", id)
                     .retrieve()
+                    .onStatus(status -> status.value() == 404, (request, response) -> {
+                        throw new TeamCardNotFoundException(id);
+                    })
                     .body(TeamCardDto.class);
 
             log.debug("Карточка команды id={} успешно получена", id);
