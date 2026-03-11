@@ -5,7 +5,7 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 // Импорт иконок
 import penIcon from "./pen.png";
 import uploadIcon from "./upload.png";
-import MobileHeader from "../adaptive-accets/MobileHeader";
+import Header from "../header/header";
 
 function ProfilePage() {
     const navigate = useNavigate();
@@ -406,7 +406,6 @@ function ProfilePage() {
     if (error && !userData) {
         return (
             <div className="login-container">
-                <MobileHeader onNavigate={navigate} />
                 <div className="profile-container">
                     <div className="error-message42" data-testid="error-message">{error}</div>
 
@@ -419,8 +418,9 @@ function ProfilePage() {
     }
 
     return (
+        <>
+        <Header userRole={ currentUser.roles[0] } />
         <div className="login-container">
-            <MobileHeader onNavigate={navigate} />
             <div className="profile-container">
                 {!isOwnProfile && (
                 <button 
@@ -625,6 +625,7 @@ function ProfilePage() {
                 </button>
             </div>
         </div>
+        </>
     );
 }
 
