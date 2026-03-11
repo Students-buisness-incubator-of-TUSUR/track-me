@@ -156,7 +156,7 @@ export async function updateUserPhoto({ newUserPhotoFile }) {
   const formData = new FormData();
   formData.append("file", newUserPhotoFile);
   const response = await fetch(
-    `${backendURLSSO}/api/v1/users/mangustc/photo`,
+    `${backendURLSSO}/api/v1/account/photo`,
     {
       method: "POST",
       headers: {
