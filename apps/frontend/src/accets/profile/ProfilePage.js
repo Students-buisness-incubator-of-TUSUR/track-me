@@ -352,11 +352,10 @@ function ProfilePage() {
 
     if (error && !userData) {
         return (
-            <div className="login-container">
-                <div className="profile-container">
-                    <div className="error-message42" data-testid="error-message">{error}</div>
-
-                    <button className="home-button" onClick={handleHomeButtonClick}>
+            <div className="profile-page_main">
+                <div className="profile-page_container" style={{alignItems: "center"}}>
+                    <div className="profile-page_error-msg" data-testid="error-message">{error}</div>
+                    <button className="profile-page_btn" onClick={handleHomeButtonClick}>
                         Главная страница
                     </button>
                 </div>
@@ -502,113 +501,3 @@ function ProfilePage() {
 
 export default ProfilePage;
 
-            // <div className="login-container">
-            //     <div className="profile-container">
-            //         {!isOwnProfile && (
-            //             <button
-            //                 className="close-profile-button"
-            //                 onClick={handleCloseProfile}
-            //                 title="Закрыть профиль"
-            //             >
-            //                 <CloseIcon className="close-icon" />
-            //             </button>
-            //         )}
-            //         <div className="profile-header">
-            //             <h1>Личный кабинет </h1>
-            //             {isOwnProfile && !isEditing && (
-            //                 <button className="edit-button12" onClick={handleEditClick}>
-            //                     Редактировать
-            //                 </button>
-            //             )}
-            //         </div>
-            //
-            //         <div className="profile-content">
-            //             <div className="profile-avatar-section" style={{ position: "relative" }}>
-            //                 {isEditing && isOwnProfile ? (
-            //                     <label htmlFor="photo-upload" className="avatar-placeholder clickable"
-            //                         style={{ cursor: "pointer" }}>
-            //                         {userPhoto ? (
-            //                             <img src={userPhoto} alt="Аватар" className="user-avatar" />
-            //                         ) : (
-            //                             <div className="default-avatar"></div>
-            //                         )}
-            //                         <div className="upload-photo-profile"
-            //                             style={{ position: "absolute", top: 0, right: 0 }}>
-            //                             <UploadIcon
-            //                                 className="upload-icon-profile" />
-            //                         </div>
-            //                     </label>
-            //                 ) : (
-            //                     <div className="avatar-placeholder">
-            //                         {userPhoto ? (
-            //                             <img src={userPhoto} alt="Аватар" className="user-avatar" />
-            //                         ) : (
-            //                             <div className="default-avatar"></div>
-            //                         )}
-            //                     </div>
-            //                 )}
-            //                 {isEditing && isOwnProfile && (
-            //                     <input
-            //                         type="file"
-            //                         id="photo-upload"
-            //                         style={{ display: "none" }}
-            //                         onChange={handlePhotoChange}
-            //                         accept="image/*"
-            //                     />
-            //                 )}
-            //                 <div className="profile-role-text">
-            //                     {getRoleInRussian(userData.roles[0])}
-            //                 </div>
-            //             </div>
-            //         </div>
-            //
-            //         {/* Блок с сообщением об ошибке, выводится только в режиме редактирования своего профиля */}
-            //         {isEditing && isOwnProfile && error && (
-            //             <div className="error-message42" data-testid="error-message">{error}</div>
-            //
-            //         )}
-            //
-            //         {isOwnProfile ? (
-            //             !isEditing ? (
-            //                 <>
-            //                     <button
-            //                         className="profile-team-cards-button"
-            //                         onClick={handleTeamCardsClick}
-            //                     >
-            //                         Карточки команд
-            //                         {userData?.roles?.includes("TRACKER") && (
-            //                             <span
-            //                                 className="count-container"
-            //                                 onMouseEnter={() => setShowTooltip(true)}
-            //                                 onMouseLeave={() => setShowTooltip(false)}
-            //                                 onMouseMove={handleMouseMove}
-            //                             >
-            //                                 ({teamCount})
-            //                             </span>
-            //                         )}
-            //                     </button>
-            //                     {showTooltip && userData?.roles?.includes("TRACKER") && (
-            //                         <div
-            //                             className="profile-tooltip"
-            //                             style={{
-            //                                 left: `${tooltipPosition.x}px`,
-            //                                 top: `${tooltipPosition.y}px`
-            //                             }}
-            //                         >
-            //                             Количество моих команд
-            //                         </div>
-            //                     )}
-            //                 </>
-            //             ) : (
-            //                 <button className="profile-team-cards-button" onClick={handleSaveClick}>
-            //                     Сохранить
-            //                 </button>
-            //             )
-            //         ) : (
-            //             // Для чужого профиля показываем только кнопку "Назад" или "Главная"
-            //             <button className="home-button" onClick={() => navigate(-1)}>
-            //                 Назад
-            //             </button>
-            //         )}
-            //     </div>
-            // </div>

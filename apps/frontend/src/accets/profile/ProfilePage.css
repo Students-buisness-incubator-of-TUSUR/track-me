@@ -1,3 +1,14 @@
+.profile-page_error-msg {
+    border-radius: 70px;
+    padding: 12px;
+    width: 100%;
+    background-color: #FF000080;
+    text-align: center;
+    color: white;
+    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+}
+
 .profile-page_main {
     font-family: var(--text-font);
     width: 100%;
@@ -140,6 +151,7 @@
     }
 
     .profile-page_container {
+        width: 100%;
         background-color: transparent;
         border: none
     }
