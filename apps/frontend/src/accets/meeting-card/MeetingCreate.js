@@ -27,7 +27,7 @@ const MeetingCreate = ({ onClose, teamId }) => {
     useEffect(() => {
         const fetchTeamData = async () => {
             try {
-                const teamUrl = new URL(`${API_HOST}/api/v1/admin/team-cards`);
+                const teamUrl = new URL(`${API_HOST}/api/v1/team-cards`);
                 teamUrl.searchParams.append('page', 0);
                 teamUrl.searchParams.append('size', 1000);
                 
