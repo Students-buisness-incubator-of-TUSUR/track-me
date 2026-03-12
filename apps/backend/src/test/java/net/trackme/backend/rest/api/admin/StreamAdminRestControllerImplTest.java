@@ -80,7 +80,7 @@ class StreamAdminRestControllerImplTest extends BaseApplicationTest {
     void updateStream_success() throws Exception {
         var stream = streamRepository.findAll().getFirst();
         var trackStartDate = LocalDate.now().plusDays(2);
-        var startDate = LocalDate.now().plusDays(1).;
+        var startDate = LocalDate.now().plusDays(1);
         var endDate = startDate.plusYears(1);
 
         var ntiMarkets = ntiMarketRepository.findAll().stream()
