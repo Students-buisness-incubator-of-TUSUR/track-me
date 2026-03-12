@@ -121,7 +121,7 @@ useEffect(() => {
   if (currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN"))
  {
     console.log("Запрашиваем трекеров...");
-    fetch(`${backendHost1}/api/v1/users/trackers`, {
+    fetch(`${backendHost1}/api/v1/users/trackers?page=0&size=100000`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
