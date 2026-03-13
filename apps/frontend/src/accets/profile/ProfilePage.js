@@ -59,11 +59,9 @@ function ProfilePage() {
             .then((response) => {
                 if (!response.ok) {
                     if (response.status === 401) {
-                        setError("Ошибка авторизации! Пожалуйста, выполните вход заново.");
-                    } else {
-                        setError(`Ошибка при загрузке данных. Статус: ${response.status}`);
+                        throw new Error("Ошибка авторизации! Пожалуйста, выполните вход заново.");
                     }
-                    throw new Error("Ошибка запроса");
+                    throw new Error(`Ошибка при загрузке данных. Статус: ${response.status}`);
                 }
                 return response.json();
             })
@@ -84,6 +82,7 @@ function ProfilePage() {
             })
             .catch((err) => {
                 console.error("Ошибка загрузки данных:", err);
+                setError(err.message);
                 setUserData(null);             // ← обязательное
                 setEditedData({});
                 setLoading(false);
@@ -350,24 +349,28 @@ function ProfilePage() {
         return <div>Загрузка...</div>;
     }
 
-    if (error && !userData) {
+    if (error || !userData) {
         return (
-            <div className="profile-page_main">
-                <div className="profile-page_container" style={{alignItems: "center"}}>
-                    <div className="profile-page_error-msg" data-testid="error-message">{error}</div>
-                    <button className="profile-page_btn" onClick={handleHomeButtonClick}>
-                        Главная страница
-                    </button>
+            <>
+                <Header userRole="TRACKER" />
+                <div className="profile-page_main">
+                    <div className="profile-page_container" style={{ alignItems: "center" }}>
+                        <div className="profile-page_error-msg" data-testid="error-message">{error}</div>
+                        <button className="profile-page_btn" onClick={handleHomeButtonClick}>
+                            Главная страница
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </>
         );
     }
 
     return (
         <>
-            <Header userRole={currentUser.roles[0]} />
+            <Header userRole={currentUser.roles?.[0]} />
             <div className="profile-page_main">
                 <div className="profile-page_container">
+                    {error && <div className="profile-page_error-msg" data-testid="error-message">{error}</div>}
                     <div className="profile-page_header">
                         <h1>Личный кабинет</h1>
                         {!isEditing && isOwnProfile && (
@@ -446,6 +449,7 @@ function ProfilePage() {
                                 disabled={!(isEditing && isOwnProfile)}
                             >
                                 <img
+                                    data-testid="user-photo"
                                     src={userPhoto ? userPhoto : noUserPhoto}
                                     alt="Аватар"
                                 />
@@ -464,7 +468,7 @@ function ProfilePage() {
                                 className="profile-page_btn profile-page_role"
                                 disabled
                             >
-                                {getRoleInRussian(userData.roles[0])}
+                                {getRoleInRussian(userData.roles?.[0])}
                             </button>
                         </div>
                     </div>
