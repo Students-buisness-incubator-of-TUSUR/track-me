@@ -349,7 +349,7 @@ function ProfilePage() {
         return <div>Загрузка...</div>;
     }
 
-    if (error || !userData) {
+    if (error && !userData) {
         return (
             <>
                 <Header userRole="TRACKER" />
@@ -478,7 +478,7 @@ function ProfilePage() {
                                 className="profile-page_btn"
                                 onClick={handleTeamCardsClick}
                             >
-                                Карточки команд ({teamCount})
+                                {`Карточки команд (${teamCount})`}
                             </button>
                         )}
                         {isEditing && isOwnProfile && (

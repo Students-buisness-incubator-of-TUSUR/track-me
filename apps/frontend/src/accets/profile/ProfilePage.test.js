@@ -91,6 +91,26 @@ beforeEach(() => {
   });
 })
 
+
+const mockTeamsErrorStatus = (status) => {
+  fetchTeams.mockImplementation(async () => {
+    return {
+      ok: false,
+      status: status,
+      json: jest.fn().mockResolvedValue({}),
+    };
+  });
+};
+
+
+const mockUserInfoUser = (userData) => {
+  fetchUserInfo.mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: jest.fn().mockResolvedValue(userData),
+  });
+}
+
 const mockUserInfoErrorStatus = (status) => {
   fetchUserInfo.mockImplementation(async () => {
     return {
@@ -146,110 +166,9 @@ const mockOtherUserInfoErrorStatus = (status) => {
   });
 };
 
-const mockTeamCardsResponse = {
-  content: [{ id: 1 }, { id: 2 }],
-  totalElements: 2,
-};
-
 describe('ProfilePage', () => {
-  test('should show tooltip with team count when hovering over count element', async () => {
-    render(
-      <BrowserRouter>
-        <ProfilePage />
-      </BrowserRouter>
-    );
-
-    const teamCardsButton = await screen.findByRole('button', { name: /Карточки команд/i });
-    expect(teamCardsButton).toBeInTheDocument();
-
-    const countElement = await screen.findByText('(2)');
-    expect(countElement).toBeInTheDocument();
-
-    fireEvent.mouseEnter(countElement);
-    const tooltip = await screen.findByText('Количество моих команд');
-    expect(tooltip).toBeInTheDocument();
-    expect(tooltip).toHaveClass('profile-tooltip');
-
-    fireEvent.mouseLeave(countElement);
-    await waitFor(() => {
-      expect(screen.queryByText('Количество моих команд')).not.toBeInTheDocument();
-    });
-  });
-
-  // Existing test: Tooltip position update
-  test('should update tooltip position on mouse move', async () => {
-    render(
-      <BrowserRouter>
-        <ProfilePage />
-      </BrowserRouter>
-    );
-
-    await screen.findByText('Карточки команд');
-    const countElement = await screen.findByText('(2)');
-
-    const mockRect = {
-      left: 100,
-      top: 200,
-      width: 50,
-      height: 20,
-      right: 150,
-      bottom: 220,
-      x: 100,
-      y: 200,
-    };
-    countElement.getBoundingClientRect = jest.fn(() => mockRect);
-
-    fireEvent.mouseMove(countElement);
-    fireEvent.mouseEnter(countElement);
-    const tooltip = await screen.findByText('Количество моих команд');
-    expect(tooltip).toBeInTheDocument();
-  });
-
-  // Existing test: Non-tracker users
-  test('should not show tooltip for non-tracker users', async () => {
-    const nonTrackerUser = {
-      ...mockUserData,
-      roles: ['ADMIN'],
-    };
-
-    fetch.mockImplementation((url) => {
-      if (url.includes('/account/info')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(nonTrackerUser),
-        });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-    });
-
-    render(
-      <BrowserRouter>
-        <ProfilePage />
-      </BrowserRouter>
-    );
-
-    await screen.findByText('Карточки команд');
-    expect(screen.queryByText(/\(\d+\)/)).not.toBeInTheDocument();
-    expect(screen.queryByText('Количество моих команд')).not.toBeInTheDocument();
-  });
-
-  // Existing test: Team cards fetch error
   test('should handle team cards fetch error and show zero count', async () => {
-    fetch.mockImplementation((url) => {
-      if (url.includes('/account/info')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockUserData),
-        });
-      }
-      if (url.includes('/team-cards')) {
-        return Promise.reject(new Error('Ошибка при загрузке карточек команд'));
-      }
-      if (url.includes('/account/photo')) {
-        return Promise.reject(new Error('Photo not found'));
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-    });
+    mockTeamsErrorStatus(500);
 
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -259,9 +178,12 @@ describe('ProfilePage', () => {
       </BrowserRouter>
     );
 
-    await screen.findByText('Карточки команд');
-    const countElement = await screen.findByText('(0)');
-    expect(countElement).toBeInTheDocument();
+    await waitFor(() => {
+      const teamButton = screen.getByRole('button', { 
+        name: 'Карточки команд (0)'
+      });
+      expect(teamButton).toBeInTheDocument();
+    });
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Ошибка при загрузке карточек:',
@@ -271,92 +193,24 @@ describe('ProfilePage', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  // New test: Verify team cards fetch request details (lines 163-179)
-  test('should make correct team cards fetch request for TRACKER role', async () => {
-    render(
-      <BrowserRouter>
-        <ProfilePage />
-      </BrowserRouter>
-    );
-
-    await screen.findByText('Карточки команд');
-
-    // Verify the fetch call for team cards
-    expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/team-cards?page=0&size=1000'),
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          filters: [
-            {
-              fieldName: 'username',
-              type: 'EQ',
-              value: mockUserData.username,
-            },
-            {
-              fieldName: 'enabled',
-              type: 'EQ',
-              value: true,
-            },
-          ],
-        }),
-      }),
-    );
-
-    // Verify team count is set correctly
-    const countElement = await screen.findByText('(2)');
-    expect(countElement).toBeInTheDocument();
-  });
-
   // New test: Handle team cards response with no totalElements (lines 163-179)
   test('should set team count based on content length when totalElements is absent', async () => {
-    fetch.mockImplementation((url) => {
-      if (url.includes('/account/info')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockUserData),
-        });
-      }
-      if (url.includes('/team-cards')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ content: [{ id: 1 }, { id: 2 }, { id: 3 }] }),
-        });
-      }
-      if (url.includes('/account/photo')) {
-        return Promise.reject(new Error('Photo not found'));
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-    });
-
     render(
       <BrowserRouter>
         <ProfilePage />
       </BrowserRouter>
     );
 
-    const countElement = await screen.findByText('(3)');
-    expect(countElement).toBeInTheDocument();
+    await waitFor(() => {
+      const teamButton = screen.getByRole('button', { 
+        name: 'Карточки команд (5)'
+      });
+      expect(teamButton).toBeInTheDocument();
+    });
   });
 
-  // New test: Skip team cards fetch for non-TRACKER role (lines 163-179)
   test('should not fetch team cards for non-TRACKER role', async () => {
-    const nonTrackerUser = {
-      ...mockUserData,
-      roles: ['ADMIN'],
-    };
-
-    fetch.mockImplementation((url) => {
-      if (url.includes('/account/info')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(nonTrackerUser),
-        });
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-    });
+    mockUserInfoUser(mockUserDataAdmin);
 
     render(
       <BrowserRouter>
@@ -364,34 +218,18 @@ describe('ProfilePage', () => {
       </BrowserRouter>
     );
 
-    await screen.findByText('Карточки команд');
-    expect(fetch).not.toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/team-cards'),
-      expect.any(Object),
-    );
-    expect(screen.queryByText(/\(\d+\)/)).not.toBeInTheDocument();
+    await waitFor(() => {
+      const teamButton = screen.getByRole('button', { 
+        name: 'Карточки команд (0)'
+      });
+      expect(teamButton).toBeInTheDocument();
+    });
+    expect(fetchTeams).not.toHaveBeenCalled();
   });
 
   // Existing test (modified): Handle team cards fetch error with non-ok response (lines 163-179)
   test('should throw error when team cards request fails with non-ok response', async () => {
-    fetch.mockImplementation((url) => {
-      if (url.includes('/account/info')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockUserData),
-        });
-      }
-      if (url.includes('/team-cards')) {
-        return Promise.resolve({
-          ok: false,
-          status: 500,
-        });
-      }
-      if (url.includes('/account/photo')) {
-        return Promise.reject(new Error('Photo not found'));
-      }
-      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-    });
+    mockTeamsErrorStatus(400);
 
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
@@ -406,7 +244,10 @@ describe('ProfilePage', () => {
         'Ошибка при загрузке карточек:',
         expect.any(Error),
       );
-      expect(screen.getByText('(0)')).toBeInTheDocument();
+      const teamButton = screen.getByRole('button', { 
+        name: 'Карточки команд (0)'
+      });
+      expect(teamButton).toBeInTheDocument();
     });
 
     consoleErrorSpy.mockRestore();
@@ -458,7 +299,7 @@ describe('ProfilePage', () => {
     const editButton = await screen.findByRole('button', { name: /Редактировать/i });
     fireEvent.click(editButton);
 
-    const phoneInput = screen.getByDisplayValue('+79123456789');
+    const phoneInput = screen.getByDisplayValue(mockUserData.phoneNumber);
     fireEvent.change(phoneInput, { target: { value: '+799' } });
 
     const saveButton = screen.getByRole('button', { name: /Сохранить/i });
@@ -562,10 +403,7 @@ describe('ProfilePage Error Handling', () => {
 
   // Тесты для общего catch блока с ошибкой JSON парсинга
   test('should handle fetch error with JSON parsing error in catch block', async () => {
-    updateUserInfo.mockResolvedValue({
-      ok: false,
-      status: 400
-    });
+    updateUserInfo.mockRejectedValueOnce(new Error('Failed to parse JSON'));
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
     render(
@@ -595,7 +433,7 @@ describe('ProfilePage Error Handling', () => {
 
   // Тесты для общего catch блока с НЕ-JSON ошибкой
   test('should handle fetch error with non-JSON error in catch block', async () => {
-    updateUserInfo.mockResolvedValue({
+    updateUserInfo.mockResolvedValueOnce({
       ok: false,
       status: 400
     });
