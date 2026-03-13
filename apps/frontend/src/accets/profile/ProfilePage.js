@@ -365,6 +365,14 @@ function ProfilePage() {
         );
     }
 
+    let safeUserPhoto = noUserPhoto;
+    if (!userPhoto) {
+        const parsedUrl = new URL(userPhoto, window.location.href);
+        if (parsedUrl.protocol === "blob:") {
+            safeUserPhoto = userPhoto;
+        }
+    }
+
     return (
         <>
             <Header userRole={currentUser.roles?.[0]} />
@@ -450,7 +458,7 @@ function ProfilePage() {
                             >
                                 <img
                                     data-testid="user-photo"
-                                    src={userPhoto ? userPhoto : noUserPhoto}
+                                    src={safeUserPhoto}
                                     alt="Аватар"
                                 />
                                 {isEditing && isOwnProfile && <UploadIcon className="profile-page_upload-icon" />}
