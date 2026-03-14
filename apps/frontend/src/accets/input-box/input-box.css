@@ -88,7 +88,7 @@
     border-radius: 100%;
 }
 
-.input-box_container button > PenIcon {
+.input-box_container button svg {
     width: 20px;
     height: 20px;
     color: var(--color-black);
