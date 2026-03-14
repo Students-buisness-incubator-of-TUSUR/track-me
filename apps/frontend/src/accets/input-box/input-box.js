@@ -1,6 +1,7 @@
 import React, { useId, useState } from "react";
 import "./input-box.css";
 import { ReactComponent as PenIcon } from '../../files/pen.svg';
+import PropTypes from "prop-types";
 
 const InputBox = ({
     placeholder,
@@ -54,6 +55,19 @@ const InputBox = ({
             </span>
         </div>
     );
+};
+
+
+InputBox.propTypes = {
+    placeholder: PropTypes.string.isRequired,
+    placeholderIsAbove: PropTypes.bool,
+    autoComplete: PropTypes.string,
+    errorText: PropTypes.string,
+    name: PropTypes.string,
+    type: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    onEditClick: PropTypes.func,
+    className: PropTypes.string,
 };
 
 export default InputBox;
