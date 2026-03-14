@@ -365,13 +365,7 @@ function ProfilePage() {
         );
     }
 
-    let safeUserPhoto = noUserPhoto;
-    if (!userPhoto) {
-        const parsedUrl = new URL(userPhoto, window.location.href);
-        if (parsedUrl.protocol === "blob:") {
-            safeUserPhoto = userPhoto;
-        }
-    }
+    const safeUserPhoto = userPhoto && (new URL(userPhoto, window.location.href)).protocol === "blob:" ? userPhoto : noUserPhoto;
 
     return (
         <>
@@ -413,8 +407,8 @@ function ProfilePage() {
                                 name="fullName"
                                 value={editedData.fullName || ""}
                                 onChange={handleChange}
-                                readOnly={!isEditing || !isOwnProfile}
-                                onEditClick={!isEditing || !isOwnProfile ? null : () => { }}
+                                readOnly={!isEditing}
+                                onEditClick={!isEditing ? null : () => { }}
                             />
                             <InputBox
                                 className="profile-page_input-box"
@@ -424,8 +418,8 @@ function ProfilePage() {
                                 name="email"
                                 value={editedData.email || ""}
                                 onChange={handleChange}
-                                readOnly={!isEditing || !isOwnProfile}
-                                onEditClick={!isEditing || !isOwnProfile ? null : () => { }}
+                                readOnly={!isEditing}
+                                onEditClick={!isEditing ? null : () => { }}
                             />
                             <InputBox
                                 className="profile-page_input-box"
@@ -435,8 +429,8 @@ function ProfilePage() {
                                 name="phoneNumber"
                                 value={editedData.phoneNumber || ""}
                                 onChange={handlePhoneChange}
-                                readOnly={!isEditing || !isOwnProfile}
-                                onEditClick={!isEditing || !isOwnProfile ? null : () => { }}
+                                readOnly={!isEditing}
+                                onEditClick={!isEditing ? null : () => { }}
                             />
                             <InputBox
                                 className="profile-page_input-box"
@@ -452,7 +446,7 @@ function ProfilePage() {
                         <div className="profile-page_etc">
                             <label
                                 htmlFor={photoId}
-                                style={isEditing && isOwnProfile ? { cursor: "pointer" } : {}}
+                                style={isEditing ? { cursor: "pointer" } : {}}
                                 className="profile-page_photo-container"
                                 disabled={!(isEditing && isOwnProfile)}
                             >
@@ -463,7 +457,7 @@ function ProfilePage() {
                                 />
                                 {isEditing && isOwnProfile && <UploadIcon className="profile-page_upload-icon" />}
                             </label>
-                            {isEditing && isOwnProfile && (
+                            {isEditing && (
                                 <input
                                     type="file"
                                     id={photoId}
