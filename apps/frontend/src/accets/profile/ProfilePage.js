@@ -15,19 +15,34 @@ function ProfilePage() {
     const [currentUser, setCurrentUser] = useState(null); // Текущий авторизованный пользователь
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [userPhoto, setUserPhoto] = useState(null);
     const photoId = useId();
     const defaultAvatarUrl = "/images/no-photo.png";
-
-    // Флаг редактирования - доступен только для своего профиля
     const [isEditing, setIsEditing] = useState(false);
     const [isOwnProfile, setIsOwnProfile] = useState(false);
-
-    // Состояние для редактируемых данных
     const [editedData, setEditedData] = useState({});
-
-    // Количество команд, получаемое из userData
     const [teamCount, setTeamCount] = useState(0);
+
+    const [userPhoto, _setUserPhoto] = useState(null);
+    const setUserPhoto = (blobOrUrl) => {
+        if (!blobOrUrl) {
+            _setUserPhoto(null);
+            return;
+        }
+        try {
+            const url = typeof blobOrUrl === "string"
+                ? blobOrUrl
+                : URL.createObjectURL(blobOrUrl);
+            const parsed = new URL(url);
+            if (parsed.protocol === "blob:") {
+                _setUserPhoto(url);
+            } else {
+                _setUserPhoto(null);
+            }
+        } catch {
+            _setUserPhoto(null);
+        }
+    };
+
     const loadTargetUserData = useCallback((targetUsername) => {
         setUserData(null);
         setEditedData({});
