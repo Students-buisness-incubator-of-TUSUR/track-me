@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useId } from "react";
+import React, { useEffect, useState, useCallback, useId, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./ProfilePage.css";
 import Header from "../header/header";
@@ -21,10 +21,12 @@ function ProfilePage() {
     const [editedData, setEditedData] = useState({});
     const [teamCount, setTeamCount] = useState(0);
 
-    const [userPhoto, _setUserPhoto] = useState(null);
-    const setUserPhoto = (blobOrUrl) => {
+    const photoImgRef = useRef(null);
+    const setUserPhoto = useCallback((blobOrUrl) => {
+        if (!photoImgRef.current) return;
+
         if (!blobOrUrl) {
-            _setUserPhoto(noUserPhoto);
+            photoImgRef.current.src = noUserPhoto;
             return;
         }
         try {
@@ -33,14 +35,14 @@ function ProfilePage() {
                 : URL.createObjectURL(blobOrUrl);
             const parsed = new URL(url);
             if (parsed.protocol === "blob:") {
-                _setUserPhoto(url);
+                photoImgRef.current.src = url;
             } else {
-                _setUserPhoto(noUserPhoto);
+                photoImgRef.current.src = noUserPhoto;
             }
         } catch {
-            _setUserPhoto(noUserPhoto);
+            photoImgRef.current.src = noUserPhoto;
         }
-    };
+    }, []);
 
     const loadTargetUserData = useCallback((targetUsername) => {
         setUserData(null);
@@ -129,7 +131,7 @@ function ProfilePage() {
             .catch(() => {
                 setUserPhoto(null);
             });
-    }, [userData, username, isOwnProfile]);
+    }, [setUserPhoto, userData, username, isOwnProfile]);
 
     // Загрузка количества команд (только для трекеров и только для своего профиля)
     useEffect(() => {
@@ -463,8 +465,9 @@ function ProfilePage() {
                                 disabled={!(isEditing && isOwnProfile)}
                             >
                                 <img
+                                    ref={photoImgRef}
                                     data-testid="user-photo"
-                                    src={userPhoto}
+                                    src={noUserPhoto}
                                     alt="Аватар"
                                 />
                                 {isEditing && isOwnProfile && <UploadIcon className="profile-page_upload-icon" />}
