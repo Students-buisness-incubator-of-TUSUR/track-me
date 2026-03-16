@@ -16,7 +16,6 @@ function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const photoId = useId();
-    const defaultAvatarUrl = "/images/no-photo.png";
     const [isEditing, setIsEditing] = useState(false);
     const [isOwnProfile, setIsOwnProfile] = useState(false);
     const [editedData, setEditedData] = useState({});
@@ -25,7 +24,7 @@ function ProfilePage() {
     const [userPhoto, _setUserPhoto] = useState(null);
     const setUserPhoto = (blobOrUrl) => {
         if (!blobOrUrl) {
-            _setUserPhoto(null);
+            _setUserPhoto(noUserPhoto);
             return;
         }
         try {
@@ -36,10 +35,10 @@ function ProfilePage() {
             if (parsed.protocol === "blob:") {
                 _setUserPhoto(url);
             } else {
-                _setUserPhoto(null);
+                _setUserPhoto(noUserPhoto);
             }
         } catch {
-            _setUserPhoto(null);
+            _setUserPhoto(noUserPhoto);
         }
     };
 
@@ -234,7 +233,7 @@ function ProfilePage() {
             // Подготавливаем данные для отправки - заменяем null на пустую строку для avatarUrl
             const dataToSend = {
                 ...editedData,
-                avatarUrl: editedData.avatarUrl || defaultAvatarUrl
+                avatarUrl: editedData.avatarUrl || noUserPhoto
             };
 
             const response = await updateUserInfo({ newUserData: dataToSend });
