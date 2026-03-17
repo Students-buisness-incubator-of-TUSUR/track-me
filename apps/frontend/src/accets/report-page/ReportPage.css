@@ -261,6 +261,7 @@
   font-weight: 400;
   padding: 14px 10px;
   white-space: nowrap;
+  min-width: 100px;
 }
 
 .report-table th {
@@ -450,4 +451,80 @@
     padding: 10px;
   }
   
+}
+
+@media (max-width: 1480px) {
+  .report-btn, .report-page_btn-isactive, .dropdown-btn {
+    font-size: 18px;
+  }
+  .report-header {
+    flex-direction: column;
+    align-items: baseline;
+  }
+  .dropdown1 {
+    right: 70px;
+
+  }
+  .dropdown2 {
+    right: 70px;
+    top: 155px;
+  }
+}
+
+@media (max-width: 800px) {
+    /* Кнопка "Выгрузить отчет" */
+  .report-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 20px;
+  }
+
+  .report-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 30px;
+  }
+
+  /* Фильтры */
+  .report-filters {
+    flex-direction: column;
+    gap: 12px;
+    position: static;
+    width: 100%;
+  }
+
+  .dropdown1,
+  .dropdown2 {
+    position: static;
+    width: 100%;
+    border-radius: 20px;
+  }
+
+  .dropdown-btn {
+    font-size: 16px;
+    padding: 10px 14px;
+    text-align: left;
+  }
+
+  .dropdown-icon1,
+  .dropdown-icon2 {
+    margin-left: 10px;
+  }
+
+  .dropdown-menu {
+    max-height: 200px;
+    font-size: 13px;
+  }
+
+  .dropdown-item {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .report-table-container {
+    padding: 10px 20px 60px 20px;
+    overflow-x: auto;
+  }
 }

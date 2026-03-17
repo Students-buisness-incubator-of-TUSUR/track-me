@@ -45,7 +45,7 @@ beforeEach(() => {
     const urlString = typeof urlInput === 'string' ? urlInput : urlInput.toString();
     
     // Загрузка данных команды (POST запрос)
-    if (urlString.includes('/api/v1/admin/team-cards')) {
+    if (urlString.includes('/api/v1/team-cards')) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({
