@@ -1,20 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
-
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #ffffff;
-    color: #333;
-}
-
-a { font-family: 'Mulish', sans-serif; }
-input:focus, textarea:focus { outline: none; }
-
 .team-card-widget-container {
+    font-family: var(--text-font);
     position: relative;
     width: min(1719px, 95vw);
     min-height: 80vh;
@@ -40,7 +25,7 @@ input:focus, textarea:focus { outline: none; }
 }
 
 .team-title-widget {
-    font-size: clamp(16px, 1.4vw, 24px);
+    font-size: 16px;
     color: #333;
     font-weight: 600;
     position: absolute;
@@ -49,13 +34,14 @@ input:focus, textarea:focus { outline: none; }
 }
 
 .edit-button-widget {
+    font-family: var(--text-font);
     background: #8338EB;
     color: white;
     border: none;
     padding: 10px 50px;
     border-radius: 20px;
     cursor: pointer;
-    font-size: clamp(14px, 1.2vw, 20px);
+    font-size: 14px;
     font-weight: 500;
     position: absolute;
     top: 38px;
@@ -74,10 +60,10 @@ input:focus, textarea:focus { outline: none; }
     background-color: #68D39D;
     color: black;
     font-weight: 700;
-    font-size: clamp(20px, 2.1vw, 36px);
-    width: clamp(120px, 11.6vw, 200px);
-    height: clamp(40px, 3.3vw, 57px);
-    line-height: clamp(40px, 3.3vw, 57px);
+    font-size: 20px;
+    width: 80px;
+    height: 40px;
+    line-height: 40px;
     text-align: center;
     border-radius: 0 271px 271px 0;
     z-index: 10;
@@ -89,8 +75,8 @@ input:focus, textarea:focus { outline: none; }
     display: flex;
     flex-direction: column;
     gap: 15px;
-    padding-left: clamp(16px, 6.9vw, 119px);
-    padding-top: clamp(30px, 4.2vw, 72px);
+    padding-left: 16px;
+    padding-top: 48px;
     padding-right: 10px;
 }
 
@@ -118,8 +104,8 @@ input:focus, textarea:focus { outline: none; }
     display: block;
     color: #333;
     margin-bottom: 6px;
-    font-size: clamp(14px, 1.4vw, 24px);
-    font-weight: 400;
+    font-size: 14px;
+    font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
 }
@@ -133,9 +119,9 @@ input:focus, textarea:focus { outline: none; }
     background: #8338EB;
     border-radius: 30px;
     color: #fff;
-    font-size: clamp(13px, 1.2vw, 22px);
-    font-weight: 300;
-    font-family: 'Mulish', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--text-font);
 }
 
 .team-input-widget1 {
@@ -149,8 +135,8 @@ input:focus, textarea:focus { outline: none; }
     border-radius: 30px;
     color: #fff;
     font-size: 14px;
-    font-weight: 300;
-    font-family: 'Mulish', sans-serif;
+    font-weight: 500;
+    font-family: var(--text-font);
     white-space: nowrap;
     box-sizing: border-box;
 }
@@ -166,8 +152,8 @@ input:focus, textarea:focus { outline: none; }
     border-radius: 30px;
     color: #fff;
     font-size: 14px;
-    font-weight: 300;
-    font-family: 'Mulish', sans-serif;
+    font-weight: 500;
+    font-family: var(--text-font);
     white-space: nowrap;
     box-sizing: border-box;
 }
@@ -206,21 +192,21 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 .team-input-item {
     border-radius: 70px;
     color: white;
-    font-size: clamp(13px, 1.2vw, 22px);
+    font-size: 14px;
     background: #8338EB;
     padding: 5px 14px;
 }
 
 .dropdown-block {
-    width: clamp(180px, 17.6vw, 303px);
+    width: 180px;
     position: relative;
 }
 
 .dropdown-toggle {
     cursor: pointer;
     color: white;
-    font-family: 'Mulish', sans-serif;
-    font-size: clamp(13px, 1.1vw, 20px);
+    font-family: var(--text-font);
+    font-size: 14px;
     font-weight: 600;
     background: #caa7f9;
     padding: 12px 20px;
@@ -270,7 +256,7 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 .dropdown-item {
     color: white;
     cursor: pointer;
-    font-size: clamp(11px, 0.9vw, 16px);
+    font-size: 11px;
     word-break: break-word;
 }
 
@@ -293,14 +279,14 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 
 .team-stream-block {
     color: #8338EB;
-    font-size: clamp(14px, 1.2vw, 20px);
-    font-weight: 700;
-    font-family: 'Montserrat', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--text-font);
 }
 
 .stream-loading-message {
     color: #8338EB;
-    font-size: clamp(14px, 1.2vw, 20px);
+    font-size: 14px;
     font-weight: 700;
 }
 
@@ -308,7 +294,6 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     display: flex;
     flex-direction: column;
     gap: 10px;
-    font-weight: bold;
     color: #6c2bd9;
 }
 
@@ -325,7 +310,6 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 }
 
 .stream-header-label {
-    font-weight: bold;
     color: #333;
     min-width: 120px;
 }
@@ -345,17 +329,17 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     align-items: center;
     gap: 12px;
     color: #333;
-    font-size: clamp(14px, 1.4vw, 24px);
-    font-weight: 400;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .team-description-wrapper {
     width: 100%;
     max-width: min(739px, 100%);
-    height: clamp(140px, 13.8vw, 238px);
-    padding: clamp(14px, 1.7vw, 29px) clamp(16px, 1.7vw, 30px);
+    height: 140px;
+    padding: 14px 16px;
     border: 3px solid #8338EB;
-    border-radius: clamp(24px, 4vw, 70px);
+    border-radius: 24px;
     scrollbar-width: thin;
     scrollbar-color: #8338EB transparent;
 }
@@ -366,10 +350,10 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     border: none;
     resize: none;
     outline: none;
-    font-size: clamp(13px, 1.3vw, 24px);
+    font-size: 14px;
     font-weight: 300;
     background: transparent;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: var(--text-font);
     padding-right: 10px;
 }
 
@@ -386,17 +370,16 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 }
 
 .right-panel {
-    width: clamp(200px, 35%, 620px);
+    width: 280px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    padding-top: clamp(30px, 4.2vw, 72px);
+    padding-top: 48px;
     padding-right: 10px;
 }
 
 .team-meetings-block {
     width: 100%;
-    height: clamp(240px, 30vw, 523px);
     border-radius: 35px;
     border: 3px solid #8338EB;
     padding: 28px 20px 28px 24px;
@@ -411,7 +394,6 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 16px;
     display: flex;
     flex-direction: column;
 }
@@ -430,7 +412,7 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 
 .team-meeting {
     width: 100%;
-    height: clamp(38px, 3.4vw, 58px);
+    height: 38px;
     cursor: pointer;
     border-radius: 70px;
     background: #8338EB;
@@ -447,7 +429,7 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 .meeting-date {
     position: absolute;
     left: 16px;
-    font-size: clamp(13px, 1.2vw, 24px);
+    font-size: 14px;
     font-weight: 700;
     color: #ffffff;
     cursor: pointer;
@@ -460,11 +442,11 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 .meeting-title {
     flex: 1;
     text-align: center;
-    font-size: clamp(13px, 1.2vw, 24px);
+    font-size: 14px;
     font-weight: 700;
     color: #ffffff;
     padding: 0 16px 0 80px;
-    font-family: 'Mulish', sans-serif;
+    font-family: var(--text-font);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -496,15 +478,15 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 
 .team-meeting-add {
     width: 100%;
-    height: clamp(40px, 3.4vw, 58px);
+    height: 40px;
     border-radius: 70px;
     color: #fff;
     cursor: pointer;
-    font-size: clamp(13px, 1.3vw, 24px);
+    font-size: 14px;
     background: #878685;
     border: none;
     font-weight: 400;
-    font-family: 'Mulish', sans-serif;
+    font-family: var(--text-font);
     flex-shrink: 0;
 }
 
@@ -525,10 +507,10 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     border: none;
     padding: 10px 20px;
     border-radius: 20px;
-    font-size: clamp(13px, 1vw, 16px);
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
-    min-width: clamp(120px, 11.6vw, 200px);
+    min-width: 120px;
     height: 49px;
     display: flex;
     align-items: center;
@@ -542,8 +524,8 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     background: #D34F4F;
     color: white;
     height: 45px;
-    padding: 10px clamp(20px, 3vw, 52px);
-    font-size: clamp(13px, 1vw, 20px);
+    padding: 10px 20px;
+    font-size: 14px;
     border: none;
     border-radius: 30px;
     cursor: pointer;
@@ -554,7 +536,7 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 
 .red-button-container {
     position: absolute;
-    left: clamp(20px, 2.3vw, 40px);
+    left: 20px;
     bottom: 40px;
 }
 
@@ -653,18 +635,7 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     .team-card-widget-container {
         width: 97vw;
         margin: 20px auto;
-        padding: 30px 20px 90px;
         gap: 16px;
-    }
-
-    .team-card-left {
-        padding-left: 16px;
-        padding-top: 60px;
-    }
-
-    .right-panel {
-        width: clamp(180px, 30%, 380px);
-        padding-top: 60px;
     }
 
     .button-group-widget {
@@ -705,8 +676,6 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     }
 
     .edit-button-widget {
-        padding: 6px 16px;
-        font-size: 14px;
         top: 14px;
         right: 50px;
     }
@@ -716,20 +685,13 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
         right: 16px;
     }
 
-    .team-rating {
-        height: 38px;
-        width: 130px;
-        font-size: 18px;
-        line-height: 38px;
-    }
-
     .team-card-info {
         gap: 8px;
         width: 100%;
     }
 
     .team-label-widget {
-        font-size: 13px;
+        font-size: 14px;
         margin-bottom: 0;
         white-space: nowrap;
         flex-shrink: 0;
@@ -740,15 +702,9 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
         min-width: 0;
     }
 
-    .team-input-widget {
-        width: 100%;
-        height: 36px;
-        font-size: 14px;
-    }
-
     .team-input-widget1 {
         height: 34px;
-        font-size: 13px;
+        font-size: 14px;
         width: auto;
         max-width: 160px;
         padding: 0 12px;
@@ -756,7 +712,7 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
 
     .team-input-widget2 {
         height: 34px;
-        font-size: 13px;
+        font-size: 14px;
         width: auto;
         min-width: 52px;
         padding: 0 14px;
@@ -783,7 +739,7 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     }
 
     .team-input-item {
-        font-size: 13px;
+        font-size: 14px;
         padding: 4px 12px;
     }
 
@@ -807,26 +763,18 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
         padding: 0;
     }
 
-    .team-meetings-block {
-        width: 100%;
-        height: auto;
-        min-height: 120px;
-        padding: 16px;
-        border-radius: 20px;
-    }
-
     .team-meeting {
         height: 44px;
         margin-bottom: 8px;
     }
 
     .meeting-date {
-        font-size: 13px;
+        font-size: 14px;
         left: 12px;
     }
 
     .meeting-title {
-        font-size: 13px;
+        font-size: 14px;
         padding-left: 70px;
     }
 
@@ -1008,5 +956,5 @@ select.team-input-widget option { background: #8B5CF6; color: white; }
     background: #D34F4F;
     color: white;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
 }
