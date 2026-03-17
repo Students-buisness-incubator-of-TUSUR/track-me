@@ -844,7 +844,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 """))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements", is(2)));
+                .andExpect(jsonPath("$.page.totalElements", is(3)));
     }
 
     @Test
