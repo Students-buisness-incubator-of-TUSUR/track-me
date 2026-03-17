@@ -1,24 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
-
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #ffffff;
-    color: #333;
-}
-
-a {
-    font-family: 'Mulish', sans-serif;
-}
-
-input:focus {
-    outline: none;
-}
-
 .create-card-container {
     position: relative;
     width: min(1719px, 95vw);
@@ -76,8 +55,8 @@ input:focus {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    padding-left: clamp(20px, 6.9vw, 119px);
-    padding-top: clamp(30px, 4.2vw, 72px);
+    padding-left: 20px;
+    padding-top: 30px;
     padding-right: 10px;
 }
 
@@ -89,8 +68,8 @@ input:focus {
 }
 
 .create-card-label {
-    font-size: clamp(14px, 1.4vw, 24px);
-    font-weight: 400;
+    font-size: 14px;
+    font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
     color: #333;
@@ -111,9 +90,9 @@ input:focus {
     background: #8338EB;
     border-radius: 30px;
     color: #fff;
-    font-size: clamp(13px, 1.2vw, 22px);
-    font-weight: 300;
-    font-family: 'Mulish', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    font-family: var(--text-font);
 }
 
 .create-input::placeholder {
@@ -129,7 +108,7 @@ input:focus {
 }
 
 .create-dropdown-block {
-    width: clamp(200px, 17.6vw, 303px);
+    width: 200px;
     position: relative;
 }
 
@@ -139,8 +118,8 @@ input:focus {
     justify-content: space-between;
     cursor: pointer;
     color: white;
-    font-family: 'Mulish', sans-serif;
-    font-size: clamp(13px, 1.1vw, 20px);
+    font-family: var(--text-font);
+    font-size: 14px;
     font-weight: 600;
     background: #caa7f9;
     padding: 12px 20px;
@@ -148,7 +127,6 @@ input:focus {
     width: 100%;
     text-align: left;
     border-radius: 24px;
-    transition: border-radius 0.15s;
 }
 
 .create-dropdown-toggle::after {
@@ -159,6 +137,11 @@ input:focus {
 }
 
 .create-dropdown-block.open .create-dropdown-toggle {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.dropdown-block.open .create-dropdown-toggle {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 }
@@ -186,13 +169,13 @@ input:focus {
     align-items: flex-start;
     gap: 4px;
     cursor: pointer;
-    font-size: clamp(11px, 0.9vw, 16px);
+    font-size: 11px;
     word-break: break-word;
 }
 
 .data-create-team {
     all: unset;
-    font-size: clamp(11px, 0.76vw, 13px);
+    font-size: 11px;
     cursor: pointer;
     padding-left: 4px;
 }
@@ -208,17 +191,17 @@ input:focus {
     align-items: center;
     gap: 12px;
     color: #333;
-    font-size: clamp(14px, 1.4vw, 24px);
-    font-weight: 400;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .create-team-description-wrapper {
     width: 100%;
     max-width: min(739px, 100%);
-    height: clamp(140px, 13.8vw, 238px);
-    padding: clamp(14px, 1.7vw, 29px) clamp(16px, 1.7vw, 30px);
+    height: 140px;
+    padding: 14px 16px;
     border: 3px solid #8338EB;
-    border-radius: clamp(24px, 4vw, 70px);
+    border-radius: 24px;
     scrollbar-width: thin;
     scrollbar-color: #8338EB transparent;
 }
@@ -229,10 +212,10 @@ input:focus {
     border: none;
     resize: none;
     outline: none;
-    font-size: clamp(13px, 1.3vw, 24px);
-    font-weight: 300;
+    font-size: 14px;
+    font-weight: 400;
     background: transparent;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: var(--text-font);
 }
 
 .create-team-description-wrapper::-webkit-scrollbar { width: 14px; }
@@ -248,17 +231,17 @@ input:focus {
 }
 
 .create-right-panel {
-    width: clamp(200px, 35%, 620px);
+    width: 200px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    padding-top: clamp(30px, 4.2vw, 72px);
+    padding-top: 30px;
     padding-right: 10px;
 }
 
 .create-meetings-block {
     width: 100%;
-    height: clamp(240px, 30vw, 523px);
+    height: 240px;
     border-radius: 35px;
     border: 3px solid #8338EB;
     padding: 30px 30px;
@@ -270,15 +253,15 @@ input:focus {
 
 .create-meeting-add {
     width: 100%;
-    height: clamp(44px, 3.4vw, 58px);
+    height: 44px;
     border-radius: 70px;
     color: #ffffff;
     cursor: pointer;
-    font-size: clamp(13px, 1.3vw, 24px);
+    font-size: 14px;
     background: #878685;
     border: none;
     font-weight: 400;
-    font-family: 'Montserrat', monospace;
+    font-family: var(--text-font);
 }
 
 .fake-scrollbar {
@@ -328,7 +311,7 @@ input:focus {
 
 .create-button-container {
     position: absolute;
-    right: clamp(16px, 2.9vw, 50px);
+    right: 16px;
     bottom: 33px;
     z-index: 10;
 }
@@ -337,13 +320,12 @@ input:focus {
     background: #8338EB;
     color: white;
     padding: 14px 32px;
-    font-size: clamp(14px, 1.1vw, 20px);
-    width: clamp(130px, 10.6vw, 182px);
+    font-size: 14px;
+    width: 130px;
     height: 50px;
     border: none;
     border-radius: 30px;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
 .create-button:hover { background: #6d28d9; }
@@ -355,7 +337,7 @@ input:focus {
     left: 50%;
     transform: translateX(-50%);
     color: red;
-    font-size: 13px;
+    font-size: 14px;
     background: #fff0f0;
     border: 1px solid #ffcccc;
     border-radius: 12px;
@@ -380,7 +362,7 @@ input:focus {
     }
 
     .create-right-panel {
-        width: clamp(180px, 30%, 400px);
+        width: 180px;
         padding-top: 30px;
     }
 }
@@ -506,7 +488,7 @@ input:focus {
     .error-message {
         bottom: 76px;
         max-width: 92vw;
-        font-size: 13px;
+        font-size: 14px;
     }
 }
 
@@ -520,7 +502,7 @@ input:focus {
     }
 
     .create-input {
-        font-size: 13px;
+        font-size: 14px;
     }
 
     .create-checkbox-list {

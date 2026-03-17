@@ -414,31 +414,6 @@ if (isAdmin && !selectedTracker) {
                 </div>
             </div>
 
-            <div className="create-right-panel">
-                <div className="create-meetings-block">
-                    {/* <div className="create-meetings-exist">
-                        <div className="create-meeting">
-                            <span class="meeting-date">25.04</span>
-                            <span class="meeting-title">Встреча 1</span> 
-                        </div>
-                        <div className="create-meeting">   
-                        </div>
-                    </div> */}
-                    <button
-    className="create-meeting-add"
-    onClick={() => {
-        setError("Сначала создайте карточку команды");
-    }}
->
-    Запланировать
-</button>
-
-                    <div className="fake-scrollbar"></div>
-                </div>
-            </div>
-
-            
-
             {error && (
                 <div className="error-message" style={{whiteSpace: 'pre-line'}}>
                     {error}
