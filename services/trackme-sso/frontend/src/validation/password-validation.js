@@ -1,4 +1,4 @@
-﻿const MIN_LENGTH = 6;
+const MIN_LENGTH = 6;
 
 export const passwordChecks = (password = "") => {
         return ""
