@@ -951,7 +951,7 @@ describe('handleExportExcel', () => {
     render(<Router><ReportPage /></Router>);
     await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
 
-    fireEvent.click(screen.getByText('Трекеры'));
+    fireEvent.click(screen.getByTestId('trackers-btn'));
     const dropdown = await screen.findByTestId('trackers-dropdown-menu');
     fireEvent.click(within(dropdown).getByText('Tracker One (tracker1)'));
 
