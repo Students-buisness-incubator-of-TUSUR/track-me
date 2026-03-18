@@ -56,7 +56,7 @@ export default function CreateStream() {
     if (!isEditMode) return;
     const fetchAllTeams = async () => {
       try {
-        const response = await fetchTeams({ page: 0, size: 1000 });
+        const response = await fetchTeams({ page: 0, size: 1000, admin: true });
 
         if (!response.ok) throw new Error("Ошибка при получении карточек команд");
 

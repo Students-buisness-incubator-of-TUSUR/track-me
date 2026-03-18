@@ -1,78 +1,41 @@
-@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
-
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #ffffff;
-    color: #333;
-}
-a {
-  font-family: 'Mulish', sans-serif;
-}
-
 .create-card-container {
     position: relative;
-    width: 1719px;
-    min-width: 80vh;
+    width: min(1719px, 95vw);
     min-height: 80vh;
-    max-height: 988px;
     margin: 40px auto;
     padding: 40px;
     background: #fff;
     border-radius: 40px;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
     display: flex;
-}
-.create-radio-style input[type="radio"] {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;             /* 💡 не позволяем сжиматься */
-  box-sizing: border-box;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  border: 1px solid white;
-  border-radius: 4px;
-  background-color: transparent;
-  cursor: pointer;
-  position: relative;
+    gap: 20px;
 }
 
-.create-radio-style input[type="radio"]:checked::before {
-  content: "✔";
-  color: black;
-  font-size: 14px;
-  font-weight: bold;
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
+.create-radio-style input[type="radio"],
 .create-radio-style input[type="checkbox"] {
-  width: 17px;
-  height: 17px;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  border: 1px solid white;
-  border-radius: 4px;
-  background-color: transparent;
-  cursor: pointer;
-  position: relative;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid white;
+    border-radius: 4px;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
 }
 
+.create-radio-style input[type="radio"]:checked::before,
 .create-radio-style input[type="checkbox"]:checked::before {
-  content: "✔";
-  color: black;
-  font-size: 14px;
-  font-weight: bold;
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    content: "✔";
+    color: black;
+    font-size: 14px;
+    font-weight: bold;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
-
 
 .create-card-close {
     position: absolute;
@@ -83,374 +46,233 @@ a {
     border: none;
     color: #8e44fd;
     cursor: pointer;
+    z-index: 10;
 }
 
 .create-card-left {
-    width: 50%;
-    padding-right: 20px;
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    padding-left: 119px;
-    padding-top: 72px;
+    padding-left: 20px;
+    padding-top: 30px;
+    padding-right: 10px;
 }
 
 .create-card-info {
     display: flex;
-    width: fit-content;
-    gap: 20px;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 }
 
 .create-card-label {
-    display: block;
-    color: #333;
-    margin-bottom: 10px;
-    font-size: 24px;
-    font-weight: 400;
+    font-size: 14px;
+    font-weight: 600;
     white-space: nowrap;
+    flex-shrink: 0;
+    color: #333;
+    margin: 0;
 }
 
 .create-input-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 600px;
+    flex: 1;
+    min-width: 0;
 }
 
 .create-input {
+    display: block;
+    width: 100%;
     height: 40px;
-    padding: 0 48px 0 20px;
+    padding: 0 20px;
     border: none;
     background: #8338EB;
     border-radius: 30px;
     color: #fff;
-    
-    font-size: 24px;
-    font-weight: 300;
-    line-height: 30px;
-    width: 350px;
-    min-width: 150px;
-    font-family:'Mulish';
+    font-size: 14px;
+    font-weight: 400;
+    font-family: var(--text-font);
 }
-
-input:focus {
-    outline: none;
-  }
 
 .create-input::placeholder {
-    color: #ffffff;
-}
-
-.create-input:focus::placeholder {
-    color: #ffffff80;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .create-edit-icon {
-    margin-top: 8px;
-    width: 25px;
-    height: 25px;
-    margin-left: 15px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
     cursor: pointer;
-    z-index: 2;
+    opacity: 0.7;
 }
 
 .create-dropdown-block {
-    width: 303px;
+    width: 200px;
     position: relative;
-    border-radius: 24px;
-    overflow: visible;
 }
 
 .create-dropdown-toggle {
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     cursor: pointer;
     color: white;
-    font-family:'Mulish';
-    font-size: 20px;
+    font-family: var(--text-font);
+    font-size: 14px;
     font-weight: 600;
     background: #caa7f9;
-    padding: 14px 20px;
+    padding: 12px 20px;
     border: none;
     width: 100%;
-    box-sizing: border-box;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
     text-align: left;
-    position: relative;
-    opacity: 1;
-    transition: opacity 0.3s;
     border-radius: 24px;
 }
 
 .create-dropdown-toggle::after {
     content: url(arrow.png);
-    position: absolute;
-    right: 25px;
-    top: 15px;
-    font-size: 12px;
-}
-
-.create-dropdown-toggle.disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .create-dropdown-block.open .create-dropdown-toggle {
-    border-bottom-left-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
+.dropdown-block.open .create-dropdown-toggle {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
 
 .create-checkbox-list {
     position: absolute;
     top: 100%;
     left: 0;
+    right: 0;
     z-index: 1000;
     background: #caa7f9;
-    min-width: 260px;
-    max-width: 100%;
     padding: 10px 14px;
-    box-sizing: border-box;
-    white-space: normal;
-    
     display: grid;
-    grid-template-columns: repeat(2, minmax(100px, 1fr)); /* Оставляем только это */
+    grid-template-columns: repeat(2, 1fr);
     gap: 6px 8px;
     border-bottom-left-radius: 24px;
     border-bottom-right-radius: 24px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    max-height: 300px;
-    width: 100%;
-    overflow: visible;
-}
-.create-checkbox-item {
-  display: flex;
-  align-items: flex-start;
-  
-  font-size: 18px;
-max-width: 98px;
-  cursor: pointer;
-  
-
-  /* 💡 Перенос длинного текста */
-  white-space: normal;
-  word-wrap: break-word;
-  word-break: break-word;
-}
-
-.create-stream-list,
-.create-checkbox-list {
+    max-height: 260px;
+    overflow-y: auto;
     color: black;
-    
 }
+
+.create-checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    word-break: break-word;
+}
+
 .data-create-team {
     all: unset;
-  position: relative;
-            /* немного вниз */
-  left: 8px;          /* немного вправо */
-  font-size: 13px;    /* по желанию, сделать чуть больше */
-  cursor: pointer;    /* курсор "рука" для UX */
+    font-size: 11px;
+    cursor: pointer;
+    padding-left: 4px;
 }
 
 .create-team-description {
     display: flex;
     flex-direction: column;
-    gap: 13px;
+    gap: 10px;
 }
-
-
 
 .create-team-description-label {
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 12px;
     color: #333;
-    font-size: 24px;
-    font-weight: 400;
-    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
 }
-
-
-
-
-
-
-.create-team-description-label {
-    display: block;
-    color: #333;
-    font-size: 24px;
-    font-weight: 400;
-    white-space: nowrap;
-}
-
 
 .create-team-description-wrapper {
-   position: relative;
-  width: 739px;
-  height: 238px;
-  padding: 29px 30px 29px 41px;
-  scrollbar-gutter: stable;            /* внутренняя «подушка» */
-  border: 3px solid #8338EB;
-  border-radius: 70px;
-  box-sizing: border-box;
-
-  /* скролл теперь у обёртки: */
-                
-  
-  scrollbar-width: thin;            /* Firefox */
-  scrollbar-color: #8338EB transparent;
-  
+    width: 100%;
+    max-width: min(739px, 100%);
+    height: 140px;
+    padding: 14px 16px;
+    border: 3px solid #8338EB;
+    border-radius: 24px;
+    scrollbar-width: thin;
+    scrollbar-color: #8338EB transparent;
 }
+
 .create-team-description-wrapper .create-description-input {
- width: 100%;
-  height: 100%;
-  border: none;
-  
-  resize: none;
-  outline: none;
-  box-sizing: border-box;
-  font-size: 24px;
-  font-weight: 300;
-  background: transparent;
-  
+    width: 100%;
+    height: 100%;
+    border: none;
+    resize: none;
+    outline: none;
+    font-size: 14px;
+    font-weight: 400;
+    background: transparent;
+    font-family: var(--text-font);
+}
 
-  padding-right: 20px;
-}
-.create-team-description-wrapper::-webkit-scrollbar {
-  width: 16px;
-}
+.create-team-description-wrapper::-webkit-scrollbar { width: 14px; }
 .create-team-description-wrapper::-webkit-scrollbar-thumb {
-  border: 3px solid #8338EB;
-  background-color: #ffffff;
-  background-clip: content-box;
-  border-radius: 8px;
+    border: 3px solid #8338EB;
+    background-color: #fff;
+    background-clip: content-box;
+    border-radius: 8px;
 }
 .create-team-description-wrapper::-webkit-scrollbar-track {
-  background: #8338EB;
-  border-radius: 70px;
-}
-
-
-.create-description-input:focus {
-    outline: none;
+    background: #8338EB;
+    border-radius: 70px;
 }
 
 .create-right-panel {
-    width: 50%;
+    width: 200px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    padding-top: 72px;
+    padding-top: 30px;
     padding-right: 10px;
 }
 
 .create-meetings-block {
-    width: 604px;
-    height: 523px;
+    width: 100%;
+    height: 240px;
     border-radius: 35px;
     border: 3px solid #8338EB;
-    padding: 35px 66px 35px 30px;
-    margin-left: auto;
+    padding: 30px 30px;
     display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
     position: relative;
 }
 
-.create-meetings-exist {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.create-meeting {
-    width: 604px;
-    height: 58px;
-    border-radius: 70px;
-    background: #8338EB;
-    display: flex;
-    position: absolute;
-}
-
-.meeting-date {
-    position: absolute;
-    left: 30px;
-    width: 60px;
-    color: #666;
-}
-  
-.meeting-title {
-    flex: 1;
-    text-align: center;
-    padding-left: 90px; 
-    padding-right: 30px; 
-}
-
 .create-meeting-add {
-    width: 604px;
-    height: 58px;
+    width: 100%;
+    height: 44px;
     border-radius: 70px;
-    color:#ffffff;
+    color: #ffffff;
     cursor: pointer;
-    font-size: 24px;
-    font-weight: 600;
+    font-size: 14px;
     background: #878685;
     border: none;
     font-weight: 400;
-    font-family: 'Montserrat', monospace;
+    font-family: var(--text-font);
 }
 
 .fake-scrollbar {
     position: absolute;
-    top: 35px;
-    right: 50px;
-    bottom: 35px;
+    top: 30px;
+    right: 16px;
+    bottom: 30px;
     width: 10px;
-    margin-right: -26px;
     border-radius: 39px;
     border: 3px solid #8338EB;
 }
-
-.create-checkbox-label {
-    display: flex;
-    align-items: center;
-    font-size: 14px;
-    gap: 6px;
-    color: white;
-}
-
-.create-button-container {
-    position: absolute;
-    right: 50px;
-    bottom: 33px;
-}
-
-.create-button {
-    background: #8338EB;
-    color: white;
-    padding: 14px 32px;
-    font-size: 20px;
-    width: 182px;
-    height: 50px;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.error-message {
-    color: red;
-    font-size: 14px;
-    margin-top: 10px;
-}
-
-.stream-attach-button-container {
-    position: absolute;
-    bottom: 33px;
-    left: 50px;
-    width: 300px;
-}
-
-.create-checkbox-item:hover {
-    cursor: pointer;
-}
-
 
 .tracker-select-container {
     position: relative;
@@ -459,31 +281,231 @@ max-width: 98px;
 
 .trackers-dropdown {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background-color: #ffffff;
+    background: #fff;
     border: 1px solid #ccc;
-    border-radius: 8px;
+    border-radius: 12px;
     max-height: 200px;
     overflow-y: auto;
-    z-index: 10;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
 .tracker-option {
-    padding: 10px;
+    padding: 10px 16px;
     cursor: pointer;
     font-size: 14px;
     color: white;
-    background-color: #8338EB;
-    border-bottom: 1px solid #f0f0f0;
+    background: #8338EB;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
 .tracker-option:hover {
-    background-color: #f9f9f9;
+    background: #f3f0ff;
+    color: #333;
 }
 
-.tracker-option:last-child {
-    border-bottom: none;
+.tracker-option:last-child { border-bottom: none; }
+
+.create-button-container {
+    position: absolute;
+    right: 16px;
+    bottom: 33px;
+    z-index: 10;
+}
+
+.create-button {
+    background: #8338EB;
+    color: white;
+    padding: 14px 32px;
+    font-size: 14px;
+    width: 130px;
+    height: 50px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+.create-button:hover { background: #6d28d9; }
+.create-button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.error-message {
+    position: absolute;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: red;
+    font-size: 14px;
+    background: #fff0f0;
+    border: 1px solid #ffcccc;
+    border-radius: 12px;
+    padding: 10px 16px;
+    white-space: pre-line;
+    text-align: center;
+    max-width: 80%;
+    z-index: 50;
+}
+
+@media (max-width: 1100px) {
+    .create-card-container {
+        margin: 20px auto;
+        padding: 30px 20px 80px;
+        width: 97vw;
+        gap: 16px;
+    }
+
+    .create-card-left {
+        padding-left: 16px;
+        padding-top: 30px;
+    }
+
+    .create-right-panel {
+        width: 180px;
+        padding-top: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .create-card-container {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        padding: 56px 16px 88px;
+        box-shadow: none;
+        min-height: 100dvh;
+        gap: 12px;
+    }
+
+    .create-card-left {
+        width: 100%;
+        padding: 0;
+        gap: 12px;
+        align-self: flex-start;
+    }
+
+    .create-right-panel {
+        width: 100%;
+        padding: 0;
+    }
+
+
+
+    .fake-scrollbar {
+        display: none;
+    }
+
+    .create-card-info {
+        gap: 8px;
+    }
+
+    .create-card-label {
+        font-size: 14px;
+        min-width: fit-content;
+    }
+
+    .create-input {
+        height: 38px;
+        font-size: 14px;
+    }
+
+    .create-edit-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .create-dropdown-block {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .create-dropdown-toggle {
+        font-size: 15px;
+        padding: 11px 16px;
+    }
+
+    .create-checkbox-list {
+        grid-template-columns: repeat(2, 1fr);
+        max-height: 200px;
+    }
+
+    .create-team-description-label {
+        font-size: 15px;
+    }
+
+    .create-team-description-wrapper {
+        width: 100%;
+        height: 140px;
+        border-radius: 24px;
+        padding: 14px 16px;
+        max-width: 100%;
+    }
+
+    .create-meetings-block {
+        height: 140px;
+        min-height: 140px;
+        padding: 14px 16px;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .create-team-description-wrapper .create-description-input {
+        font-size: 14px;
+    }
+
+    .create-meeting-add {
+        height: 46px;
+        font-size: 15px;
+    }
+
+    .create-button-container {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(4px);
+        border-top: 1px solid #e5e7eb;
+        z-index: 200;
+        transform: none;
+    }
+
+    .create-button {
+        width: min(300px, 90vw);
+        height: 48px;
+        font-size: 16px;
+    }
+
+    .error-message {
+        bottom: 76px;
+        max-width: 92vw;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 400px) {
+    .create-card-container {
+        padding: 48px 12px 96px;
+    }
+
+    .create-card-label {
+        font-size: 12px;
+    }
+
+    .create-input {
+        font-size: 14px;
+    }
+
+    .create-checkbox-list {
+        grid-template-columns: 1fr;
+    }
 }

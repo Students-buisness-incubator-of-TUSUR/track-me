@@ -2,10 +2,10 @@ import {useCallback, useEffect, useState} from "react";
 import "./TrackerPage.css";
 import { useLocation } from "react-router-dom";
 import {useNavigate} from "react-router-dom";
-import {useSelector} from "react-redux";
 import StreamPlaceholder from './Заглушка для потока в TrackMe.png';
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import Header from "../header/header";
+import { useGetUserInfo } from "../../services/util";
 
 function TrackerPage() {
     const [cards, setCards] = useState([]);
@@ -63,7 +63,6 @@ const [totalPages, setTotalPages] = useState(1);
     const navigate = useNavigate();
     // const numberOfCheckboxes = 9;
     const numberOfCheckboxes1 = year - 2015;
-    const user = useSelector((state) => state.user);
 
     // Данные для TRL – используем реальные диапазоны
     const trlRanges = [
@@ -106,21 +105,12 @@ const [totalPages, setTotalPages] = useState(1);
         );
     };
     
-    // В начале компонента TrackerPage
-useEffect(() => {
-    // Проверяем данные пользователя в localStorage при загрузке
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-        const userData = JSON.parse(savedUser);
-        setUserRole(userData.roles[0]);
-        setusername(userData.username);
-    } else if (user?.user) {
-        // Сохраняем данные пользователя в localStorage
-        localStorage.setItem('user', JSON.stringify(user.user));
-        setUserRole(user.user.roles[0]);
-        setusername(user.user.username);
-    }
-}, [user]);
+    const user = useGetUserInfo();
+    useEffect(() => {
+        setUserRole(user.roles[0]);
+        setusername(user.username);
+    }, [user]);
+
     
     
 

@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import React, { useEffect, useState, useCallback, useId, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import "./ProfilePage.css";
-import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
-// Импорт иконок
-import penIcon from "./pen.png";
-import uploadIcon from "./upload.png";
 import Header from "../header/header";
+import { fetchTeams, fetchUserInfo, fetchUserPhoto, updateUserInfo, updateUserPhoto } from "../../services/requests";
+import InputBox from "../input-box/input-box";
+import { ReactComponent as CloseIcon } from '../../files/close.svg';
+import { ReactComponent as UploadIcon } from '../../files/upload.svg';
+import noUserPhoto from '../../files/no-user-photo.png';
 
 function ProfilePage() {
     const navigate = useNavigate();
@@ -14,85 +15,75 @@ function ProfilePage() {
     const [currentUser, setCurrentUser] = useState(null); // Текущий авторизованный пользователь
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [userPhoto, setUserPhoto] = useState(null);
-    const ssoHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/sso';
-    const defaultAvatarUrl = "/images/no-photo.png";
-    
-    // Флаг редактирования - доступен только для своего профиля
+    const photoId = useId();
     const [isEditing, setIsEditing] = useState(false);
     const [isOwnProfile, setIsOwnProfile] = useState(false);
-
-    // Состояние для редактируемых данных
     const [editedData, setEditedData] = useState({});
-
-    // Состояние для отображения подсказки
-    const [showTooltip, setShowTooltip] = useState(false);
-    const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-
-    const handleMouseMove = (event) => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        setTooltipPosition({
-            x: rect.left + (rect.width / 2),
-            y: rect.top - 10
-        });
-    };
-
-    // Количество команд, получаемое из userData
     const [teamCount, setTeamCount] = useState(0);
+
+    const photoImgRef = useRef(null);
+    const setUserPhoto = useCallback((blobOrUrl) => {
+        if (!photoImgRef.current) return;
+
+        if (!blobOrUrl) {
+            photoImgRef.current.src = noUserPhoto;
+            return;
+        }
+        try {
+            const url = typeof blobOrUrl === "string"
+                ? blobOrUrl
+                : URL.createObjectURL(blobOrUrl);
+            const parsed = new URL(url);
+            if (parsed.protocol === "blob:") {
+                photoImgRef.current.src = url;
+            } else {
+                photoImgRef.current.src = noUserPhoto;
+            }
+        } catch {
+            photoImgRef.current.src = noUserPhoto;
+        }
+    }, []);
+
     const loadTargetUserData = useCallback((targetUsername) => {
-    setUserData(null);
-    setEditedData({});
-    setLoading(true);
-    setError(null);
+        setUserData(null);
+        setEditedData({});
+        setLoading(true);
+        setError(null);
 
-    const endpoint = `${ssoHost}/api/v1/users/${targetUsername}/info`;
-
-    fetch(endpoint, {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-    })
-        .then(res => {
-            if (res.status === 403) throw new Error("Нет доступа к просмотру этого профиля");
-            if (res.status === 404) throw new Error("Пользователь не найден");
-            if (!res.ok) throw new Error("Ошибка загрузки данных пользователя");
-            return res.json();
-        })
-        .then(data => {
-            setUserData(data);
-            setEditedData(data);
-        })
-        .catch(err => {
-            setError(err.message || "Ошибка загрузки данных пользователя");
-            setUserData(null);
-            setEditedData({});
-        })
-        .finally(() => setLoading(false));
-}, [ssoHost]);
+        fetchUserInfo({ username: targetUsername })
+            .then(res => {
+                if (res.status === 403) throw new Error("Нет доступа к просмотру этого профиля");
+                if (res.status === 404) throw new Error("Пользователь не найден");
+                if (!res.ok) throw new Error("Ошибка загрузки данных пользователя");
+                return res.json();
+            })
+            .then(data => {
+                setUserData(data);
+                setEditedData(data);
+            })
+            .catch(err => {
+                setError(err.message || "Ошибка загрузки данных пользователя");
+                setUserData(null);
+                setEditedData({});
+            })
+            .finally(() => setLoading(false));
+    }, []);
 
     // 1. Загружаем текущего авторизованного пользователя
     useEffect(() => {
-        fetch(`${ssoHost}/api/v1/account/info`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include"
-        })
+        fetchUserInfo({})
             .then((response) => {
                 if (!response.ok) {
                     if (response.status === 401) {
-                        setError("Ошибка авторизации! Пожалуйста, выполните вход заново.");
-                    } else {
-                        setError(`Ошибка при загрузке данных. Статус: ${response.status}`);
+                        throw new Error("Ошибка авторизации! Пожалуйста, выполните вход заново.");
                     }
-                    throw new Error("Ошибка запроса");
+                    throw new Error(`Ошибка при загрузке данных. Статус: ${response.status}`);
                 }
                 return response.json();
             })
             .then((result) => {
                 setCurrentUser(result);
-                
+
                 // Проверяем, это свой профиль или чужой
                 if (!username || username === result.username) {
                     setIsOwnProfile(true);
@@ -106,31 +97,27 @@ function ProfilePage() {
                 }
             })
             .catch((err) => {
-    console.error("Ошибка загрузки данных:", err);
-    setUserData(null);             // ← обязательное
-    setEditedData({});
-    setLoading(false);
-});
+                console.error("Ошибка загрузки данных:", err);
+                setError(err.message);
+                setUserData(null);             // ← обязательное
+                setEditedData({});
+                setLoading(false);
+            });
 
-    }, [ssoHost, username, loadTargetUserData]);
+    }, [username, loadTargetUserData]);
 
-    
+
     const handleCloseProfile = () => {
-    navigate(-1); // Возвращаемся на предыдущую страницу
-};
+        navigate(-1); // Возвращаемся на предыдущую страницу
+    };
     // Загрузка фото пользователя
     useEffect(() => {
         if (!userData) return;
 
         const targetUsername = isOwnProfile ? null : username;
-        const photoEndpoint = targetUsername 
-            ? `${ssoHost}/api/v1/users/${targetUsername}/photo`
-            : `${ssoHost}/api/v1/account/photo`;
 
-        fetch(photoEndpoint, {
-            method: "GET",
-            credentials: "include",
-        })
+        // if targetUsername == null then it should fetch current user info
+        fetchUserPhoto({ username: targetUsername })
             .then((res) => {
                 if (!res.ok) {
                     throw new Error("Фото не найдено");
@@ -144,32 +131,26 @@ function ProfilePage() {
             .catch(() => {
                 setUserPhoto(null);
             });
-    }, [userData, username, isOwnProfile, ssoHost]);
+    }, [setUserPhoto, userData, username, isOwnProfile]);
 
     // Загрузка количества команд (только для трекеров и только для своего профиля)
     useEffect(() => {
         if (!userData?.roles?.includes("TRACKER") || !isOwnProfile) return;
-        
-        const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
-        
-        fetch(`${backendHost}/api/v1/team-cards?page=0&size=1000`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", ...getCsrfConfigForFetch() },
-            credentials: "include",
-            body: JSON.stringify({
-                filters: [
-                    {
-                        fieldName: "username",
-                        type: "EQ",
-                        value: userData.username
-                    },
-                    {
-                        fieldName: "enabled",
-                        type: "EQ",
-                        value: true
-                    }
-                ]
-            })
+
+        fetchTeams({
+            page: 0, size: 10000,
+            filters: [
+                {
+                    fieldName: "username",
+                    type: "EQ",
+                    value: userData.username
+                },
+                {
+                    fieldName: "enabled",
+                    type: "EQ",
+                    value: true
+                }
+            ]
         })
             .then(res => {
                 if (!res.ok) {
@@ -235,7 +216,7 @@ function ProfilePage() {
             setError("Поле 'Телеграм' обязательно для заполнения");
             return false;
         }
-        
+
         if (!editedData.username.match(/^\w+$/)) {
             setError("Введите корректный юзернейм");
             return false;
@@ -254,18 +235,10 @@ function ProfilePage() {
             // Подготавливаем данные для отправки - заменяем null на пустую строку для avatarUrl
             const dataToSend = {
                 ...editedData,
-                avatarUrl: editedData.avatarUrl || defaultAvatarUrl
+                avatarUrl: editedData.avatarUrl || noUserPhoto
             };
 
-            const response = await fetch(`${ssoHost}/api/v1/account/update`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...getCsrfConfigForFetch()
-                },
-                credentials: "include",
-                body: JSON.stringify(dataToSend),
-            });
+            const response = await updateUserInfo({ newUserData: dataToSend });
 
             if (!response.ok) {
                 if (response.status === 400) {
@@ -282,11 +255,7 @@ function ProfilePage() {
             }
 
             // После успешного сохранения запрашиваем свежие данные
-            const userResponse = await fetch(`${ssoHost}/api/v1/account/info`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include"
-            });
+            const userResponse = await fetchUserInfo({});
 
             if (userResponse.ok) {
                 const freshData = await userResponse.json();
@@ -298,7 +267,7 @@ function ProfilePage() {
 
             setIsEditing(false);
             setError(null);
-            
+
         } catch (err) {
             console.error("Ошибка сохранения данных:", err);
             if (!err.message.includes('JSON')) {
@@ -319,7 +288,7 @@ function ProfilePage() {
     const handlePhoneChange = (e) => {
         let digits = e.target.value.replace(/\D/g, "");
         if (!digits) {
-            setEditedData({...editedData, phoneNumber: ""});
+            setEditedData({ ...editedData, phoneNumber: "" });
             return;
         }
         if (digits[0] !== "7") {
@@ -332,27 +301,20 @@ function ProfilePage() {
         if (digits.length >= 4) {
             formatted += digits.slice(4, 11);
         }
-        setEditedData({...editedData, phoneNumber: formatted});
+        setEditedData({ ...editedData, phoneNumber: formatted });
     };
 
     // Обработчик загрузки фото (только для своего профиля)
     const handlePhotoChange = (event) => {
         if (!isOwnProfile) return;
-        
+
         const file = event.target.files[0];
         if (!file) return;
 
         const imageUrl = URL.createObjectURL(file);
         setUserPhoto(imageUrl);
-        const formData = new FormData();
-        formData.append("file", file);
 
-        fetch(`${ssoHost}/api/v1/account/photo`, {
-            method: "POST",
-            headers: { ...getCsrfConfigForFetch() },
-            credentials: "include",
-            body: formData,
-        })
+        updateUserPhoto({ newUserPhotoFile: file })
             .then((response) => {
                 if (!response.ok) {
                     throw new Error("Ошибка загрузки фото");
@@ -405,228 +367,158 @@ function ProfilePage() {
 
     if (error && !userData) {
         return (
-            <div className="login-container">
-                <div className="profile-container">
-                    <div className="error-message42" data-testid="error-message">{error}</div>
-
-                    <button className="home-button" onClick={handleHomeButtonClick}>
-                        Главная страница
-                    </button>
+            <>
+                <Header userRole="TRACKER" />
+                <div className="profile-page_main">
+                    <div className="profile-page_container" style={{ alignItems: "center" }}>
+                        <div className="profile-page_error-msg" data-testid="error-message">{error}</div>
+                        <button className="profile-page_btn" onClick={handleHomeButtonClick}>
+                            Главная страница
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </>
         );
     }
 
     return (
         <>
-        <Header userRole={ currentUser.roles[0] } />
-        <div className="login-container">
-            <div className="profile-container">
-                {!isOwnProfile && (
-                <button 
-                    className="close-profile-button"
-                    onClick={handleCloseProfile}
-                    title="Закрыть профиль"
-                >
-                    <svg 
-                        className="close-icon" 
-                        viewBox="0 0 24 24" 
-                        width="24" 
-                        height="24"
-                    >
-                        <path 
-                            fill="currentColor" 
-                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-                        />
-                    </svg>
-                </button>
-            )}
-                <div className="profile-header">
-                    <h1>Личный кабинет </h1>
-                    {isOwnProfile && !isEditing && (
-                        <button className="edit-button12" onClick={handleEditClick}>
-                            Редактировать
-                        </button>
-                    )}
-                </div>
-
-                <div className="profile-content">
-                    <div className="profile-fields">
-                        <div className="field">
-                            <label className="profile-label">ФИО</label>
-                            <div className="input-container">
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    className="profile-input"
-                                    value={editedData.fullName || ""}
-                                    onChange={handleChange}
-                                    readOnly={!isEditing || !isOwnProfile}
-                                />
-                                {isEditing && isOwnProfile && (
-                                    <img src={penIcon} alt="Редактировать"
-                                         className="edit-icon123"/>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="field">
-                            <label className="profile-label">E-mail</label>
-                            <div className="input-container">
-                                <input
-                                    type="text"
-                                    name="email"
-                                    className="profile-input"
-                                    value={editedData.email || ""}
-                                    onChange={handleChange}
-                                    readOnly={!isEditing || !isOwnProfile}
-                                    pattern="^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$"
-                                />
-                                {isEditing && isOwnProfile && (
-                                    <img src={penIcon} alt="Редактировать"
-                                         className="edit-icon123"/>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="field">
-                            <label className="profile-label">Телефон</label>
-                            <div className="input-container">
-                                {isEditing && isOwnProfile ? (
-                                    <input
-                                        type="text"
-                                        name="phoneNumber"
-                                        className="profile-input"
-                                        value={editedData.phoneNumber || ""}
-                                        onChange={handlePhoneChange}
-                                    />
-                                ) : (
-                                    <input
-                                        type="text"
-                                        name="phoneNumber"
-                                        className="profile-input"
-                                        value={editedData.phoneNumber || ""}
-                                        readOnly
-                                    />
-                                )}
-                                {isEditing && isOwnProfile && (
-                                    <img src={penIcon} alt="Редактировать"
-                                         className="edit-icon123"/>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="field">
-                            <label htmlFor="telegram-username" className="profile-label">Username в Telegram</label>
-                            <div className="input-container">
-                                <input
-                                    id="telegram-username"
-                                    type="text"
-                                    name="username"
-                                    className="profile-input"
-                                    value={editedData.username || ""}
-                                    onChange={handleChange}
-                                    readOnly={true}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="profile-avatar-section" style={{position: "relative"}}>
-                        {isEditing && isOwnProfile ? (
-                            <label htmlFor="photo-upload" className="avatar-placeholder clickable"
-                                   style={{cursor: "pointer"}}>
-                                {userPhoto ? (
-                                    <img src={userPhoto} alt="Аватар" className="user-avatar"/>
-                                ) : (
-                                    <div className="default-avatar"></div>
-                                )}
-                                <div className="upload-photo-profile"
-                                     style={{position: "absolute", top: 0, right: 0}}>
-                                    <img src={uploadIcon} alt="Загрузить"
-                                         className="upload-icon-profile"/>
-                                </div>
-                            </label>
-                        ) : (
-                            <div className="avatar-placeholder">
-                                {userPhoto ? (
-                                    <img src={userPhoto} alt="Аватар" className="user-avatar"/>
-                                ) : (
-                                    <div className="default-avatar"></div>
-                                )}
-                            </div>
+            <Header userRole={currentUser.roles?.[0]} />
+            <div className="profile-page_main">
+                <div className="profile-page_container">
+                    {error && <div className="profile-page_error-msg" data-testid="error-message">{error}</div>}
+                    <div className="profile-page_header">
+                        <h1>Личный кабинет</h1>
+                        {!isEditing && isOwnProfile && (
+                            <button
+                                onClick={handleEditClick}
+                            >
+                                Редактировать
+                            </button>
                         )}
                         {isEditing && isOwnProfile && (
-                            <input
-                                type="file"
-                                id="photo-upload"
-                                style={{display: "none"}}
-                                onChange={handlePhotoChange}
-                                accept="image/*"
-                            />
+                            <button
+                                onClick={() => { window.location.reload() }}
+                            >
+                                Сбросить
+                            </button>
                         )}
-                        <div className="profile-role-text">
-                            {getRoleInRussian(userData.roles[0])}
+                        {!isOwnProfile && (
+                            <button
+                                onClick={handleCloseProfile}
+                            >
+                                <CloseIcon className="profile-page_close-icon" />
+                            </button>
+                        )}
+                    </div>
+                    <div className="profile-page_row">
+                        <div className="profile-page_fields">
+                            <InputBox
+                                className="profile-page_input-box"
+                                placeholder="ФИО"
+                                placeholderIsAbove
+                                type="text"
+                                name="fullName"
+                                value={editedData.fullName || ""}
+                                onChange={handleChange}
+                                readOnly={!isEditing}
+                                onEditClick={!isEditing ? null : () => { }}
+                            />
+                            <InputBox
+                                className="profile-page_input-box"
+                                placeholder="E-mail"
+                                placeholderIsAbove
+                                type="text"
+                                name="email"
+                                value={editedData.email || ""}
+                                onChange={handleChange}
+                                readOnly={!isEditing}
+                                onEditClick={!isEditing ? null : () => { }}
+                            />
+                            <InputBox
+                                className="profile-page_input-box"
+                                placeholder="Телефон"
+                                placeholderIsAbove
+                                type="text"
+                                name="phoneNumber"
+                                value={editedData.phoneNumber || ""}
+                                onChange={handlePhoneChange}
+                                readOnly={!isEditing}
+                                onEditClick={!isEditing ? null : () => { }}
+                            />
+                            <InputBox
+                                className="profile-page_input-box"
+                                placeholder="Имя пользователя в Telegram"
+                                placeholderIsAbove
+                                type="text"
+                                name="username"
+                                value={editedData.username || ""}
+                                onChange={handleChange}
+                                readOnly={true}
+                            />
+                        </div>
+                        <div className="profile-page_etc">
+                            <label
+                                htmlFor={photoId}
+                                style={isEditing ? { cursor: "pointer" } : {}}
+                                className="profile-page_photo-container"
+                                disabled={!(isEditing && isOwnProfile)}
+                            >
+                                <img
+                                    ref={photoImgRef}
+                                    data-testid="user-photo"
+                                    src={noUserPhoto}
+                                    alt="Аватар"
+                                />
+                                {isEditing && isOwnProfile && <UploadIcon className="profile-page_upload-icon" />}
+                            </label>
+                            {isEditing && (
+                                <input
+                                    type="file"
+                                    id={photoId}
+                                    style={{ display: "none" }}
+                                    onChange={handlePhotoChange}
+                                    accept="image/*"
+                                />
+                            )}
+                            <button
+                                className="profile-page_btn profile-page_role"
+                                disabled
+                            >
+                                {getRoleInRussian(userData.roles?.[0])}
+                            </button>
                         </div>
                     </div>
-                </div>
-
-                {/* Блок с сообщением об ошибке, выводится только в режиме редактирования своего профиля */}
-                {isEditing && isOwnProfile && error && (
-                    <div className="error-message42" data-testid="error-message">{error}</div>
-
-                )}
-
-                {isOwnProfile ? (
-                    !isEditing ? (
-                        <>
-                            <button 
-                                className="profile-team-cards-button" 
+                    <div className="profile-page_row">
+                        {!isEditing && isOwnProfile && (
+                            <button
+                                className="profile-page_btn"
                                 onClick={handleTeamCardsClick}
                             >
-                                Карточки команд
-                                {userData?.roles?.includes("TRACKER") && (
-                                    <span 
-                                        className="count-container"
-                                        onMouseEnter={() => setShowTooltip(true)}
-                                        onMouseLeave={() => setShowTooltip(false)}
-                                        onMouseMove={handleMouseMove}
-                                    >
-                                        ({teamCount})
-                                    </span>
-                                )}
+                                {`Карточки команд (${teamCount})`}
                             </button>
-                            {showTooltip && userData?.roles?.includes("TRACKER") && (
-                                <div 
-                                    className="profile-tooltip"
-                                    style={{
-                                        left: `${tooltipPosition.x}px`,
-                                        top: `${tooltipPosition.y}px`
-                                    }}
-                                >
-                                    Количество моих команд
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <button className="profile-team-cards-button" onClick={handleSaveClick}>
-                            Сохранить
+                        )}
+                        {isEditing && isOwnProfile && (
+                            <button
+                                className="profile-page_btn"
+                                onClick={handleSaveClick}
+                            >
+                                Сохранить
+                            </button>
+                        )}
+                        <button
+                            className="profile-page_btn"
+                            onClick={handleCloseProfile}
+                        >
+                            Главная страница
                         </button>
-                    )
-                ) : (
-                    // Для чужого профиля показываем только кнопку "Назад" или "Главная"
-                    <button className="home-button" onClick={() => navigate(-1)}>
-                        Назад
-                    </button>
-                )}
 
-                <button className="home-button" onClick={handleHomeButtonClick}>
-                    Главная страница
-                </button>
+                    </div>
+                </div>
             </div>
-        </div>
         </>
     );
 }
 
 export default ProfilePage;
+

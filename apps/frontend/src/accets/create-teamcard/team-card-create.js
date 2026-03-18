@@ -121,7 +121,7 @@ useEffect(() => {
   if (currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN"))
  {
     console.log("Запрашиваем трекеров...");
-    fetch(`${backendHost1}/api/v1/users/trackers`, {
+    fetch(`${backendHost1}/api/v1/users/trackers?page=0&size=100000`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -413,31 +413,6 @@ if (isAdmin && !selectedTracker) {
                     </div>
                 </div>
             </div>
-
-            <div className="create-right-panel">
-                <div className="create-meetings-block">
-                    {/* <div className="create-meetings-exist">
-                        <div className="create-meeting">
-                            <span class="meeting-date">25.04</span>
-                            <span class="meeting-title">Встреча 1</span> 
-                        </div>
-                        <div className="create-meeting">   
-                        </div>
-                    </div> */}
-                    <button
-    className="create-meeting-add"
-    onClick={() => {
-        setError("Сначала создайте карточку команды");
-    }}
->
-    Запланировать
-</button>
-
-                    <div className="fake-scrollbar"></div>
-                </div>
-            </div>
-
-            
 
             {error && (
                 <div className="error-message" style={{whiteSpace: 'pre-line'}}>
