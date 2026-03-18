@@ -1,227 +1,7 @@
-.profile-container {
-    position: relative;
-    width: 1359px;
-    height: 882px;
-    background-color: #8b50f9;
-    border: 5px solid #44069A;
-    border-radius: 70px;
-    color: #fff;
-    font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.profile-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #ffffff;
-    font-family: 'Montserrat', monospace;
-    font-weight: 200; /* Добавляем шрифт ко всему контейнеру */
-}
-.profile-header h1 {
-    width: 839px;
-    height: 117px;
-    padding-top: 66px;
-    padding-left: 92px;
-    font-weight: 400;
-    font-size: 96px;
-    margin: 0;
-}
-
-.edit-button12 {
-    background: none;
-    color: #FFFFFF;
-    font-size: 20px;
-    font-weight: 700;
-    margin-right: 91px;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-}
-
-.profile-content {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-.profile-fields {
-    display: flex;
-    padding-left: 92px;
-    flex-direction: column;
-    gap: 15px;
-    width: 60%;
-}
-
-.profile-label {
-    display: block;
-    padding-left: 36px;
-    font-size: 16px;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.input-container {
-    position: relative;
-}
-
-.profile-input {
-    width: 560px;
-    height: 72px;
-    font-size: 16px;
-    background-color: #E6D7FB;
-    color: #000;
-    padding-left: 24px;
-    padding-right: 50px;
-    border-radius: 70px;
-    border: none;
-    outline: none;
-}
-
-.edit-icon123 {
-    position: absolute;
-    right: -140px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    width: 24px;
-    height: 24px;
-}
-
-.profile-avatar-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 25px;
-    margin-right: 92px;
-    width: 440px;
-    gap: 25px;
-}
-
-.avatar-placeholder {
-    width: 440px;
-    height: 440px;
-    background-color: #c5aaf9;
-    border-radius: 70px;
-}
-
-.user-avatar {
-    width: 440px;
-    height: 440px;
-    border-radius: 70px;
-    object-fit: cover;
-}
-
-.default-avatar {
-    width: 440px;
-    height: 440px;
-    border-radius: 70px;
-    background-image: url("no-photo.png");
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-size: cover; /* Заполняет контейнер */
-    background-position: center; /* Центрируем фон */
-}
-
-.upload-icon-profile {
-    margin-top: 41px;
-    margin-right: 41px;
-    cursor: pointer;
-}
-
-.profile-role-text {
-    font-size: 24px;
-    font-weight: 600;
-    background-color: #ffffff;
-    color: #8338EB;
-    padding: 0 80px;
-    height: 55px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 30px;
-    white-space: nowrap;
-}
-
-.profile-team-cards-button {
-    margin-top: 10px;
-    width: 454px;
-    height: 70px;
-    background-color: #ffffff;
-    color: #8338EB;
-    border: none;
-    align-self: flex-start;
-    margin-left: 145px;
-    font-weight: 700;
-    font-size: 24px;
-    border-radius: 70px;
-    cursor: pointer;
-}
-/* Стиль для кнопки закрытия */
-.close-profile-button {
-    position: absolute;
-    top: 20px;
-    right: 25px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    transition: background-color 0.3s;
-    z-index: 100;
-}
-
-.close-profile-button:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
-
-.close-icon {
-    color: #ffffff;
-    transition: color 0.3s;
-}
-
-.close-profile-button:hover .close-icon {
-    color: #333;
-}
-
-
-.home-button {
-    position: absolute;
-    bottom: 55px;
-    right: 92px;
-    width: 440px;
-    height: 70px;
-    background-color: #ffffff;
-    color: #8338EB;
-    border: none;
-    font-weight: 700;
-    font-size: 24px;
-    border-radius: 70px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-}
-
-.error-message42 {
-    display: block;
+.profile-page_error-msg {
     border-radius: 70px;
     padding: 12px;
-    margin-top: -45px;
-    margin-left: -600px;
+    width: 100%;
     background-color: #FF000080;
     text-align: center;
     color: white;
@@ -229,240 +9,179 @@
     font-family: 'Montserrat', sans-serif;
 }
 
-.count-container {
-    position: relative;
-    display: inline-block;
-    margin-left: 5px;
-}
-
-.profile-tooltip {
-    position: fixed;
-    padding: 8px 12px;
-    background: #451982d5;
-    color: white;
-    border-radius: 30px;
-    font-size: 14px;
-    transform: translate(-50%, -100%);
-    white-space: nowrap;
-    pointer-events: none;
-    animation: tooltipFadeIn 0.2s ease-in-out;
-    z-index: 1000;
-}
-.mobile-container {
-  display: none;
-}
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  overflow-x: hidden;
-}
-
-/* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ ===== */
-/* ===== Мобильная версия (обновлённая) ===== */
-@media (max-width: 600px) {
-    .mobile-container {
-  display: block;
-}
-   
-
-
-    /* Основной контейнер */
-    .login-container {
-        margin-top: 50px;
-  height: auto;
-  padding: 0;
-  align-items: flex-start;
-  background-color: #ffffff;
-  overflow-x: hidden;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-
-    /* Убираем фиолетовый фон и фиксированные размеры */
-    .profile-container {
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        border: none;
-        border-radius: 0;
-        background-color: #ffffff;
-        color: #000;
-        
-        display: flex;
-        flex-direction: column; /* все элементы по вертикали */
-        align-items: center;    /* центрируем по горизонтали */
-        gap: 20px;   
-    }
-
-    /* Упрощаем структуру */
-    .profile-header {
-        flex-direction: column;
-        display: flex;
-    justify-content: center;
-        margin-bottom: -10px;
-
-       
-        width: 100%;
-    }
-
-    .profile-header h1 {
-    display: block;
+.profile-page_main {
+    font-family: var(--text-font);
     width: 100%;
-    font-size: 32px;
-    font-weight: 400;
-    margin-top: 40px;
-    max-height: 30px;
-    padding: 0;
-    text-align: center;
-    color: #44069A;
-}
-
-
-
-    .edit-button12 {
-         display: block;              /* блочный элемент */
-        width: 90%;
-        margin: 20px auto 0 auto;   /* сверху отступ, центрирование */
-        position: relative; 
-        align-self: center;
-        font-size: 14px;
-        color: #8338EB;
-        top: 600px;
-
-        
-    }
-
-    .profile-content {
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        width: 100%;
-    }
-
-    .profile-avatar-section {
-        margin: 0;
-        width: 200px;
-        
-    }
-
-    .avatar-placeholder,
-    .user-avatar,
-    .default-avatar {
-        width: 200px;
-        height: 200px;
-        
-        
-       
-    }
-    .default-avatar{
-        border: 4px solid #8338EB; /* фиолетовая рамка */
-    box-sizing: border-box;  
-    border-radius: 30px;
-    }
-    .upload-icon-profile{
-        margin-top: 18px;
-    margin-right: 18px;
-    cursor: pointer;
-    }
-
-    .profile-role-text {
-        font-size: 16px;
-        padding: 8px 24px;
-        height: auto;
-        color: #8338EB;
-        background-color: #E6D7FB;
-        border-radius: 30px;
-        margin-top: -10px;
-    }
-
-    .profile-fields {
-        width: 100%;
-        align-items: center;
-        padding: 0;
-        
-        gap: 10px;
-    }
-
-    .profile-label {
-        font-size: 14px;
-        padding-left: 10px;
-        color: #333;
-    }
-
-    .profile-input {
-        width: 70%;
-        height: 44px;
-        font-size: 14px;
-        border-radius: 30px;
-        background-color: #F3ECFF;
-        color: #000;
-    }
-
-    .edit-icon123 {
-        right: 15px;
-        width: 18px;
-        height: 18px;
-    }
-
-    .profile-team-cards-button {
+    height: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 60%;
-    height: 48px;
-    font-size: 16px;
-    background-color: #8338EB;
-    color: white;
-    margin-top: -25px;      /* опускаем кнопку вниз */
-    margin-left: 10px;
-    margin-bottom: 100px;   /* создаём отступ перед следующей кнопкой */
-    gap: 10px;
-    border: none;
-    border-radius: 40px;
-    position: static !important;  /* убираем absolute */
-    align-self: center;           /* центрируем */
-  }
-.home-button{
-    display: flex;              /* делаем кнопки flex-контейнером */
-    justify-content: center;    /* выравнивание по горизонтали */
-    align-items: center;        /* выравнивание по вертикали */
-    
-    height: 48px;
-    width: 300px;
-    font-size: 16px;
-    background-color: #8338EB;
-    color: white;
-    margin: 20px 0;             /* убираем огромный верхний отступ */
-    gap: 10px;
-    border: none;
-    border-radius: 40px;
-     position: static;
 }
 
 
-    .error-message42 {
-        margin: 10px auto;
-        width: 90%;
-        font-size: 14px;
-        text-align: center;
-        background-color: #ff4c4c;
-        color: white;
-    }
+.profile-page_header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 0px 20px;
+}
 
-    .profile-tooltip {
-        font-size: 12px;
-    }
-    .profile-avatar-section { order: 1; }
-    .profile-role-text { order: 2; }
-    .profile-fields { order: 3; }
-    
-    .profile-team-cards-button { order: 4; }
-    
-    .edit-button12 { order: 6; }
+.profile-page_header h1 {
+    font-size: 48px;
+    color: var(--color-white);
+}
+
+.profile-page_header button {
+    padding: 12px;
+    font-family: var(--text-font);
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--color-white);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 36px;
+}
+
+.profile-page_header button:hover {
+    background-color: var(--color-purple);
+}
+
+.profile-page_close-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.profile-page_container {
+    background-color: var(--color-light-purple);
+    border-radius: 48px;
+    border: 4px solid var(--color-dark-purple);
+    padding: 40px;
+    width: 1100px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.profile-page_row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.profile-page_fields {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 12px;
+}
+
+.profile-page_input-box {
+    width: 530px;
+}
+
+.profile-page_etc {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-page_photo-container {
+    box-sizing: border-box;
+    position: relative;
+}
+
+.profile-page_photo-container img {
+    width: 360px;
+    height: 360px;
+    border-radius: 50px;
 }
 
 
+.profile-page_upload-icon {
+    position: absolute;
+    right: 24px;
+    top: 24px;
+    width: 20px;
+    height: 20px;
+}
 
+.profile-page_btn {
+    width: 360px;
+    height: 52px;
+    border-radius: 36px;
+    border: none;
+    background-color: var(--color-white);
+    font-family: var(--text-font);
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--color-light-purple);
+}
+
+.profile-page_role {
+    width: 180px;
+}
+
+.profile-page_btn:not(:disabled) {
+    cursor: pointer;
+}
+
+.profile-page_btn:not(:disabled):hover {
+    background-color: var(--color-light-gray);
+}
+
+@media only screen and (max-width: 1280px) {
+    .profile-page_input-box {
+        width: 440px;
+    }
+
+    .profile-page_container {
+        width: 940px;
+    }
+}
+
+@media only screen and (max-width: 940px) {
+    .profile-page_input-box .input-box_label-above {
+        color: var(--color-dark-gray)
+    }
+
+    .profile-page_container {
+        width: 100%;
+        background-color: transparent;
+        border: none
+    }
+
+    .profile-page_btn {
+        background-color: var(--color-light-purple);
+        color: var(--color-white);
+    }
+
+    .profile-page_header {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .profile-page_header h1 {
+        color: var(--color-light)
+    }
+
+    .profile-page_header button {
+        color: var(--color-light-purple)
+    }
+
+    .profile-page_header button:hover {
+        background-color: var(--color-light-gray)
+    }
+
+    .profile-page_row {
+        flex-direction: column-reverse;
+        align-items: center;
+        gap: 20px;
+    }
+}

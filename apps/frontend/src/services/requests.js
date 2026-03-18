@@ -1,9 +1,9 @@
 import { getCsrfConfigForFetch } from "../utils/csrf-utils";
-import { backendURL } from "./constants";
+import { backendURLBackend, backendURLSSO } from "./constants";
 
-export async function fetchReports(page, size, filters) {
+export async function fetchReports({ page, size, filters }) {
   const response = await fetch(
-    `${backendURL}/backend/api/v1/team-cards/reports?page=${page}&size=${size}`,
+    `${backendURLBackend}/api/v1/team-cards/reports?page=${page}&size=${size}`,
     {
       method: "POST",
       headers: {
@@ -23,7 +23,7 @@ export async function fetchReports(page, size, filters) {
 
 export async function fetchReportExcel({ filters }) {
 const response = await fetch(
-    `${backendURL}/backend/api/v1/team-cards/reports/excel`,
+    `${backendURLBackend}/api/v1/team-cards/reports/excel`,
     {
       method: "POST",
       headers: {
@@ -38,7 +38,7 @@ const response = await fetch(
   return response;
 }
 
-export async function fetchTrackers(page, size, sort) {
+export async function fetchTrackers({ page, size, sort }) {
   let sortString;
   if (Array.isArray(sort) && sort.length !== 0) {
     sortString = "sort=" + sort.join("&sort=")
@@ -46,7 +46,7 @@ export async function fetchTrackers(page, size, sort) {
     sortString = "sort=username,asc";
   }
   const response = await fetch(
-    `${backendURL}/sso/api/v1/users/trackers?page=${page}&size=${size}&${sortString}`,
+    `${backendURLSSO}/api/v1/users/trackers?page=${page}&size=${size}&${sortString}`,
     {
       method: "POST",
       headers: {
@@ -66,7 +66,7 @@ export async function fetchTrackers(page, size, sort) {
   return response;
 }
 
-export async function fetchStreams(page, size, sort) {
+export async function fetchStreams({ page, size, sort }) {
   let sortString;
   if (Array.isArray(sort) && sort.length !== 0) {
     sortString = "sort=" + sort.join("&sort=")
@@ -74,7 +74,7 @@ export async function fetchStreams(page, size, sort) {
     sortString = "sort=name,asc";
   }
   const response = await fetch(
-    `${backendURL}/backend/api/v1/streams?page=${page}&size=${size}&${sortString}`,
+    `${backendURLBackend}/api/v1/streams?page=${page}&size=${size}&${sortString}`,
     {
       method: "POST",
       headers: {
@@ -94,9 +94,9 @@ export async function fetchStreams(page, size, sort) {
   return response;
 }
 
-export async function fetchTeams(page, size, filters) {
+export async function fetchTeams({ page, size, filters, admin = false }) {
   const response = await fetch(
-    `${backendURL}/backend/api/v1/admin/team-cards?page=${page}&size=${size}`,
+    `${backendURLBackend}/api/v1/${admin ? "admin/" : ""}team-cards?page=${page}&size=${size}`,
     {
       method: "POST",
       headers: {
@@ -108,6 +108,79 @@ export async function fetchTeams(page, size, filters) {
       body: JSON.stringify({
         filters: filters ?? []
       }),
+    }
+  );
+
+  return response;
+}
+
+export async function fetchUserInfo({ username = null }) {
+  const endpoint = username === null ?
+    `${backendURLSSO}/api/v1/account/info` :
+    `${backendURLSSO}/api/v1/users/${username}/info`;
+  const response = await fetch(
+    endpoint,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+    }
+  );
+
+  return response;
+}
+
+export async function fetchUserPhoto({ username = null }) {
+  const endpoint = username === null ?
+    `${backendURLSSO}/api/v1/account/photo` :
+    `${backendURLSSO}/api/v1/users/${username}/photo`;
+  const response = await fetch(
+    endpoint,
+    {
+      method: "GET",
+      headers: {
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+    }
+  );
+
+  return response;
+}
+
+export async function updateUserInfo({ newUserData }) {
+  const response = await fetch(
+    `${backendURLSSO}/api/v1/account/update`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+      body: JSON.stringify(newUserData),
+    }
+  );
+
+  return response;
+}
+
+export async function updateUserPhoto({ newUserPhotoFile }) {
+  const formData = new FormData();
+  formData.append("file", newUserPhotoFile);
+  const response = await fetch(
+    `${backendURLSSO}/api/v1/account/photo`,
+    {
+      method: "POST",
+      headers: {
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+      body: formData,
     }
   );
 
