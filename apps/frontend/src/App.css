@@ -1,3 +1,18 @@
+:root {
+    --text-font: 'Montserrat', sans-serif;
+    --color-white: #ffffff;
+    --color-very-light-gray: #f5f5f5;
+    --color-light-gray: #e6e6e6;
+    --color-gray: #666666;
+    --color-dark-gray: #333333;
+    --color-black: #000000;
+    --color-disabled: #E6D7FB;
+    --color-warning: #f4c90c;
+    --color-purple: #8202CD;
+    --color-dark-purple: #44069A;
+    --color-light-purple: #8b50f9;
+}
+
 body {
     margin: 0;
     height: 100%;
