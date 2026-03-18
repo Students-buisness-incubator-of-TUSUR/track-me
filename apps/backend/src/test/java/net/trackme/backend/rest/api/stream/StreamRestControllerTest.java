@@ -263,9 +263,10 @@ class StreamRestControllerTest extends BaseApplicationTest {
                                 {
                                   "name": "team card 1",
                                   "readinessLevel": "0-2",
-                                                  "description": "description",
+                                  "description": "description",
+                                  "meetingRoomLink": "https://test.link",
                                   "status": "OK",
-                                                      "ntiMarketIds": ["%s"]
+                                  "ntiMarketIds": ["%s"]
                                 }
                                 """.formatted(uuid)))
                 .andDo(print())
