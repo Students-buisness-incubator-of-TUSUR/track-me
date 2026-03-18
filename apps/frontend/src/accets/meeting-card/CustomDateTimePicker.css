@@ -17,8 +17,6 @@
     min-width: 200px;
 }
 
-
-
 .custom-datetime-display.disabled {
     cursor: not-allowed;
     background-color: #f5f5f5;
@@ -26,7 +24,6 @@
     color: #999;
     opacity: 0.7;
 }
-
 
 .custom-datetime-icon {
     margin-left: 8px;
@@ -40,43 +37,46 @@
 }
 
 .custom-datetime-picker {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background: white;
     border: 2px solid #8338EB;
     border-radius: 20px;
     padding: 20px;
     box-shadow: 0 8px 32px rgba(131, 56, 235, 0.25);
-    z-index: 10001;
-    margin-bottom: 10px;
-    width: 320px;
-    animation: slideUp 0.3s ease;
+    z-index: 10002;
+    width: min(320px, 92vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: fadeInScale 0.2s ease;
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.custom-datetime-picker::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: translate(-50%, -48%) scale(0.95); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .picker-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
     border-bottom: 2px solid #F0E6FF;
 }
 
 .month-name {
     font-family: 'Montserrat', sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     color: #44069A;
     flex-grow: 1;
@@ -86,8 +86,8 @@
 .nav-button {
     background: #F8F3FF;
     border: none;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     cursor: pointer;
     font-size: 18px;
@@ -95,29 +95,30 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .nav-button:hover {
     background: #8338EB;
     color: white;
-    transform: scale(1.1);
 }
 
 .close-button {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 24px;
+    font-size: 22px;
     color: #666;
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    transition: all 0.3s ease;
-    margin-left: 10px;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+    flex-shrink: 0;
 }
 
 .close-button:hover {
@@ -126,29 +127,29 @@
 }
 
 .calendar-grid {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 4px;
+    margin-bottom: 8px;
 }
 
 .weekday {
     text-align: center;
     font-family: 'Montserrat', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     color: #666;
-    padding: 5px;
+    padding: 4px 0;
 }
 
 .calendar-days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
+    gap: 4px;
 }
 
 .calendar-day {
@@ -160,15 +161,14 @@
     cursor: pointer;
     border-radius: 50%;
     font-family: 'Montserrat', sans-serif;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
     color: #333;
-    transition: all 0.3s ease;
+    transition: background 0.15s ease;
 }
 
 .calendar-day:hover:not(.disabled):not(.selected) {
     background: #F0E6FF;
-    transform: scale(1.1);
 }
 
 .calendar-day.today {
@@ -182,8 +182,6 @@
 
 .calendar-day.selected {
     background: #8338EB;
-    color: white;
-    transform: scale(1.1);
 }
 
 .calendar-day.selected .day-number {
@@ -194,16 +192,11 @@
 .calendar-day.disabled {
     cursor: not-allowed;
     opacity: 0.3;
-    color: #ccc;
 }
 
-.calendar-day.empty {
-    cursor: default;
-}
+.calendar-day.empty { cursor: default; }
 
-.day-number {
-    z-index: 1;
-}
+.day-number { z-index: 1; }
 
 .today-indicator {
     position: absolute;
@@ -214,10 +207,12 @@
     background: #8338EB;
 }
 
+.calendar-day.selected .today-indicator { background: white; }
+
 .quick-actions {
     display: flex;
     gap: 10px;
-    padding-top: 15px;
+    padding-top: 12px;
     border-top: 2px solid #F0E6FF;
 }
 
@@ -232,37 +227,92 @@
     font-size: 14px;
     font-weight: 500;
     color: #8338EB;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .quick-button:hover {
     background: #8338EB;
     color: white;
-    transform: translateY(-2px);
 }
 
-/* Адаптивные стили */
-@media (max-width: 480px) {
-    .custom-datetime-picker {
-        width: 280px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-    
-    .calendar-day {
-        font-size: 14px;
-    }
-    
-    .weekday {
-        font-size: 12px;
-    }
-    
-    .month-name {
-        font-size: 16px;
-    }
+.date-selection .custom-datetime-wrapper { flex: 1; }
+
+.meeting-create-popup {
+    position: static !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 24px !important;
+    width: 100% !important;
+    border-radius: 0 !important;
 }
 
-/* Для MeetingCreate */
-.date-selection .custom-datetime-wrapper {
-    flex: 1;
+.popup-close-button {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+}
+
+.popup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.popup-content h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: #333;
+    padding-right: 24px;
+}
+
+.date-selection {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.date-label {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.meeting-create-modal .create-button,
+.meeting-create-popup .create-button {
+    background: #8338EB;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Mulish', sans-serif;
+    width: 100%;
+    height: 48px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.meeting-create-modal .create-button:hover,
+.meeting-create-popup .create-button:hover {
+    background: #6a29c4;
+}
+
+.meeting-create-modal .create-button:disabled,
+.meeting-create-popup .create-button:disabled {
+    background: #ccc;
+    color: #888;
+    cursor: not-allowed;
 }

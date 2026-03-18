@@ -306,7 +306,7 @@ describe('Stream info & date formatting', () => {
   const streamName = await screen.findByText('MyStream');
 expect(streamName).toBeInTheDocument();
 
-  expect(screen.getByText('5')).toBeInTheDocument();
+  expect(screen.getByText('5 команд')).toBeInTheDocument();
   expect(screen.getByText('01.03.2025 - 10.03.2025')).toBeInTheDocument();
 });
 

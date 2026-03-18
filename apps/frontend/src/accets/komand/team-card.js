@@ -936,13 +936,11 @@ const deleteMeeting = async () => {
     {streamInfo ? (
       <div className="stream-info-block">
   <div className="stream-header">
-    <span className="stream-header-label">Название потока:</span>
-    <span className="stream-header-label">Количество команд:</span>
-    <span className="stream-header-label">Сроки потока:</span>
+    <span className="stream-header-label">Поток:</span>
   </div>
   <div className="stream-data">
     <span className="stream-name">{streamInfo.name}</span>
-    <span className="stream-count">{teamCardsCount}</span>
+    <span className="stream-count">{teamCardsCount} команд</span>
     <span className="stream-dates">{formatDates(streamInfo.startDate, streamInfo.endDate)}</span>
   </div>
 </div>
@@ -1080,6 +1078,7 @@ const deleteMeeting = async () => {
                         <MeetingCreate 
                             teamId={id}
                             onClose={() => setShowMeetingCreate(false)}
+                            userRole={role}
                         />
                     )}
                 </div>
