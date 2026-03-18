@@ -7,17 +7,10 @@
     --color-dark-gray: #333333;
     --color-black: #000000;
     --color-disabled: #E6D7FB;
+    --color-warning: #f4c90c;
     --color-purple: #8202CD;
     --color-dark-purple: #44069A;
     --color-light-purple: #8b50f9;
-    --color-warning: #f4c90c;
-    --color-green: #0DB862;
-    --color-red: #D34F4F;
-    --border-radius-sm: 12px;
-    --border-radius-md: 16px;
-    --border-radius-lg: 20px;
-    --border-radius-xl: 36px;
-    --border-radius-full: 50px;
 }
 
 body {

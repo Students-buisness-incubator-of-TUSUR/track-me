@@ -186,6 +186,15 @@ describe("TeamCard — создание карточки команды", () => 
     expect(screen.getByDisplayValue(/Трекер A/i)).toBeInTheDocument();
   });
 
+  it("показывает сообщение при нажатии Запланировать", async () => {
+    renderComponent();
+    const button = await screen.findByText(/Запланировать/i);
+    fireEvent.click(button);
+    await waitFor(() => {
+      expect(screen.getByText(/Сначала создайте карточку команды/i)).toBeInTheDocument();
+    });
+  });
+
   it("показывает ошибку при сбое запроса /account/info", async () => {
     fetch.mockImplementationOnce(() => Promise.reject(new Error("Network error")));
     renderComponent();

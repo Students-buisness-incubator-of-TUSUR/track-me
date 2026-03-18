@@ -4,11 +4,10 @@ import "./meeting-card.css";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import { validateMeetingWeekLimit } from "../../utils/date-utils";
 import CustomDateTimePicker from './CustomDateTimePicker';
-import { adminRoleName, superadminRoleName } from "../../services/constants";
 const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/meeting';
 const API_HOST = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
 
-const MeetingCreate = ({ onClose, teamId, userRole }) => {
+const MeetingCreate = ({ onClose, teamId }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const query = new URLSearchParams(location.search);
@@ -28,7 +27,7 @@ const MeetingCreate = ({ onClose, teamId, userRole }) => {
     useEffect(() => {
         const fetchTeamData = async () => {
             try {
-                const teamUrl = new URL(`${API_HOST}/api/v1/${userRole === adminRoleName || userRole === superadminRoleName ? "admin/" : ""}team-cards`);
+                const teamUrl = new URL(`${API_HOST}/api/v1/team-cards`);
                 teamUrl.searchParams.append('page', 0);
                 teamUrl.searchParams.append('size', 1000);
                 
@@ -126,7 +125,7 @@ const MeetingCreate = ({ onClose, teamId, userRole }) => {
         };
 
         fetchTeamData();
-    }, [teamId, userRole]);
+    }, [teamId]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
