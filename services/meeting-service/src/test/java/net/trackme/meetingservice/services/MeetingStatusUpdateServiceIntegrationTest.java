@@ -32,7 +32,7 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
         var pastDate = OffsetDateTime.now().minusHours(2);
 
         var scheduledMeeting = new Meeting();
-        scheduledMeeting.setLink("TestLink");
+        scheduledMeeting.setRecordLink("TestLink");
         scheduledMeeting.setNumber("TestNumber");
         scheduledMeeting.setStartDate(pastDate);
         scheduledMeeting.setTeamStatus(TeamStatus.MANY_ISSUES);
@@ -58,7 +58,7 @@ class MeetingStatusUpdateServiceIntegrationTest extends AbstractIntegrationTest 
         var pastDate = OffsetDateTime.now().minusHours(2);
 
         var scheduledMeeting = new Meeting();
-        scheduledMeeting.setLink("TestLink");
+        scheduledMeeting.setRecordLink("TestLink");
         scheduledMeeting.setNumber("TestNumber");
         scheduledMeeting.setStartDate(pastDate);
         scheduledMeeting.setTeamStatus(TeamStatus.MANY_ISSUES);

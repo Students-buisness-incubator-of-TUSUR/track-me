@@ -65,6 +65,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "name": "Test",
                                   "description": "Test description",
                                   "ntiMarketIds": ["%s"],
+                                  "meetingRoomLink": "https://test.link",
                                   "readinessLevel": "0-2"
                                 }
                                 """.formatted(String.join("\", \"", ntiMarkets))))
@@ -101,6 +102,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket))
                 .name("Team card1")
                 .username(BaseApplicationTest.USER)
+                .meetingRoomLink("meetingRoom@link.com")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
 
@@ -113,7 +115,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "name": "Updated name",
                                   "description": "Updated description",
                                   "ntiMarketIds": ["%s"],
-                                  "readinessLevel": "3-5"
+                                  "readinessLevel": "3-5",
+                                  "meetingRoomLink": "https://new.link"
                                 }
                                 """.formatted(ntiMarket.getId())))
                 .andDo(print())
@@ -121,7 +124,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
                 .andExpect(jsonPath("$.name", is("Updated name")))
                 .andExpect(jsonPath("$.description", is("Updated description")))
-                .andExpect(jsonPath("$.readinessLevel", is("3-5")));
+                .andExpect(jsonPath("$.readinessLevel", is("3-5")))
+                .andExpect(jsonPath("$.meetingRoomLink", is("https://new.link")));
     }
 
     @Test
@@ -134,6 +138,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Team card1")
                 .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
+                .meetingRoomLink("meetingRoom@link.com")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
 
@@ -159,6 +164,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card1 description")
                 .build());
         teamCardsService.createTeamCard(TeamCard.builder()
@@ -167,6 +173,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_2)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card2 description")
                 .build());
 
@@ -195,6 +202,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Team card1")
                 .description("Team card1 description")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .username(BaseApplicationTest.USER)
                 .ntiMarkets(List.of(ntiMarket1))
                 .build());
@@ -202,6 +210,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .status(TeamCardStatus.OK)
                 .name("Team card2")
                 .readinessLevel(ReadinessLevel.LEVEL_2)
+                .meetingRoomLink("meetingRoom@link.com")
                 .ntiMarkets(List.of(ntiMarket2))
                 .description("Team card2 description")
                 .username(BaseApplicationTest.USER)
@@ -279,6 +288,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket1))
                 .name("Team card1")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .username(BaseApplicationTest.USER)
                 .description("Team card1 description")
                 .build());
@@ -288,6 +298,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card2 description")
                 .build());
 
@@ -329,6 +340,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card1 description")
                 .build());
         var teamCard2 = teamCardsService.createTeamCard(TeamCard.builder()
@@ -337,6 +349,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card2 description")
                 .build());
 
@@ -377,6 +390,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Team card1")
                 .description("Team card1 description")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .username(BaseApplicationTest.USER)
                 .ntiMarkets(List.of(ntiMarket1))
                 .build());
@@ -386,6 +400,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Team card2")
                 .ntiMarkets(List.of(ntiMarket2))
                 .readinessLevel(ReadinessLevel.LEVEL_2)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card2 description")
                 .build());
 
@@ -456,6 +471,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .build());
         teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
@@ -464,6 +480,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .build());
 
         mockMvc.perform(post("/api/v1/team-cards")
@@ -503,6 +520,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Team card1")
                 .description("Team card1 description")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .build());
@@ -512,6 +530,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .description("Team card2 description")
                 .ntiMarkets(List.of(ntiMarket2))
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .username(BaseApplicationTest.USER)
                 .build());
 
@@ -555,7 +574,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "name": "Test",
                                   "description": "Test description",
                                   "ntiMarketIds": ["%s"],
-                                  "readinessLevel": "0-2"
+                                  "readinessLevel": "0-2",
+                                  "meetingRoomLink": "https://test.link"
                                 }
                                 """.formatted(ntiMarket.getId())))
                 .andDo(print())
@@ -606,6 +626,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "name": "Test",
                                   "description": "Test description",
                                   "ntiMarketIds": ["%s"],
+                                  "meetingRoomLink": "https://test.link",
                                   "readinessLevel": "0-2"
                                 }
                                 """.formatted(ntiMarket.getId())))
@@ -658,6 +679,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 {
                                   "name": "Test",
                                   "description": "Test description",
+                                  "meetingRoomLink": "https://test.link",
                                   "ntiMarketIds": ["%s"],
                                   "readinessLevel": "0-2"
                                 }
@@ -682,7 +704,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "name": "Test",
                                   "description": "Test description",
                                   "ntiMarketIds": ["%s"],
-                                  "readinessLevel": "0-2"
+                                  "readinessLevel": "0-2",
+                                  "meetingRoomLink": "https://test.link"
                                 }
                                 """.formatted(ntiMarket.getId())))
                 .andDo(print())
@@ -705,6 +728,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Team card1")
                 .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
+                .meetingRoomLink("meetingRoom@link.com")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .build());
 
@@ -730,7 +754,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "name": "Test",
                                   "description": "Test description",
                                   "ntiMarketIds": ["%s"],
-                                  "readinessLevel": "0-2"
+                                  "readinessLevel": "0-2",
+                                  "meetingRoomLink": "https://test.link"
                                 }
                                 """.formatted(ntiMarket.getId()))
                         .with(user(BaseApplicationTest.USER).roles("SUPER_ADMIN")))
@@ -773,6 +798,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .build());
 
         mockMvc.perform(delete("/api/v1/team-card")
@@ -803,6 +829,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .status(TeamCardStatus.OK)
                 .name("Team card 1")
                 .ntiMarkets(List.of(ntiMarket1))
+                .meetingRoomLink("meetingRoom@link.com")
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
                 .description("Team card 1 description")
@@ -811,6 +838,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .status(TeamCardStatus.OK)
                 .name("Team card 2")
                 .streams(Set.of(stream1))
+                .meetingRoomLink("meetingRoom@link.com")
                 .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_2)
@@ -821,6 +849,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Team card 3")
                 .streams(Set.of(stream2))
                 .ntiMarkets(List.of(ntiMarket2))
+                .meetingRoomLink("meetingRoom@link.com")
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_2)
                 .description("Team card 3 description")
@@ -830,6 +859,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Team card 4")
                 .streams(Set.of(stream3))
                 .ntiMarkets(List.of(ntiMarket2))
+                .meetingRoomLink("meetingRoom@link.com")
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_2)
                 .description("Team card 4 description")
@@ -874,6 +904,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket1))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card 1 description")
                 .build());
         teamCardsService.createTeamCard(TeamCard.builder()
@@ -883,6 +914,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_2)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card 2 description")
                 .build());
         teamCardsService.createTeamCard(TeamCard.builder()
@@ -892,6 +924,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_2)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card 3 description")
                 .build());
         teamCardsService.createTeamCard(TeamCard.builder()
@@ -901,6 +934,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket2))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_2)
+                .meetingRoomLink("meetingRoom@link.com")
                 .description("Team card 4 description")
                 .build());
 

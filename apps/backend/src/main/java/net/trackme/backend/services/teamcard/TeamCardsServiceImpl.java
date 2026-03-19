@@ -157,6 +157,9 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         if (source.getDescription() != null) {
             target.setDescription(source.getDescription());
         }
+        if (source.getMeetingRoomLink() != null) {
+            target.setMeetingRoomLink(source.getMeetingRoomLink());
+        }
         if (source.getStatus() != null) {
             target.setStatus(source.getStatus());
         }

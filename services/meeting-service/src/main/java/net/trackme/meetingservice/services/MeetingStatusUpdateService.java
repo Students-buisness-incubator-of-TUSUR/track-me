@@ -118,7 +118,7 @@ public class MeetingStatusUpdateService {
     }
 
     private boolean hasUnfilledFields(Meeting meeting) {
-        return meeting.getLink() == null
+        return meeting.getRecordLink() == null
                 || meeting.getNumber() == null
                 || meeting.getStartDate() == null
                 || meeting.getTeamStatus() == null

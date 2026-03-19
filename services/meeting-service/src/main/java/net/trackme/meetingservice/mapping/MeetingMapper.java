@@ -13,15 +13,15 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
         componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface MeetingMapper {
-
     @Mapping(target = "teamStatus", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "teamCardId", ignore = true)
     @Mapping(target = "imageBytes", ignore = true)
-    @Mapping(target = "id",
-            ignore = true)
+    @Mapping(target = "id", ignore = true)
     Meeting mapToEntity(MeetingCreateDto meetingCreateDto);
 
+    @Mapping(target = "roomLink", ignore = true)
+    @Mapping(target = "recordLink", ignore = false)
     MeetingDto mapToDto(Meeting meeting);
 
     @Mapping(target = "teamCardId", ignore = true)

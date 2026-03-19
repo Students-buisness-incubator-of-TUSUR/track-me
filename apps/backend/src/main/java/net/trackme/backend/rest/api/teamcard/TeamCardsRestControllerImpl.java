@@ -1,9 +1,10 @@
 package net.trackme.backend.rest.api.teamcard;
 
 import lombok.RequiredArgsConstructor;
-import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardUpdateDto;
 import net.trackme.backend.usecases.TeamCardsUseCase;
 import net.trackme.commons.filters.FilterRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,7 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
     private final TeamCardsUseCase teamCardsUseCase;
 
     @Override
-    public ResponseEntity<TeamCardDto> createTeamCard(UUID streamId, TeamCardCreateOrUpdateDto dto,
+    public ResponseEntity<TeamCardDto> createTeamCard(UUID streamId, TeamCardCreateDto dto,
                                                       Authentication authentication) {
         var createTeamCardDto = teamCardsUseCase.createTeamCard(dto, streamId, authentication);
         return ResponseEntity.ok(createTeamCardDto);
@@ -30,7 +31,7 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
 
     @Override
     public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId,
-                                                      TeamCardCreateOrUpdateDto dto) {
+                                                      TeamCardUpdateDto dto) {
         var updatedTeamCard = teamCardsUseCase.updateTeamCard(teamCardId, dto);
         return ResponseEntity.ok(updatedTeamCard);
     }

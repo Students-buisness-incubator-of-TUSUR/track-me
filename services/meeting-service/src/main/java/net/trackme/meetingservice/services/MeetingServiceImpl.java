@@ -1,6 +1,7 @@
 package net.trackme.meetingservice.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.acl.AclService;
 import net.trackme.meetingservice.api.MeetingCreateDto;
 import net.trackme.meetingservice.api.MeetingDto;
@@ -11,6 +12,7 @@ import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.events.MeetingCreatedEvent;
 import net.trackme.meetingservice.events.MeetingUpdatedEvent;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,7 @@ import java.util.UUID;
 import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
 import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardIdEquals;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MeetingServiceImpl implements MeetingService {
@@ -39,6 +42,8 @@ public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingEventsProducer meetingEventsProducer;
 
+    private final BackendApiClient backendApiClient;
+
     @Override
     @Transactional
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
@@ -47,15 +52,18 @@ public class MeetingServiceImpl implements MeetingService {
         meeting.setStatus(MeetingStatus.SCHEDULED);
         meeting = meetingRepository.save(meeting);
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
+
         aclService.createAclForUser(meeting, username);
         sendMeetingCreatedEvent(meeting);
-        return meetingMapper.mapToDto(meeting);
+
+        return enrichWithRoomLink(meetingMapper.mapToDto(meeting), teamCardId);
     }
 
     @Override
     public Page<MeetingDto> getMeetings(UUID teamCardId, Pageable pageable) {
         var meetings = meetingRepository.findAll(teamCardIdEquals(teamCardId), pageable);
-        return meetings.map(meetingMapper::mapToDto);
+        var roomLink = fetchRoomLink(teamCardId);
+        return meetings.map(m -> withRoomLink(meetingMapper.mapToDto(m), roomLink));
     }
 
     @Override
@@ -74,7 +82,7 @@ public class MeetingServiceImpl implements MeetingService {
         if (oldStatus != meeting.getStatus()) {
             sendMeetingUpdatedEvent(meeting, oldStatus);
         }
-        return meetingMapper.mapToDto(meeting);
+        return enrichWithRoomLink(meetingMapper.mapToDto(meeting), teamCardId);
     }
 
     @Override
@@ -162,5 +170,40 @@ public class MeetingServiceImpl implements MeetingService {
                 .teamCardId(meeting.getTeamCardId())
                 .build();
         meetingEventsProducer.sendMeetingCreatedEvent(event);
+    }
+
+    private String fetchRoomLink(UUID teamCardId) {
+        try {
+            var teamCard = backendApiClient.getTeamCardById(teamCardId);
+
+            return teamCard != null
+                    ? teamCard.getMeetingRoomLink()
+                    : null;
+
+        } catch (Exception e) {
+            log.warn("Не удалось получить roomLink для teamCardId={}: {} | cause: {}",
+                    teamCardId, e.getMessage(),
+                    e.getCause() != null ? e.getCause().getMessage() : "no cause");
+            return null;
+        }
+    }
+
+    private MeetingDto enrichWithRoomLink(MeetingDto dto, UUID teamCardId) {
+        return withRoomLink(dto, fetchRoomLink(teamCardId));
+    }
+
+    private MeetingDto withRoomLink(MeetingDto dto, String roomLink) {
+        return new MeetingDto(
+                dto.id(),
+                dto.recordLink(),
+                roomLink,
+                dto.number(),
+                dto.startDate(),
+                dto.teamStatus(),
+                dto.status(),
+                dto.teamCardId(),
+                dto.tasksCurrentMeeting(),
+                dto.tasksNextMeeting()
+        );
     }
 }
