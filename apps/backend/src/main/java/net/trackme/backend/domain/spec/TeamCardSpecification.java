@@ -15,7 +15,14 @@ import java.util.List;
 
 import static net.trackme.backend.domain.spec.SpecificationUtils.getReadinessLevelFilter;
 
+/**
+ * Спецификация для фильтрации карточек команд по заданным критериям.
+ */
 public class TeamCardSpecification implements Specification<TeamCard> {
+
+    private static final String USERNAME_FIELD = "username";
+    private static final String STREAMS_FIELD = "streams";
+    private static final String NTI_MARKETS_FIELD = "ntiMarkets";
 
     public static final String READINESS_LEVEL_FIELD_NAME = "readinessLevel";
 
@@ -40,48 +47,65 @@ public class TeamCardSpecification implements Specification<TeamCard> {
         this.filters = filters;
     }
 
+    /**
+     * Спецификация для фильтрации карточек команд по имени пользователя.
+     *
+     * @param username имя пользователя
+     * @return спецификация
+     */
     public static Specification<TeamCard> userEquals(String username) {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("username"), username);
+                criteriaBuilder.equal(root.get(USERNAME_FIELD), username);
     }
 
+    /**
+     * Спецификация для фильтрации карточек команд,
+     * у которых есть хотя бы один привязанный поток.
+     *
+     * @return спецификация
+     */
     public static Specification<TeamCard> hasStream() {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.isNotEmpty(root.get("streams"));
+                criteriaBuilder.isNotEmpty(root.get(STREAMS_FIELD));
     }
 
-    public static Specification<TeamCard> withStreamsAndNtiMarkets(List<String> streamNames) {
-        return (root, query, criteriaBuilder) -> {
-            if (query != null && Long.class != query.getResultType()) {
-                root.fetch("streams", JoinType.LEFT);
-                root.fetch("ntiMarkets", JoinType.LEFT);
-            }
-            var streamJoin = root.join("streams");
-            return streamJoin.get("name").in(streamNames);
-        };
-    }
-
+    /**
+     * Спецификация для загрузки связанных сущностей потоков и рынков НТИ
+     * через LEFT JOIN FETCH во избежание проблемы N+1.
+     * Не применяет дополнительной фильтрации.
+     *
+     * @return спецификация
+     */
     public static Specification<TeamCard> withFetchJoins() {
         return (root, query, criteriaBuilder) -> {
             if (query != null && Long.class != query.getResultType()) {
-                root.fetch("streams", JoinType.LEFT);
-                root.fetch("ntiMarkets", JoinType.LEFT);
+                root.fetch(STREAMS_FIELD , JoinType.LEFT);
+                root.fetch(NTI_MARKETS_FIELD, JoinType.LEFT);
             }
             return criteriaBuilder.conjunction();
         };
     }
 
-    public static Specification<TeamCard> withStreams(List<String> streamNames) {
-        return (root, query, criteriaBuilder) -> {
-            var streamJoin = root.join("streams");
-            return streamJoin.get("name").in(streamNames);
-        };
-    }
-
+    /**
+     * Создаёт спецификацию на основе списка фильтров.
+     *
+     * @param filters список фильтров
+     * @return спецификация
+     */
     public static TeamCardSpecification withFilters(List<Filter> filters) {
         return new TeamCardSpecification(filters);
     }
 
+    /**
+     * Формирует предикат на основе переданных фильтров.
+     * Выбрасывает {@link FilterFieldNotAllowedException} если поле фильтра
+     * не входит в список допустимых полей {@link #ALLOWED_FIELDS}.
+     *
+     * @param root            корневой объект запроса
+     * @param query           объект критериального запроса
+     * @param criteriaBuilder построитель критериев
+     * @return предикат
+     */
     @Override
     public Predicate toPredicate(Root<TeamCard> root,
                                  CriteriaQuery<?> query,
