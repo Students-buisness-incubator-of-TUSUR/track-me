@@ -980,15 +980,17 @@
                     .andExpect(request().asyncStarted())
                     .andReturn();
 
-            mockMvc.perform(asyncDispatch(mvcResult))
+            MvcResult dispatchResult = mockMvc
+                    .perform(asyncDispatch(mvcResult))
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(header().string(HttpHeaders.CONTENT_TYPE, containsString("spreadsheetml.sheet")))
                     .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("attachment")))
-                    .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("filename")));
+                    .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("filename")))
+                    .andReturn();
 
 
-            byte[] responseBytes = mvcResult.getResponse().getContentAsByteArray();
+            byte[] responseBytes = dispatchResult.getResponse().getContentAsByteArray();
             assertThat(responseBytes).isNotEmpty();
 
             try (var opcPackage = OPCPackage.open(new ByteArrayInputStream(responseBytes));
@@ -1046,10 +1048,12 @@
                     .andExpect(request().asyncStarted())
                     .andReturn();
 
-            mockMvc.perform(asyncDispatch(mvcResult))
-                    .andExpect(status().isOk());
+            MvcResult dispatchResult = mockMvc
+                    .perform(asyncDispatch(mvcResult))
+                    .andExpect(status().isOk())
+                    .andReturn();
 
-            byte[] responseBytes = mvcResult.getResponse().getContentAsByteArray();
+            byte[] responseBytes = dispatchResult.getResponse().getContentAsByteArray();
             assertThat(responseBytes).isNotEmpty();
 
             try (var opcPackage = OPCPackage.open(new ByteArrayInputStream(responseBytes));

@@ -44,7 +44,8 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
 
             for (int i = 0; i < HEADERS.length; i++) {
                 sheet.autoSizeColumn(i);
-                sheet.setColumnWidth(i, sheet.getColumnWidth(i) + 1024);
+                int newWidth = sheet.getColumnWidth(i) + 1024;
+                sheet.setColumnWidth(i, Math.min(newWidth, 255 * 256));
             }
 
             workbook.write(outputStream);
@@ -106,11 +107,11 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
             );
             setInteger(row, 7,
                     record.meetingsCountPlan(),
-                    styles.number
+                    styles.integer
             );
             setInteger(row, 8,
                     record.meetingsCountFact(),
-                    styles.number
+                    styles.integer
             );
             setString(row, 9,
                     record.ntiMarkets() != null ? String.join(", ", record.ntiMarkets()) : "",
@@ -153,6 +154,7 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
         final CellStyle header;
         final CellStyle text;
         final CellStyle number;
+        final CellStyle integer;
 
         Styles(SXSSFWorkbook wb) {
             var titleFont = wb.createFont();
@@ -206,6 +208,10 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
             number.setBorderBottom(BorderStyle.THIN);
             number.setBorderLeft(BorderStyle.THIN);
             number.setBorderRight(BorderStyle.THIN);
+
+            integer = wb.createCellStyle();
+            integer.cloneStyleFrom(number);
+            integer.setDataFormat(numberFormat.getFormat("0"));
         }
     }
 }
