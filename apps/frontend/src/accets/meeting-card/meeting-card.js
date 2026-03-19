@@ -482,7 +482,7 @@ useEffect(() => {
         <Header/>
         <div className="unique-meeting-container">
             <div className="unique-meeting-card">
-                <button className="unique-close-button" onClick={() => navigate(`/teamcard/${teamId}?userId=${userId}`)}>
+                <button className="unique-close-button" onClick={() => navigate(-1)}>
                     <img src={closeIcon} alt="Закрыть" className="close-icon" />
                 </button>
                 
