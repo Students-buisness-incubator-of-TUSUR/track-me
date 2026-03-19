@@ -56,6 +56,23 @@ public class TeamCardSpecification implements Specification<TeamCard> {
         };
     }
 
+    public static Specification<TeamCard> withFetchJoins() {
+        return (root, query, criteriaBuilder) -> {
+            if (query != null && Long.class != query.getResultType()) {
+                root.fetch("streams", JoinType.LEFT);
+                root.fetch("ntiMarkets", JoinType.LEFT);
+            }
+            return criteriaBuilder.conjunction();
+        };
+    }
+
+    public static Specification<TeamCard> withStreams(List<String> streamNames) {
+        return (root, query, criteriaBuilder) -> {
+            var streamJoin = root.join("streams");
+            return streamJoin.get("name").in(streamNames);
+        };
+    }
+
     public static TeamCardSpecification withFilters(List<Filter> filters) {
         return new TeamCardSpecification(filters);
     }

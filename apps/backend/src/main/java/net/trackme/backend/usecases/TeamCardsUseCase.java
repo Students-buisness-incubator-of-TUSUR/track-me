@@ -21,9 +21,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
-import static net.trackme.backend.domain.spec.TeamCardSpecification.userEquals;
-import static net.trackme.backend.domain.spec.TeamCardSpecification.withFilters;
-import static net.trackme.backend.domain.spec.TeamCardSpecification.withStreamsAndNtiMarkets;
+import static net.trackme.backend.domain.spec.TeamCardSpecification.*;
 
 @Component
 @RequiredArgsConstructor
@@ -94,13 +92,7 @@ public class TeamCardsUseCase {
 
     public Page<TeamCardReportRecordDto> getTeamCardReport(List<Filter> filters,
                                                            Pageable pageable) {
-        var streams = streamService
-                .findAll()
-                .stream()
-                .map(Stream::getName)
-                .toList();
-
-        var teamCardSpec = withFilters(filters).and(withStreamsAndNtiMarkets(streams));
+        var teamCardSpec = withFilters(filters).and(withFetchJoins());
         var teamCardPage = teamCardsService.getTeamCards(teamCardSpec, pageable);
         return teamCardPage.map(teamCardMapper::mapToReportDto);
     }
