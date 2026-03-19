@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -844,7 +845,11 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                 """))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements", is(3)));
+                .andExpect(jsonPath("$.page.totalElements", is(3)))
+                .andExpect(jsonPath("$.content[?(@.streamName=='stream 3')].startDate",
+                        hasItem(stream3.getStartDate().toString())))
+                .andExpect(jsonPath("$.content[?(@.streamName=='stream 3')].endDate",
+                        hasItem(stream3.getEndDate().toString())));
     }
 
     @Test
