@@ -7,6 +7,7 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import {  validateMeetingDateChange } from "../../utils/date-utils";
 import Header from "../header/header";
 import { useGetUserInfo } from "../../services/util";
+import { fetchTrackers } from "../../services/requests";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
@@ -272,19 +273,9 @@ const checkMeetingCreation = () => {
 
     useEffect(() => {
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
-        fetch(`${backendHost1}/api/v1/users/trackers`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json", 
-                ...getCsrfConfigForFetch()
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                filters: [],
-                page: 0,
-                size: 150,
-                order: { field: "fullName", direction: "ASC" }
-            }),
+        fetchTrackers({
+          page: 0,
+          size: 1000,
         })
             .then(async (res) => {
                 if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
@@ -936,11 +927,13 @@ const deleteMeeting = async () => {
     {streamInfo ? (
       <div className="stream-info-block">
   <div className="stream-header">
-    <span className="stream-header-label">Поток:</span>
+    <span className="stream-header-label">Название потока:</span>
+    <span className="stream-header-label">Количество команд:</span>
+    <span className="stream-header-label">Сроки потока:</span>
   </div>
   <div className="stream-data">
     <span className="stream-name">{streamInfo.name}</span>
-    <span className="stream-count">{teamCardsCount} команд</span>
+    <span className="stream-count">{teamCardsCount}</span>
     <span className="stream-dates">{formatDates(streamInfo.startDate, streamInfo.endDate)}</span>
   </div>
 </div>

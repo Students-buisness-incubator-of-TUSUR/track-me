@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Mulish:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400&family=Mulish:wght@300;400&display=swap');
 
 .meeting-page {
     min-height: 100vh;
     background: #ffffff;
 }
+
 
 .unique-meeting-container {
     display: flex;
@@ -13,7 +14,6 @@
     min-height: 100vh;
     padding: 20px;
 }
-
 .stream-info {
     margin: 10px 0;
     padding: 8px;
@@ -60,15 +60,15 @@
     line-height: 1;
     text-align: center;
 }
-
 .unique-meeting-card {
     width: 1400px;
     min-height: 300px;
     border-radius: 70px;
     background: #c19bf5;
     font-family: 'Montserrat', sans-serif;
-    line-height: 100%;
-    letter-spacing: 0;
+     line-height: 100%;    /* или просто 1 */
+  letter-spacing: 0;
+ 
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     position: relative;
     padding: 60px 80px;
@@ -88,18 +88,17 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-}
-
-.status-dropdown-wrapper {
+  }
+  .status-dropdown-wrapper {
     position: relative;
     width: 100%;
     max-width: 800px;
     margin-top: 10px;
     font-family: 'Montserrat', sans-serif;
     z-index: 10;
-}
-
-.status-selected {
+  }
+  
+  .status-selected {
     background: white;
     border-radius: 70px;
     width: 40%;
@@ -110,9 +109,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.status-options {
+  }
+  
+  .status-options {
     position: absolute;
     top: 100%;
     left: 0;
@@ -120,127 +119,130 @@
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.status-option {
+  }
+  
+  .status-option {
     padding: 15px 25px;
     color: white;
     cursor: pointer;
     font-size: 16px;
     transition: background 0.3s;
-}
-
-.status-option.ok {
+  }
+  
+  .status-option.ok {
     background-color: #0DB862;
-}
-
-.status-option.problems {
+   
+  }
+  
+  .status-option.problems {
     background-color: #DBD76C;
-}
-
-.status-option.major-problems {
+    
+    
+  }
+  
+  .status-option.major-problems {
     background-color: #D34F4F;
-}
-
-.status-option:hover {
+    
+  }
+  
+  .status-option:hover {
     filter: brightness(1.1);
-}
-
-.dropdown-arrow {
+  }
+  
+  .dropdown-arrow {
     margin-left: 10px;
-}
+  }
+  /* ====== Модальное окно подтверждения ====== */
 
-/* ====== Модальное окно подтверждения ====== */
 .confirm-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    animation: fadeIn 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
 }
 
 .confirm-modal {
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    padding: 25px 30px;
-    width: 400px;
-    text-align: center;
-    animation: scaleIn 0.25s ease;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 25px 30px;
+  width: 400px;
+  text-align: center;
+  animation: scaleIn 0.25s ease;
 }
 
 .confirm-modal-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #333;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
 }
 
 .confirm-modal-text {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 25px;
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 25px;
 }
 
 .confirm-modal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 30px;
 }
 
 .confirm-button {
-    min-width: 100px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
+  min-width: 100px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
 .confirm-button.yes {
-    background-color: #e53935;
-    color: white;
+  background-color: #e53935;
+  color: white;
 }
 
 .confirm-button.yes:hover {
-    background-color: #c62828;
+  background-color: #c62828;
 }
 
 .confirm-button.no {
-    background-color: #e0e0e0;
-    color: #333;
+  background-color: #e0e0e0;
+  color: #333;
 }
 
 .confirm-button.no:hover {
-    background-color: #bdbdbd;
+  background-color: #bdbdbd;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes scaleIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .unique-edit-button {
     background: #8338EB;
     color: white;
     border: none;
-    height: auto;
-    min-height: 44px;
+    height: 40px;
     font-family: 'Montserrat', sans-serif;
-    line-height: 1.2;
+    line-height: 100%;    /* или просто 1 */
     letter-spacing: 0;
     border-radius: 70px;
     cursor: pointer;
@@ -254,9 +256,6 @@
     transition: all 0.2s ease;
     min-width: 120px;
     text-align: center;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .unique-edit-button:hover {
@@ -271,8 +270,7 @@
     border-radius: 20px;
     margin: 10px 0;
 }
-
-/* Стили для отключенных кнопок */
+/* Применяем стили только для отключенных кнопок, которые НЕ являются активным статусом */
 .unique-status-button:disabled:not(.active-status) {
     cursor: not-allowed !important;
     opacity: 0.6 !important;
@@ -294,7 +292,6 @@
     z-index: 1000;
     margin-bottom: 5px;
 }
-
 /* Стиль для всплывающей подсказки кнопки редактирования */
 .unique-edit-button:disabled:hover::after {
     content: attr(title);
@@ -311,23 +308,24 @@
     white-space: nowrap;
     z-index: 1000;
     margin-bottom: 5px;
-    cursor: not-allowed !important;
+     cursor: not-allowed !important;
     opacity: 0.8 !important;
 }
 
-/* Стили для кнопок с активным статусом */
+
+
+/* Стили для кнопок с активным статусом (даже если они disabled) */
 .unique-status-button.active-status {
     cursor: default !important;
     opacity: 1 !important;
 }
-
 .unique-meeting-number {
     display: inline-block;
     background: #8338EB;
     color: white;
     font-family: 'Montserrat', sans-serif;
-    line-height: 100%;
-    letter-spacing: 0;
+     line-height: 100%;    /* или просто 1 */
+  letter-spacing: 0;
     padding: 10px 75px;
     margin: 0 0 40px 0;
     border-radius: 70px;
@@ -338,7 +336,7 @@
 
 .unique-meeting-info-row {
     display: flex;
-    align-items: flex-start;
+    align-items: flex-start; /* ВЫРОВНЯТЬ ПО ВЕРХУ */
     margin-bottom: 30px;
 }
 
@@ -348,11 +346,10 @@
     font-family: 'Montserrat', sans-serif;
     font-size: 22px;
     font-weight: 400;
-    line-height: 100%;
-    letter-spacing: 0;
+    line-height: 100%;    /* или просто 1 */
+  letter-spacing: 0;
     margin-top: 10px;
 }
-
 .meeting-create-popup {
     position: absolute;
     right: 150px;
@@ -380,6 +377,7 @@
 .popup-content {
     display: flex;
     flex-direction: column;
+    
     gap: 15px;
 }
 
@@ -421,6 +419,10 @@
     background: #0056b3;
 }
 
+.error-message {
+    color: red;
+    font-size: 12px;
+}
 .unique-meeting-date,
 .unique-textarea,
 .unique-task,
@@ -428,12 +430,13 @@
 .unique-dropdown,
 .unique-link,
 .bbb-link-input {
-    flex: 1 1 auto;
-    max-width: 800px;
-    font-family: 'Montserrat', sans-serif;
-    line-height: 100%;
-    letter-spacing: 0;
+    flex: 1 1 auto;      /* сохраняем гибкость */
+     max-width: 800px; 
+     font-family: 'Montserrat', sans-serif;
+     line-height: 100%;    /* или просто 1 */
+  letter-spacing: 0;
 }
+
 
 .unique-meeting-date {
     display: inline-block;
@@ -442,7 +445,7 @@
     padding: 10px 50px;
     border-radius: 70px;
     font-size: 24px;
-    font-weight: 300;
+    font-weight: 300;  
     flex: 0;
     font-family: inherit;
     text-align: center;
@@ -482,15 +485,13 @@
     font-family: inherit;
     width: 100%;
 }
-
-.edit-icon23 {
-    margin-top: 20px;
-    margin-left: 25px;
+.edit-icon23{
+  margin-top: 20px;
+  margin-left: 25px;
 }
-
-.edit-icon2334 {
-    margin-top: 8px;
-    margin-left: -10px;
+.edit-icon2334{
+  margin-top: 8px;
+  margin-left: -10px;
 }
 
 .unique-dropdown {
@@ -523,28 +524,31 @@
     padding: 14px 115px;
     border-radius: 70px;
     font-size: 20px;
+    
     text-align: center;
 }
-
 .hidden-date-input {
-    display: none;
+  display: none;
 }
 
 .fancy-date-display {
-    background: #8338EB;
-    color: white;
-    padding: 12px 40px;
-    border-radius: 70px;
-    font-size: 20px;
-    cursor: pointer;
-    font-family: 'Montserrat', sans-serif;
-    transition: transform 0.1s ease-in-out;
-    user-select: none;
+  background: #8338EB;
+  color: white;
+  padding: 12px 40px;
+  border-radius: 70px;
+  font-size: 20px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  
+  transition: transform 0.1s ease-in-out;
+  user-select: none;
 }
 
 .fancy-date-display:hover {
-    transform: scale(1.03);
+  
+  transform: scale(1.03);
 }
+
 
 .unique-status.ok {
     background-color: #0DB862;
@@ -555,7 +559,6 @@
     background-color: #DBD76C;
     color: white;
 }
-
 .error-close {
     position: absolute;
     right: 5px;
@@ -566,67 +569,238 @@
     color: #721c24;
     font-size: 16px;
 }
-
 .unique-status.many_issues {
     background-color: #D34F4F;
     color: white;
 }
-
 .unique-status.не_указано {
     background-color: #D34F4F;
     color: white;
 }
-
 .unique-screenshot-placeholder {
     background: #d1d5db;
     border-radius: 30px;
     width: 432px;
     height: 236px;
+
 }
 
-/* Строка с датой */
+/* для строки с датой — убираем лишний флекс-бейс и задаём маленький gap */
 .unique-date-row {
-    gap: 40px;
-}
-
+    gap: 40px;              /* расстояние между «Дата:» и самой капсулой */
+  }
 .unique-date-row .unique-label {
-    flex: 0 0 auto;
-}
-
+    flex: 0 0 auto;         /* лейбл по контенту, без жёсткого 400px */
+  }
 .unique-date-row .unique-meeting-date {
-    margin-left: 0;
-}
+    margin-left: 0;         /* убираем любой отступ, если был */
+  }
+  
+  @media (max-width: 1024px) {
+    .unique-meeting-card {
+      border-radius: 50px;
+      padding: 30px;
+    }
+  
+    .unique-close-button {
+      top: 30px;
+      right: 30px;
+      width: 30px;
+      height: 30px;
+    }
+  
+    .unique-edit-button {
+      width: 150px;
+      height: 36px;
+      font-size: 18px;
+      top: 30px;
+      right: 100px;
+    }
+  
+    .unique-meeting-number {
+      padding: 8px 100px;
+      font-size: 20px;
+      margin-bottom: 30px;
+    }
+  
+    .unique-label {
+      flex: 0 0 300px;
+      font-size: 18px;
+    }
+  
+    .unique-meeting-date {
+      padding: 8px 30px;
+      font-size: 18px;
+    }
+  
+    .unique-textarea,
+    .unique-task,
+    .unique-input,
+    .unique-link {
+      font-size: 16px;
+      padding: 15px 40px;
+    }
+  
+    .unique-dropdown {
+      font-size: 16px;
+      height: 45px;
+    }
+  
+    .unique-screenshot-placeholder {
+      width: 300px;
+      height: 180px;
+    }
+  }
+  
+  @media (max-width: 768px) {
 
-/* Обновленные стили для полей в режиме редактирования */
+    .unique-meeting-container {
+      padding: 10px;
+      padding-top: 60px;
+    }
+  
+  
+    .unique-close-button {
+      top: 20px;
+      right: 20px;
+    }
+  
+    .unique-meeting-info-row {
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+  
+    .unique-label {
+      flex: 1 1 100%;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+  
+    .unique-meeting-number {
+      padding: 6px 40px;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+  
+    .unique-meeting-date {
+      padding: 6px 20px;
+      font-size: 16px;
+      width: 100%;
+      text-align: center;
+    }
+  
+    .unique-textarea,
+    .unique-task,
+    .unique-input,
+    .unique-link {
+      font-size: 14px;
+      padding: 12px 20px;
+      border-radius: 30px;
+      width: 95%;
+    }
+  
+    .unique-textarea {
+      min-height: 80px;
+    }
+  
+    .unique-dropdown {
+      font-size: 14px;
+      height: 40px;
+      border-radius: 20px;
+    }
+  
+    .unique-status {
+      padding: 8px 20px;
+      font-size: 14px;
+      width: 95%;
+    }
+  
+    /* Специальные стили для строки с датой */
+    .unique-date-row {
+      flex-direction: row;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .unique-date-row .unique-label {
+      margin-bottom: 0;
+      flex: 0 0 auto;
+    }
+    
+    .unique-date-row .unique-meeting-date {
+      flex: 1;
+    }
+  }
+  
+  /* Очень маленькие экраны (до 480px) */
+  @media (max-width: 480px) {
+    .unique-meeting-number {
+      font-size: 16px;
+      padding: 5px 20px;
+    }
+  
+    .unique-label {
+      font-size: 14px;
+    }
+  
+    .unique-textarea,
+    .unique-task,
+    .unique-input,
+    .unique-link {
+      font-size: 13px;
+      padding: 10px 15px;
+      width: 93%;
+      
+    }
+  
+    .unique-date-row {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .unique-date-row .unique-meeting-date {
+      width: 90%;
+    }
+
+    .unique-status {
+        width: 90%;
+      }
+    
+  }
+  /* Обновленные стили для полей в режиме редактирования */
 .unique-textarea,
 .unique-input {
     background: white;
-    min-height: 45px;
-    padding: 15px 30px;
+    min-height: 45px; /* Уменьшаем высоту текстовых полей */
+    padding: 15px 30px; /* Уменьшаем отступы */
     border: none;
     border-radius: 70px;
     font-size: 20px;
-    resize: none;
+    resize: none; /* Отключаем изменение размера */
     font-family: inherit;
     width: 100%;
     box-shadow: none;
     outline: none;
 }
 
+/* Специальные стили для текстовых областей */
 .unique-textarea {
-    line-height: 1.4;
+     
+    line-height: 1.4; /* Улучшаем читаемость текста */
 }
 
+/* Стили для выпадающего списка */
 .unique-dropdown {
     background: white;
-    height: 45px;
-    padding: 0 30px;
+    height: 45px; /* Уменьшаем высоту */
+    padding: 0 30px; /* Увеличиваем отступы по бокам */
     border: none;
     border-radius: 70px;
     font-size: 20px;
     font-family: inherit;
     width: 100%;
-    appearance: none;
+    appearance: none; /* Убираем стандартный вид */
     -webkit-appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
@@ -634,6 +808,7 @@
     background-size: 20px;
 }
 
+/* Стили для иконки редактирования */
 .edit-icon2434 {
     margin-left: 15px;
     width: 24px;
@@ -642,6 +817,7 @@
     cursor: pointer;
 }
 
+/* Убираем стандартные стили фокуса */
 .unique-textarea:focus,
 .unique-input:focus,
 .unique-dropdown:focus {
@@ -649,6 +825,31 @@
     box-shadow: 0 0 0 2px rgba(131, 56, 235, 0.3);
 }
 
+
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .unique-textarea,
+    .unique-input,
+    .unique-dropdown {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+    
+    .unique-textarea {
+        min-height: 80px;
+    }
+    
+    .unique-dropdown {
+        height: 40px;
+        background-position: right 15px center;
+    }
+    
+    .edit-icon {
+        width: 20px;
+        height: 20px;
+    }
+}
 .unique-image-input {
     display: none;
 }
@@ -661,12 +862,13 @@
     align-items: center;
     margin-left: 30px;
     justify-content: center;
-    cursor: pointer;
+    cursor: pointer; /* Added to indicate clickability */
 }
 
 .unique-meeting-image {
     width: 432px;
     height: 236px;
+    
     object-fit: cover;
     border-radius: 30px;
 }
@@ -682,7 +884,6 @@
     color: #666;
     font-size: 16px;
 }
-
 .unique-date-input-wrapper {
     position: relative;
     display: flex;
@@ -701,23 +902,37 @@
     outline: none;
     border-color: #007bff;
 }
+/* Responsive styles for image-related elements */
+@media (max-width: 1024px) {
+    .unique-screenshot-placeholder,
+    .unique-meeting-image {
+        width: 300px;
+        height: 180px;
+    }
 
+    .unique-image-upload {
+        width: 300px;
+        height: 180px;
+    }
+}
 .unique-meeting-info {
+    
+   
+    
     margin-bottom: 20px;
     gap: 15px;
 }
 
-/* Стили для кнопок статуса встречи */
+/* Обновленные стили для кнопок статуса встречи */
+/* Обновленные стили для кнопок статуса встречи */
 .unique-meeting-status-buttons {
     display: flex;
     gap: 15px;
     margin-top: -10px;
 }
-
 .unique-status-button.unique-status-completed {
-    padding: 7.5px 65px;
+    padding: 7.5px 65px; 
 }
-
 .unique-status-button {
     padding: 7.5px 47px;
     border-radius: 70px;
@@ -737,7 +952,6 @@
     transform: scale(1.05);
     opacity: 0.9;
 }
-
 /* Стили для всплывающей подсказки */
 .edit-button-wrapper {
     position: relative;
@@ -766,11 +980,10 @@
     opacity: 1;
     visibility: visible;
 }
-
 .unique-status-button:disabled {
+    
     cursor: not-allowed;
 }
-
 .unique-status-button {
     transition: all 0.3s ease;
 }
@@ -784,7 +997,6 @@
     margin: 0;
     overflow: hidden;
 }
-
 /* Зеленая кнопка "состоялась" */
 .unique-status-completed {
     background: #0DB862;
@@ -795,624 +1007,123 @@
     background: #d44444;
 }
 
-/* Стиль для скрытой кнопки */
+/* Стиль для неактивной кнопки (когда одна уже выбрана) */
 .unique-status-button.hidden {
     display: none;
 }
 
 .bbb-button-wrapper {
-    text-align: center;
+  text-align: center;
 }
 
 .bbb-join-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #2c5aa0;
-    color: white;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    font-size: 20px;
-    padding: 12px 30px;
-    border: none;
-    border-radius: 70px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    height: 40px;
-    margin: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #2c5aa0; /* Официальный цвет BBB */
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 70px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 40px;
+  margin: 10px;
 }
 
 .bbb-join-button:hover:not(:disabled) {
-    background: #25467a;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  background: #25467a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .bbb-join-button:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .bbb-join-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .bbb-input-section {
-    margin: 24px 0;
-    display: flex;
-    flex-direction: row;
+  margin: 24px 0;
+  display: flex;
+  flex-direction: row;
 }
 
 .bbb-link-input {
-    font-size: 20px;
-    padding: 20px 30px;
-    border-radius: 70px;
-    color: black;
-    border: none;
-    max-height: 20px;
-    font-weight: 300;
-    display: block;
-    word-break: break-all;
-    white-space: normal;
+  font-size: 20px;
+  padding: 20px 30px;
+  border-radius: 70px;
+  color:black;
+  border: none;
+  max-height: 20px;
+  font-weight: 300;
+  display: block;
+  word-break: break-all;
+  white-space: normal;
 }
 
 .bbb-link-input:focus {
-    border-color: #8338eb;
-    box-shadow: 0 0 0 4px rgba(131, 56, 235, 0.1);
+  border-color: #8338eb;
+  box-shadow: 0 0 0 4px rgba(131, 56, 235, 0.1);
 }
 
 .bbb-link-input::placeholder {
-    color: #aaa;
-    font-style: italic;
+  color: #aaa;
+  font-style: italic;
 }
 
 .bbb-join-icon-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    margin-left: 5px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-    background-color: #e8f5e9;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  background-color: #e8f5e9;
 }
 
 .bbb-join-icon-button:hover {
-    background-color: #e8f5e9;
+  background-color: #e8f5e9; /* Светло-зелёный фон при наведении */
 }
 
 .bbb-join-icon-button:focus {
-    outline: 2px solid #66bb6a;
-    outline-offset: 2px;
+  outline: 2px solid #66bb6a;
+  outline-offset: 2px;
 }
 
 .bbb-join-icon {
-    width: 36px;
-    height: 36px;
-    object-fit: cover;
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  /* Зелёный цвет через filter */
 }
 
-.edit-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-    justify-content: flex-start;
-}
-
-/* Кнопка "Сохранить" — фиолетовая */
-.unique-edit-button:not(.secondary):not(.delete) {
-    background: #8338EB;
-    color: white;
-}
-
-.unique-edit-button:not(.secondary):not(.delete):hover {
-    background: #6a29c4;
-    transform: scale(1.03);
-}
-
-.unique-edit-button.secondary {
-    background: #666666;
-    color: white;
-}
-
-.unique-edit-button.secondary:hover {
-    background: #757575;
-    transform: scale(1.03);
-}
-
-.unique-edit-button.delete {
-    background: #d32f2f;
-    color: white;
-}
-
-.unique-edit-button.delete:hover {
-    background: #d32f2f;
-    transform: scale(1.03);
-}
-
-.edit-actions-container {
-    position: absolute;
-    top: 40px;
-    right: 140px;
-    display: flex;
-    gap: 12px;
-    z-index: 10;
-}
-
-.edit-actions-container .unique-edit-button {
-    position: static;
-    margin: 0;
-    width: auto;
-    height: auto;
-    padding: 10px 20px;
-    border-radius: 70px;
-    font-size: 20px;
-    font-weight: 700;
-}
-
-@media (max-width: 1024px) {
-    .unique-meeting-card {
-        border-radius: 50px;
-        padding: 30px;
-    }
-
-    .unique-close-button {
-        top: 30px;
-        right: 30px;
-        width: 30px;
-        height: 30px;
-    }
-
-    .unique-edit-button {
-        width: 150px;
-        height: auto;
-        min-height: 36px;
-        font-size: 18px;
-        top: 30px;
-        right: 100px;
-    }
-
-    .unique-meeting-number {
-        padding: 8px 100px;
-        font-size: 20px;
-        margin-bottom: 30px;
-    }
-
-    .unique-label {
-        flex: 0 0 300px;
-        font-size: 18px;
-    }
-
-    .unique-meeting-date {
-        padding: 8px 30px;
-        font-size: 18px;
-    }
-
-    .unique-textarea,
-    .unique-task,
-    .unique-input,
-    .unique-link {
-        font-size: 16px;
-        padding: 15px 40px;
-    }
-
-    .unique-dropdown {
-        font-size: 16px;
-        height: 45px;
-    }
-
-    .unique-screenshot-placeholder {
-        width: 300px;
-        height: 180px;
-    }
-}
-
+/* Адаптивные стили для кнопок статуса */
 @media (max-width: 768px) {
-    .unique-meeting-container {
-        padding: 0;
-        background: #F8F3FF;
-        min-height: 100vh;
-        align-items: flex-start;
-    }
-
-    .unique-meeting-card {
-        width: 100%;
-        min-height: 100vh;
-        border-radius: 0;
-        background: #F8F3FF;
-        padding: 20px 24px;
-        margin-top: 60px;
-        box-shadow: none;
-        position: relative;
-    }
-
-    .unique-meeting-number {
-        background: transparent;
-        color: var(--color-purple);
-        font-size: 28px;
-        font-weight: bold;
-        padding: 0;
-        margin: 0 0 12px 0;
-        display: inline-block;
-        width: auto;
-    }
-
-    .unique-meeting-info {
-        padding-right: 160px;
-        margin-bottom: 20px;
-        gap: 15px;
-    }
-
-    .unique-edit-button {
-        background: #8A64EB;
-        color: white;
-        border: none;
-        height: 44px;
-        min-height: 44px;
-        line-height: 1.2;
-        border-radius: 20px;
-        font-size: 16px;
-        font-weight: 700;
-        width: auto;
-        min-width: 150px;
-        position: absolute;
-        top: 20px;
-        right: 70px;
-        margin: 0;
-        transform: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 20px;
-        z-index: 5;
-    }
-
-    .unique-close-button {
-        top: 15px !important;
-        right: 24px !important;
-        width: 36px;
-        height: 36px;
-        background: var(--color-purple);
-        z-index: 100;
-    }
-
-    .edit-actions-container {
-        position: static;
-        width: 100%;
-        margin-top: 20px;
-        flex-direction: column;
-    }
-
-    .edit-actions-container .unique-edit-button {
-        width: 100%;
-        height: 56px;
-        min-height: 56px;
-        font-size: 16px;
-        border-radius: 20px;
-        margin: 0 0 8px 0;
-        min-width: unset;
-        position: static;
-    }
-
-    .unique-meeting-info-row.unique-date-row {
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: flex-start !important;
-        flex-wrap: nowrap !important;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-
-    .unique-meeting-info-row.unique-date-row .unique-label {
-        flex: 0 0 auto !important;
-        width: auto !important;
-        white-space: nowrap;
-        color: var(--color-black);
-        font-size: 16px;
-        margin-top: 0;
-    }
-
-    .unique-meeting-info-row.unique-date-row .unique-meeting-date,
-    .unique-meeting-info-row.unique-date-row .fancy-date-display {
-        flex: 0 0 auto !important;
-        white-space: nowrap;
-        padding: 8px 16px;
-        font-size: 16px;
-        margin: 0;
-        background: #8338EB;
-        color: white;
-        border-radius: 50px;
-        font-weight: 400;
-    }
-
     .unique-meeting-status-buttons {
-        margin: 20px 0;
-        flex-direction: column !important;
-        gap: 8px;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
     }
-
+    
     .unique-status-button {
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-weight: 600;
-        width: 100% !important;
-        flex: none !important;
-        height: 48px;
-        min-width: unset !important;
-        padding: 0 !important;
-        font-size: 16px;
-    }
-
-    .unique-status-button.unique-status-completed {
-        padding: 0 !important;
-    }
-
-    .unique-status-completed {
-        background-color: var(--color-green) !important;
-        color: white !important;
-        font-weight: 600;
-    }
-
-    .unique-status-not-happened {
-        background-color: var(--color-red) !important;
-        color: white !important;
-        font-weight: 600;
-    }
-
-    .unique-status-button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .unique-meeting-info-row {
-        flex-direction: column;
-        margin-bottom: 20px;
-        gap: 8px;
-        align-items: flex-start;
-    }
-
-    .unique-label {
-        flex: none !important;
         width: 100%;
-        color: var(--color-black);
-        font-size: 16px;
-        font-weight: 500;
-        margin-bottom: 0;
-        margin-top: 0;
-    }
-
-    .unique-task,
-    .unique-link,
-    .unique-textarea,
-    .unique-input {
-        border: 1px solid var(--color-purple);
-        border-radius: var(--border-radius-xl);
-        background: white;
-        padding: 16px;
-        font-size: 14px;
-        color: var(--color-black);
-        width: 100%;
-        max-width: none;
-        min-height: auto;
-        box-shadow: none;
-    }
-
-    .unique-task {
-        min-height: auto;
-        padding: 16px;
-    }
-
-    .unique-status {
-        width: 100%;
-        height: 48px;
-        padding: 0;
-        border-radius: var(--border-radius-full);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        margin: 8px 0 20px 0;
-    }
-
-    .unique-status.ok {
-        background-color: var(--color-green);
-        color: white;
-    }
-
-    .unique-status.with_issues {
-        background-color: var(--color-warning);
-        color: var(--color-black);
-    }
-
-    .unique-status.many_issues {
-        background-color: var(--color-red);
-        color: white;
-    }
-
-    .unique-status.default {
-        background-color: var(--color-purple);
-        color: white;
-    }
-
-    .screenshot-block {
-        margin: 12px 0;
-    }
-
-    .screenshot-label {
-        font-size: 16px;
-        font-weight: 500;
-        color: black;
-        margin-bottom: 8px;
-    }
-
-    .unique-image-upload {
-        width: 100%;
-        height: 200px;
-        margin-left: 0;
-        margin-top: 8px;
-    }
-
-    .unique-screenshot-placeholder,
-    .unique-meeting-image {
-        width: 100%;
-        height: 150px;
-        border-radius: var(--border-radius-xl);
-        background-color: var(--color-light-gray);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: var(--color-gray);
-    }
-
-    .screenshot-icon {
-        width: 100px;
-        height: 100px;
-        color: var(--color-purple);
-    }
-
-    .screenshot-text {
-        margin-top: 8px;
-        color: var(--color-purple);
-        font-size: 15px;
-    }
-
-    .screenshot-attached {
-        color: var(--color-green);
-        font-weight: bold;
-    }
-
-    .bbb-input-section {
-        flex-direction: row;
-        gap: 12px;
-        margin: 16px 0 32px 0;
-    }
-
-    .bbb-link-input {
-        flex: 1;
-        border: 1px solid var(--color-purple);
-        border-radius: var(--border-radius-sm);
-        background: white;
-        padding: 16px;
-        font-size: 14px;
-        height: auto;
-        max-height: none;
-    }
-
-    .bbb-join-icon-button {
-        width: 56px;
-        height: 56px;
-        background-color: #D1F3E0;
-        border-radius: var(--border-radius-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0;
-    }
-
-    .bbb-join-icon {
-        width: 24px;
-        height: 24px;
-        filter: invert(62%) sepia(67%) saturate(394%) hue-rotate(78deg) brightness(92%) contrast(89%);
-    }
-
-    .status-dropdown-wrapper {
-        width: 100%;
-        max-width: none;
-        margin-top: 8px;
-    }
-
-    .status-selected {
-        width: 100%;
-        height: 56px;
-        padding: 0 20px;
-        border-radius: var(--border-radius-xl);
-        border: 2px solid var(--color-purple);
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 16px;
-        color: var(--color-black);
-    }
-
-    .status-options {
-        width: 100%;
-        border-radius: var(--border-radius-xl);
-        margin-top: 4px;
-    }
-
-    .status-option {
-        padding: 16px 20px;
-        color: white;
-        font-size: 16px;
-        text-align: center;
-    }
-
-    .status-option.ok { background-color: var(--color-green); }
-    .status-option.problems { background-color: var(--color-warning); color: var(--color-black); }
-    .status-option.major-problems { background-color: var(--color-red); }
-
-    .edit-icon23,
-    .edit-icon2334,
-    .edit-icon2434 {
-        display: none;
-    }
-
-    .confirm-modal {
-        width: 90%;
-        padding: 20px;
+        min-width: unset;
     }
 }
 
 @media (max-width: 480px) {
-    .unique-meeting-card {
-        padding: 16px 20px;
-    }
-
-    .unique-meeting-number {
-        font-size: 24px;
-    }
-
-    .unique-edit-button {
-        font-size: 14px;
-        min-width: 110px;
-        height: 40px;
-        min-height: 40px;
-        padding: 0 14px;
-    }
-
-    .unique-close-button {
-        top: 16px !important;
-        right: 20px !important;
-        width: 32px !important;
-        height: 32px !important;
-    }
-
-    .unique-meeting-status-buttons {
-        gap: 6px;
-        margin: 16px 0;
-    }
-
-    .unique-status-button {
-        font-size: 14px;
-        height: 44px;
-    }
-
-    .screenshot-icon {
-        width: 80px;
-        height: 80px;
-    }
-
-    .screenshot-text {
-        font-size: 14px;
-    }
-
     .header-left {
         max-width: calc(100% - 60px);
         overflow: hidden;
@@ -1423,41 +1134,239 @@
         height: 32px;
         min-width: 32px;
     }
+    .unique-meeting-container {
+        padding: 0;
+    }
 
+    .unique-image-upload {
+        margin-left: 0px;
+    }
+
+    .unique-meeting-card {
+        background: #F8F3FF;
+        border-radius: 0;
+        min-height: 100%;
+    }
+    .unique-meeting-number {
+        background: #F8F3FF;
+        color: #44069A;
+        font-size: 32px;
+        padding-left: 0px;
+    }
+    .unique-label {
+        color: black;
+    }
+    .unique-screenshot-placeholder {
+      width: 93%;
+    }
+    .edit-icon23 {
+      display: none;
+    }
+    .unique-meeting-date {
+      max-width: 60px;
+    }
+    .unique-input {
+      width: 90%;
+    }
+    .unique-task, .unique-link, .unique-textarea, .unique-input {
+        border: 1px solid #8338EB;
+    }
+    .unique-textarea {
+      width: 93%;
+    }
+
+    .unique-status-button {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+@media (max-width: 768px) {
+
+    .unique-meeting-card {
+        min-height: calc(100vh - 60px);
+        max-height: 100%;
+        margin-top: 60px;
+        border-radius: 0px;
+        padding: 15px;
+    }
+
+    .unique-screenshot-placeholder,
+    .unique-meeting-image {
+        width: 93%;
+        height: 150px;
+    }
+
+    .unique-image-upload {
+        width: 100%;
+        height: 150px;
+    }
+}
+
+@media (max-width: 480px) {
+    .unique-screenshot-placeholder,
+    .unique-meeting-image {
+        width: 100%;
+        height: 120px;
+    }
+
+    .unique-image-upload {
+        width: 100%;
+        height: 120px;
+    }
+}
+@media (max-width: 480px) {
     .unique-textarea,
     .unique-input,
     .unique-dropdown {
         padding: 15px 20px;
         font-size: 14px;
     }
-
+    
     .unique-textarea {
         min-height: 70px;
     }
-
+    
     .unique-dropdown {
         height: 38px;
     }
 
-    .bbb-input-section {
-        flex-direction: column;
-    }
-
-    .bbb-link-input {
-        font-size: 14px;
-        padding: 12px 20px;
+    .confirm-modal {
         width: 90%;
     }
-
-    .bbb-join-icon-button {
-        margin-top: 5px;
-        width: 100%;
-    }
-
-    .edit-actions {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
+}
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  justify-content: flex-start;
 }
 
+/* Общие стили для всех кнопок в режиме редактирования */
+
+/* Кнопка "Сохранить" — фиолетовая */
+.unique-edit-button:not(.secondary):not(.delete) {
+  background: #8338EB;
+  color: white;
+}
+
+.unique-edit-button:not(.secondary):not(.delete):hover {
+  background: #6a29c4;
+  transform: scale(1.03);
+}
+
+/* Кнопка "Отмена" — серая */
+.unique-edit-button.secondary {
+  background: #666666;
+  color: white;
+}
+
+.unique-edit-button.secondary:hover {
+  background: #757575;
+  transform: scale(1.03);
+}
+
+/* Кнопка "Удалить" — красная */
+.unique-edit-button.delete {
+  background: #d32f2f;
+  color: white;
+}
+
+.unique-edit-button.delete:hover {
+  background: #d32f2f;
+  transform: scale(1.03);
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+  .edit-actions {
+    gap: 10px;
+    justify-content: flex-start;
+  }
+
+  .unique-edit-button {
+    font-size: 18px;
+    padding: 9px 16px;
+    min-width: 110px;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .unique-edit-button {
+    font-size: 16px;
+    padding: 10px;
+    text-align: center;
+  }
+}
+
+.edit-actions-container {
+  position: absolute;
+  top: 40px;
+  right: 140px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+/* Убираем абсолютное позиционирование у самих кнопок */
+.edit-actions-container .unique-edit-button {
+  position: static; /* сбрасываем возможное наследование */
+  margin: 0;
+  width: auto; /* не фиксируем ширину */
+  height: auto; /* не фиксируем высоту */
+  padding: 10px 20px;
+  border-radius: 70px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .edit-actions-container {
+    top: 20px;
+    right: 70px;
+    gap: 10px;
+  }
+
+  .edit-actions-container .unique-edit-button {
+    font-size: 18px;
+    padding: 9px 16px;
+  }
+  .unique-edit-button {
+    top: 20px;
+    right: 70px;
+  }
+  .bbb-input-section {
+      flex-direction: column;
+    }
+
+  .bbb-link-input {
+    font-size: 14px;
+    padding: 12px 20px;
+    width: 90%;
+  }
+
+  .bbb-join-icon-button {
+    margin-top: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-actions-container {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    right: 70px;
+  }
+
+  .edit-actions-container .unique-edit-button {
+    width: 120px;
+    font-size: 16px;
+    text-align: center;
+  }
+}

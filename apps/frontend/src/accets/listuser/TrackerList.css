@@ -1,31 +1,51 @@
 
 .tracker-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
     margin-top: -32px;
     margin-left: 201px;
     margin-right: 201px;
+
 }
 
 /* Общий контейнер «пузырька» */
-.tracker-item-edit,
 .tracker-item-true {
-    position: relative;
-    max-width: 100%;
-    width: 100%;
+    /* Размер/отступы подбирайте по вкусу */
+    width: 360px;
     height: 95px;
-    margin: 0;
     margin-top: 58px;
+    margin-right: 26px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
+
+
     background-color: #ffffff;
-    border-radius: 70px;
-    box-shadow: 14px 15px 7px rgba(112, 14, 240, 0.4);
-    border: 2px solid #44069A;
+    border-radius: 70px; /* Сильное скругление */
+    box-shadow: 14px 15px 7px rgba(112, 14, 240, 0.4); /* лёгкая фиолетовая тень */
+    border: 2px solid #44069A; /* тонкая оконтовка */
+
+
+}
+
+.tracker-item-edit {
+    /* Размер/отступы подбирайте по вкусу */
+    width: 360px;
+    height: 91px;
+    margin-top: 58px;
+    margin-right: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     cursor: pointer;
-    box-sizing: border-box;
+
+
+    background-color: #ffffff;
+    border-radius: 70px; /* Сильное скругление */
+    box-shadow: 14px 15px 7px rgba(112, 14, 240, 0.4); /* лёгкая фиолетовая тень */
+    border: 2px solid #878685; /* тонкая оконтовка */
+
+
 }
 
 .error-message.oval2 {
@@ -56,29 +76,17 @@
 }
 
 .green-checkmark {
-    position: absolute;
-    right: 20px;           /* Отступ от правого края карточки */
-    top: 50%;              /* По центру по вертикали */
-    transform: translateY(-50%); /* Точная центровка */
-    width: 24px;
-    height: 24px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
+    margin-left: 270px;
+    margin-top: 20px;
+    position: absolute;
 }
 
 .edit-icon {
-    position: absolute;
-    right: 20px;           /* Отступ от правого края карточки */
-    top: 50%;              /* По центру по вертикали */
-    transform: translateY(-50%); /* Точная центровка */
-    width: 24px;
-    height: 24px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
+    margin-left: 270px;
+    margin-top: 20px;
+    position: absolute;
 }
 
 /* Блок с текстом (ФИО, ник) */
@@ -88,7 +96,6 @@
     justify-content: space-between; /* Это обеспечит, что ФИО будет сверху, а ник внизу */
     height: 100%;
     margin-left: 70px;
-    margin-right: 80px;
     margin-top: -8px;
     /* Чтобы занять всё оставшееся место между аватаром и галочкой */
     flex: 1;
@@ -123,25 +130,42 @@
     margin-left: 12px;
 }
 
+.tracker-item-edit {
+    position: relative; /* Устанавливаем родительский контейнер */
+    display: flex;
+    align-items: center;
+
+}
+
+.tracker-item-true {
+    position: relative; /* Устанавливаем родительский контейнер */
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
 .tracker-edit-panel12 {
     position: absolute;
+    right: -50px; /* Сдвигаем влево от иконки */
+    height: 37px;
+    width: 106px;
     top: 50%;
     transform: translateY(-50%);
-    width: 106px;
-    height: 37px;
     background: white;
     border: 2px solid #44069A;
     border-radius: 70px;
+
     display: flex;
     gap: 5px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
     z-index: 10;
-    overflow: hidden;
+
+
 }
 
 .tracker-edit-panel {
     position: absolute;
-    left: calc(100% + 10px);
+    right: -100px; /* Сдвигаем влево от иконки */
     height: 37px;
     width: 106px;
     top: 50%;
@@ -217,6 +241,7 @@
 }
   
   .filter-toggle-container {
+  right: 850px;
   top: 5px;
   position: relative;
 }
@@ -356,112 +381,150 @@
 
 .Users-header-bottom-cont {
     display: flex;
-    flex-direction: row !important;
-    align-items: center !important;
+    flex-direction: row;
+    align-content: space-between;
     justify-content: space-between;
     margin-right: 121px;
     margin-left: 157px;
     margin-top: 20px;
-    gap: 24px;
 }
 
-@media (max-width: 768px) {
-    /* === ПОИСК И ФИЛЬТР === */
-    .Users-header-bottom-cont {
-        flex-direction: column;
-        align-items: flex-start;
-        margin-left: 15px;
-        margin-right: 15px;
-        gap: 12px;
-        width: 100%;
-        padding-left: 15px;
-        padding-right: 15px;
-        box-sizing: border-box;
-    }
+@media (max-width: 600px) {
+  /* Убедимся, что сам контейнер видим */
+  .Stream-header {
+    display: block !important;
+  }
+ 
+  /* Нижнюю часть прижмём влево и опустим чуть вниз */
+  .Users-header-bottom-cont {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important; /* прижать влево */
+    gap: 120px !important;
+    width: 100% !important;
+    margin-top: -10px !important;   /* отступ вниз */
+    padding-left: 10px !important; /* отступ от левого края экрана */
+    padding-right: 250px ;
+    box-sizing: border-box !important;
+    position: relative !important;
+    top: 6px !important; /* дополнительный тонкий сдвиг вниз, если margin не работает */
+    z-index: 50 !important;
+  }
+  
+  /* Если родитель фиксирован и перекрывает — добавим отступ у контейнера страницы */
 
-    .Stream-search-cont {
-        width: 100%;
-        max-width: 300px;
-    }
-
-    .Stream-search {
-        width: 100%;
-        max-width: 300px;
-        height: 38px;
-        font-size: 14px;
-        padding: 0 16px;
-    }
-
-    .filter-toggle-container {
-        align-self: flex-end;
-        margin-right: 10px;
-    }
-
-    .filter-toggle {
-        width: 42px;
-        height: 42px;
-    }
-
-    .filter-tooltip {
-        display: none; /* Нет hover на мобильных */
-    }
-
-    /* === СЕТКА КАРТОЧЕК === */
-    .tracker-grid {
-        margin-left: 15px;
-        margin-right: 15px;
-        gap: 16px;
-    }
-
-    /* === ПАНЕЛЬ ДЕЙСТВИЙ === */
-    .tracker-edit-panel,
-    .tracker-edit-panel12 {
-        right: 55px;
-        left: auto;
-        width: 80px;
-        height: 30px;
-        border-radius: 30px;
-        gap: 4px;
-    }
-
-    .confirm-button img,
-    .cancel-button img {
-        width: 16px;
-        height: 16px;
-    }
-
-    /* === ТЕКСТ В КАРТОЧКЕ === */
-    .tracker-text {
-        margin-left: 15px;
-    }
-
-    .tracker-fio,
-    .tracker-nick {
-        margin-left: 0;
-        padding-left: 70px;
-    }
-
-    /* === ОШИБКИ === */
-    .error-message.oval2 {
-        margin-left: 15px;
-        margin-right: 15px;
-        font-size: 14px;
-    }
+.Stream-settings-pic2{
+  margin: 15px;
 }
-@media (min-width: 768px) and (max-width: 900px) {
-    .Users-header-bottom-cont {
-        margin-left: 40px;
-        margin-right: 40px;
-        gap: 16px;
-    }
+  /* Убедимся, что поиск занимает место, а фильтр не расталкивает его */
+  .Stream-search-cont {
+    flex: 1 1 auto !important;
+    min-width: 0 !important; /* чтобы input не вылазил за пределы */
+  }
 
-    .Stream-search {
-        max-width: 280px;
-        font-size: 14px;
-    }
+  .Stream-search {
+    width: 100% !important;
+    max-width: none !important;
+    height: 38px !important;
+  }
 
-    .filter-toggle {
-        width: 46px;
-        height: 46px;
-    }
+  .filter-toggle-container {
+    flex: 0 0 auto !important;
+    margin-left: 8px !important;
+  }
+
+  /* === Только верхнюю часть скрываем === */
+  .Stream-header-cont {
+    display: none; /* скрыть десктопную часть с заголовком и кнопками */
+    
+  }
+  .tracker-fio{
+    margin-top: -5px;
+  }
+.tracker-fio,
+  .tracker-nick {
+    margin-left: 0 !important;
+    padding-left: 70px;
+    text-align: left;
+  }
+  .tracker-edit-panel12, .tracker-edit-panel {
+    
+    right: 10px; /* Было -50px, увеличиваем смещение влево */
+    
+}
+
+
+  .Stream-search-cont {
+    flex: 1;
+  }
+
+  .Stream-search-contcont {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .Stream-search {
+    width: 100%;
+    max-width: 300px;
+    height: 38px;
+    font-size: 14px;
+    border-radius: 25px;
+  }
+
+  .filter-toggle-container {
+    position: static;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .filter-toggle {
+    width: 42px;
+    height: 42px;
+  }
+
+  /* Остальное — как было */
+  .tracker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    margin: 20px auto 0;
+    gap: 12px;
+    justify-items: center;
+  }
+
+  .tracker-item-true,
+  .tracker-item-edit {
+    width: 90%;
+    height: 64px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 10px;
+    margin: 10px 0;
+    
+  }
+
+    
+ 
+  .tracker-text {
+    margin-left: 15px;
+  }
+
+  .Stream-footer-butts {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .confirm-button img,
+  .cancel-button img,
+  .edit-icon img,
+  .green-checkmark img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .filter-tooltip {
+    display: none;
+  }
 }
