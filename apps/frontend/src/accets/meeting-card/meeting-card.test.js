@@ -1091,7 +1091,7 @@ describe('MeetingCard Completion and Editing', () => {
             tasksNextMeeting: 'Test',
             teamStatus: 'OK',
             status: 'SCHEDULED',
-            link: 'http://example.com',
+            recordLink: 'http://example.com',
           })
         });
       }
