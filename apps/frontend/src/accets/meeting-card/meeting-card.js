@@ -370,7 +370,7 @@ const MeetingCard = () => {
         setIsEditing(true);
     };
 
-    const handleBbbJoin = () => {
+    const handleMeetingRoomJoin = () => {
         const roomLink = meetingData.roomLink;
         if (!roomLink) {
             setError("Ссылка на комнату для встречи не указана в карточке команды");
@@ -479,7 +479,7 @@ const MeetingCard = () => {
                         </span>
                         <button
                             className="bbb-join-icon-button"
-                            onClick={handleBbbJoin}
+                            onClick={handleMeetingRoomJoin}
                             aria-label="Запустить встречу"
                             title="Запустить встречу"
                         >

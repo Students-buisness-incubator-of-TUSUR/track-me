@@ -1322,7 +1322,7 @@ describe('deleteStream', () => {
     });
 
     expect(getCsrfConfigForFetch).toHaveBeenCalled();
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(global.fetch).toHaveBeenLastCalledWith(
       `${backendHost}/api/v1/admin/stream/${testStreamId}`,
       expect.objectContaining({
         method: 'DELETE',
