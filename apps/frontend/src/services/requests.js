@@ -21,7 +21,7 @@ export async function fetchReports({ page, size, filters }) {
   return response;
 }
 
-export async function fetchTrackers({ page, size, sort }) {
+export async function fetchTrackers({ page, size, sort, filters }) {
   let sortString;
   if (Array.isArray(sort) && sort.length !== 0) {
     sortString = "sort=" + sort.join("&sort=")
@@ -39,9 +39,7 @@ export async function fetchTrackers({ page, size, sort }) {
       },
       credentials: "include",
       body: JSON.stringify({
-        filters: []
-        // TODO: add filters to request
-        // filters: selectedFilters 
+        filters: filters ?? [],
       }),
     }
   );
