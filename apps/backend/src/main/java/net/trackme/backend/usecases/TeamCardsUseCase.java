@@ -92,7 +92,7 @@ public class TeamCardsUseCase {
 
     public Page<TeamCardReportRecordDto> getTeamCardReport(List<Filter> filters,
                                                            Pageable pageable) {
-        var teamCardSpec = withFilters(filters).and(withFetchJoins());
+        var teamCardSpec = withFilters(filters).and(withFetchJoins()).and(hasStream());
         var teamCardPage = teamCardsService.getTeamCards(teamCardSpec, pageable);
         return teamCardPage.map(teamCardMapper::mapToReportDto);
     }

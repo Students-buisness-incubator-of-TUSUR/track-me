@@ -45,6 +45,11 @@ public class TeamCardSpecification implements Specification<TeamCard> {
                 criteriaBuilder.equal(root.get("username"), username);
     }
 
+    public static Specification<TeamCard> hasStream() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.isNotEmpty(root.get("streams"));
+    }
+
     public static Specification<TeamCard> withStreamsAndNtiMarkets(List<String> streamNames) {
         return (root, query, criteriaBuilder) -> {
             if (query != null && Long.class != query.getResultType()) {
