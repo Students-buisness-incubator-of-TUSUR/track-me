@@ -867,7 +867,7 @@ describe('handleExportExcel', () => {
       blob: jest.fn().mockResolvedValue(new Blob(['fake-xlsx'])),
     });
 
-    render(<Router><ReportPage /></Router>);
+    render(<Router><ReportPage defaultIsActive={false} /></Router>);
     await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
 
     fireEvent.click(screen.getByText('Выгрузить отчет'));
@@ -948,7 +948,7 @@ describe('handleExportExcel', () => {
       }),
     });
 
-    render(<Router><ReportPage /></Router>);
+    render(<Router><ReportPage defaultIsActive={false} /></Router>);
     await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
 
     fireEvent.click(screen.getByTestId('trackers-btn'));
@@ -978,7 +978,7 @@ describe('handleExportExcel', () => {
       }),
     });
 
-    render(<Router><ReportPage /></Router>);
+    render(<Router><ReportPage defaultIsActive={false} /></Router>);
     await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
 
     fireEvent.click(screen.getByText('Потоки'));
