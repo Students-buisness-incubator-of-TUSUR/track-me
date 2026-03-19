@@ -185,4 +185,8 @@
         align-items: center;
         gap: 20px;
     }
+
+    .profile-page_btn:not(:disabled):hover {
+        background-color: var(--color-purple);
+    }
 }
