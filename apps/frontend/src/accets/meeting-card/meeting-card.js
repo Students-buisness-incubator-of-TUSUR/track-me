@@ -249,7 +249,7 @@ const MeetingCard = () => {
             setAllMeetings(prev => {
                 const updated = prev.filter(m => m.id !== savedMeetingId);
                 updated.push(result);
-                return updated.sort((a, b) => (parseInt(a.number) || 0) - (parseInt(b.number) || 0));
+                return updated.sort((a, b) => (Number.parseInt(a.number) || 0) - (Number.parseInt(b.number) || 0));
             });
 
             if (image && savedMeetingId) {
@@ -411,7 +411,7 @@ const MeetingCard = () => {
                 if (!response.ok) throw new Error('Ошибка загрузки встреч');
                 const data = await response.json();
                 const sorted = (data.content || []).sort((a, b) =>
-                    (parseInt(a.number) || 0) - (parseInt(b.number) || 0)
+                    (Number.parseInt(a.number) || 0) - (Number.parseInt(b.number) || 0)
                 );
                 setAllMeetings(sorted);
             } catch (err) {
@@ -491,6 +491,7 @@ const MeetingCard = () => {
                         <div className="unique-meeting-status-buttons">
                             {meetingData.status !== "COMPLETED_AS_NOT_HAPPENED" && (
                                 <button
+                                    data-testid="complete-meeting-btn"
                                     onClick={() => handleCompleteMeeting(true)}
                                     disabled={meetingData.status === "COMPLETED" || !areAllFieldsFilled() || !isMeetingDatePassed()}
                                     className={`unique-status-button unique-status-completed ${meetingData.status === "COMPLETED" ? "active-status" : ""}`}
@@ -569,9 +570,9 @@ const MeetingCard = () => {
                             </div>
                             {showStatusDropdown && (
                                 <div className="status-options">
-                                    <div className="status-option ok" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "OK" })); setShowStatusDropdown(false); }}>Всё ок</div>
-                                    <div className="status-option problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "WITH_ISSUES" })); setShowStatusDropdown(false); }}>Есть проблемы</div>
-                                    <div className="status-option major-problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "MANY_ISSUES" })); setShowStatusDropdown(false); }}>Есть большие проблемы</div>
+                                    <button className="status-option ok" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "OK" })); setShowStatusDropdown(false); }}>Всё ок</button>
+                                    <button className="status-option problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "WITH_ISSUES" })); setShowStatusDropdown(false); }}>Есть проблемы</button>
+                                    <button className="status-option major-problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "MANY_ISSUES" })); setShowStatusDropdown(false); }}>Есть большие проблемы</button>
                                 </div>
                             )}
                         </div>

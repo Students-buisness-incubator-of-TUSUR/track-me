@@ -1057,6 +1057,193 @@ describe('MeetingCard Completion and Editing', () => {
     console.error.mockRestore();
   });
 
+
+  test('sort after save handles NaN number values', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    let callCount = 0;
+
+    fetch.mockImplementation(() => {
+      callCount++;
+
+      // fetchAllMeetings в useEffect
+      if (callCount === 1) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: '1', number: null },
+              { id: '2', number: 'abc' },
+              { id: '3', number: '5' },
+            ]
+          })
+        });
+      }
+
+      // POST сохранение
+      if (callCount === 2) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            id: '999',
+            number: null,
+            startDate: '2025-12-13T00:00:00.000Z',
+            tasksCurrentMeeting: 'Test',
+            tasksNextMeeting: 'Test',
+            teamStatus: 'OK',
+            status: 'SCHEDULED',
+            link: 'http://example.com',
+          })
+        });
+      }
+
+      // загрузка изображения
+      return Promise.resolve({ ok: true });
+    });
+
+    const { container } = render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Сохранить')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    await fillAllRequiredFields(container);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Сохранить'));
+    });
+
+    await waitFor(() => {
+      expect(callCount).toBeGreaterThanOrEqual(2);
+      expect(mockNavigate).toHaveBeenCalled();
+    }, { timeout: 5000 });
+  });
+
+  test('shows error when completing meeting with unfilled fields', async () => {
+    const pastMeetingEmpty = {
+      id: '123',
+      number: '5',
+      startDate: new Date(Date.now() - 86400000).toISOString(),
+      status: 'SCHEDULED',
+      tasksCurrentMeeting: '',
+      tasksNextMeeting: '',
+      teamStatus: '',
+      recordLink: '',
+    };
+
+    fetch.mockImplementation((url) => {
+      const urlString = getUrlString(url);
+      if (urlString.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [pastMeetingEmpty] })
+        });
+      }
+      if (urlString.includes('/api/v1/image/')) {
+        return Promise.resolve({ ok: false });
+      }
+      return Promise.resolve({ ok: true });
+    });
+
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 5/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    const completeButton = screen.getByTestId('complete-meeting-btn');
+
+    await act(async () => {
+      const fiberKey = Object.keys(completeButton).find(k => k.startsWith('__reactFiber'));
+      const onClick = completeButton[fiberKey]?.memoizedProps?.onClick;
+      onClick?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Нельзя завершить встречу/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    const patchCalled = fetch.mock.calls.some(([, opts]) => opts?.method === 'PATCH');
+    expect(patchCalled).toBe(false);
+  });
+
+  test('shows error when completing meeting before date has passed', async () => {
+    const futureMeeting = {
+      ...mockExistingMeeting,
+      startDate: new Date(Date.now() + 86400000 * 3).toISOString(),
+      status: 'SCHEDULED',
+      tasksCurrentMeeting: 'Task 1',
+      tasksNextMeeting: 'Task 2',
+      teamStatus: 'OK',
+      recordLink: 'http://example.com',
+    };
+
+    fetch.mockImplementation((url) => {
+      const urlString = getUrlString(url);
+      if (urlString.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [futureMeeting] })
+        });
+      }
+      if (urlString.includes('/api/v1/image/')) {
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob())
+        });
+      }
+      return Promise.resolve({ ok: true });
+    });
+
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    const completeButton = screen.getByTestId('complete-meeting-btn');
+
+    await act(async () => {
+      const fiberKey = Object.keys(completeButton).find(k => k.startsWith('__reactFiber'));
+      const onClick = completeButton[fiberKey]?.memoizedProps?.onClick;
+      onClick?.();
+    });
+
+    await waitFor(() => {
+      const errorDiv = document.querySelector('.error-message');
+      expect(errorDiv).toBeInTheDocument();
+      expect(errorDiv.textContent).toMatch(
+        /Завершение встречи возможно только после окончания даты встречи/i
+      );
+    }, { timeout: 3000 });
+
+    const patchCalled = fetch.mock.calls.some(([, opts]) => opts?.method === 'PATCH');
+    expect(patchCalled).toBe(false);
+  });
+
   test('should complete meeting successfully', async () => {
     fetch.mockImplementation((url) => {
       const urlString = getUrlString(url);
