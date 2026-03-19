@@ -400,7 +400,7 @@ function ProfilePage() {
                             <button
                                 onClick={() => { window.location.reload() }}
                             >
-                                Сбросить
+                                Отменить
                             </button>
                         )}
                         {!isOwnProfile && (
