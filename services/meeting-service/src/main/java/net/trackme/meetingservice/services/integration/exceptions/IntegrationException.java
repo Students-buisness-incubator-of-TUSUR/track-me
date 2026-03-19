@@ -6,16 +6,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Getter
 @ResponseStatus(HttpStatus.BAD_GATEWAY)
-public class ServiceUnavailableException extends RuntimeException {
+public class IntegrationException extends RuntimeException {
 
     private final String serviceName;
 
-    public ServiceUnavailableException(String serviceName) {
+    public IntegrationException(String serviceName) {
         super(String.format("Integration error: Service '%s' is currently unavailable or returned an error.", serviceName));
         this.serviceName = serviceName;
     }
 
-    public ServiceUnavailableException(String serviceName, Throwable cause) {
+    public IntegrationException(String serviceName, Throwable cause) {
         super(String.format("Integration error: Failed to connect to '%s' service.", serviceName), cause);
         this.serviceName = serviceName;
     }

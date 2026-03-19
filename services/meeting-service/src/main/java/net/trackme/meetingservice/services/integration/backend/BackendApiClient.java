@@ -2,7 +2,7 @@ package net.trackme.meetingservice.services.integration.backend;
 
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.backend.exceptions.TeamCardNotFoundException;
-import net.trackme.meetingservice.services.integration.exceptions.ServiceUnavailableException;
+import net.trackme.meetingservice.services.integration.exceptions.IntegrationException;
 
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ public interface BackendApiClient {
      * @param id идентификатор карточки команды
      * @return DTO карточки команды
      * @throws TeamCardNotFoundException если карточка не найдена
-     * @throws ServiceUnavailableException если сервис недоступен
+     * @throws IntegrationException если сервис недоступен
      */
     TeamCardDto getTeamCardById(UUID id);
 }

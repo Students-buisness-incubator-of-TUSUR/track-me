@@ -1,5 +1,6 @@
 package net.trackme.meetingservice.services.integration;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +20,11 @@ public class SecurityPropagationInterceptorTest {
 
     private final SecurityPropagationInterceptor interceptor = new SecurityPropagationInterceptor();
 
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     public void intercept_withJwtToken_addsHeader() throws IOException {
         // Arrange
@@ -37,7 +43,5 @@ public class SecurityPropagationInterceptorTest {
         // Assert
         Assertions.assertEquals("Bearer test-token-123", request.getHeaders().getFirst("Authorization"));
         verify(execution).execute(any(), any());
-
-        SecurityContextHolder.clearContext();
     }
 }

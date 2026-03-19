@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.services.integration.SecurityPropagationInterceptor;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.backend.exceptions.TeamCardNotFoundException;
-import net.trackme.meetingservice.services.integration.exceptions.ServiceUnavailableException;
+import net.trackme.meetingservice.services.integration.exceptions.IntegrationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -45,7 +45,7 @@ public class BackendApiClientImpl implements BackendApiClient {
             throw e;
         } catch (Exception e) {
             log.error("Сетевая ошибка при обращении к сервису {}: {}", SERVICE_NAME, e.getMessage());
-            throw new ServiceUnavailableException(SERVICE_NAME, e);
+            throw new IntegrationException(SERVICE_NAME, e);
         }
     }
 }
