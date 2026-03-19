@@ -93,6 +93,10 @@
   opacity: 1;
 }
 
+.create-stream_input-cont-input:focus::placeholder {
+  color: transparent;
+}
+
 .create-stream_title {
     font-family: "Mulish", sans-serif;
     font-weight: 600;
