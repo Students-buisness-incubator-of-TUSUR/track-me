@@ -9,26 +9,33 @@ import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.repos.NtiMarketRepository;
 import net.trackme.backend.repos.TeamCardsRepository;
 import net.trackme.backend.services.teamcard.TeamCardsService;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MvcResult;
 
+import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
@@ -956,5 +963,134 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)))
                 .andExpect(jsonPath("$.content[0].streamName", is(stream1.getName())));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReportExcel_withoutFilters_success() throws Exception {
+        var stream1 = streamRepository.findAll().getFirst();
+        var stream2 = streamRepository.save(Stream.builder()
+                .name("stream 2")
+                .startDate(LocalDate.now().minusDays(1))
+                .endDate(LocalDate.now().plusDays(1))
+                .build());
+
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
+
+        teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team card 1")
+                .streams(Set.of(stream1))
+                .ntiMarkets(List.of(ntiMarket1))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("https://test-link.com")
+                .description("Team card 1 description")
+                .build());
+
+        teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team card 2")
+                .streams(Set.of(stream2))
+                .ntiMarkets(List.of(ntiMarket2))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_2)
+                .meetingRoomLink("https://test-link.com")
+                .description("Team card 2 description")
+                .build());
+
+        MvcResult mvcResult = mockMvc.perform(
+                        post("/api/v1/team-cards/reports/excel")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"filters\": []}")
+                )
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        MvcResult dispatchResult = mockMvc
+                .perform(asyncDispatch(mvcResult))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, containsString("spreadsheetml.sheet")))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("attachment")))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("filename")))
+                .andReturn();
+
+
+        byte[] responseBytes = dispatchResult.getResponse().getContentAsByteArray();
+        assertThat(responseBytes).isNotEmpty();
+
+        try (var opcPackage = OPCPackage.open(new ByteArrayInputStream(responseBytes));
+             var workbook = new XSSFWorkbook(opcPackage)) {
+            assertThat(workbook.getNumberOfSheets()).isGreaterThan(0);
+            assertThat(workbook.getSheetAt(0).getPhysicalNumberOfRows()).isGreaterThan(1);
+        }
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReportExcel_withFilters_success() throws Exception {
+        var stream1 = streamRepository.findAll().getFirst();
+        var stream2 = streamRepository.save(Stream.builder()
+                .name("stream 2")
+                .startDate(LocalDate.now().minusDays(1))
+                .endDate(LocalDate.now().plusDays(1))
+                .build());
+
+        var ntiMarket1 = ntiMarketRepository.findAll().get(0);
+        var ntiMarket2 = ntiMarketRepository.findAll().get(1);
+
+        teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team card 1")
+                .streams(Set.of(stream1))
+                .ntiMarkets(List.of(ntiMarket1))
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test-link.com")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .build());
+
+        teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team card 2")
+                .streams(Set.of(stream2))
+                .ntiMarkets(List.of(ntiMarket2))
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test-link.com")
+                .readinessLevel(ReadinessLevel.LEVEL_2)
+                .build());
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/team-cards/reports/excel")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                      "filters": [
+                        {
+                          "fieldName": "streams.name",
+                          "value": "%s",
+                          "type": "EQ"
+                        }
+                      ]
+                    }
+                    """.formatted(stream1.getName())))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        MvcResult dispatchResult = mockMvc
+                .perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        byte[] responseBytes = dispatchResult.getResponse().getContentAsByteArray();
+        assertThat(responseBytes).isNotEmpty();
+
+        try (var opcPackage = OPCPackage.open(new ByteArrayInputStream(responseBytes));
+             var workbook = new XSSFWorkbook(opcPackage)) {
+            var sheet = workbook.getSheetAt(0);
+            assertThat(sheet.getPhysicalNumberOfRows()).isGreaterThanOrEqualTo(2);
+        }
     }
 }

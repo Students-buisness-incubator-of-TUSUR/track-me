@@ -21,6 +21,23 @@ export async function fetchReports({ page, size, filters }) {
   return response;
 }
 
+export async function fetchReportExcel({ filters }) {
+  const response = await fetch(
+    `${backendURLBackend}/api/v1/team-cards/reports/excel`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+      body: JSON.stringify({ filters: filters ?? [] }),
+    }
+  );
+  return response;
+}
+
 export async function fetchTrackers({ page, size, sort, filters }) {
   let sortString;
   if (Array.isArray(sort) && sort.length !== 0) {

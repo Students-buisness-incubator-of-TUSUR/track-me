@@ -16,6 +16,7 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.UUID;
 
@@ -98,4 +99,12 @@ public interface TeamCardsRestController {
             @ParameterObject
             @PageableDefault
             Pageable pageable);
+
+    @PostMapping(
+            value = "team-cards/reports/excel",
+            produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @Operation(summary = "Получение отчета о командах в excel")
+    ResponseEntity<StreamingResponseBody> getTeamCardReportExcel(
+            @Parameter(description = "Фильтры для поиска записей отчета")
+            @RequestBody @Valid FilterRequest filters);
 }
