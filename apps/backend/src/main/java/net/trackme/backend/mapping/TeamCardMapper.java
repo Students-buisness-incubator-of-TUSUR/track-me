@@ -42,7 +42,7 @@ public interface TeamCardMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(
             target = "readinessLevel",
-            expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
+            expression = "java( dto.readinessLevel() == null ? null : ReadinessLevel.fromValue(dto.readinessLevel()) )")
     TeamCard mapToEntity(TeamCardUpdateDto dto);
 
     @Mapping(target = "enabled", expression = "java( entity.isActive() )")
