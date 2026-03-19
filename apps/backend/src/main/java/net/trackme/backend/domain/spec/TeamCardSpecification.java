@@ -20,18 +20,27 @@ import static net.trackme.backend.domain.spec.SpecificationUtils.getReadinessLev
  */
 public class TeamCardSpecification implements Specification<TeamCard> {
 
+    /** Поле имени пользователя. */
     private static final String USERNAME_FIELD = "username";
+
+    /** Поле потоков. */
     private static final String STREAMS_FIELD = "streams";
+
+    /** Поле рынков НТИ. */
     private static final String NTI_MARKETS_FIELD = "ntiMarkets";
 
+    /** Поле уровня готовности. */
     public static final String READINESS_LEVEL_FIELD_NAME = "readinessLevel";
 
+    /**
+     * Список допустимых полей для фильтрации карточек команд.
+     */
     public static final List<String> ALLOWED_FIELDS = List.of(
             "name",
             "ntiMarkets.name",
             "description",
             "status",
-            "username",
+            USERNAME_FIELD,
             READINESS_LEVEL_FIELD_NAME,
             "streams.year",
             "streams.name",
@@ -79,7 +88,7 @@ public class TeamCardSpecification implements Specification<TeamCard> {
     public static Specification<TeamCard> withFetchJoins() {
         return (root, query, criteriaBuilder) -> {
             if (query != null && Long.class != query.getResultType()) {
-                root.fetch(STREAMS_FIELD , JoinType.LEFT);
+                root.fetch(STREAMS_FIELD, JoinType.LEFT);
                 root.fetch(NTI_MARKETS_FIELD, JoinType.LEFT);
             }
             return criteriaBuilder.conjunction();
