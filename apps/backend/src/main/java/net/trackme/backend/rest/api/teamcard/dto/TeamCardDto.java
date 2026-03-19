@@ -38,6 +38,12 @@ public record TeamCardDto(
                 example = "true", defaultValue = "true")
         Boolean enabled,
 
+        @Schema(
+                description = "Ссылка на комнату для встреч",
+                example = "https://webinar.tusur.ru/b/jm7-p47-8j8-3ib"
+        )
+        String meetingRoomLink,
+
         @Schema(description = "Рынок НТИ")
         List<NTIMarketDto> ntiMarkets,
 

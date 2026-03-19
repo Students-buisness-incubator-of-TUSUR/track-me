@@ -4,8 +4,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import net.trackme.backend.domain.spec.TeamCardSpecification;
 import net.trackme.backend.mapping.TeamCardMapper;
-import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardUpdateDto;
 import net.trackme.backend.services.nti.NtiMarketService;
 import net.trackme.backend.services.teamcard.TeamCardsService;
 import net.trackme.commons.filters.FilterRequest;
@@ -28,7 +29,7 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
 
   @Override
   @Transactional
-  public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateOrUpdateDto dto,
+  public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateDto dto,
                                                     UUID streamId,
                                                     String username) {
     var teamCard = teamCardMapper.mapToEntity(dto);
@@ -45,7 +46,7 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   @Transactional
   public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId,
                                                     String username, UUID streamId,
-                                                    TeamCardCreateOrUpdateDto updateDto) {
+                                                    TeamCardUpdateDto updateDto) {
     var teamCard = teamCardMapper.mapToEntity(updateDto);
     var ntiMarketIds = updateDto.ntiMarketIds();
     var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
