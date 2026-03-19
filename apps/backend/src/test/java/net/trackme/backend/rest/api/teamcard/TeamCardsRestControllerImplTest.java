@@ -114,7 +114,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "name": "Updated name",
                                   "description": "Updated description",
                                   "ntiMarketIds": ["%s"],
-                                  "readinessLevel": "3-5"
+                                  "readinessLevel": "3-5",
+                                  "meetingRoomLink": "https://new.link"
                                 }
                                 """.formatted(ntiMarket.getId())))
                 .andDo(print())
@@ -122,7 +123,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
                 .andExpect(jsonPath("$.name", is("Updated name")))
                 .andExpect(jsonPath("$.description", is("Updated description")))
-                .andExpect(jsonPath("$.readinessLevel", is("3-5")));
+                .andExpect(jsonPath("$.readinessLevel", is("3-5")))
+                .andExpect(jsonPath("$.meetingRoomLink", is("https://new.link")));
     }
 
     @Test
