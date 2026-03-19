@@ -22,7 +22,7 @@ export async function fetchReports({ page, size, filters }) {
 }
 
 export async function fetchReportExcel({ filters }) {
-const response = await fetch(
+  const response = await fetch(
     `${backendURLBackend}/api/v1/team-cards/reports/excel`,
     {
       method: "POST",
