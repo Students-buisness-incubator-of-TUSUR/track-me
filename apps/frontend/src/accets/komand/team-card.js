@@ -1080,6 +1080,7 @@ const deleteMeeting = async () => {
                         <MeetingCreate 
                             teamId={id}
                             onClose={() => setShowMeetingCreate(false)}
+                            userRole={role}
                         />
                     )}
                 </div>
