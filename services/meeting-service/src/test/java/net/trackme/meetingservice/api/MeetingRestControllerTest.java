@@ -76,7 +76,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .status(MeetingStatus.SCHEDULED)
                 .recordLink("https://example.com/meeting")
                 .number("12343")
-                .startDate(OffsetDateTime.now().plusDays(1))
+                .startDate(OffsetDateTime.now().plusDays(2))
                 .teamStatus(TeamStatus.OK)
                 .tasksCurrentMeeting("tasksCurrentMeeting")
                 .tasksNextMeeting("tasksNextMeeting")
@@ -95,7 +95,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         var meetingCreateDto = MeetingCreateDto.builder()
                 .recordLink("https://example.com/meeting")
                 .number("12345")
-                .startDate(OffsetDateTime.now().plusDays(1))
+                .startDate(OffsetDateTime.now().plusDays(3))
                 .build();
 
         mockMvc.perform(post("/api/v1/create-meeting")
@@ -332,5 +332,41 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
 
         Assertions.assertFalse(meetingRepository.existsById(UUID.fromString(meetingId)));
+    }
+
+    @Test
+    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
+    void createMeeting_sameDayConflict_failure() throws Exception {
+        var meetingCreateDto = MeetingCreateDto.builder()
+                .recordLink("https://example.com/meeting")
+                .number("99999")
+                .startDate(OffsetDateTime.now().plusDays(1))
+                .build();
+
+        mockMvc.perform(post("/api/v1/create-meeting")
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType("application/json")
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(meetingCreateDto)))
+                .andDo(print())
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
+    void updateMeeting_sameDayConflict_failure() throws Exception {
+        var meetings = meetingRepository.findAll();
+        var meetingToUpdate = meetings.getFirst();
+        var meetingUpdateDto = MeetingUpdateDto.builder()
+                .startDate(OffsetDateTime.now().plusDays(2))
+                .build();
+
+        mockMvc.perform(patch("/api/v1/update-meeting/" + meetingToUpdate.getId())
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType("application/json")
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(meetingUpdateDto)))
+                .andDo(print())
+                .andExpect(status().isConflict());
     }
 }
