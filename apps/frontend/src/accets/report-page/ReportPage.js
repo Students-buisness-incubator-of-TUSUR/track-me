@@ -35,15 +35,36 @@ const [userRole, setUserRole] = useState('');
     setStreamFilterOpen(false);
   }
   
+  const buildFilters = useCallback(() => {
+    const filters = [];
+    if (filterTrackers) filters.push({
+      fieldName: "username",
+      type: "EQ",
+      value: filterTrackers,
+    });
+    if (filterStreams) filters.push({
+      fieldName: "streams.name",
+      type: "EQ",
+      value: filterStreams,
+    });
+    if (isActive) {
+      const todayDate = new Date().toISOString().split('T')[0];
+      filters.push({
+        fieldName: "streams.startDate",
+        type: "LTE",
+        value: todayDate,
+      }, {
+        fieldName: "streams.endDate",
+        type: "GTE",
+        value: todayDate,
+      });
+    }
+    return filters;
+  }, [filterTrackers, filterStreams, isActive]);
+
   const handleExportExcel = async () => {
     try {
-      const filters = [];
-      if (filterTrackers)
-        filters.push({ fieldName: "username", type: "EQ", value: filterTrackers });
-      if (filterStreams)
-        filters.push({ fieldName: "streams.name", type: "EQ", value: filterStreams });
-
-      const response = await fetchReportExcel({ filters });
+      const response = await fetchReportExcel({ filters: buildFilters() });
       if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
 
       const disposition = response.headers.get("Content-Disposition");
@@ -71,30 +92,7 @@ const [userRole, setUserRole] = useState('');
 
   const loadReports = useCallback(async () => {
     try {
-      const filters = [];
-      if (filterTrackers) filters.push({
-          fieldName: "username",
-          type: "EQ",
-          value: filterTrackers,
-        });
-      if (filterStreams) filters.push({
-          fieldName: "streams.name",
-          type: "EQ",
-          value: filterStreams,
-        });
-      if (isActive) {
-        const todayDate = new Date().toISOString().split('T')[0];
-        filters.push({
-          fieldName: "streams.startDate",
-          type: "LTE",
-          value: todayDate,
-        }, {
-          fieldName: "streams.endDate",
-          type: "GTE",
-          value: todayDate,
-        });
-      }
-      const response = await fetchReports({ page: page, size: size, filters: filters });
+      const response = await fetchReports({ page, size, filters: buildFilters() });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
