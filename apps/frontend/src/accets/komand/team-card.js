@@ -276,6 +276,7 @@ const checkMeetingCreation = () => {
         fetchTrackers({
           page: 0,
           size: 1000,
+          sort: [ "fullName,asc" ],
         })
             .then(async (res) => {
                 if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
