@@ -102,7 +102,7 @@
   color: #843AEB;
   text-align: left;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .dropdown1 {
@@ -151,7 +151,9 @@
   font-weight: 700;
   font-size: 20px;
   cursor: pointer;
-  text-align: left;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .dropdown-btn:not(.open):hover {
@@ -252,7 +254,7 @@
   width: 100%;
   border-collapse: collapse;
   text-align: center;
-  font-size: 14px;
+  font-size: 14px; 
 }
 
 .report-table th, .report-table td {
@@ -260,8 +262,13 @@
   font-size: 14px;
   font-weight: 400;
   padding: 14px 10px;
-  white-space: nowrap;
-  min-width: 100px;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+  min-width: 90px; 
+
 }
 
 .report-table th {
@@ -269,14 +276,12 @@
   font-size: 17px;
   color: black;
   font-weight: 700;
-  white-space: normal;   /* разрешаем перенос */
+  white-space: normal;  
   word-break: break-word;
-  line-height: 1.2;      /* компактнее строки */
+  line-height: 1.2;     
   padding: 12px 8px;
 }
 
-/* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (ReportPage) ===== */
-/* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (ReportPage) ===== */
 /* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (ReportPage) ===== */
 @media (max-width: 600px) {
   .Report {
@@ -339,7 +344,7 @@
   .dropdown-btn {
     font-size: 16px;
     padding: 10px 14px;
-    text-align: left;
+    /* text-align: left; */
   }
 
   .dropdown-icon1,
@@ -460,6 +465,10 @@
   .report-header {
     flex-direction: column;
     align-items: baseline;
+    padding: 15px 50px;
+  }
+  .report-table-container {
+    padding: 0 70px 70px 50px;
   }
   .dropdown1 {
     right: 70px;
@@ -468,6 +477,12 @@
   .dropdown2 {
     right: 70px;
     top: 155px;
+  }
+  .report-table th,
+  .report-table td {
+    padding: 12px 8px;
+    font-size: 13px;
+    min-width: 75px;
   }
 }
 
@@ -483,7 +498,7 @@
   .report-btn {
     width: 100%;
     padding: 12px;
-    font-size: 16px;
+    font-size: 18px;
     border-radius: 30px;
   }
 
@@ -493,6 +508,7 @@
     gap: 12px;
     position: static;
     width: 100%;
+    margin: 0 auto;
   }
 
   .dropdown1,
@@ -503,14 +519,25 @@
   }
 
   .dropdown-btn {
-    font-size: 16px;
-    padding: 10px 14px;
-    text-align: left;
-  }
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Текст по центру */
+        position: relative;
+        padding: 10px 36px 10px 14px; /* Отступ справа для иконки */
+        font-size: 18px;
+        width: 100%;
+        box-sizing: border-box;
+    }
 
   .dropdown-icon1,
   .dropdown-icon2 {
-    margin-left: 10px;
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    margin-left: 0; /* Убираем предыдущий margin */
   }
 
   .dropdown-menu {
@@ -526,5 +553,33 @@
   .report-table-container {
     padding: 10px 20px 60px 20px;
     overflow-x: auto;
+    margin: 0 auto;
+  }
+  .report-page_btn-isactive {
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    padding: 13px 18px;
+    justify-content: start; /* Чекбокс слева */
+  }
+
+  .report-page_btn-isactive label {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    margin: 0;
+    text-align: center;
+    width: 70%; /* Ограничиваем ширину текста */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .report-page_btn-isactive input[type="checkbox"] {
+    z-index: 2;
+  }
+  .report-table::after {
+    min-width: 20px;
   }
 }

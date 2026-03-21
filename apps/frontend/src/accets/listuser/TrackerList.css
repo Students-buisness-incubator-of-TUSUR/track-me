@@ -124,19 +124,20 @@
 }
 
 .tracker-edit-panel12 {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 106px;
-    height: 37px;
-    background: white;
-    border: 2px solid #44069A;
-    border-radius: 70px;
-    display: flex;
-    gap: 5px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-    z-index: 10;
-    overflow: hidden;
+  position: absolute;
+  top: 50%;
+  right: -10px;              /* Совпадает с правым краем галочки */
+  transform: translateY(-50%);
+  width: 106px;
+  height: 37px;
+  background: white;
+  border: 2px solid #44069A;
+  border-radius: 70px;
+  display: flex;
+  gap: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  overflow: hidden;
 }
 
 .tracker-edit-panel {
@@ -217,7 +218,6 @@
 }
   
   .filter-toggle-container {
-  top: 5px;
   position: relative;
 }
 
@@ -414,7 +414,7 @@
     }
 
     /* === ПАНЕЛЬ ДЕЙСТВИЙ === */
-    .tracker-edit-panel,
+    /* .tracker-edit-panel,
     .tracker-edit-panel12 {
         right: 55px;
         left: auto;
@@ -422,7 +422,7 @@
         height: 30px;
         border-radius: 30px;
         gap: 4px;
-    }
+    } */
 
     .confirm-button img,
     .cancel-button img {

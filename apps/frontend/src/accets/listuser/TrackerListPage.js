@@ -36,8 +36,9 @@ function TrackerListPage({ endpoint }) {
     
   const [activeMobileMenu, setActiveMobileMenu] = useState(null);
 
-  const longPressTimers = useRef({});
-  // Состояние для отслеживания активного меню на мобильных
+  const lastTap = useRef(0); // Будет хранить время последнего касания
+  const tapTimeout = useRef(null); // Будет хранить таймер
+
 
   const user = useGetUserInfo();
   useEffect(() => {
@@ -49,33 +50,52 @@ function TrackerListPage({ endpoint }) {
     setSearchQuery(event.target.value);
     setPage(0); // Reset page to 0 on search
   };
-   const handleTouchStart = (username) => {
-    longPressTimers.current[username] = setTimeout(() => {
-      setActiveMobileMenu(username);
-      setHoveredTracker(username);
-    }, 500); // 500ms для long press
-  };
 
-  const handleTouchEnd = (username) => {
-    if (longPressTimers.current[username]) {
-      clearTimeout(longPressTimers.current[username]);
-      delete longPressTimers.current[username];
-    }
-  };
-
-  const handleTouchMove = (username) => {
-    // Если пользователь двигает пальцем, отменяем long press
-    if (longPressTimers.current[username]) {
-      clearTimeout(longPressTimers.current[username]);
-      delete longPressTimers.current[username];
-    }
-  };
 
   // Закрыть меню при клике вне элемента
   const closeMobileMenu = () => {
     setActiveMobileMenu(null);
     setHoveredTracker(null);
   };
+
+  const handleDoubleTap = (username) => {
+  const now = Date.now(); // Текущее время в миллисекундах
+  const timeDiff = now - lastTap.current;
+
+  // Если прошло меньше 300 мс — это двойное касание
+  if (timeDiff < 300) {
+    // Сбрасываем таймер, если он был
+    if (tapTimeout.current) {
+      clearTimeout(tapTimeout.current);
+    }
+
+    // Если меню открыто — закрываем
+    if (activeMobileMenu === username) {
+      setActiveMobileMenu(null);
+      setHoveredTracker(null);
+    }
+
+    // В любом случае — переходим в профиль
+    window.location.href = `/profile/${username}`;
+  } else {
+    // Это одиночное касание — ставим таймер
+    tapTimeout.current = setTimeout(() => {
+      // Через 300 мс проверяем: если не было второго касания — обрабатываем как одиночное
+      if (activeMobileMenu === username) {
+        // Уже открыто — закрываем
+        setActiveMobileMenu(null);
+        setHoveredTracker(null);
+      } else {
+        // Закрыто — открываем
+        setActiveMobileMenu(username);
+        setHoveredTracker(username);
+      }
+    }, 300);
+  }
+
+  // Сохраняем время последнего касания
+  lastTap.current = now;
+};
 
   // Определяем, мобильное ли устройство
   const isMobile = () => {
@@ -154,21 +174,20 @@ function TrackerListPage({ endpoint }) {
           <div
             className={itemClass}
             key={tracker.username || index}
-            // Наведение для десктопа
             onMouseEnter={() => !isMobile() && setHoveredTracker(tracker.username)}
             onMouseLeave={() => !isMobile() && setHoveredTracker(null)}
-            // Long press для мобильных
-            onTouchStart={() => isMobile() && handleTouchStart(tracker.username)}
-            onTouchEnd={() => isMobile() && handleTouchEnd(tracker.username)}
-            onTouchMove={() => isMobile() && handleTouchMove(tracker.username)}
-            onClick={(e) => {
-              if (isMobile() && activeMobileMenu === tracker.username) {
-                e.stopPropagation();
+            onTouchStart={(e) => {
+              e.preventDefault(); // Важно: предотвращаем стандартное поведение
+              if (isMobile()) {
+                handleDoubleTap(tracker.username);
               }
             }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                setHoveredTracker(tracker.username);
+            onClick={(e) => {
+              if (!isMobile()) {
+                // Разрешаем переход, только если клик НЕ по панели
+                if (!e.target.closest('.tracker-edit-panel12')) {
+                  window.location.href = `/profile/${tracker.username}`;
+                }
               }
             }}
             role="button"
@@ -176,16 +195,14 @@ function TrackerListPage({ endpoint }) {
           >
             {/* ---------- КЛИКАБЕЛЬНАЯ ССЫЛКА НА ПРОФИЛЬ ---------- */}
             <Link
-              to={`/profile/${tracker.username}`}
-              className="tracker-profile-link"
-              onClick={(e) => {
-                if (isMobile() && activeMobileMenu === tracker.username) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-              }}
-              onMouseEnter={(e) => e.stopPropagation()}
-            >
+              to="#"
+                className="tracker-profile-link"
+                onClick={(e) => {
+                  e.preventDefault(); // Блокируем переход
+                  // e.stopPropagation();
+                }}
+                // onMouseEnter={(e) => e.stopPropagation()}
+              >
               <div className="tracker-avatar">
                 {/* Иконка статуса */}
                 {isEnabled ? (
@@ -208,7 +225,7 @@ function TrackerListPage({ endpoint }) {
 
             {/* ---------- ПАНЕЛЬ ДЕЙСТВИЙ ПРИ НАВЕДЕНИИ ИЛИ LONG PRESS ---------- */}
             {showMenu && (
-              <div className="tracker-edit-panel12">
+              <div className="tracker-edit-panel12" onClick={(e) => e.stopPropagation()}>
                 {isEnabled ? (
                   <>
                     {/* Оставить (просто закрыть) */}
