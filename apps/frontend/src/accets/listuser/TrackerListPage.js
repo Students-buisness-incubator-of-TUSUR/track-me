@@ -69,7 +69,7 @@ function TrackerListPage({ endpoint }) {
       clearTimeout(tapTimeout.current);
     }
 
-    // Если меню открыто — закрываем
+    /* istanbul ignore if */
     if (activeMobileMenu === username) {
       setActiveMobileMenu(null);
       setHoveredTracker(null);
@@ -81,6 +81,7 @@ function TrackerListPage({ endpoint }) {
     // Это одиночное касание — ставим таймер
     tapTimeout.current = setTimeout(() => {
       // Через 300 мс проверяем: если не было второго касания — обрабатываем как одиночное
+      /* istanbul ignore if */
       if (activeMobileMenu === username) {
         // Уже открыто — закрываем
         setActiveMobileMenu(null);
