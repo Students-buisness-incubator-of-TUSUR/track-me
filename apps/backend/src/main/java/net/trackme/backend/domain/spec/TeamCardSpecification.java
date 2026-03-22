@@ -83,9 +83,18 @@ public class TeamCardSpecification implements Specification<TeamCard> {
      */
     public static Specification<TeamCard> withFetchJoins() {
         return (root, query, criteriaBuilder) -> {
-            if (query != null && Long.class != query.getResultType()) {
-                root.fetch(STREAMS_FIELD, JoinType.LEFT);
-                root.fetch(NTI_MARKETS_FIELD, JoinType.LEFT);
+            if (query != null && TeamCard.class.equals(query.getResultType())) {
+                boolean alreadyFetchedStreams = root.getFetches().stream()
+                        .anyMatch(f -> f.getAttribute().getName().equals(STREAMS_FIELD));
+                boolean alreadyFetchedNti = root.getFetches().stream()
+                        .anyMatch(f -> f.getAttribute().getName().equals(NTI_MARKETS_FIELD));
+
+                if (!alreadyFetchedStreams) {
+                    root.fetch(STREAMS_FIELD, JoinType.LEFT);
+                }
+                if (!alreadyFetchedNti) {
+                    root.fetch(NTI_MARKETS_FIELD, JoinType.LEFT);
+                }
             }
             return criteriaBuilder.conjunction();
         };

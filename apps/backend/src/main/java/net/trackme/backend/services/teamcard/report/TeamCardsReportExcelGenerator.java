@@ -1,18 +1,19 @@
-package net.trackme.backend.services.teamcard;
+package net.trackme.backend.services.teamcard.report;
 
+import org.springframework.stereotype.Component;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.stream.Stream;
 
-@Service
-public class TeamCardsReportServiceImpl implements TeamCardsReportService {
+@Component
+public class TeamCardsReportExcelGenerator {
     private static final String SHEET_NAME = "Отчёт по командам";
     private static final String[] HEADERS = {
             "Поток",
@@ -28,12 +29,19 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
             "Уровень TRL"
     };
 
-    @Override
-    public void exportToExcel(Stream<TeamCardReportRecordDto> records, OutputStream outputStream) throws IOException {
+    /**
+     * Генерирует Excel-файл с отчётом по карточкам команд и записывает его в переданный поток вывода.
+     *
+     * @param records      поток записей для формирования строк таблицы.
+     * @param outputStream поток вывода, куда будет записан сгенерированный бинарный Excel-документ
+     * @throws IOException если возникает ошибка при записи данных в {@code outputStream}
+     * или при работе с временными файлами POI
+     */
+    public void generate(Stream<TeamCardReportRecordDto> records, OutputStream outputStream) throws IOException {
         try (var workbook = new SXSSFWorkbook(500)) {
             workbook.setCompressTempFiles(true);
 
-            var sheet  = workbook.createSheet(SHEET_NAME);
+            var sheet = workbook.createSheet(SHEET_NAME);
             sheet.setDefaultColumnWidth(20);
             sheet.trackAllColumnsForAutoSizing();
 

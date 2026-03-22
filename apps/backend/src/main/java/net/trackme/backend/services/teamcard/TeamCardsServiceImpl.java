@@ -17,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -59,14 +58,9 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     }
 
     @Override
-    public Page<TeamCard> getTeamCardsPageable(Specification<TeamCard> specification,
-                                               Pageable pageable) {
+    public Page<TeamCard> getTeamCards(Specification<TeamCard> specification,
+                                       Pageable pageable) {
         return teamCardsRepository.findAll(specification, pageable);
-    }
-
-    @Override
-    public List<TeamCard> getTeamCards(Specification<TeamCard> specification) {
-        return teamCardsRepository.findAll(specification);
     }
 
     @Override
