@@ -25,6 +25,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.UUID;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -337,10 +338,20 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @Test
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
     void createMeeting_sameDayConflict_failure() throws Exception {
+        var conflictDate = OffsetDateTime.now().plusDays(10);
+
+        meetingRepository.save(Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .recordLink("https://example.com/meeting")
+                .status(MeetingStatus.SCHEDULED)
+                .number("conflict")
+                .startDate(conflictDate)
+                .build());
+
         var meetingCreateDto = MeetingCreateDto.builder()
                 .recordLink("https://example.com/meeting")
                 .number("99999")
-                .startDate(OffsetDateTime.now().plusDays(1))
+                .startDate(conflictDate)
                 .build();
 
         mockMvc.perform(post("/api/v1/create-meeting")
@@ -355,10 +366,22 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @Test
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
     void updateMeeting_sameDayConflict_failure() throws Exception {
-        var meetings = meetingRepository.findAll();
-        var meetingToUpdate = meetings.getFirst();
+        var conflictDate = OffsetDateTime.now().plusDays(10);
+
+        meetingRepository.save(Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.SCHEDULED)
+                .number("conflict")
+                .startDate(conflictDate)
+                .build());
+
+        var meetingToUpdate = meetingRepository.findAll().stream()
+                .filter(m -> !m.getStartDate().toLocalDate().equals(conflictDate.toLocalDate()))
+                .findFirst()
+                .orElseThrow();
+
         var meetingUpdateDto = MeetingUpdateDto.builder()
-                .startDate(OffsetDateTime.now().plusDays(2))
+                .startDate(conflictDate)
                 .build();
 
         mockMvc.perform(patch("/api/v1/update-meeting/" + meetingToUpdate.getId())
