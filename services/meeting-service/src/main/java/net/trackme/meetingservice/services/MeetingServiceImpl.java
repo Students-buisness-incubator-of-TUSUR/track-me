@@ -69,6 +69,7 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
+    @Transactional
     @PreAuthorize(
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting','READ') or hasRole('ADMIN')")
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
@@ -164,9 +165,11 @@ public class MeetingServiceImpl implements MeetingService {
         var from = date.atStartOfDay().atOffset(startDate.getOffset());
         var to = date.plusDays(1).atStartOfDay().atOffset(startDate.getOffset());
 
-        boolean existsOnSameDay = meetingRepository.existsByTeamCardIdAndDateRangeExcluding(
-                teamCardId, from, to, excludeId
-        );
+        boolean existsOnSameDay = excludeId == null
+                ? meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThan(
+                    teamCardId, from, to)
+                : meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThanAndIdNot(
+                    teamCardId, from, to, excludeId);
 
         if (existsOnSameDay) {
             throw new MeetingAlreadyExistsInSameDayException(
