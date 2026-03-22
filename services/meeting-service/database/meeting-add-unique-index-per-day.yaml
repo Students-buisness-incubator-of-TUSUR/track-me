@@ -1,9 +1,0 @@
-﻿databaseChangeLog:
-  - changeSet:
-      id: meeting-add-unique-index-per-day
-      author: trackme-backend
-      changes:
-        - sql:
-            sql: >
-              CREATE UNIQUE INDEX uidx_meeting_team_card_day
-              ON meeting (team_card_id, DATE_TRUNC('day', start_date));
