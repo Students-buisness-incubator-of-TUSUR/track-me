@@ -20,6 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
@@ -967,6 +968,69 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
     @Test
     @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReport_shouldExcludeCardsWithoutStreams() throws Exception {
+        var stream = streamRepository.findAll().getFirst();
+        saveTeamCardWithStream("tracker1", "With Stream", 5.0, stream);
+
+        teamCardsService.createTeamCard(TeamCard.builder()
+                .username("tracker1")
+                .name("Without Stream")
+                .enabled(true)
+                .meetingRoomLink("https://link.com")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .build());
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\": []}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1))) // Должна быть только одна
+                .andExpect(jsonPath("$.content[0].teamCardName", is("With Stream")));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReport_shouldReturnCorrectAggregatedGrades() throws Exception {
+        var stream = streamRepository.findAll().getFirst();
+
+        saveTeamCardWithStream("tracker1", "Team 1", 3.0, stream);
+        saveTeamCardWithStream("tracker1", "Team 2", 5.0, stream);
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\": []}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[?(@.username=='tracker1')].averageUserGrade", everyItem(is(4.0))));
+    }
+
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReport_withComplexFilter_success() throws Exception {
+        var stream1 = streamRepository.save(Stream.builder().name("Alpha").startDate(LocalDate.now()).build());
+        var stream2 = streamRepository.save(Stream.builder().name("Beta").startDate(LocalDate.now()).build());
+
+        saveTeamCardWithStream("tr1", "TargetTeam", 5.0, stream1);
+        saveTeamCardWithStream("tr1", "OtherTeam", 5.0, stream2);
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                          "filters": [
+                            {"fieldName": "name", "value": "Target", "type": "LIKE"},
+                            {"fieldName": "streams.name", "value": "Alpha", "type": "EQ"}
+                          ]
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
+                .andExpect(jsonPath("$.content[0].teamCardName", is("TargetTeam")));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
     void getTeamCardsReportExcel_withoutFilters_success() throws Exception {
         var stream1 = streamRepository.findAll().getFirst();
         var stream2 = streamRepository.save(Stream.builder()
@@ -1092,5 +1156,18 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
             var sheet = workbook.getSheetAt(0);
             assertThat(sheet.getPhysicalNumberOfRows()).isGreaterThanOrEqualTo(2);
         }
+    }
+
+    private void saveTeamCardWithStream(String username, String name, double grade, Stream stream) {
+        teamCardsService.createTeamCard(TeamCard.builder()
+                .username(username)
+                .name(name)
+                .status(TeamCardStatus.OK)
+                .enabled(true)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("https://link.com")
+                .averageGrade(BigDecimal.valueOf(grade))
+                .streams(Set.of(stream))
+                .build());
     }
 }
