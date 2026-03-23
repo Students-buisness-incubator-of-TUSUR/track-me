@@ -173,7 +173,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         if (existsOnSameDay) {
             throw new MeetingAlreadyExistsInSameDayException(
-                    "В этот день уже запланирована встреча для данной карточки команды");
+                    "В этот день уже запланирована встреча для данной команды.");
         }
     }
 
