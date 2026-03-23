@@ -14,5 +14,3 @@ databaseChangeLog:
       file: meeting-add-image-column.yaml
   - include:
       file: meeting-rename-link-to-record-link.yaml
-  - include:
-     file: meeting-add-unique-index-per-day.yaml
