@@ -1,12 +1,13 @@
-import React, {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import "./team-card.css";
-import {useSelector} from "react-redux";
 import penIcon from "./pen.png";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
-import MobileHeader from "../adaptive-accets/MobileHeader";
 import {  validateMeetingDateChange } from "../../utils/date-utils";
+import Header from "../header/header";
+import { useGetUserInfo } from "../../services/util";
+import { fetchTrackers } from "../../services/requests";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
@@ -35,7 +36,6 @@ const TeamCard = () => {
 
     const [role, setRole] = useState(null);
 const [username, setUsername] = useState(null);
-const reduxUser = useSelector(state => state.user?.user);
 
 const [allTeamCards, setAllTeamCards] = useState([]); // eslint-disable-line no-unused-vars
 const [teamCardsCount, setTeamCardsCount] = useState(0);
@@ -149,19 +149,12 @@ const checkMeetingCreation = () => {
   return true;
 };
 
+  const user = useGetUserInfo();
+  useEffect(() => {
+    setRole(user.roles[0]);
+    setUsername(user.username);
+  }, [user]);
 
-    useEffect(() => {
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            const parsed = JSON.parse(savedUser);
-            setRole(parsed.roles?.[0] || null);
-            setUsername(parsed.username || null);
-        } else if (reduxUser) {
-            localStorage.setItem('user', JSON.stringify(reduxUser));
-            setRole(reduxUser.roles?.[0] || null);
-            setUsername(reduxUser.username || null);
-        }
-    }, [reduxUser]);
     useEffect(() => {
   const streamIdFromTeam = teamData?.streams?.[0]?.id;
 
@@ -280,19 +273,10 @@ const checkMeetingCreation = () => {
 
     useEffect(() => {
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
-        fetch(`${backendHost1}/api/v1/users/trackers`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json", 
-                ...getCsrfConfigForFetch()
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                filters: [],
-                page: 0,
-                size: 150,
-                order: { field: "fullName", direction: "ASC" }
-            }),
+        fetchTrackers({
+          page: 0,
+          size: 1000,
+          sort: [ "fullName,asc" ],
         })
             .then(async (res) => {
                 if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
@@ -360,16 +344,17 @@ useEffect(() => {
             .catch(err => handleApiError(err, "загрузке рынков НТИ"));
     }, []);
     useEffect(() => {
-  if (!teamData || !teamData.id) return;
+      if (!teamData || !teamData.id) return;
 
-  setEditedData(prev => ({
-  ...prev,
-  ntiMarketIds: teamData.ntiMarkets?.map(m => m.id) || prev.ntiMarketIds || [],
-  readinessLevel: teamData.readinessLevel || prev.readinessLevel,
-  description: teamData.description || prev.description,
-}));
+      setEditedData(prev => ({
+        ...prev,
+        ntiMarketIds: teamData.ntiMarkets?.map(m => m.id) || prev.ntiMarketIds || [],
+        readinessLevel: teamData.readinessLevel || prev.readinessLevel,
+        description: teamData.description || prev.description,
+        meetingRoomLink: teamData.meetingRoomLink || prev.meetingRoomLink || "",
+      }));
+    }, [teamData]);
 
-}, [teamData]);
 useEffect(() => {
   if (!selectedStreamId && streamInfo?.id) {
     setSelectedStreamId(streamInfo.id);
@@ -418,6 +403,7 @@ useEffect(() => {
   try {
     // 1. Проверка заполненности
     if (!editedData.name?.trim() ||
+        !editedData.meetingRoomLink?.trim() ||
         !editedData.description?.trim() ||
         !editedData.ntiMarketIds ||
         !editedData.readinessLevel ||
@@ -451,10 +437,10 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
     // 4. Тело запроса
     const patchData = {
       name: editedData.name.trim(),
+      meetingRoomLink: editedData.meetingRoomLink.trim(),
       description: editedData.description.trim(),
       ntiMarketIds: editedData.ntiMarketIds,
       readinessLevel: editedData.readinessLevel,
-      
     };
 
     // 5. Отправка PATCH
@@ -648,14 +634,15 @@ const deleteMeeting = async () => {
    
 
     return (
+    <>
+            <Header userRole={role} />
             <div className="team-card-widget-container">
-              <MobileHeader onNavigate={navigate} />
                 {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
                     <div className="team-rating">
                         {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                 )}
-            <button className="close-button-widget" onClick={() => navigate(from)}>×</button>
+            <button className="close-button-widget" onClick={() => navigate(-1)}>×</button>
 
             <button
                 className="edit-button-widget"
@@ -718,6 +705,22 @@ const deleteMeeting = async () => {
                             <img src={penIcon} alt="edit" className="team-edit-icon"/>
                     )}
                 </div>
+
+                {isEditing && (
+                    <div className="team-card-info">
+                        <span className="team-label-widget">Ссылка на комнату:</span>
+                        <div className="team-input-wrapper">
+                            <input
+                                className="team-input-widget"
+                                name="meetingRoomLink"
+                                value={editedData.meetingRoomLink || ""}
+                                onChange={handleChange}
+                                placeholder="https://webinar.tusur.ru/b/abc-qwe-zxc-vbn"
+                            />
+                        </div>
+                        <img src={penIcon} alt="edit" className="team-edit-icon"/>
+                    </div>
+                )}
 
                 {isEditing ? (
   role === "TRACKER" ? (
@@ -1087,6 +1090,7 @@ const deleteMeeting = async () => {
                         <MeetingCreate 
                             teamId={id}
                             onClose={() => setShowMeetingCreate(false)}
+                            userRole={role}
                         />
                     )}
                 </div>
@@ -1148,6 +1152,7 @@ const deleteMeeting = async () => {
               </button>
             )}
             </div>
+            </>
     );
 };
 

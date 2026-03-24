@@ -26,7 +26,7 @@ public class Meeting {
     private UUID id;
 
     @Column
-    private String link;
+    private String recordLink;
 
     @Column(length = 32)
     private String number;

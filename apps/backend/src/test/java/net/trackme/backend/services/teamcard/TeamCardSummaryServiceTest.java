@@ -49,6 +49,7 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
                 .readinessLevel(ReadinessLevel.LEVEL_2)
                 .streams(Set.of(stream))
                 .status(TeamCardStatus.MANY_ISSUES)
+                .meetingRoomLink("meetingLink@gmail.com")
                 .averageGrade(BigDecimal.ZERO)
                 .build());
     }
