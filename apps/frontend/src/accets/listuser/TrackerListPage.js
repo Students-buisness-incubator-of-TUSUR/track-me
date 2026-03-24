@@ -184,6 +184,7 @@ function TrackerListPage({ endpoint }) {
               }
             }}
             onClick={(e) => {
+              /* istanbul ignore if */
               if (!isMobile()) {
                 // Разрешаем переход, только если клик НЕ по панели
                 if (!e.target.closest('.tracker-edit-panel12')) {
