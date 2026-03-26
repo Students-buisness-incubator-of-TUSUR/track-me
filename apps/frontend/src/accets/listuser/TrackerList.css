@@ -101,8 +101,6 @@
     margin-left: 13px;
     color: black;
     margin-top: -10px;
-
-
 }
 
 .trackerlist-nick {
@@ -111,6 +109,7 @@
     margin-left: 13px;
     color: black;
     margin-top: 0px;
+    white-space: nowrap;
 }
 
 /* Галочка, если трекер активен */
@@ -181,15 +180,15 @@
 .tooltip {
     position: absolute;
     bottom: -25px;
-    width: 94px;
+    width: 116px;
     height: 22px;
 
     border-radius: 20px;
     font-size: 13px;
     font-weight: 700;
     display: flex;
-    justify-content: center; /* Центрирует текст по горизонтали */
-    align-items: center; /* Центрирует текст по вертикали */
+    justify-content: center;
+    align-items: center;
     text-align: center;
 }
 
@@ -220,6 +219,9 @@
   
   .filter-toggle-container {
   position: relative;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .filter-toggle {
@@ -364,6 +366,7 @@
     margin-right: 121px;
     margin-left: 157px;
     margin-top: 20px;
+    align-items: center;
 }
 
 @media (max-width: 768px) {

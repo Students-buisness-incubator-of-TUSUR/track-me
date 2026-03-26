@@ -24,6 +24,7 @@ jest.mock('./true2.png', () => 'true2.png');
 jest.mock('./false2.png', () => 'false2.png');
 jest.mock('./personal_account_1.png', () => 'personal_account_1.png');
 beforeEach(() => {
+  window.confirm = jest.fn(() => true);
   mockUseGetUserInfo.mockReturnValue({
     roles: ['SUPER_ADMIN'],
     username: "username12",
@@ -456,7 +457,7 @@ test('наведение на неактивный трекер вызывает
     expect(screen.getByText('Удалить')).toBeInTheDocument();
   });
 
-  test('рендер тултипа "Оставить" или "Подтвердить" при наведении', () => {
+  test('рендер тултипа "Удалить" или "Разблокировать" при наведении', () => {
     require('../hooks/useTrackerList').useTrackerList = () => ({
       trackers: [{ username: 'hovered', fullName: 'Hover User', telegramId: 'hover', enabled: false }],
       error: null,
@@ -480,7 +481,7 @@ test('наведение на неактивный трекер вызывает
     const TrackerListPage = require('./TrackerListPage').default;
     render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
 
-    const greenTips = screen.queryAllByText(/Оставить|Подтвердить/);
+    const greenTips = screen.queryAllByText(/Удалить|Разблокировать/);
     expect(greenTips.length).toBeGreaterThan(0);
   });
 
@@ -2159,6 +2160,46 @@ describe('Tracker Avatar Accessibility', () => {
     
     const avatar = document.querySelector('.trackerlist-avatar');
     expect(avatar).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  test('клик по удалить отменяет действие если confirm возвращает false (enabled)', () => {
+    window.confirm = jest.fn(() => false);
+    const deleteUser = jest.fn();
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [{ username: 'user1', fullName: 'User1', telegramId: 'tg1', enabled: true }],
+      error: null, searchQuery: '', setSearchQuery: jest.fn(), page: 0, setPage: jest.fn(),
+      totalPages: 1, handleNextPage: jest.fn(), handlePrevPage: jest.fn(), handlePageJump: jest.fn(),
+      hoveredTracker: 'user1', setHoveredTracker: jest.fn(), hoveredButton: null,
+      setHoveredButton: jest.fn(), trackersPerPage: 5, confirmUser: jest.fn(), deleteUser,
+      showLockedOnly: false, toggleShowLocked: jest.fn(),
+    });
+
+    const TrackerListPage = require('./TrackerListPage').default;
+    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
+
+    fireEvent.click(screen.getByAltText('Удалить'));
+    expect(window.confirm).toHaveBeenCalled();
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  test('клик по отклонить отменяет действие если confirm возвращает false (disabled)', () => {
+    window.confirm = jest.fn(() => false);
+    const deleteUser = jest.fn();
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [{ username: 'user2', fullName: 'User2', telegramId: 'tg2', enabled: false }],
+      error: null, searchQuery: '', setSearchQuery: jest.fn(), page: 0, setPage: jest.fn(),
+      totalPages: 1, handleNextPage: jest.fn(), handlePrevPage: jest.fn(), handlePageJump: jest.fn(),
+      hoveredTracker: 'user2', setHoveredTracker: jest.fn(), hoveredButton: null,
+      setHoveredButton: jest.fn(), trackersPerPage: 5, confirmUser: jest.fn(), deleteUser,
+      showLockedOnly: false, toggleShowLocked: jest.fn(),
+    });
+
+    const TrackerListPage = require('./TrackerListPage').default;
+    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
+
+    fireEvent.click(screen.getByAltText('Отклонить'));
+    expect(window.confirm).toHaveBeenCalled();
+    expect(deleteUser).not.toHaveBeenCalled();
   });
 });
 

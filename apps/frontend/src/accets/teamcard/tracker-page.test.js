@@ -688,7 +688,7 @@ describe('TrackerPage - Полное покрытие', () => {
   const filterToggleBtn = document.querySelector('.Stream-settings-pic');
   fireEvent.click(filterToggleBtn);
 
-  const yearBtn = screen.getAllByText('Год').find(el => el.closest('.Stream-header-chosefrom-butt-label'));
+  const yearBtn = screen.getAllByText('Год').find(el => el.closest('.Teams-header-chosefrom-butt-label'));
   expect(yearBtn).toBeInTheDocument();
   fireEvent.click(yearBtn);
 
@@ -799,7 +799,7 @@ describe('TrackerPage - Полное покрытие', () => {
   const filterToggleBtn = document.querySelector('.Stream-settings-pic');
   fireEvent.click(filterToggleBtn);
 
-  const trlBtn = screen.getAllByText('TRL').find(el => el.closest('.Stream-header-chosefrom-butt-label'));
+  const trlBtn = screen.getAllByText('TRL').find(el => el.closest('.Teams-header-chosefrom-butt-label'));
   expect(trlBtn).toBeInTheDocument();
   fireEvent.click(trlBtn);
 
@@ -837,7 +837,7 @@ describe('TrackerPage - Полное покрытие', () => {
   const filterToggleBtn = document.querySelector('.Stream-settings-pic');
   fireEvent.click(filterToggleBtn);
 
-  const yearBtn = screen.getAllByText('Год').find(el => el.closest('.Stream-header-chosefrom-butt-label'));
+  const yearBtn = screen.getAllByText('Год').find(el => el.closest('.Teams-header-chosefrom-butt-label'));
   expect(yearBtn).toBeInTheDocument();
   fireEvent.click(yearBtn);
 
@@ -1337,5 +1337,183 @@ test('fetchCards добавляет фильтр по username для роли T
       expect(screen.getByText('Свернуть')).toBeInTheDocument();
     });
   });
-  
+
+  it('should apply correct class when dropdown is toggled 1', async () => {
+    const longDescription = 'This is a very long description that exceeds 100 characters to ensure the "Подробнее" button is shown. We need to test the toggle functionality.';
+    const mockCard = {
+      id: 'card1',
+      name: 'Test Card',
+      description: longDescription,
+      enabled: true,
+      ntiMarkets: [{ displayName: 'Market1' }],
+      readinessLevel: '5',
+      userId: 'user1',
+      streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+    };
+
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/streams')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: 'stream1', name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+            }),
+        });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 'm1', name: 'Market1', displayName: 'Market1' }]),
+        });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [mockCard],
+              page: { totalPages: 1 },
+            }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+    const { container } = render(<MemoryRouter><TrackerPage /></MemoryRouter>);
+
+    await waitFor(() => {
+      expect(container.querySelector('.Stream-settings-pic')).toBeInTheDocument();
+    });
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.Teams-header-chosefrom-buttw').length).toBe(4);
+    });
+
+    const marketWrapper = container.querySelectorAll('.Teams-header-chosefrom-buttw')[0];
+    expect(marketWrapper).not.toHaveClass('Stream-checkboxes_remove-below-border-radius');
+
+    fireEvent.click(marketWrapper.querySelector('.Teams-header-chosefrom-butt-cont'));
+    expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
+  });
+
+
+  it('should apply correct class when dropdown is toggled 3', async () => {
+    const longDescription = 'This is a very long description that exceeds 100 characters to ensure the "Подробнее" button is shown. We need to test the toggle functionality.';
+    const mockCard = {
+      id: 'card1',
+      name: 'Test Card',
+      description: longDescription,
+      enabled: true,
+      ntiMarkets: [{ displayName: 'Market1' }],
+      readinessLevel: '5',
+      userId: 'user1',
+      streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+    };
+
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/streams')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: 'stream1', name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+            }),
+        });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 'm1', name: 'Market1', displayName: 'Market1' }]),
+        });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [mockCard],
+              page: { totalPages: 1 },
+            }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+    const { container } = render(<MemoryRouter><TrackerPage /></MemoryRouter>);
+
+    await waitFor(() => {
+      expect(container.querySelector('.Stream-settings-pic')).toBeInTheDocument();
+    });
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.Teams-header-chosefrom-buttw').length).toBe(4);
+    });
+
+    const marketWrapper = container.querySelectorAll('.Teams-header-chosefrom-buttw')[2];
+    expect(marketWrapper).not.toHaveClass('Stream-checkboxes_remove-below-border-radius');
+
+    fireEvent.click(marketWrapper.querySelector('.Teams-header-chosefrom-butt-cont'));
+    expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
+  });
+
+  it('should apply correct class when dropdown is toggled 4', async () => {
+    const longDescription = 'This is a very long description that exceeds 100 characters to ensure the "Подробнее" button is shown. We need to test the toggle functionality.';
+    const mockCard = {
+      id: 'card1',
+      name: 'Test Card',
+      description: longDescription,
+      enabled: true,
+      ntiMarkets: [{ displayName: 'Market1' }],
+      readinessLevel: '5',
+      userId: 'user1',
+      streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+    };
+
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/streams')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: 'stream1', name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+            }),
+        });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 'm1', name: 'Market1', displayName: 'Market1' }]),
+        });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [mockCard],
+              page: { totalPages: 1 },
+            }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+    const { container } = render(<MemoryRouter><TrackerPage /></MemoryRouter>);
+
+    await waitFor(() => {
+      expect(container.querySelector('.Stream-settings-pic')).toBeInTheDocument();
+    });
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.Teams-header-chosefrom-buttw').length).toBe(4);
+    });
+
+    const marketWrapper = container.querySelectorAll('.Teams-header-chosefrom-buttw')[3];
+    expect(marketWrapper).not.toHaveClass('Stream-checkboxes_remove-below-border-radius');
+
+    fireEvent.click(marketWrapper.querySelector('.Teams-header-chosefrom-butt-cont'));
+    expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
+  });
+
 });

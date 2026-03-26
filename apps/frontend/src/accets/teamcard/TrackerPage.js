@@ -495,32 +495,31 @@ const options = {
                     + Создать карточку
                 </button>
             </div>
-            {/* Панель фильтров */}
             {isVisible && (
-                <div className="Stream-header-afterclick-cont">
-                    <div className="Stream-header-afterclick-left">
-                        {/* Верхний ряд – заголовки фильтров */}
-                        <div className="Stream-header-afterclick-left-up">
-                            <button className="Stream-header-chose-butt">Поток
+                <div className="Teams-header-afterclick-cont">
+                    <div className="Teams-header-afterclick-left">
+                        <div className="Teams-header-afterclick-left-up">
+                            <button className="Teams-header-chose-butt">Поток
                                 [{selectedStreams.length}]
                             </button>
-                            <button className="Stream-header-chose-butt">Рынки
+                            <button className="Teams-header-chose-butt">Рынки
                                 [{selectedNtiMarkets.length}]
                             </button>
-                            <button className="Stream-header-chose-butt">
+                            <button className="Teams-header-chose-butt">
                                 TRL [{selectedTrl.length}]
                             </button>
-                            <button className="Stream-header-chose-butt">Год [{selectedYears.length}]</button>
+                            <button className="Teams-header-chose-butt">Год [{selectedYears.length}]</button>
                         </div>
-                        {/* Нижний ряд – группы чекбоксов */}
-                        <div className="Stream-header-chosefrom-cont">
-                            <div className="Stream-header-chosefrom-buttw">
-                                <div className="Stream-header-chosefrom-butt2"
-                                    onClick={() => setShowCheckboxesStream(!showCheckboxesStream)}>
-                                    <div className="Stream-header-chosefrom-butt-cont">
-                                        <b className="Stream-header-chosefrom-butt-label">Все
+                        <div className="Teams-header-chosefrom-cont">
+                            <div className={`Teams-header-chosefrom-buttw ${showCheckboxesStream ? "Stream-checkboxes_remove-below-border-radius" : ""}`}>
+                                <div className="Teams-header-chosefrom-butt2"
+                                    onClick={() => setShowCheckboxesStream(!showCheckboxesStream)}
+                                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setShowCheckboxesStream(!showCheckboxesStream)}
+                                >
+                                    <div className="Teams-header-chosefrom-butt-cont">
+                                        <b className="Teams-header-chosefrom-butt-label">Все
                                             потоки</b>
-                                        <div className="Stream-header-chosefrom-butt-pic"></div>
+                                        <div className="Teams-header-chosefrom-butt-pic"></div>
                                     </div>
                                 </div>
                                 {showCheckboxesStream && (
@@ -545,16 +544,16 @@ const options = {
                                 )}
                             </div>
 
-                            <div className="Stream-header-chosefrom-buttw">
+                            <div className={`Teams-header-chosefrom-buttw ${showCheckboxes2 ? "Stream-checkboxes_remove-below-border-radius" : ""}`}>
                                 <div
-                                    className="Stream-header-chosefrom-butt2"
+                                    className="Teams-header-chosefrom-butt2"
                                     onClick={() => setShowCheckboxes2(!showCheckboxes2)}
                                 >
-                                    <div className="Stream-header-chosefrom-butt-cont">
-                                        <b className="Stream-header-chosefrom-butt-label">
+                                    <div className="Teams-header-chosefrom-butt-cont">
+                                        <b className="Teams-header-chosefrom-butt-label">
                                             Рынки Нти
                                         </b>
-                                        <div className="Stream-header-chosefrom-butt-pic"></div>
+                                        <div className="Teams-header-chosefrom-butt-pic"></div>
                                     </div>
                                 </div>
                                 {showCheckboxes2 && (
@@ -576,16 +575,16 @@ const options = {
                                 )}
 
                             </div>
-                            <div className="Stream-header-chosefrom-buttw">
+                            <div className={`Teams-header-chosefrom-buttw ${showCheckboxes3 ? "Stream-checkboxes_remove-below-border-radius" : ""}`}>
                                 <div
-                                    className="Stream-header-chosefrom-butt2"
+                                    className="Teams-header-chosefrom-butt2"
                                     onClick={() => setShowCheckboxes3(!showCheckboxes3)}
                                 >
-                                    <div className="Stream-header-chosefrom-butt-cont">
-                                        <b className="Stream-header-chosefrom-butt-label">
+                                    <div className="Teams-header-chosefrom-butt-cont">
+                                        <b className="Teams-header-chosefrom-butt-label">
                                             TRL
                                         </b>
-                                        <div className="Stream-header-chosefrom-butt-pic"></div>
+                                        <div className="Teams-header-chosefrom-butt-pic"></div>
                                     </div>
                                 </div>
                                 {showCheckboxes3 && (
@@ -607,16 +606,16 @@ const options = {
                                     </div>
                                 )}
                             </div>
-                            <div className="Stream-header-chosefrom-buttw">
+                            <div className={`Teams-header-chosefrom-buttw ${showCheckboxes ? "Stream-checkboxes_remove-below-border-radius" : ""}`}>
                                 <div
-                                    className="Stream-header-chosefrom-butt2"
+                                    className="Teams-header-chosefrom-butt2"
                                     onClick={() => setShowCheckboxes(!showCheckboxes)}
                                 >
-                                    <div class="Stream-header-chosefrom-butt-cont">
-                                        <b className="Stream-header-chosefrom-butt-label">
+                                    <div class="Teams-header-chosefrom-butt-cont">
+                                        <b className="Teams-header-chosefrom-butt-label">
                                             Год
                                         </b>
-                                        <div className="Stream-header-chosefrom-butt-pic"></div>
+                                        <div className="Teams-header-chosefrom-butt-pic"></div>
                                     </div>
                                 </div>
                                 {showCheckboxes && (
@@ -662,11 +661,11 @@ const options = {
 
 
 
-                    <div className="Stream-header-afterclick-right">
-                        <button onClick={resetFilters} className="Stream-header-chose-butt2">
+                    <div className="Teams-header-afterclick-right">
+                        <button onClick={resetFilters} className="Teams-header-chose-butt2">
                             Сбросить
                         </button>
-                        <button onClick={applyFilters} className="Stream-header-chose-butt">
+                        <button onClick={applyFilters} className="Teams-header-chose-butt">
                             Применить
                         </button>
                     </div>
