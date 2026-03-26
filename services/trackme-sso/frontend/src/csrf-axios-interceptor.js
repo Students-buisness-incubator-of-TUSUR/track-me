@@ -4,6 +4,7 @@ import axios from 'axios';
 let csrfToken = null;
 let csrfHeaderName = "X-CSRF-TOKEN";
 let basePath = process.env.REACT_APP_BASE_PATH || "";
+
 /**
  * Загружает CSRF-токен (только если он еще не получен)
  */
