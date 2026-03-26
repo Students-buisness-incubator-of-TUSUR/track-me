@@ -167,11 +167,11 @@ function TrackerListPage({ endpoint }) {
 >
   {error && <div className="error-message oval2">{error}</div>}
 
-  <div className="tracker-grid">
+  <div className="trackerlist-grid">
     {trackers.length > 0 ? (
       trackers.map((tracker, index) => {
         const isEnabled = tracker.enabled;
-        const itemClass = isEnabled ? "tracker-item-true" : "tracker-item-edit";
+        const itemClass = isEnabled ? "trackerlist-item-true" : "trackerlist-item-edit";
         const showMenu = hoveredTracker === tracker.username || activeMobileMenu === tracker.username;
 
         return (
@@ -190,7 +190,7 @@ function TrackerListPage({ endpoint }) {
               /* istanbul ignore if */
               if (!isMobile()) {
                 // Разрешаем переход, только если клик НЕ по панели
-                if (!e.target.closest('.tracker-edit-panel12')) {
+                if (!e.target.closest('.trackerlist-edit-panel12')) {
                   window.location.href = `/profile/${tracker.username}`;
                 }
               }
@@ -199,7 +199,7 @@ function TrackerListPage({ endpoint }) {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 if (!isMobile()) {
-                  if (!e.target.closest('.tracker-edit-panel12')) {
+                  if (!e.target.closest('.trackerlist-edit-panel12')) {
                     window.location.href = `/profile/${tracker.username}`;
                   }
                 }
@@ -211,14 +211,14 @@ function TrackerListPage({ endpoint }) {
             {/* ---------- КЛИКАБЕЛЬНАЯ ССЫЛКА НА ПРОФИЛЬ ---------- */}
             <Link
               to="#"
-                className="tracker-profile-link"
+                className="trackerlist-profile-link"
                 onClick={(e) => {
                   e.preventDefault(); // Блокируем переход
                   // e.stopPropagation();
                 }}
                 // onMouseEnter={(e) => e.stopPropagation()}
               >
-              <div className="tracker-avatar" aria-hidden="true">
+              <div className="trackerlist-avatar" aria-hidden="true">
                 {/* Иконка статуса */}
                 {isEnabled ? (
                   <span className="green-checkmark" title="Включён">
@@ -231,16 +231,16 @@ function TrackerListPage({ endpoint }) {
                 )}
 
                 {/* Текст */}
-                <div className="tracker-text">
-                  <div className="tracker-fio">{tracker.fullName}</div>
-                  <div className="tracker-nick">@{tracker.username}</div>
+                <div className="trackerlist-text">
+                  <div className="trackerlist-fio">{tracker.fullName}</div>
+                  <div className="trackerlist-nick">@{tracker.username}</div>
                 </div>
               </div>
             </Link>
 
             {/* ---------- ПАНЕЛЬ ДЕЙСТВИЙ ПРИ НАВЕДЕНИИ ИЛИ LONG PRESS ---------- */}
             {showMenu && (
-              <div className="tracker-edit-panel12" 
+              <div className="trackerlist-edit-panel12" 
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {

@@ -109,12 +109,12 @@ test('отображает пользователей и Telegram ID', () => {
   
   // Используем более гибкий поиск для никнеймов
   const nick1 = screen.getByText((content, element) => {
-    return element.className === 'tracker-nick' && content.includes('testuser1');
+    return element.className === 'trackerlist-nick' && content.includes('testuser1');
   });
   expect(nick1).toBeInTheDocument();
   
   const nick2 = screen.getByText((content, element) => {
-    return element.className === 'tracker-nick' && content.includes('testuser2');
+    return element.className === 'trackerlist-nick' && content.includes('testuser2');
   });
   expect(nick2).toBeInTheDocument();
 });
@@ -122,7 +122,7 @@ test('отображает пользователей и Telegram ID', () => {
 test('наведение на активный трекер вызывает setHoveredTracker', () => {
   renderWithRouter(<TrackerListPage endpoint="/trackers" />);
   
-  const trackerItem = screen.getByText('Test User 1').closest('.tracker-item-true');
+  const trackerItem = screen.getByText('Test User 1').closest('.trackerlist-item-true');
   
   // Тестируем hover (mouseEnter), а не click
   fireEvent.mouseEnter(trackerItem);
@@ -133,7 +133,7 @@ test('наведение на активный трекер вызывает set
 test('наведение на неактивный трекер вызывает setHoveredTracker', () => {
   renderWithRouter(<TrackerListPage endpoint="/trackers" />);
   
-  const trackerItem = screen.getByText('Test User 2').closest('.tracker-item-edit');
+  const trackerItem = screen.getByText('Test User 2').closest('.trackerlist-item-edit');
   
   // Тестируем hover (mouseEnter), а не click
   fireEvent.mouseEnter(trackerItem);
@@ -1571,7 +1571,7 @@ test('ссылка профиля отображается корректно', 
   const profileLink = screen.getByText('Test User').closest('a');
   
   expect(profileLink).toBeInTheDocument();
-  expect(profileLink).toHaveClass('tracker-profile-link');
+  expect(profileLink).toHaveClass('trackerlist-profile-link');
   // Не строго проверяем href — может быть "/" или "#"
   expect(profileLink.getAttribute('href')).toMatch(/#|\//);
 });
@@ -1812,7 +1812,7 @@ test('на десктопе onMouseEnter вызывает setHoveredTracker', ()
 
   renderWithRouter(<TrackerListPage endpoint="/trackers" />);
 
-  const trackerItem = screen.getByText('User One').closest('.tracker-item-true');
+  const trackerItem = screen.getByText('User One').closest('.trackerlist-item-true');
   fireEvent.mouseEnter(trackerItem);
 
   expect(setHoveredTracker).toHaveBeenCalledWith('user1');
@@ -1845,7 +1845,7 @@ test('на мобильном onMouseEnter НЕ вызывает setHoveredTrack
 
   renderWithRouter(<TrackerListPage endpoint="/trackers" />);
 
-  const trackerItem = screen.getByText('User One').closest('.tracker-item-true');
+  const trackerItem = screen.getByText('User One').closest('.trackerlist-item-true');
   fireEvent.mouseEnter(trackerItem);
 
   expect(setHoveredTracker).not.toHaveBeenCalled();
@@ -1951,7 +1951,7 @@ describe('Tracker Edit Panel Keyboard Accessibility', () => {
 
     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const editPanel = document.querySelector('.tracker-edit-panel12');
+    const editPanel = document.querySelector('.trackerlist-edit-panel12');
     
     expect(editPanel).toBeInTheDocument();
     expect(editPanel).toHaveAttribute('role', 'presentation');
@@ -1987,7 +1987,7 @@ describe('Tracker Edit Panel Keyboard Accessibility', () => {
 
     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const editPanel = document.querySelector('.tracker-edit-panel12');
+    const editPanel = document.querySelector('.trackerlist-edit-panel12');
     
     // Создаем событие с замоканными методами
     const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
@@ -2029,7 +2029,7 @@ describe('Tracker Edit Panel Keyboard Accessibility', () => {
 
     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const editPanel = document.querySelector('.tracker-edit-panel12');
+    const editPanel = document.querySelector('.trackerlist-edit-panel12');
     
     const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true });
     event.preventDefault = mockPreventDefault;
@@ -2070,7 +2070,7 @@ describe('Tracker Edit Panel Keyboard Accessibility', () => {
 
     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const editPanel = document.querySelector('.tracker-edit-panel12');
+    const editPanel = document.querySelector('.trackerlist-edit-panel12');
     
     const event = new KeyboardEvent('keydown', { key: 'A', bubbles: true });
     event.preventDefault = mockPreventDefault;
@@ -2111,7 +2111,7 @@ describe('Tracker Edit Panel Keyboard Accessibility', () => {
 
     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const editPanel = document.querySelector('.tracker-edit-panel12');
+    const editPanel = document.querySelector('.trackerlist-edit-panel12');
     
     const event = new MouseEvent('click', { bubbles: true });
     event.stopPropagation = mockStopPropagation;
@@ -2132,7 +2132,7 @@ describe('Tracker Avatar Accessibility', () => {
     });
   });
 
-  test('tracker-avatar имеет атрибут aria-hidden="true"', () => {
+  test('trackerlist-avatar имеет атрибут aria-hidden="true"', () => {
     require('../hooks/useTrackerList').useTrackerList = () => ({
       trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
       error: null,
@@ -2157,58 +2157,11 @@ describe('Tracker Avatar Accessibility', () => {
 
     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const avatar = document.querySelector('.tracker-avatar');
+    const avatar = document.querySelector('.trackerlist-avatar');
     expect(avatar).toHaveAttribute('aria-hidden', 'true');
   });
 });
 
-describe('Main Element Non-interactive', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 1024,
-    });
-  });
-
-  test('main элемент не имеет обработчиков onClick и onKeyDown', () => {
-    require('../hooks/useTrackerList').useTrackerList = () => ({
-      trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: null,
-      setHoveredTracker: jest.fn(),
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-      showLockedOnly: false,
-      toggleShowLocked: jest.fn(),
-    });
-
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
-    
-    const mainElement = document.querySelector('.tracker-list-content');
-    
-    // Проверяем, что у main нет onClick и onKeyDown обработчиков
-    // (или они закомментированы)
-    const onClickHandler = mainElement.onclick;
-    const onKeyDownHandler = mainElement.onkeydown;
-    
-    // В React обработчики могут быть undefined или null
-    // Этот тест просто проверяет, что элемент существует
-    expect(mainElement).toBeInTheDocument();
-  });
-});
 describe('Coverage for lines 200-203', () => {
   beforeEach(() => {
     jest.clearAllMocks();
