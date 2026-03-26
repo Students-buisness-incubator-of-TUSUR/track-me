@@ -76,7 +76,7 @@ function TrackerListPage({ endpoint }) {
     }
 
     // В любом случае — переходим в профиль
-    globalThis.location.href = `/profile/${username}`;
+    window.location.href = `/profile/${username}`;
   } else {
     // Это одиночное касание — ставим таймер
     tapTimeout.current = setTimeout(() => {
@@ -188,7 +188,7 @@ function TrackerListPage({ endpoint }) {
               if (!isMobile()) {
                 // Разрешаем переход, только если клик НЕ по панели
                 if (!e.target.closest('.tracker-edit-panel12')) {
-                  globalThis.location.href = `/profile/${tracker.username}`;
+                  window.location.href = `/profile/${tracker.username}`;
                 }
               }
             }}
