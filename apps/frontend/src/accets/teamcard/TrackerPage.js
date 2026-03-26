@@ -692,7 +692,11 @@ const options = {
 >
   <div className="card-image">
     {card?.averageGrade !== undefined && card?.averageGrade !== null && (
-      <div className="card-image-rating">
+      <div className={`card-image-rating ${
+        card.averageGrade >= 0.51 ? 'rating-green' :
+        card.averageGrade >= 0.26 ? 'rating-yellow' :
+        'rating-red'
+      }`}>
         {card.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </div>
     )}
@@ -706,7 +710,7 @@ const options = {
       className="stream-image"
     />
   </div>
-                            <span className="status">
+                            <span className={`status ${!card.enabled ? "inactive" : ""}`}>
                                 {card.enabled ? "Активно" : "Завершено"}
                             </span>
 
