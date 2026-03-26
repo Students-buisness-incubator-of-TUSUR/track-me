@@ -101,6 +101,7 @@ const [userRole, setUserRole] = useState('');
     } catch (error) {
       console.error("Ошибка загрузки отчётов", error);
     }
+  // eslint-disable-next-line
   }, [page, size, filterTrackers, filterStreams, isActive]);
 
   const loadStreams = useCallback(async () => {
@@ -170,33 +171,33 @@ const [userRole, setUserRole] = useState('');
                 htmlFor="isActive"
               >Показывать неактивные</label>
             </button>
-           <div className="dropdown1">
+           <div className="report-dropdown1">
   <button
     data-testid="trackers-btn"
-    className={`dropdown-btn ${trackerFilterOpen ? 'open' : ''}`}
+    className={`report-dropdown-btn ${trackerFilterOpen ? 'open' : ''}`}
     onClick={() => setTrackerFilterOpen(!trackerFilterOpen)}
   >
     Трекеры
-    <span className="dropdown-icon1">
+    <span className="report-dropdown-icon1">
   <img
     src={trackerFilterOpen ? IconClose : IconOpen}
     alt={trackerFilterOpen ? "Закрыто" : "Открыто"}
-    className="dropdown-icon-img"
+    className="report-dropdown-icon-img"
   />
 </span>
 
   </button>
   {trackerFilterOpen && (
-    <div data-testid="trackers-dropdown-menu" className="dropdown-menu">
+    <div data-testid="trackers-dropdown-menu" className="report-dropdown-menu">
       <button
         key={0}
-        className="dropdown-item"
+        className="report-dropdown-item"
         onClick={() => setFilterTrackers(null)}
       >—</button>
       {trackers.map((t, i) => (
         <button
           key={i}
-          className="dropdown-item"
+          className="report-dropdown-item"
           onClick={() => setFilterTrackers(t.username)}
         >{`${t.fullName} (${t.username})`}</button>
       ))}
@@ -204,32 +205,32 @@ const [userRole, setUserRole] = useState('');
   )}
 </div>
 
-<div className="dropdown2">
+<div className="report-dropdown2">
   <button
-    className={`dropdown-btn ${streamFilterOpen ? 'open' : ''}`}
+    className={`report-dropdown-btn ${streamFilterOpen ? 'open' : ''}`}
     onClick={() => setStreamFilterOpen(!streamFilterOpen)}
   >
     Потоки
-    <span className="dropdown-icon2">
+    <span className="report-dropdown-icon2">
   <img
     src={streamFilterOpen ? IconClose : IconOpen}
     alt={streamFilterOpen ? "Закрыто" : "Открыто"}
-    className="dropdown-icon-img"
+    className="report-dropdown-icon-img"
   />
 </span>
 
   </button>
   {streamFilterOpen && (
-    <div data-testid="streams-dropdown-menu" className="dropdown-menu">
+    <div data-testid="streams-dropdown-menu" className="report-dropdown-menu">
       <button
         key={0}
-        className="dropdown-item"
+        className="report-dropdown-item"
         onClick={() => setFilterStreams(null)}
       >—</button>
       {streams.map((t, i) => (
         <button
           key={i}
-          className="dropdown-item"
+          className="report-dropdown-item"
           onClick={() => setFilterStreams(t.name)}
         >{t.name}</button>
       ))}
