@@ -153,13 +153,10 @@ function TrackerListPage({ endpoint }) {
   className="tracker-list-content" 
   onClick={closeMobileMenu}
   onKeyDown={(e) => {
-    // Close menu on Escape key or Enter/Space (if you want those too)
     if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
       closeMobileMenu();
     }
   }}
-  tabIndex={0} // Make the element focusable
-  role="button" // Indicate that this element is acting as a button
   aria-label="Close mobile menu" // Provide accessible description
 >
   {error && <div className="error-message oval2">{error}</div>}
@@ -189,6 +186,16 @@ function TrackerListPage({ endpoint }) {
                 // Разрешаем переход, только если клик НЕ по панели
                 if (!e.target.closest('.tracker-edit-panel12')) {
                   window.location.href = `/profile/${tracker.username}`;
+                }
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!isMobile()) {
+                  if (!e.target.closest('.tracker-edit-panel12')) {
+                    window.location.href = `/profile/${tracker.username}`;
+                  }
                 }
               }
             }}
