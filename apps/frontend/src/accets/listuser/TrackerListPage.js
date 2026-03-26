@@ -240,7 +240,16 @@ function TrackerListPage({ endpoint }) {
 
             {/* ---------- ПАНЕЛЬ ДЕЙСТВИЙ ПРИ НАВЕДЕНИИ ИЛИ LONG PRESS ---------- */}
             {showMenu && (
-              <div className="tracker-edit-panel12" onClick={(e) => e.stopPropagation()}>
+              <div className="tracker-edit-panel12" 
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+                role="presentation"
+                aria-hidden="true">
                 {isEnabled ? (
                   <>
                     {/* Оставить (просто закрыть) */}
