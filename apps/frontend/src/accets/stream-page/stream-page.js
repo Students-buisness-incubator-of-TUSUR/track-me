@@ -373,7 +373,7 @@ const [userRole, setUserRole] = useState('');
                             </button>
                         </div>
                         <div className="Stream-header-chosefrom-cont">
-                            <div className="Stream-header-chosefrom-buttw">
+                            <div className={`Stream-header-chosefrom-buttw ${showCheckboxes ? "Stream-checkboxes_remove-below-border-radius" : ""}`}>
                                 <div className="Stream-header-chosefrom-butt">
                                     <div className="Stream-header-chosefrom-butt-cont"
                                             onClick={handleShowCheckboxes}>
@@ -393,7 +393,6 @@ const [userRole, setUserRole] = useState('');
                                                         onChange={() => handleYearCheckboxChange(checkbox.id, checkbox.label)}
                                                     />
                                                     <label
-                                                        className='Stream-header-checkbox-label'
                                                         htmlFor={checkbox.id}>{checkbox.label}</label>
                                                 </div>
                                             ))}
@@ -401,7 +400,7 @@ const [userRole, setUserRole] = useState('');
                                     )}
                                 </div>
                             </div>
-                            <div className="Stream-header-chosefrom-buttw">
+                            <div className={`Stream-header-chosefrom-buttw ${showCheckboxes2 ? "Stream-checkboxes_remove-below-border-radius" : ""}`}>
                                 <div className="Stream-header-chosefrom-butt2">
                                     <div className="Stream-header-chosefrom-butt-cont"
                                             onClick={handleShowCheckboxes2}>
@@ -429,7 +428,7 @@ const [userRole, setUserRole] = useState('');
                                     )}
                                 </div>
                             </div>
-                            <div className="Stream-header-chosefrom-buttw">
+                            <div className={`Stream-header-chosefrom-buttw ${showCheckboxes3 ? "Stream-checkboxes_remove-below-border-radius" : ""}`}>
                                 <div className="Stream-header-chosefrom-butt2">
                                     <div className="Stream-header-chosefrom-butt-cont"
                                             onClick={handleShowCheckboxes3}>

@@ -107,6 +107,63 @@ describe('Stream Component', () => {
       expect(buttons.length).toBeGreaterThan(0);
     });
   });
+
+  it('should apply correct class when Market dropdown is toggled 1', async () => {
+    const { container } = render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => {
+      expect(container.querySelector('.Stream-settings-pic')).toBeInTheDocument();
+    });
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.Stream-header-chosefrom-buttw').length).toBe(3);
+    });
+
+    const marketWrapper = container.querySelectorAll('.Stream-header-chosefrom-buttw')[0];
+    expect(marketWrapper).not.toHaveClass('Stream-checkboxes_remove-below-border-radius');
+
+    fireEvent.click(marketWrapper.querySelector('.Stream-header-chosefrom-butt-cont'));
+    expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
+  });
+
+  it('should apply correct class when Market dropdown is toggled 2', async () => {
+    const { container } = render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => {
+      expect(container.querySelector('.Stream-settings-pic')).toBeInTheDocument();
+    });
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.Stream-header-chosefrom-buttw').length).toBe(3);
+    });
+
+    const marketWrapper = container.querySelectorAll('.Stream-header-chosefrom-buttw')[1];
+    expect(marketWrapper).not.toHaveClass('Stream-checkboxes_remove-below-border-radius');
+
+    fireEvent.click(marketWrapper.querySelector('.Stream-header-chosefrom-butt-cont'));
+    expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
+  });
+
+  it('should apply correct class when Market dropdown is toggled 3', async () => {
+    const { container } = render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => {
+      expect(container.querySelector('.Stream-settings-pic')).toBeInTheDocument();
+    });
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.Stream-header-chosefrom-buttw').length).toBe(3);
+    });
+
+    const marketWrapper = container.querySelectorAll('.Stream-header-chosefrom-buttw')[2];
+    expect(marketWrapper).not.toHaveClass('Stream-checkboxes_remove-below-border-radius');
+
+    fireEvent.click(marketWrapper.querySelector('.Stream-header-chosefrom-butt-cont'));
+    expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
+  });
 });
 
 describe('User Role from localStorage', () => {

@@ -262,11 +262,11 @@ describe('ReportPage Component', () => {
     fireEvent.click(trackerFilterButton);
     
     // Проверяем, что dropdown-menu появился
-    const dropdownMenu = document.querySelector('.dropdown-menu');
+    const dropdownMenu = document.querySelector('.report-dropdown-menu');
     expect(dropdownMenu).toBeInTheDocument();
     
     // Проверяем, что в dropdown есть элементы
-    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    const dropdownItems = dropdownMenu.querySelectorAll('.report-dropdown-item');
     expect(dropdownItems.length).toBeGreaterThan(0);
     
     fireEvent.click(trackerFilterButton);
@@ -289,15 +289,15 @@ describe('ReportPage Component', () => {
     fireEvent.click(streamFilterButton);
     
     // Проверяем, что dropdown-menu появился
-    const dropdownMenu = document.querySelector('.dropdown-menu');
+    const dropdownMenu = document.querySelector('.report-dropdown-menu');
     expect(dropdownMenu).toBeInTheDocument();
     
     // Проверяем, что в dropdown есть элементы
-    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    const dropdownItems = dropdownMenu.querySelectorAll('.report-dropdown-item');
     expect(dropdownItems.length).toBeGreaterThan(0);
     
     fireEvent.click(streamFilterButton);
-    expect(document.querySelector('.dropdown-menu')).not.toBeInTheDocument();
+    expect(document.querySelector('.report-dropdown-menu')).not.toBeInTheDocument();
   });
 
   test('рендерит таблицу с данными', async () => {
@@ -344,14 +344,14 @@ describe('ReportPage Component', () => {
     });
     
     // Проверяем начальное состояние иконок
-    const trackerIcons = document.querySelectorAll('.dropdown-icon-img');
+    const trackerIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(trackerIcons[0]).toHaveAttribute('alt', 'Открыто');
     
     // Открываем фильтр и проверяем изменение иконки
     const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     
-    const updatedIcons = document.querySelectorAll('.dropdown-icon-img');
+    const updatedIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(updatedIcons[0]).toHaveAttribute('alt', 'Закрыто');
   });
 
@@ -442,19 +442,19 @@ describe('ReportPage Component', () => {
     const streamFilterButton = screen.getByText('Потоки');
     
     // Проверяем начальное состояние
-    const initialIcons = document.querySelectorAll('.dropdown-icon-img');
+    const initialIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(initialIcons[0]).toHaveAttribute('alt', 'Открыто');
     expect(initialIcons[1]).toHaveAttribute('alt', 'Открыто');
     
     // Открываем фильтр трекеров
     fireEvent.click(trackerFilterButton);
-    const afterTrackerOpenIcons = document.querySelectorAll('.dropdown-icon-img');
+    const afterTrackerOpenIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(afterTrackerOpenIcons[0]).toHaveAttribute('alt', 'Закрыто');
     expect(afterTrackerOpenIcons[1]).toHaveAttribute('alt', 'Открыто');
     
     // Закрываем фильтр трекеров
     fireEvent.click(trackerFilterButton);
-    const afterTrackerCloseIcons = document.querySelectorAll('.dropdown-icon-img');
+    const afterTrackerCloseIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(afterTrackerCloseIcons[0]).toHaveAttribute('alt', 'Открыто');
     expect(afterTrackerCloseIcons[1]).toHaveAttribute('alt', 'Открыто');
   });
