@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static net.trackme.backend.domain.spec.SpecificationUtils.getReadinessLevelFilter;
 
@@ -84,6 +85,8 @@ public class TeamCardSpecification implements Specification<TeamCard> {
     public static Specification<TeamCard> withFetchJoins() {
         return (root, query, criteriaBuilder) -> {
             if (query != null && TeamCard.class.equals(query.getResultType())) {
+                query.distinct(true);
+
                 boolean alreadyFetchedStreams = root.getFetches().stream()
                         .anyMatch(f -> f.getAttribute().getName().equals(STREAMS_FIELD));
                 boolean alreadyFetchedNti = root.getFetches().stream()
@@ -98,6 +101,18 @@ public class TeamCardSpecification implements Specification<TeamCard> {
             }
             return criteriaBuilder.conjunction();
         };
+    }
+
+    /**
+     * Создаёт спецификацию на основе вхождения в список идентификаторов.
+     *
+     * @param ids список идентификаторов
+     * @return спецификация
+     */
+    public static Specification<TeamCard> idIn(List<UUID> ids) {
+        return (root, query, cb) -> ids.isEmpty()
+                ? cb.disjunction()
+                : root.get("id").in(ids);
     }
 
     /**

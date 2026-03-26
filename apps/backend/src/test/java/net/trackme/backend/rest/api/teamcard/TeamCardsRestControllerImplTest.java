@@ -968,6 +968,119 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
     @Test
     @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReport_pagination_success() throws Exception {
+        var stream = streamRepository.findAll().getFirst();
+
+        saveTeamCardWithStream("tracker1", "Team A", 5.0, stream);
+        saveTeamCardWithStream("tracker1", "Team B", 4.0, stream);
+        saveTeamCardWithStream("tracker1", "Team C", 3.0, stream);
+        saveTeamCardWithStream("tracker1", "Team D", 2.0, stream);
+        saveTeamCardWithStream("tracker1", "Team E", 1.0, stream);
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .param("page", "0")
+                        .param("size", "2")
+                        .param("sort", "name,asc")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\": []}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.page.totalElements", is(5)))
+                .andExpect(jsonPath("$.content[0].teamCardName", is("Team A")))
+                .andExpect(jsonPath("$.content[1].teamCardName", is("Team B")));
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .param("page", "1")
+                        .param("size", "2")
+                        .param("sort", "name,asc")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\": []}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].teamCardName", is("Team C")))
+                .andExpect(jsonPath("$.content[1].teamCardName", is("Team D")));
+
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .param("page", "2")
+                        .param("size", "2")
+                        .param("sort", "name,asc")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\": []}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].teamCardName", is("Team E")));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReport_complexPaginationAndSort_success() throws Exception {
+        var stream1 = streamRepository.save(Stream.builder()
+                .name("Alpha")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(1))
+                .build()
+        );
+
+        var stream2 = streamRepository.save(Stream.builder()
+                .name("Beta")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(1))
+                .build()
+        );
+
+        saveTeamCardWithStream("tr1", "Team 1", 5.0, stream1);
+        saveTeamCardWithStream("tr1", "Team 2", 3.0, stream1);
+        saveTeamCardWithStream("tr2", "Team 3", 4.5, stream1);
+        saveTeamCardWithStream("tr2", "Team 4", 1.0, stream1);
+        saveTeamCardWithStream("tr1", "Other", 4.8, stream2);
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .param("page", "0")
+                        .param("size", "2")
+                        .param("sort", "averageGrade,desc")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                          "filters": [
+                            {"fieldName": "streams.name", "value": "Alpha", "type": "EQ"}
+                          ]
+                        }
+                        """))
+                .andExpect(status().isOk())
+                // Pagination
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.page.totalElements", is(4)))
+                // Sort (desc)
+                .andExpect(jsonPath("$.content[0].teamCardName", is("Team 1")))
+                .andExpect(jsonPath("$.content[1].teamCardName", is("Team 3")))
+                .andExpect(jsonPath("$.content[*].teamCardName", not(hasItem("Other"))));
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .param("page", "1")
+                        .param("size", "2")
+                        .param("sort", "averageGrade,desc")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                          "filters": [
+                            {"fieldName": "streams.name", "value": "Alpha", "type": "EQ"}
+                          ]
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].teamCardName", is("Team 2")))
+                .andExpect(jsonPath("$.content[1].teamCardName", is("Team 4")));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
     void getTeamCardsReport_shouldExcludeCardsWithoutStreams() throws Exception {
         var stream = streamRepository.findAll().getFirst();
         saveTeamCardWithStream("tracker1", "With Stream", 5.0, stream);
@@ -1005,10 +1118,22 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.content[?(@.username=='tracker1')].averageUserGrade", everyItem(is(4.0))));
     }
 
+    @Test
     @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
     void getTeamCardsReport_withComplexFilter_success() throws Exception {
-        var stream1 = streamRepository.save(Stream.builder().name("Alpha").startDate(LocalDate.now()).build());
-        var stream2 = streamRepository.save(Stream.builder().name("Beta").startDate(LocalDate.now()).build());
+        var stream1 = streamRepository.save(Stream.builder()
+                .name("Alpha")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(1))
+                .build()
+        );
+
+        var stream2 = streamRepository.save(Stream.builder()
+                .name("Beta")
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(1))
+                .build()
+        );
 
         saveTeamCardWithStream("tr1", "TargetTeam", 5.0, stream1);
         saveTeamCardWithStream("tr1", "OtherTeam", 5.0, stream2);
@@ -1165,6 +1290,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .status(TeamCardStatus.OK)
                 .enabled(true)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .streams(Set.of(stream))
+                .ntiMarkets(List.of())
                 .meetingRoomLink("https://link.com")
                 .averageGrade(BigDecimal.valueOf(grade))
                 .streams(Set.of(stream))

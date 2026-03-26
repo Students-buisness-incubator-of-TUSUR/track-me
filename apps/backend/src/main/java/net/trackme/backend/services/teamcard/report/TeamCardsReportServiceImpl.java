@@ -46,9 +46,20 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
     @Override
     public Page<TeamCardReportRecordDto> getReportRecords(List<Filter> filters, Pageable pageable) {
         var queryContext = prepareReportQueryContext(filters);
-        var page = teamCardsRepository.findAll(queryContext.fetchSpec(), pageable);
-        var enrichedContent = mapAndEnrichToDto(page.getContent(), queryContext.gradeByUser());
-        return new PageImpl<>(enrichedContent, pageable, page.getTotalElements());
+
+        Page<TeamCard> idPage = teamCardsRepository.findAll(queryContext.baseSpec(), pageable);
+        if (idPage.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        var ids = idPage.getContent().stream().map(TeamCard::getId).toList();
+        var teamCards = teamCardsRepository.findAll(
+                queryContext.fetchSpec().and(idIn(ids)),
+                pageable.getSort()
+        );
+
+        var enrichedContent = mapAndEnrichToDto(teamCards, queryContext.gradeByUser());
+        return new PageImpl<>(enrichedContent, pageable, idPage.getTotalElements());
     }
 
     @Override
@@ -60,14 +71,23 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
     ) throws IOException {
         var queryContext = prepareReportQueryContext(filters);
         var recordStream = IntStream.iterate(0, i -> i + 1)
-                .mapToObj(page -> teamCardsRepository
-                        .findAll(queryContext.fetchSpec(), PageRequest.of(page, fetchPageSize))
-                        .getContent())
+                .mapToObj(page -> {
+                    var idPage = teamCardsRepository.findAll(queryContext.baseSpec(), PageRequest.of(page, fetchPageSize));
+                    if (idPage.isEmpty()) {
+                        return List.<TeamCardReportRecordDto>of();
+                    }
+
+                    var ids = idPage.getContent().stream().map(TeamCard::getId).toList();
+                    var fullTeamCards = teamCardsRepository.findAll(
+                            queryContext.fetchSpec().and(idIn(ids)),
+                            idPage.getSort()
+                    );
+
+                    return mapAndEnrichToDto(fullTeamCards, queryContext.gradeByUser());
+                })
                 .takeWhile(batch -> !batch.isEmpty())
                 .flatMap(Collection::stream)
-                .limit(exportLimit)
-                .map(teamCardMapper::mapToReportDto)
-                .map(record -> applyUserGrade(record, queryContext.gradeByUser()));
+                .limit(exportLimit);
 
         excelGenerator.generate(recordStream, outputStream);
     }
@@ -91,6 +111,7 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
      * @param gradeByUser мапа, где ключ — имя пользователя (трекера), значение — средняя оценка его команд
      */
     private record ReportQueryContext(
+            Specification<TeamCard> baseSpec,
             Specification<TeamCard> fetchSpec,
             Map<String, Double> gradeByUser
     ) {}
@@ -107,8 +128,7 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
         var baseSpec = buildTeamCardSpecForReport(filters);
         var gradeByUser = teamCardsRepository.getAverageGradesByUser(baseSpec);
         var fetchSpec = baseSpec.and(withFetchJoins());
-
-        return new ReportQueryContext(fetchSpec, gradeByUser);
+        return new ReportQueryContext(baseSpec, fetchSpec, gradeByUser);
     }
 
     /**
