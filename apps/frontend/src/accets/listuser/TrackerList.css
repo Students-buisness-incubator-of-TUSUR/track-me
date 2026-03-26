@@ -241,9 +241,9 @@
 }
   
   .filter-toggle-container {
-  right: 850px;
-  top: 5px;
-  position: relative;
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .filter-toggle {
@@ -382,11 +382,11 @@
 .Users-header-bottom-cont {
     display: flex;
     flex-direction: row;
-    align-content: space-between;
-    justify-content: space-between;
+    justify-content: flex-start;
     margin-right: 121px;
     margin-left: 157px;
     margin-top: 20px;
+    align-items: center;
 }
 
 @media (max-width: 600px) {
@@ -469,7 +469,7 @@
     width: 100%;
     max-width: 300px;
     height: 38px;
-    font-size: 14px;
+    font-size: 20px;
     border-radius: 25px;
   }
 
