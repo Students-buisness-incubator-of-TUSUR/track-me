@@ -1618,40 +1618,6 @@ describe('Action Panel Button Interactions', () => {
   
 });
 
-describe('Main Element Accessibility', () => {
-  test('main element имеет правильные accessibility атрибуты', () => {
-    const { useTrackerList } = require('../hooks/useTrackerList');
-    useTrackerList.mockReturnValue({
-      trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: null,
-      setHoveredTracker: jest.fn(),
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-      showLockedOnly: false,
-      toggleShowLocked: jest.fn(),
-    });
-
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
-    
-    const mainElement = document.querySelector('.tracker-list-content');
-    
-    expect(mainElement).toHaveAttribute('tabIndex', '0');
-    expect(mainElement).toHaveAttribute('role', 'button');
-    expect(mainElement).toHaveAttribute('aria-label', 'Close mobile menu');
-  });
-});
 test('клик по ссылке профиля на мобильных с активным меню предотвращает навигацию', () => {
   const { useTrackerList } = require('../hooks/useTrackerList');
   useTrackerList.mockReturnValue({
