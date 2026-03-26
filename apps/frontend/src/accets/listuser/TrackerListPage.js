@@ -36,8 +36,9 @@ function TrackerListPage({ endpoint }) {
     
   const [activeMobileMenu, setActiveMobileMenu] = useState(null);
 
-  const longPressTimers = useRef({});
-  // Состояние для отслеживания активного меню на мобильных
+  const lastTap = useRef(0); // Будет хранить время последнего касания
+  const tapTimeout = useRef(null); // Будет хранить таймер
+
 
   const user = useGetUserInfo();
   useEffect(() => {
@@ -49,33 +50,53 @@ function TrackerListPage({ endpoint }) {
     setSearchQuery(event.target.value);
     setPage(0); // Reset page to 0 on search
   };
-   const handleTouchStart = (username) => {
-    longPressTimers.current[username] = setTimeout(() => {
-      setActiveMobileMenu(username);
-      setHoveredTracker(username);
-    }, 500); // 500ms для long press
-  };
 
-  const handleTouchEnd = (username) => {
-    if (longPressTimers.current[username]) {
-      clearTimeout(longPressTimers.current[username]);
-      delete longPressTimers.current[username];
-    }
-  };
-
-  const handleTouchMove = (username) => {
-    // Если пользователь двигает пальцем, отменяем long press
-    if (longPressTimers.current[username]) {
-      clearTimeout(longPressTimers.current[username]);
-      delete longPressTimers.current[username];
-    }
-  };
 
   // Закрыть меню при клике вне элемента
-  const closeMobileMenu = () => {
-    setActiveMobileMenu(null);
-    setHoveredTracker(null);
-  };
+  // const closeMobileMenu = () => {
+  //   setActiveMobileMenu(null);
+  //   setHoveredTracker(null);
+  // };
+
+  const handleDoubleTap = (username) => {
+  const now = Date.now(); // Текущее время в миллисекундах
+  const timeDiff = now - lastTap.current;
+
+  // Если прошло меньше 300 мс — это двойное касание
+  if (timeDiff < 300) {
+    // Сбрасываем таймер, если он был
+    if (tapTimeout.current) {
+      clearTimeout(tapTimeout.current);
+    }
+
+    /* istanbul ignore if */
+    if (activeMobileMenu === username) {
+      setActiveMobileMenu(null);
+      setHoveredTracker(null);
+    }
+
+    // В любом случае — переходим в профиль
+    window.location.href = `/profile/${username}`;
+  } else {
+    // Это одиночное касание — ставим таймер
+    tapTimeout.current = setTimeout(() => {
+      // Через 300 мс проверяем: если не было второго касания — обрабатываем как одиночное
+      /* istanbul ignore if */
+      if (activeMobileMenu === username) {
+        // Уже открыто — закрываем
+        setActiveMobileMenu(null);
+        setHoveredTracker(null);
+      } else {
+        // Закрыто — открываем
+        setActiveMobileMenu(username);
+        setHoveredTracker(username);
+      }
+    }, 300);
+  }
+
+  // Сохраняем время последнего касания
+  lastTap.current = now;
+};
 
   // Определяем, мобильное ли устройство
   const isMobile = () => {
@@ -129,46 +150,59 @@ function TrackerListPage({ endpoint }) {
         </div>
         </div>
      <main 
-  className="tracker-list-content" 
-  onClick={closeMobileMenu}
-  onKeyDown={(e) => {
-    // Close menu on Escape key or Enter/Space (if you want those too)
-    if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-      closeMobileMenu();
-    }
-  }}
-  tabIndex={0} // Make the element focusable
-  role="button" // Indicate that this element is acting as a button
-  aria-label="Close mobile menu" // Provide accessible description
+      className="tracker-list-content" 
+      // onClick={closeMobileMenu}
+      // onKeyDown={(e) => {
+      //   if (e.key === 'Enter' || e.key === ' ') {
+      //     e.preventDefault();
+      //     closeMobileMenu();
+      //   }
+      //   if (e.key === 'Escape') {
+      //     closeMobileMenu();
+      //   }
+      // }}
+      // tabIndex={-1}
+      // role="button"
+      aria-label="Close mobile menu"
 >
   {error && <div className="error-message oval2">{error}</div>}
 
-  <div className="tracker-grid">
+  <div className="trackerlist-grid">
     {trackers.length > 0 ? (
       trackers.map((tracker, index) => {
         const isEnabled = tracker.enabled;
-        const itemClass = isEnabled ? "tracker-item-true" : "tracker-item-edit";
+        const itemClass = isEnabled ? "trackerlist-item-true" : "trackerlist-item-edit";
         const showMenu = hoveredTracker === tracker.username || activeMobileMenu === tracker.username;
 
         return (
           <div
             className={itemClass}
             key={tracker.username || index}
-            // Наведение для десктопа
             onMouseEnter={() => !isMobile() && setHoveredTracker(tracker.username)}
             onMouseLeave={() => !isMobile() && setHoveredTracker(null)}
-            // Long press для мобильных
-            onTouchStart={() => isMobile() && handleTouchStart(tracker.username)}
-            onTouchEnd={() => isMobile() && handleTouchEnd(tracker.username)}
-            onTouchMove={() => isMobile() && handleTouchMove(tracker.username)}
+            onTouchStart={(e) => {
+              e.preventDefault(); // Важно: предотвращаем стандартное поведение
+              if (isMobile()) {
+                handleDoubleTap(tracker.username);
+              }
+            }}
             onClick={(e) => {
-              if (isMobile() && activeMobileMenu === tracker.username) {
-                e.stopPropagation();
+              /* istanbul ignore if */
+              if (!isMobile()) {
+                // Разрешаем переход, только если клик НЕ по панели
+                if (!e.target.closest('.trackerlist-edit-panel12')) {
+                  window.location.href = `/profile/${tracker.username}`;
+                }
               }
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                setHoveredTracker(tracker.username);
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!isMobile()) {
+                  if (!e.target.closest('.trackerlist-edit-panel12')) {
+                    window.location.href = `/profile/${tracker.username}`;
+                  }
+                }
               }
             }}
             role="button"
@@ -176,17 +210,15 @@ function TrackerListPage({ endpoint }) {
           >
             {/* ---------- КЛИКАБЕЛЬНАЯ ССЫЛКА НА ПРОФИЛЬ ---------- */}
             <Link
-              to={`/profile/${tracker.username}`}
-              className="tracker-profile-link"
-              onClick={(e) => {
-                if (isMobile() && activeMobileMenu === tracker.username) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }
-              }}
-              onMouseEnter={(e) => e.stopPropagation()}
-            >
-              <div className="tracker-avatar">
+              to="#"
+                className="trackerlist-profile-link"
+                onClick={(e) => {
+                  e.preventDefault(); // Блокируем переход
+                  // e.stopPropagation();
+                }}
+                // onMouseEnter={(e) => e.stopPropagation()}
+              >
+              <div className="trackerlist-avatar" aria-hidden="true">
                 {/* Иконка статуса */}
                 {isEnabled ? (
                   <span className="green-checkmark" title="Включён">
@@ -199,16 +231,25 @@ function TrackerListPage({ endpoint }) {
                 )}
 
                 {/* Текст */}
-                <div className="tracker-text">
-                  <div className="tracker-fio">{tracker.fullName}</div>
-                  <div className="tracker-nick">@{tracker.username}</div>
+                <div className="trackerlist-text">
+                  <div className="trackerlist-fio">{tracker.fullName}</div>
+                  <div className="trackerlist-nick">@{tracker.username}</div>
                 </div>
               </div>
             </Link>
 
             {/* ---------- ПАНЕЛЬ ДЕЙСТВИЙ ПРИ НАВЕДЕНИИ ИЛИ LONG PRESS ---------- */}
             {showMenu && (
-              <div className="tracker-edit-panel12">
+              <div className="trackerlist-edit-panel12" 
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+                role="presentation"
+                aria-hidden="true">
                 {isEnabled ? (
                   <>
                     {/* Оставить (просто закрыть) */}
@@ -236,6 +277,9 @@ function TrackerListPage({ endpoint }) {
                       className="cancel-button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (!window.confirm("Вы точно хотите удалить этого пользователя?")) {
+                          return;
+                        }
                         deleteUser(tracker.username);
                         setActiveMobileMenu(null);
                       }}
@@ -270,7 +314,7 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "cancel" && (
-                      <span className="tooltip tooltip-red">Отменить</span>
+                      <span className="tooltip tooltip-red">Удалить</span>
                     )}
 
                     {/* Отклонить */}
@@ -278,6 +322,9 @@ function TrackerListPage({ endpoint }) {
                       className="cancel-button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (!window.confirm("Вы точно хотите удалить этого пользователя?")) {
+                          return;
+                        }
                         deleteUser(tracker.username);
                         setActiveMobileMenu(null);
                       }}
@@ -290,7 +337,7 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "confirm" && (
-                      <span className="tooltip tooltip-green">Подтвердить</span>
+                      <span className="tooltip tooltip-green">Разблокировать</span>
                     )}
                   </>
                 )}

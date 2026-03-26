@@ -145,7 +145,7 @@
 
 .tracker-edit-panel12 {
     position: absolute;
-    right: -50px; /* Сдвигаем влево от иконки */
+    right: -50px;
     height: 37px;
     width: 106px;
     top: 50%;
@@ -197,34 +197,6 @@
     margin-left: 0px;
     margin-top: 4px;
 
-}
-
-.tooltip {
-    position: absolute;
-    bottom: -25px;
-    width: 94px;
-    height: 22px;
-
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 700;
-    display: flex;
-    justify-content: center; /* Центрирует текст по горизонтали */
-    align-items: center; /* Центрирует текст по вертикали */
-    text-align: center;
-}
-
-.tooltip-green {
-    color: #0DB862;
-    background-color: white;
-    border: 1px solid #0DB862;
-
-}
-
-.tooltip-red {
-    color: #D34F4F;
-    background-color: white;
-    border: 1px solid #D34F4F;
 }
 
 .confirm-button {
