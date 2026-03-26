@@ -2222,7 +2222,7 @@ describe('Coverage for lines 200-203', () => {
     
     fireEvent.keyDown(card, { key: 'Enter' });
     
-    expect(window.location.href).toBe('/profile/testuser');
+    expect(window.location.href).toBe('/profile/user2');
   });
 
   test('Пробел на карточке вызывает переход в профиль', () => {
@@ -2238,7 +2238,7 @@ describe('Coverage for lines 200-203', () => {
     
     fireEvent.keyDown(card, { key: ' ' });
     
-    expect(window.location.href).toBe('/profile/testuser');
+    expect(window.location.href).toBe('/profile/user2');
   });
 
   test('Enter на мобильном НЕ вызывает переход', () => {
