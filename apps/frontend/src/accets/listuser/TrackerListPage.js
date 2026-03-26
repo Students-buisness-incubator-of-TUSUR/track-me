@@ -53,10 +53,10 @@ function TrackerListPage({ endpoint }) {
 
 
   // Закрыть меню при клике вне элемента
-  const closeMobileMenu = () => {
-    setActiveMobileMenu(null);
-    setHoveredTracker(null);
-  };
+  // const closeMobileMenu = () => {
+  //   setActiveMobileMenu(null);
+  //   setHoveredTracker(null);
+  // };
 
   const handleDoubleTap = (username) => {
   const now = Date.now(); // Текущее время в миллисекундах
@@ -151,12 +151,12 @@ function TrackerListPage({ endpoint }) {
         </div>
      <main 
   className="tracker-list-content" 
-  onClick={closeMobileMenu}
-  onKeyDown={(e) => {
-    if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-      closeMobileMenu();
-    }
-  }}
+  // onClick={closeMobileMenu}
+  // onKeyDown={(e) => {
+  //   if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+  //     closeMobileMenu();
+  //   }
+  // }}
   aria-label="Close mobile menu" // Provide accessible description
 >
   {error && <div className="error-message oval2">{error}</div>}
