@@ -1283,202 +1283,202 @@ describe('Filter messages', () => {
 });
 // Добавьте эти тесты в существующий файл с тестами
 
-describe('Touch Events and Mobile Menu', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    Object.defineProperty(window, 'innerWidth', {
-      writable: true,
-      configurable: true,
-      value: 375, // Мобильное устройство
-    });
+// describe('Touch Events and Mobile Menu', () => {
+//   beforeEach(() => {
+//     jest.clearAllMocks();
+//     Object.defineProperty(window, 'innerWidth', {
+//       writable: true,
+//       configurable: true,
+//       value: 375, // Мобильное устройство
+//     });
     
-    // Мокаем setTimeout и clearTimeout
-    jest.useFakeTimers();
-    jest.spyOn(global, 'setTimeout');
-    jest.spyOn(global, 'clearTimeout');
-  });
+//     // Мокаем setTimeout и clearTimeout
+//     jest.useFakeTimers();
+//     jest.spyOn(global, 'setTimeout');
+//     jest.spyOn(global, 'clearTimeout');
+//   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
+//   afterEach(() => {
+//     jest.useRealTimers();
+//   });
 
 
 
   
-  // Тесты для строк 98-99: closeMobileMenu
-  test('closeMobileMenu закрывает мобильное меню', () => {
-    const setHoveredTracker = jest.fn();
-    const { useTrackerList } = require('../hooks/useTrackerList');
-    useTrackerList.mockReturnValue({
-      trackers: [{ username: 'mobileuser', fullName: 'Mobile User', telegramId: 'mobile', enabled: true }],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: 'mobileuser',
-      setHoveredTracker,
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-      showLockedOnly: false,
-      toggleShowLocked: jest.fn(),
-    });
+//   // Тесты для строк 98-99: closeMobileMenu
+//   test('closeMobileMenu закрывает мобильное меню', () => {
+//     const setHoveredTracker = jest.fn();
+//     const { useTrackerList } = require('../hooks/useTrackerList');
+//     useTrackerList.mockReturnValue({
+//       trackers: [{ username: 'mobileuser', fullName: 'Mobile User', telegramId: 'mobile', enabled: true }],
+//       error: null,
+//       searchQuery: '',
+//       setSearchQuery: jest.fn(),
+//       page: 0,
+//       setPage: jest.fn(),
+//       totalPages: 1,
+//       handleNextPage: jest.fn(),
+//       handlePrevPage: jest.fn(),
+//       handlePageJump: jest.fn(),
+//       hoveredTracker: 'mobileuser',
+//       setHoveredTracker,
+//       hoveredButton: null,
+//       setHoveredButton: jest.fn(),
+//       trackersPerPage: 5,
+//       confirmUser: jest.fn(),
+//       deleteUser: jest.fn(),
+//       showLockedOnly: false,
+//       toggleShowLocked: jest.fn(),
+//     });
 
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+//     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    // Имитируем открытое меню через состояние
-    const mainElement = document.querySelector('.tracker-list-content');
-    fireEvent.click(mainElement);
+//     // Имитируем открытое меню через состояние
+//     const mainElement = document.querySelector('.tracker-list-content');
+//     fireEvent.click(mainElement);
     
-    // Проверяем, что setHoveredTracker был вызван с null
-    expect(setHoveredTracker).toHaveBeenCalledWith(null);
-  });
-});
+//     // Проверяем, что setHoveredTracker был вызван с null
+//     expect(setHoveredTracker).toHaveBeenCalledWith(null);
+//   });
+// });
 
-describe('Keyboard Navigation for Main Element', () => {
-  // Тесты для строк 263-268: onKeyDown для main элемента
-  test('main element onKeyDown закрывает меню при нажатии Escape', () => {
-    const setHoveredTracker = jest.fn();
-    const { useTrackerList } = require('../hooks/useTrackerList');
-    useTrackerList.mockReturnValue({
-      trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: 'testuser',
-      setHoveredTracker,
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-      showLockedOnly: false,
-      toggleShowLocked: jest.fn(),
-    });
+// describe('Keyboard Navigation for Main Element', () => {
+//   // Тесты для строк 263-268: onKeyDown для main элемента
+//   test('main element onKeyDown закрывает меню при нажатии Escape', () => {
+//     const setHoveredTracker = jest.fn();
+//     const { useTrackerList } = require('../hooks/useTrackerList');
+//     useTrackerList.mockReturnValue({
+//       trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
+//       error: null,
+//       searchQuery: '',
+//       setSearchQuery: jest.fn(),
+//       page: 0,
+//       setPage: jest.fn(),
+//       totalPages: 1,
+//       handleNextPage: jest.fn(),
+//       handlePrevPage: jest.fn(),
+//       handlePageJump: jest.fn(),
+//       hoveredTracker: 'testuser',
+//       setHoveredTracker,
+//       hoveredButton: null,
+//       setHoveredButton: jest.fn(),
+//       trackersPerPage: 5,
+//       confirmUser: jest.fn(),
+//       deleteUser: jest.fn(),
+//       showLockedOnly: false,
+//       toggleShowLocked: jest.fn(),
+//     });
 
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+//     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const mainElement = document.querySelector('.tracker-list-content');
-    fireEvent.keyDown(mainElement, { key: 'Escape' });
+//     const mainElement = document.querySelector('.tracker-list-content');
+//     fireEvent.keyDown(mainElement, { key: 'Escape' });
     
-    expect(setHoveredTracker).toHaveBeenCalledWith(null);
-  });
+//     expect(setHoveredTracker).toHaveBeenCalledWith(null);
+//   });
 
-  test('main element onKeyDown закрывает меню при нажатии Enter', () => {
-    const setHoveredTracker = jest.fn();
-    const { useTrackerList } = require('../hooks/useTrackerList');
-    useTrackerList.mockReturnValue({
-      trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: 'testuser',
-      setHoveredTracker,
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-      showLockedOnly: false,
-      toggleShowLocked: jest.fn(),
-    });
+//   test('main element onKeyDown закрывает меню при нажатии Enter', () => {
+//     const setHoveredTracker = jest.fn();
+//     const { useTrackerList } = require('../hooks/useTrackerList');
+//     useTrackerList.mockReturnValue({
+//       trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
+//       error: null,
+//       searchQuery: '',
+//       setSearchQuery: jest.fn(),
+//       page: 0,
+//       setPage: jest.fn(),
+//       totalPages: 1,
+//       handleNextPage: jest.fn(),
+//       handlePrevPage: jest.fn(),
+//       handlePageJump: jest.fn(),
+//       hoveredTracker: 'testuser',
+//       setHoveredTracker,
+//       hoveredButton: null,
+//       setHoveredButton: jest.fn(),
+//       trackersPerPage: 5,
+//       confirmUser: jest.fn(),
+//       deleteUser: jest.fn(),
+//       showLockedOnly: false,
+//       toggleShowLocked: jest.fn(),
+//     });
 
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+//     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const mainElement = document.querySelector('.tracker-list-content');
-    fireEvent.keyDown(mainElement, { key: 'Enter' });
+//     const mainElement = document.querySelector('.tracker-list-content');
+//     fireEvent.keyDown(mainElement, { key: 'Enter' });
     
-    expect(setHoveredTracker).toHaveBeenCalledWith(null);
-  });
+//     expect(setHoveredTracker).toHaveBeenCalledWith(null);
+//   });
 
-  test('main element onKeyDown закрывает меню при нажатии Space', () => {
-    const setHoveredTracker = jest.fn();
-    const { useTrackerList } = require('../hooks/useTrackerList');
-    useTrackerList.mockReturnValue({
-      trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: 'testuser',
-      setHoveredTracker,
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-      showLockedOnly: false,
-      toggleShowLocked: jest.fn(),
-    });
+//   test('main element onKeyDown закрывает меню при нажатии Space', () => {
+//     const setHoveredTracker = jest.fn();
+//     const { useTrackerList } = require('../hooks/useTrackerList');
+//     useTrackerList.mockReturnValue({
+//       trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
+//       error: null,
+//       searchQuery: '',
+//       setSearchQuery: jest.fn(),
+//       page: 0,
+//       setPage: jest.fn(),
+//       totalPages: 1,
+//       handleNextPage: jest.fn(),
+//       handlePrevPage: jest.fn(),
+//       handlePageJump: jest.fn(),
+//       hoveredTracker: 'testuser',
+//       setHoveredTracker,
+//       hoveredButton: null,
+//       setHoveredButton: jest.fn(),
+//       trackersPerPage: 5,
+//       confirmUser: jest.fn(),
+//       deleteUser: jest.fn(),
+//       showLockedOnly: false,
+//       toggleShowLocked: jest.fn(),
+//     });
 
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+//     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const mainElement = document.querySelector('.tracker-list-content');
-    fireEvent.keyDown(mainElement, { key: ' ' });
+//     const mainElement = document.querySelector('.tracker-list-content');
+//     fireEvent.keyDown(mainElement, { key: ' ' });
     
-    expect(setHoveredTracker).toHaveBeenCalledWith(null);
-  });
+//     expect(setHoveredTracker).toHaveBeenCalledWith(null);
+//   });
 
-  test('main element onKeyDown игнорирует другие клавиши', () => {
-    const setHoveredTracker = jest.fn();
-    const { useTrackerList } = require('../hooks/useTrackerList');
-    useTrackerList.mockReturnValue({
-      trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
-      error: null,
-      searchQuery: '',
-      setSearchQuery: jest.fn(),
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: 'testuser',
-      setHoveredTracker,
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
-      showLockedOnly: false,
-      toggleShowLocked: jest.fn(),
-    });
+//   test('main element onKeyDown игнорирует другие клавиши', () => {
+//     const setHoveredTracker = jest.fn();
+//     const { useTrackerList } = require('../hooks/useTrackerList');
+//     useTrackerList.mockReturnValue({
+//       trackers: [{ username: 'testuser', fullName: 'Test User', telegramId: 'test', enabled: true }],
+//       error: null,
+//       searchQuery: '',
+//       setSearchQuery: jest.fn(),
+//       page: 0,
+//       setPage: jest.fn(),
+//       totalPages: 1,
+//       handleNextPage: jest.fn(),
+//       handlePrevPage: jest.fn(),
+//       handlePageJump: jest.fn(),
+//       hoveredTracker: 'testuser',
+//       setHoveredTracker,
+//       hoveredButton: null,
+//       setHoveredButton: jest.fn(),
+//       trackersPerPage: 5,
+//       confirmUser: jest.fn(),
+//       deleteUser: jest.fn(),
+//       showLockedOnly: false,
+//       toggleShowLocked: jest.fn(),
+//     });
 
-    renderWithRouter(<TrackerListPage endpoint="/trackers" />);
+//     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
     
-    const mainElement = document.querySelector('.tracker-list-content');
-    fireEvent.keyDown(mainElement, { key: 'A' });
-    fireEvent.keyDown(mainElement, { key: 'Tab' });
-    fireEvent.keyDown(mainElement, { key: 'Shift' });
+//     const mainElement = document.querySelector('.tracker-list-content');
+//     fireEvent.keyDown(mainElement, { key: 'A' });
+//     fireEvent.keyDown(mainElement, { key: 'Tab' });
+//     fireEvent.keyDown(mainElement, { key: 'Shift' });
     
-    // setHoveredTracker не должен быть вызван для других клавиш
-    expect(setHoveredTracker).not.toHaveBeenCalled();
-  });
-});
+//     // setHoveredTracker не должен быть вызван для других клавиш
+//     expect(setHoveredTracker).not.toHaveBeenCalled();
+//   });
+// });
 
 describe('Mobile Interaction and Link Behavior', () => {
   beforeEach(() => {

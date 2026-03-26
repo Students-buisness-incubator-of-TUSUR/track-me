@@ -53,10 +53,10 @@ function TrackerListPage({ endpoint }) {
 
 
   // Закрыть меню при клике вне элемента
-  const closeMobileMenu = () => {
-    setActiveMobileMenu(null);
-    setHoveredTracker(null);
-  };
+  // const closeMobileMenu = () => {
+  //   setActiveMobileMenu(null);
+  //   setHoveredTracker(null);
+  // };
 
   const handleDoubleTap = (username) => {
   const now = Date.now(); // Текущее время в миллисекундах
@@ -151,17 +151,18 @@ function TrackerListPage({ endpoint }) {
         </div>
      <main 
       className="tracker-list-content" 
-      onClick={closeMobileMenu}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          closeMobileMenu();
-        }
-        if (e.key === 'Escape') {
-          closeMobileMenu();
-        }
-      }}
-      tabIndex={-1}
+      // onClick={closeMobileMenu}
+      // onKeyDown={(e) => {
+      //   if (e.key === 'Enter' || e.key === ' ') {
+      //     e.preventDefault();
+      //     closeMobileMenu();
+      //   }
+      //   if (e.key === 'Escape') {
+      //     closeMobileMenu();
+      //   }
+      // }}
+      // tabIndex={-1}
+      // role="button"
       aria-label="Close mobile menu"
 >
   {error && <div className="error-message oval2">{error}</div>}
@@ -217,7 +218,7 @@ function TrackerListPage({ endpoint }) {
                 }}
                 // onMouseEnter={(e) => e.stopPropagation()}
               >
-              <div className="tracker-avatar">
+              <div className="tracker-avatar" aria-hidden="true">
                 {/* Иконка статуса */}
                 {isEnabled ? (
                   <span className="green-checkmark" title="Включён">
