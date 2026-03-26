@@ -398,6 +398,81 @@ test('открытие и закрытие панели фильтров по к
     fireEvent.change(searchInput, { target: { value: 'UniqueName' } });
     expect(await screen.findByText('UniqueName')).toBeInTheDocument();
   });
+
+  test('рейтинги и статус получают правильные css-классы (green/yellow/red + inactive)', async () => {
+    const mockCards = [
+      {
+        id: 'c1',
+        name: 'Green Rating',
+        description: 'Desc',
+        enabled: true,
+        averageGrade: 0.65,
+        ntiMarkets: [{ displayName: 'NTI-A' }],
+        readinessLevel: '8',
+        userId: 'u1',
+        streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+      },
+      {
+        id: 'c2',
+        name: 'Yellow Rating',
+        description: 'Desc',
+        enabled: true,
+        averageGrade: 0.30,
+        ntiMarkets: [{ displayName: 'NTI-B' }],
+        readinessLevel: '5',
+        userId: 'u2',
+        streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+      },
+      {
+        id: 'c3',
+        name: 'Red Rating Inactive',
+        description: 'Desc',
+        enabled: false,
+        averageGrade: 0.10,
+        ntiMarkets: [{ displayName: 'NTI-C' }],
+        readinessLevel: '2',
+        userId: 'u3',
+        streams: [{ name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }],
+      },
+    ];
+
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/streams')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: '1', name: 'Stream1', startDate: '2025-01-01', endDate: '2025-12-31' }] }) });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: mockCards, page: { totalPages: 1 } }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+
+    await act(async () => {
+      render(
+        <MemoryRouter>
+          <TrackerPage />
+        </MemoryRouter>
+      );
+    });
+
+    const greenRating = await screen.findByText('0,65');
+    expect(greenRating).toHaveClass('card-image-rating');
+    expect(greenRating).toHaveClass('rating-green');
+
+    const yellowRating = await screen.findByText('0,30');
+    expect(yellowRating).toHaveClass('card-image-rating');
+    expect(yellowRating).toHaveClass('rating-yellow');
+
+    const redRating = await screen.findByText('0,10');
+    expect(redRating).toHaveClass('card-image-rating');
+    expect(redRating).toHaveClass('rating-red');
+
+    const statusInactive = screen.getByText('Завершено');
+    expect(statusInactive).toHaveClass('status');
+    expect(statusInactive).toHaveClass('inactive');
+  });
 });
 
 describe('TrackerPage - Полное покрытие', () => {

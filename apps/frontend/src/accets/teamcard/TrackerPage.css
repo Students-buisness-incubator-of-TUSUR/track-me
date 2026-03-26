@@ -111,7 +111,11 @@ padding: 0 20px;
     align-items: center;
     justify-content: center;
     text-align: center;
-}
+  }
+
+  .status.inactive {
+    background-color: #999999;
+  }
 .card-image-rating {
     position: absolute;
     top: 15px;
@@ -126,6 +130,22 @@ padding: 0 20px;
     text-align: center;
     border-radius: 271px 0 0 271px; /* Полукруг влево для правого угла */
     z-index: 1; /* Поверх изображения */
+}
+
+/* Зелёный рейтинг (1.00 - 0.51) */
+.card-image-rating.rating-green {
+    background-color: rgba(13, 184, 98, 0.7);
+}
+
+/* Жёлтый рейтинг (0.50 - 0.26) */
+.card-image-rating.rating-yellow {
+    background-color: rgba(255, 196, 17, 0.808);
+    color: #333;
+}
+
+/* Красный рейтинг (0.25 - 0.00) */
+.card-image-rating.rating-red {
+    background-color: rgba(255, 21, 4, 0.808);
 }
 
 /* Тело карточки */
