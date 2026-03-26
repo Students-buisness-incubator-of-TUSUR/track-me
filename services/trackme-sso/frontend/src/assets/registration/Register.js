@@ -135,7 +135,6 @@ const Register = () => {
                     >
                         <option value="TRACKER">Трекер</option>
                         <option value="ADMIN">Администратор</option>
-                        <option value="SUPER_ADMIN">Супер Администратор</option>
                     </select>
                     <button type="submit" className="register-button" disabled={passwordChecks() !== ""}>
                         Зарегистрироваться
