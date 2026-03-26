@@ -42,6 +42,9 @@ public class TeamCard {
     @Column(nullable = false)
     private String username;
 
+    @Column(nullable = false)
+    private String meetingRoomLink;
+
     @ManyToMany(
             fetch = FetchType.EAGER,
             cascade = CascadeType.DETACH)

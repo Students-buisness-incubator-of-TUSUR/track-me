@@ -7,6 +7,7 @@ import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 import {  validateMeetingDateChange } from "../../utils/date-utils";
 import Header from "../header/header";
 import { useGetUserInfo } from "../../services/util";
+import { fetchTrackers } from "../../services/requests";
 
 const backendHost = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/backend';
 const backendHost1 = (process.env.REACT_APP_BACKEND_URI || "https://localhost:8080") + '/sso';
@@ -272,19 +273,10 @@ const checkMeetingCreation = () => {
 
     useEffect(() => {
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
-        fetch(`${backendHost1}/api/v1/users/trackers`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json", 
-                ...getCsrfConfigForFetch()
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                filters: [],
-                page: 0,
-                size: 150,
-                order: { field: "fullName", direction: "ASC" }
-            }),
+        fetchTrackers({
+          page: 0,
+          size: 1000,
+          sort: [ "fullName,asc" ],
         })
             .then(async (res) => {
                 if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
@@ -352,16 +344,17 @@ useEffect(() => {
             .catch(err => handleApiError(err, "загрузке рынков НТИ"));
     }, []);
     useEffect(() => {
-  if (!teamData || !teamData.id) return;
+      if (!teamData || !teamData.id) return;
 
-  setEditedData(prev => ({
-  ...prev,
-  ntiMarketIds: teamData.ntiMarkets?.map(m => m.id) || prev.ntiMarketIds || [],
-  readinessLevel: teamData.readinessLevel || prev.readinessLevel,
-  description: teamData.description || prev.description,
-}));
+      setEditedData(prev => ({
+        ...prev,
+        ntiMarketIds: teamData.ntiMarkets?.map(m => m.id) || prev.ntiMarketIds || [],
+        readinessLevel: teamData.readinessLevel || prev.readinessLevel,
+        description: teamData.description || prev.description,
+        meetingRoomLink: teamData.meetingRoomLink || prev.meetingRoomLink || "",
+      }));
+    }, [teamData]);
 
-}, [teamData]);
 useEffect(() => {
   if (!selectedStreamId && streamInfo?.id) {
     setSelectedStreamId(streamInfo.id);
@@ -410,6 +403,7 @@ useEffect(() => {
   try {
     // 1. Проверка заполненности
     if (!editedData.name?.trim() ||
+        !editedData.meetingRoomLink?.trim() ||
         !editedData.description?.trim() ||
         !editedData.ntiMarketIds ||
         !editedData.readinessLevel ||
@@ -443,10 +437,10 @@ if (role === "ADMIN" || role === "SUPER_ADMIN") {
     // 4. Тело запроса
     const patchData = {
       name: editedData.name.trim(),
+      meetingRoomLink: editedData.meetingRoomLink.trim(),
       description: editedData.description.trim(),
       ntiMarketIds: editedData.ntiMarketIds,
       readinessLevel: editedData.readinessLevel,
-      
     };
 
     // 5. Отправка PATCH
@@ -711,6 +705,22 @@ const deleteMeeting = async () => {
                             <img src={penIcon} alt="edit" className="team-edit-icon"/>
                     )}
                 </div>
+
+                {isEditing && (
+                    <div className="team-card-info">
+                        <span className="team-label-widget">Ссылка на комнату:</span>
+                        <div className="team-input-wrapper">
+                            <input
+                                className="team-input-widget"
+                                name="meetingRoomLink"
+                                value={editedData.meetingRoomLink || ""}
+                                onChange={handleChange}
+                                placeholder="https://webinar.tusur.ru/b/abc-qwe-zxc-vbn"
+                            />
+                        </div>
+                        <img src={penIcon} alt="edit" className="team-edit-icon"/>
+                    </div>
+                )}
 
                 {isEditing ? (
   role === "TRACKER" ? (
@@ -1080,6 +1090,7 @@ const deleteMeeting = async () => {
                         <MeetingCreate 
                             teamId={id}
                             onClose={() => setShowMeetingCreate(false)}
+                            userRole={role}
                         />
                     )}
                 </div>

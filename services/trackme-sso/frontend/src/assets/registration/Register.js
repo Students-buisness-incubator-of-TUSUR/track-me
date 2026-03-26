@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Register.css";
 import LoginAPI from "../../services/login-service";
 import InputBox from "../input-box/InputBox";
+import { passwordChecks } from "../../validation/password-validation";
 
 const Register = () => {
     const basePath = process.env.REACT_APP_BASE_PATH || "";
@@ -18,19 +19,6 @@ const Register = () => {
 
     const setUsername = (newUsername) => {
         _setUsername(newUsername.replace("@", ""));
-    }
-
-    // if non-empty then wrong
-    const passwordChecks = () => {
-        const passwordMin = 6;
-        return ""
-            + (!/[A-Z]/.test(password) ? "\u{2022} пароль должен содержать заглавную букву\n" : "")
-            + (!/[a-z]/.test(password) ? "\u{2022} пароль должен содержать строчную букву\n" : "")
-            + (!/[0-9]/.test(password) ? "\u{2022} пароль должен содержать цифру\n" : "")
-            + (!/[@$!%*?&]/.test(password) ? "\u{2022} пароль должен содержать специальный символ (@$!%*?&)\n" : "")
-            + ((password.length < passwordMin) ? `\u{2022} длина пароля должна быть не менее ${passwordMin} символов\n` : "")
-            + (password.length !== 0 && (!/[A-Za-z0-9@$!%*?&]+$/.test(password)) ? "\u{2022} пароль должен содержать только латинские символы\n" : "");
-
     }
 
     const handleRegister = (e) => {
@@ -102,7 +90,7 @@ const Register = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         errorText={
-                            passwordChecks()
+                            passwordChecks(password)
                         }
                         required
                     />
@@ -137,7 +125,7 @@ const Register = () => {
                         <option value="ADMIN">Администратор</option>
                         <option value="SUPER_ADMIN">Супер Администратор</option>
                     </select>
-                    <button type="submit" className="register-button" disabled={passwordChecks() !== ""}>
+                    <button type="submit" className="register-button" disabled={passwordChecks(password) !== ""}>
                         Зарегистрироваться
                     </button>
                 </form>

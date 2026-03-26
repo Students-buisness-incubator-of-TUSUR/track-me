@@ -25,6 +25,7 @@
     flex-direction: row;
     justify-content: space-between;
     padding: 0px 20px;
+    text-align: center;
 }
 
 .profile-page_header h1 {
@@ -124,7 +125,7 @@
 }
 
 .profile-page_role {
-    width: 180px;
+    width: 260px;
 }
 
 .profile-page_btn:not(:disabled) {
@@ -183,5 +184,9 @@
         flex-direction: column-reverse;
         align-items: center;
         gap: 20px;
+    }
+
+    .profile-page_btn:not(:disabled):hover {
+        background-color: var(--color-purple);
     }
 }

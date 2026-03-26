@@ -1,12 +1,15 @@
 // accets/report/ReportPage.js
 import { useState, useEffect, useCallback } from "react";
 import "./ReportPage.css";
+
 import IconOpen from "./icon-open.png";
 import IconClose from "./icon-close.png";
-import { fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
+
+import { fetchReportExcel, fetchReports, fetchStreams, fetchTrackers } from "../../services/requests";
+import { useGetUserInfo } from "../../services/util";
+
 import Header from "../header/header";
 import PropTypes from "prop-types";
-import { useGetUserInfo } from "../../services/util";
 
 export default function ReportPage({ defaultIsActive = true }) {
 const [reports, setReports] = useState([]);
@@ -32,32 +35,64 @@ const [userRole, setUserRole] = useState('');
     setStreamFilterOpen(false);
   }
   
+  const buildFilters = useCallback(() => {
+    const filters = [];
+    if (filterTrackers) filters.push({
+      fieldName: "username",
+      type: "EQ",
+      value: filterTrackers,
+    });
+    if (filterStreams) filters.push({
+      fieldName: "streams.name",
+      type: "EQ",
+      value: filterStreams,
+    });
+    if (isActive) {
+      const todayDate = new Date().toISOString().split('T')[0];
+      filters.push({
+        fieldName: "streams.startDate",
+        type: "LTE",
+        value: todayDate,
+      }, {
+        fieldName: "streams.endDate",
+        type: "GTE",
+        value: todayDate,
+      });
+    }
+    return filters;
+  }, [filterTrackers, filterStreams, isActive]);
+
+  const handleExportExcel = async () => {
+    try {
+      const response = await fetchReportExcel({ filters: buildFilters() });
+      if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
+
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = "отчёт-по-командам.xlsx";
+      if (disposition) {
+        const match = disposition.match(/filename\*=UTF-8''(.+)/);
+        if (match) {
+          filename = decodeURIComponent(match[1]);
+        }
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 75);
+    } catch (error) {
+      console.error("Ошибка выгрузки отчёта", error);
+    }
+  };
+
   const loadReports = useCallback(async () => {
     try {
-      const filters = [];
-      if (filterTrackers) filters.push({
-          fieldName: "username",
-          type: "EQ",
-          value: filterTrackers,
-        });
-      if (filterStreams) filters.push({
-          fieldName: "streams.name",
-          type: "EQ",
-          value: filterStreams,
-        });
-      if (isActive) {
-        const todayDate = new Date().toISOString().split('T')[0];
-        filters.push({
-          fieldName: "streams.startDate",
-          type: "LTE",
-          value: todayDate,
-        }, {
-          fieldName: "streams.endDate",
-          type: "GTE",
-          value: todayDate,
-        });
-      }
-      const response = await fetchReports({ page: page, size: size, filters: filters });
+      const response = await fetchReports({ page, size, filters: buildFilters() });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
@@ -113,7 +148,10 @@ const [userRole, setUserRole] = useState('');
       {/* Контент */}
       <main className="Report-main">
         <div className="report-header">
-          <button className="report-btn">Выгрузить отчет</button>
+          {/* Кнопка выгрузки отчета */}
+          <button className="report-btn" onClick={handleExportExcel}>
+            Выгрузить отчет
+          </button>
 
           {/* фильтры */}
           <div className="report-filters">
@@ -134,7 +172,7 @@ const [userRole, setUserRole] = useState('');
             </button>
            <div className="dropdown1">
   <button
-                data-testid="trackers-btn"
+    data-testid="trackers-btn"
     className={`dropdown-btn ${trackerFilterOpen ? 'open' : ''}`}
     onClick={() => setTrackerFilterOpen(!trackerFilterOpen)}
   >

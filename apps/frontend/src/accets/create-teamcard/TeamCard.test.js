@@ -228,20 +228,29 @@ describe("TeamCard — создание карточки команды", () => 
     jest.mocked(require("react-router-dom").useNavigate).mockReturnValue(navigate);
     renderComponent();
 
+    // Заполняем название
     fireEvent.change(screen.getByPlaceholderText(/Введите название команды/i), {
       target: { value: "Тестовая команда" },
     });
 
+    // Заполняем ссылку на комнату
+        fireEvent.change(screen.getByPlaceholderText(/https:\/\/webinar\.tusur\.ru/i), {
+          target: { value: "https://test.link" },
+    });
+
+    // Выбираем рынок
     fireEvent.click(screen.getByText(/Рынки НТИ/i, { selector: ".create-dropdown-toggle" }));
     const market1Label = await screen.findByText(/Market 1/i);
     const market1Checkbox = market1Label.closest(".create-checkbox-item").querySelector('input[type="checkbox"]');
     fireEvent.click(market1Checkbox);
 
+    // Выбираем TRL
     fireEvent.click(screen.getByText(/TRL/i, { selector: ".create-dropdown-toggle" }));
     const trlLabel = await screen.findByText(/3-5/i);
     const trlRadio = trlLabel.closest(".create-checkbox-item").querySelector('input[type="radio"]');
     fireEvent.click(trlRadio);
 
+    // Выбираем поток
     fireEvent.click(screen.getByText(/Поток/i, { selector: ".create-dropdown-toggle" }));
     const streamLabel = await screen.findByText(/Stream 1/i);
     const streamRadio = streamLabel.closest(".create-checkbox-item").querySelector('input[type="radio"]');
@@ -535,6 +544,10 @@ describe("TeamCard — выбор рынков НТИ", () => {
 
     fireEvent.change(screen.getByPlaceholderText(/Введите название команды/i), {
       target: { value: "Тестовая команда" },
+    });
+
+    fireEvent.change(screen.getByPlaceholderText(/https:\/\/webinar\.tusur\.ru/i), {
+      target: { value: "https://test.link" },
     });
 
     fireEvent.click(screen.getByText(/Рынки НТИ/i, { selector: ".create-dropdown-toggle" }));

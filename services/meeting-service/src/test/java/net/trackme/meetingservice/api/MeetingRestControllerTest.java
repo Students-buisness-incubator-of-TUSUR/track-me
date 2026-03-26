@@ -62,7 +62,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
 
         meetingRepository.save(Meeting.builder()
                 .teamCardId(TEAM_CARD_ID)
-                .link("https://example.com/meeting")
+                .recordLink("https://example.com/meeting")
                 .number("12345")
                 .status(MeetingStatus.SCHEDULED)
                 .startDate(OffsetDateTime.now().plusDays(1))
@@ -74,7 +74,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         meetingRepository.save(Meeting.builder()
                 .teamCardId(TEAM_CARD_ID)
                 .status(MeetingStatus.SCHEDULED)
-                .link("https://example.com/meeting")
+                .recordLink("https://example.com/meeting")
                 .number("12343")
                 .startDate(OffsetDateTime.now().plusDays(1))
                 .teamStatus(TeamStatus.OK)
@@ -93,7 +93,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     void createMeeting_success() throws Exception {
 
         var meetingCreateDto = MeetingCreateDto.builder()
-                .link("https://example.com/meeting")
+                .recordLink("https://example.com/meeting")
                 .number("12345")
                 .startDate(OffsetDateTime.now().plusDays(1))
                 .build();
@@ -107,7 +107,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.id").isNotEmpty())
-                .andExpect(jsonPath("$.link").value(meetingCreateDto.link()))
+                .andExpect(jsonPath("$.recordLink").value(meetingCreateDto.recordLink()))
                 .andExpect(jsonPath("$.number").value(meetingCreateDto.number()))
                 .andExpect(jsonPath("$.teamCardId").value(TEAM_CARD_ID.toString()));
     }
@@ -138,7 +138,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @Test
     void updateMeeting_success() throws Exception {
         var meetingUpdateDto = MeetingUpdateDto.builder()
-                .link("https://example.com/meeting")
+                .recordLink("https://example.com/meeting")
                 .number("12345")
                 .teamStatus(TeamStatus.MANY_ISSUES)
                 .build();
@@ -153,7 +153,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.id").value(meetingId))
-                .andExpect(jsonPath("$.link").value("https://example.com/meeting"))
+                .andExpect(jsonPath("$.recordLink").value("https://example.com/meeting"))
                 .andExpect(jsonPath("$.number").value("12345"));
     }
 
@@ -161,7 +161,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
     void updateMeeting_bySuperAdmin_success() throws Exception {
         var meetingUpdateDto = MeetingUpdateDto.builder()
-                .link("https://example.com/meeting")
+                .recordLink("https://example.com/meeting")
                 .number("123456")
                 .teamStatus(TeamStatus.OK)
                 .build();
@@ -176,14 +176,14 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.id").value(meetingId))
-                .andExpect(jsonPath("$.link").value("https://example.com/meeting"))
+                .andExpect(jsonPath("$.recordLink").value("https://example.com/meeting"))
                 .andExpect(jsonPath("$.number").value("123456"));
     }
 
     @Test
     void updateMeeting_completeMeeting_success() throws Exception {
         var meetingUpdateDto = MeetingUpdateDto.builder()
-                .link("https://example.com/meeting")
+                .recordLink("https://example.com/meeting")
                 .number("12345")
                 .teamStatus(TeamStatus.MANY_ISSUES)
                 .status(MeetingStatus.COMPLETED)
@@ -199,7 +199,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.id").value(meetingId))
-                .andExpect(jsonPath("$.link").value("https://example.com/meeting"))
+                .andExpect(jsonPath("$.recordLink").value("https://example.com/meeting"))
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
                 .andExpect(jsonPath("$.number").value("12345"));
     }
@@ -212,7 +212,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         meetingRepository.save(meeting);
 
         var meetingUpdateDto = MeetingUpdateDto.builder()
-                .link("https://example.com/meeting")
+                .recordLink("https://example.com/meeting")
                 .number("12345")
                 .teamStatus(TeamStatus.MANY_ISSUES)
                 .build();

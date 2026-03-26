@@ -1322,8 +1322,8 @@ describe('deleteStream', () => {
     });
 
     expect(getCsrfConfigForFetch).toHaveBeenCalled();
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${backendHost}/api/v1/admin/stream/${testStreamId}`,
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining(`/api/v1/admin/stream/${testStreamId}`),
       expect.objectContaining({
         method: 'DELETE',
         headers: { 'X-CSRF-Token': 'test-token' },

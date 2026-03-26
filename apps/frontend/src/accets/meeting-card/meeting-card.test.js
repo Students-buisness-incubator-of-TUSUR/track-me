@@ -1030,7 +1030,7 @@ describe('MeetingCard Completion and Editing', () => {
   const mockMeetingDataPast = {
     ...mockExistingMeeting,
     startDate: pastDate,
-    link: "http://example.com",
+    recordLink: "http://example.com",
     tasksCurrentMeeting: "Task 1",
     tasksNextMeeting: "Task 2",
     teamStatus: "OK",
@@ -1055,6 +1055,193 @@ describe('MeetingCard Completion and Editing', () => {
 
   afterEach(() => {
     console.error.mockRestore();
+  });
+
+
+  test('sort after save handles NaN number values', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    let callCount = 0;
+
+    fetch.mockImplementation(() => {
+      callCount++;
+
+      // fetchAllMeetings в useEffect
+      if (callCount === 1) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [
+              { id: '1', number: null },
+              { id: '2', number: 'abc' },
+              { id: '3', number: '5' },
+            ]
+          })
+        });
+      }
+
+      // POST сохранение
+      if (callCount === 2) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            id: '999',
+            number: null,
+            startDate: '2025-12-13T00:00:00.000Z',
+            tasksCurrentMeeting: 'Test',
+            tasksNextMeeting: 'Test',
+            teamStatus: 'OK',
+            status: 'SCHEDULED',
+            recordLink: 'http://example.com',
+          })
+        });
+      }
+
+      // загрузка изображения
+      return Promise.resolve({ ok: true });
+    });
+
+    const { container } = render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Сохранить')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    await fillAllRequiredFields(container);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Сохранить'));
+    });
+
+    await waitFor(() => {
+      expect(callCount).toBeGreaterThanOrEqual(2);
+      expect(mockNavigate).toHaveBeenCalled();
+    }, { timeout: 5000 });
+  });
+
+  test('shows error when completing meeting with unfilled fields', async () => {
+    const pastMeetingEmpty = {
+      id: '123',
+      number: '5',
+      startDate: new Date(Date.now() - 86400000).toISOString(),
+      status: 'SCHEDULED',
+      tasksCurrentMeeting: '',
+      tasksNextMeeting: '',
+      teamStatus: '',
+      recordLink: '',
+    };
+
+    fetch.mockImplementation((url) => {
+      const urlString = getUrlString(url);
+      if (urlString.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [pastMeetingEmpty] })
+        });
+      }
+      if (urlString.includes('/api/v1/image/')) {
+        return Promise.resolve({ ok: false });
+      }
+      return Promise.resolve({ ok: true });
+    });
+
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 5/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    const completeButton = screen.getByTestId('complete-meeting-btn');
+
+    await act(async () => {
+      const fiberKey = Object.keys(completeButton).find(k => k.startsWith('__reactFiber'));
+      const onClick = completeButton[fiberKey]?.memoizedProps?.onClick;
+      onClick?.();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Нельзя завершить встречу/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    const patchCalled = fetch.mock.calls.some(([, opts]) => opts?.method === 'PATCH');
+    expect(patchCalled).toBe(false);
+  });
+
+  test('shows error when completing meeting before date has passed', async () => {
+    const futureMeeting = {
+      ...mockExistingMeeting,
+      startDate: new Date(Date.now() + 86400000 * 3).toISOString(),
+      status: 'SCHEDULED',
+      tasksCurrentMeeting: 'Task 1',
+      tasksNextMeeting: 'Task 2',
+      teamStatus: 'OK',
+      recordLink: 'http://example.com',
+    };
+
+    fetch.mockImplementation((url) => {
+      const urlString = getUrlString(url);
+      if (urlString.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [futureMeeting] })
+        });
+      }
+      if (urlString.includes('/api/v1/image/')) {
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob())
+        });
+      }
+      return Promise.resolve({ ok: true });
+    });
+
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    const completeButton = screen.getByTestId('complete-meeting-btn');
+
+    await act(async () => {
+      const fiberKey = Object.keys(completeButton).find(k => k.startsWith('__reactFiber'));
+      const onClick = completeButton[fiberKey]?.memoizedProps?.onClick;
+      onClick?.();
+    });
+
+    await waitFor(() => {
+      const errorDiv = document.querySelector('.error-message');
+      expect(errorDiv).toBeInTheDocument();
+      expect(errorDiv.textContent).toMatch(
+        /Завершение встречи возможно только после окончания даты встречи/i
+      );
+    }, { timeout: 3000 });
+
+    const patchCalled = fetch.mock.calls.some(([, opts]) => opts?.method === 'PATCH');
+    expect(patchCalled).toBe(false);
   });
 
   test('should complete meeting successfully', async () => {
@@ -1092,21 +1279,15 @@ describe('MeetingCard Completion and Editing', () => {
       </Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
-    }, { timeout: 3000 });
-
-    await act(async () => {
-      const completeButton = screen.getByText('Состоялась');
-      fireEvent.click(completeButton);
-    });
+    const buttons = await screen.findAllByRole('button', { name: /Состоялась/i });
+    const completeButton = buttons[0];
+    await waitFor(() => expect(completeButton).not.toBeDisabled());
+    fireEvent.click(completeButton);
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('/api/v1/update-meeting/123'),
-        expect.objectContaining({
-          method: 'PATCH'
-        })
+        expect.objectContaining({ method: 'PATCH' })
       );
     });
   });
@@ -1114,23 +1295,16 @@ describe('MeetingCard Completion and Editing', () => {
   test('should handle error when completing meeting', async () => {
     fetch.mockImplementation((url) => {
       const urlString = getUrlString(url);
-      
-      if (urlString.includes('/api/v1/meetings') && !urlString.includes('update-meeting')) {
+      if (urlString.includes('/api/v1/meetings')) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ content: [mockMeetingDataPast] }),
         });
       }
-      if (urlString.includes('/api/v1/image/') && !urlString.includes('update-meeting')) {
-        return Promise.resolve({
-          ok: true,
-          blob: () => Promise.resolve(new Blob()),
-        });
-      }
       if (urlString.includes('/api/v1/update-meeting/')) {
-        return Promise.reject(new Error('Failed to update meeting'));
+        return Promise.resolve({ ok: false, status: 500, text: () => Promise.resolve("Server error") });
       }
-      return Promise.reject(new Error(`Unexpected URL: ${urlString}`));
+      return Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob()) });
     });
 
     render(
@@ -1143,17 +1317,13 @@ describe('MeetingCard Completion and Editing', () => {
       </Provider>
     );
 
-    await waitFor(() => {
-      expect(screen.getByText(/Встреча 10/i)).toBeInTheDocument();
-    }, { timeout: 3000 });
-
-    await act(async () => {
-      const completeButton = screen.getByText('Состоялась');
-      fireEvent.click(completeButton);
-    });
+    const buttons = await screen.findAllByRole('button', { name: /Состоялась/i });
+    const completeButton = buttons[0];
+    await waitFor(() => expect(completeButton).not.toBeDisabled());
+    fireEvent.click(completeButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to update meeting/i)).toBeInTheDocument();
+      expect(screen.getByText(/Server error/i)).toBeInTheDocument();
     }, { timeout: 5000 });
   });
 });
@@ -1237,94 +1407,106 @@ describe('Textarea Auto-resize Functionality', () => {
   });
 });
 
-describe('BigBlueButton Integration', () => {
-  beforeEach(() => {
-    fetch.mockClear();
-    mockNavigate.mockClear();
-    mockUseLocation.mockClear();
-    mockUseParams.mockClear();
-    
-    mockUseLocation.mockReturnValue({
-      search: '?teamId=1&username=test&userId=1',
-    });
-    mockUseParams.mockReturnValue({ meetingId: 'new' });
-    
-    jest.spyOn(window, 'open').mockImplementation(() => ({
-      focus: () => {},
-      close: () => {}
-    }));
-    
-    global.alert = jest.fn();
+describe('Meeting Room Integration', () => {
+  let windowSpy;
 
-    Object.defineProperty(window, 'innerWidth', { writable: true, value: 1920 });
-    Object.defineProperty(window, 'innerHeight', { writable: true, value: 1080 });
-    Object.defineProperty(window, 'screenX', { writable: true, value: 0 });
-    Object.defineProperty(window, 'screenY', { writable: true, value: 0 });
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseParams.mockReturnValue({ meetingId: '42' });
+    mockUseLocation.mockReturnValue({ search: '?teamId=1&username=test' });
+    
+    windowSpy = jest.spyOn(window, 'open').mockImplementation(() => ({}));
   });
 
   afterEach(() => {
-    window.open.mockRestore();
-    if (global.alert.mockRestore) {
-      global.alert.mockRestore();
-    }
+    windowSpy.mockRestore();
   });
 
-  test('should update bbbLink on input change', () => {
+  const setupMockFetch = (roomLink) => {
+    global.fetch.mockImplementation((url) => {
+      const urlString = url.toString();
+      if (urlString.includes('/api/v1/meetings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{
+              id: '42',
+              number: '1',
+              startDate: new Date().toISOString(),
+              status: 'SCHEDULED',
+              roomLink: roomLink 
+            }],
+            totalPages: 1
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, blob: () => Promise.resolve(new Blob()) });
+    });
+  };
+
+  test('открывает окно BBB с правильным URL', async () => {
+    setupMockFetch('webinar.tusur.ru/b/test');
+
     render(
       <Provider store={getTestStore()}>
-        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
+        <MemoryRouter initialEntries={['/meeting/42?teamId=1']}>
+           <MeetingCard />
         </MemoryRouter>
       </Provider>
     );
 
-    const input = screen.getByPlaceholderText('https://demo.bigbluebutton.org/rooms/...');
-    fireEvent.change(input, { target: { value: 'https://bbb.example.com/rooms/test' } });
+    await screen.findByText(/Встреча 1/i);
 
-    expect(input.value).toBe('https://bbb.example.com/rooms/test');
-  });
+    const joinButton = screen.getByLabelText('Запустить встречу');
+    fireEvent.click(joinButton);
 
-  test('should show alert when URL is empty', () => {
-    render(
-      <Provider store={getTestStore()}>
-        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>
-    );
-
-    const button = screen.getByLabelText('Присоединиться к видеовстрече'); // ✅ Используем aria-label
-    fireEvent.click(button);
-
-    expect(global.alert).toHaveBeenCalledWith('Пожалуйста, введите ссылку на встречу');
-    expect(window.open).not.toHaveBeenCalled();
-  });
-
-  test('should open window with correct features', () => {
-    render(
-      <Provider store={getTestStore()}>
-        <MemoryRouter initialEntries={['/meeting/new?teamId=1&username=test&userId=1']}>
-          <Routes>
-            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>
-    );
-
-    const input = screen.getByPlaceholderText('https://demo.bigbluebutton.org/rooms/...');
-    fireEvent.change(input, { target: { value: 'https://bbb.example.com/rooms/test' } });
-
-    const button = screen.getByLabelText('Присоединиться к видеовстрече'); // ✅ По aria-label
-    fireEvent.click(button);
-
-    expect(window.open).toHaveBeenCalledWith(
-      'https://bbb.example.com/rooms/test',
+    expect(windowSpy).toHaveBeenCalledWith(
+      expect.stringContaining('https://webinar.tusur.ru/b/test'),
       'bbb_meeting_window',
       expect.stringContaining('width=1100')
+    );
+  });
+
+  test('показывает ошибку, если roomLink пустой', async () => {
+    setupMockFetch('');
+
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/42?teamId=1']}>
+           <MeetingCard />
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await screen.findByText(/Встреча 1/i);
+
+    const joinButton = screen.getByLabelText('Запустить встречу');
+    fireEvent.click(joinButton);
+
+    expect(screen.getByText(/Ссылка на комнату для встречи не указана/i)).toBeInTheDocument();
+    expect(windowSpy).not.toHaveBeenCalled();
+  });
+
+  test('корректно обрабатывает ссылку, если она уже с http', async () => {
+    setupMockFetch('http://my-server.com/room');
+
+    render(
+      <Provider store={getTestStore()}>
+        <MemoryRouter initialEntries={['/meeting/42?teamId=1']}>
+           <MeetingCard />
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await screen.findByText(/Встреча 1/i);
+
+    const joinButton = screen.getByLabelText('Запустить встречу');
+    fireEvent.click(joinButton);
+
+    expect(windowSpy).toHaveBeenCalledWith(
+      'http://my-server.com/room',
+      'bbb_meeting_window',
+      expect.any(String)
     );
   });
 });
