@@ -1878,4 +1878,44 @@ describe('Main Element Accessibility', () => {
     expect(mainElement).toHaveAttribute('role', 'button');
     expect(mainElement).toHaveAttribute('aria-label', 'Close mobile menu');
   });
+
+  test('клик по удалить отменяет действие если confirm возвращает false (enabled)', () => {
+    window.confirm = jest.fn(() => false);
+    const deleteUser = jest.fn();
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [{ username: 'user1', fullName: 'User1', telegramId: 'tg1', enabled: true }],
+      error: null, searchQuery: '', setSearchQuery: jest.fn(), page: 0, setPage: jest.fn(),
+      totalPages: 1, handleNextPage: jest.fn(), handlePrevPage: jest.fn(), handlePageJump: jest.fn(),
+      hoveredTracker: 'user1', setHoveredTracker: jest.fn(), hoveredButton: null,
+      setHoveredButton: jest.fn(), trackersPerPage: 5, confirmUser: jest.fn(), deleteUser,
+      showLockedOnly: false, toggleShowLocked: jest.fn(),
+    });
+
+    const TrackerListPage = require('./TrackerListPage').default;
+    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
+
+    fireEvent.click(screen.getByAltText('Удалить'));
+    expect(window.confirm).toHaveBeenCalled();
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
+
+  test('клик по отклонить отменяет действие если confirm возвращает false (disabled)', () => {
+    window.confirm = jest.fn(() => false);
+    const deleteUser = jest.fn();
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [{ username: 'user2', fullName: 'User2', telegramId: 'tg2', enabled: false }],
+      error: null, searchQuery: '', setSearchQuery: jest.fn(), page: 0, setPage: jest.fn(),
+      totalPages: 1, handleNextPage: jest.fn(), handlePrevPage: jest.fn(), handlePageJump: jest.fn(),
+      hoveredTracker: 'user2', setHoveredTracker: jest.fn(), hoveredButton: null,
+      setHoveredButton: jest.fn(), trackersPerPage: 5, confirmUser: jest.fn(), deleteUser,
+      showLockedOnly: false, toggleShowLocked: jest.fn(),
+    });
+
+    const TrackerListPage = require('./TrackerListPage').default;
+    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
+
+    fireEvent.click(screen.getByAltText('Отклонить'));
+    expect(window.confirm).toHaveBeenCalled();
+    expect(deleteUser).not.toHaveBeenCalled();
+  });
 });
