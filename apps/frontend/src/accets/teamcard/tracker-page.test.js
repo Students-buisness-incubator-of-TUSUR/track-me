@@ -688,7 +688,7 @@ describe('TrackerPage - Полное покрытие', () => {
   const filterToggleBtn = document.querySelector('.Stream-settings-pic');
   fireEvent.click(filterToggleBtn);
 
-  const yearBtn = screen.getAllByText('Год').find(el => el.closest('.Stream-header-chosefrom-butt-label'));
+  const yearBtn = screen.getAllByText('Год').find(el => el.closest('.Teams-header-chosefrom-butt-label'));
   expect(yearBtn).toBeInTheDocument();
   fireEvent.click(yearBtn);
 
@@ -799,7 +799,7 @@ describe('TrackerPage - Полное покрытие', () => {
   const filterToggleBtn = document.querySelector('.Stream-settings-pic');
   fireEvent.click(filterToggleBtn);
 
-  const trlBtn = screen.getAllByText('TRL').find(el => el.closest('.Stream-header-chosefrom-butt-label'));
+  const trlBtn = screen.getAllByText('TRL').find(el => el.closest('.Teams-header-chosefrom-butt-label'));
   expect(trlBtn).toBeInTheDocument();
   fireEvent.click(trlBtn);
 
@@ -837,7 +837,7 @@ describe('TrackerPage - Полное покрытие', () => {
   const filterToggleBtn = document.querySelector('.Stream-settings-pic');
   fireEvent.click(filterToggleBtn);
 
-  const yearBtn = screen.getAllByText('Год').find(el => el.closest('.Stream-header-chosefrom-butt-label'));
+  const yearBtn = screen.getAllByText('Год').find(el => el.closest('.Teams-header-chosefrom-butt-label'));
   expect(yearBtn).toBeInTheDocument();
   fireEvent.click(yearBtn);
 
