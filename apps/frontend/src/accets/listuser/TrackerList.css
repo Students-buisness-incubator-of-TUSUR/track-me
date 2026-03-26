@@ -108,8 +108,6 @@
     margin-left: 13px;
     color: black;
     margin-top: -10px;
-
-
 }
 
 .tracker-nick {
@@ -118,6 +116,7 @@
     margin-left: 13px;
     color: black;
     margin-top: 0px;
+    white-space: nowrap;
 }
 
 /* Галочка, если трекер активен */
@@ -203,15 +202,15 @@
 .tooltip {
     position: absolute;
     bottom: -25px;
-    width: 94px;
+    width: 116px;
     height: 22px;
 
     border-radius: 20px;
     font-size: 13px;
     font-weight: 700;
     display: flex;
-    justify-content: center; /* Центрирует текст по горизонтали */
-    align-items: center; /* Центрирует текст по вертикали */
+    justify-content: center;
+    align-items: center;
     text-align: center;
 }
 
@@ -434,26 +433,24 @@
     margin-left: 8px !important;
   }
 
-  /* === Только верхнюю часть скрываем === */
   .Stream-header-cont {
-    display: none; /* скрыть десктопную часть с заголовком и кнопками */
-    
+    display: none;
   }
+
   .tracker-fio{
     margin-top: -5px;
   }
-.tracker-fio,
+
+  .tracker-fio,
   .tracker-nick {
     margin-left: 0 !important;
     padding-left: 70px;
     text-align: left;
   }
-  .tracker-edit-panel12, .tracker-edit-panel {
-    
-    right: 10px; /* Было -50px, увеличиваем смещение влево */
-    
-}
 
+  .tracker-edit-panel12, .tracker-edit-panel {
+    right: 10px;
+  }
 
   .Stream-search-cont {
     flex: 1;

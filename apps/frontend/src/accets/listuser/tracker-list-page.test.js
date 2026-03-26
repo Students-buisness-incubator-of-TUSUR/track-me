@@ -24,6 +24,7 @@ jest.mock('./true2.png', () => 'true2.png');
 jest.mock('./false2.png', () => 'false2.png');
 jest.mock('./personal_account_1.png', () => 'personal_account_1.png');
 beforeEach(() => {
+  window.confirm = jest.fn(() => true);
   mockUseGetUserInfo.mockReturnValue({
     roles: ['SUPER_ADMIN'],
     username: "username12",
@@ -454,7 +455,7 @@ test('наведение на неактивный трекер вызывает
     expect(screen.getByText('Удалить')).toBeInTheDocument();
   });
 
-  test('рендер тултипа "Оставить" или "Подтвердить" при наведении', () => {
+  test('рендер тултипа "Удалить" или "Разблокировать" при наведении', () => {
     require('../hooks/useTrackerList').useTrackerList = () => ({
       trackers: [{ username: 'hovered', fullName: 'Hover User', telegramId: 'hover', enabled: false }],
       error: null,
@@ -478,7 +479,7 @@ test('наведение на неактивный трекер вызывает
     const TrackerListPage = require('./TrackerListPage').default;
     render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
 
-    const greenTips = screen.queryAllByText(/Оставить|Подтвердить/);
+    const greenTips = screen.queryAllByText(/Удалить|Разблокировать/);
     expect(greenTips.length).toBeGreaterThan(0);
   });
 

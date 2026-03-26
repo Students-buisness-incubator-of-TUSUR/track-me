@@ -236,6 +236,9 @@ function TrackerListPage({ endpoint }) {
                       className="cancel-button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (!window.confirm("Вы точно хотите удалить этого пользователя?")) {
+                          return;
+                        }
                         deleteUser(tracker.username);
                         setActiveMobileMenu(null);
                       }}
@@ -270,7 +273,7 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "cancel" && (
-                      <span className="tooltip tooltip-red">Отменить</span>
+                      <span className="tooltip tooltip-red">Удалить</span>
                     )}
 
                     {/* Отклонить */}
@@ -278,6 +281,9 @@ function TrackerListPage({ endpoint }) {
                       className="cancel-button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (!window.confirm("Вы точно хотите удалить этого пользователя?")) {
+                          return;
+                        }
                         deleteUser(tracker.username);
                         setActiveMobileMenu(null);
                       }}
@@ -290,7 +296,7 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "confirm" && (
-                      <span className="tooltip tooltip-green">Подтвердить</span>
+                      <span className="tooltip tooltip-green">Разблокировать</span>
                     )}
                   </>
                 )}
