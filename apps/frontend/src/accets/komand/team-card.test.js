@@ -261,6 +261,7 @@ describe('Save and Deactivate flows', () => {
     fireEvent.click(screen.getByText('0-2'));
     await screen.findByText('3-5');
     fireEvent.click(screen.getByText('3-5'));
+    fireEvent.change(screen.getByPlaceholderText(/https:\/\/webinar\.tusur\.ru/i), { target: { value: 'https://test.link' } });
     fireEvent.change(screen.getByPlaceholderText(/Описание карточки/i), { target: { value: 'NewDesc' } });
     fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));
     await waitFor(() => screen.getByRole('button', { name: /Редактировать/i }));
@@ -588,6 +589,8 @@ test('handleSave заменяет username на объектный, если о�
   fireEvent.change(screen.getByPlaceholderText(/Описание карточки/i), {
     target: { value: 'TestDesc' }
   });
+
+  fireEvent.change(screen.getByPlaceholderText(/https:\/\/webinar\.tusur\.ru/i), { target: { value: 'https://test.link' } });
 
   // Выбор трекера
   fireEvent.change(screen.getByRole('combobox'), {
@@ -1441,6 +1444,7 @@ describe('Additional coverage for specific lines', () => {
   // Fill required fields to pass validation
   fireEvent.change(screen.getByPlaceholderText(/Карточка команды/i), { target: { value: 'TestName' } });
   fireEvent.change(screen.getByPlaceholderText(/Описание карточки/i), { target: { value: 'TestDesc' } });
+ fireEvent.change(screen.getByPlaceholderText(/https:\/\/webinar\.tusur\.ru/i), { target: { value: 'https://test.link' } });
 
   // Save
   fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }));

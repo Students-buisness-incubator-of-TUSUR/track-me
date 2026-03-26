@@ -63,6 +63,7 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .build());
         var meetingId = UUID.randomUUID();
 
@@ -87,6 +88,7 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .build());
         teamCard.addMeetingGrade(meetingId1);
         teamCard.addMeetingGrade(meetingId2);
@@ -127,6 +129,7 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
                 .streams(Set.of(stream))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
                 .build());
         var meetingId = UUID.randomUUID();
         var meetingLink = "test link";

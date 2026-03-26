@@ -55,6 +55,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .status(TeamCardStatus.OK)
                         .ntiMarkets(List.of(ntiMarket))
                         .name("Team card1")
+                        .meetingRoomLink("meetingRoom@link.com")
                         .readinessLevel(ReadinessLevel.LEVEL_1)
                         .build(),
                 "tracker1");
@@ -102,6 +103,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .status(TeamCardStatus.OK)
                         .ntiMarkets(List.of(ntiMarket))
                         .name("Team card1")
+                        .meetingRoomLink("meetingRoom@link.com")
                         .readinessLevel(ReadinessLevel.LEVEL_1)
                         .build(),
                 "tracker1");
@@ -124,6 +126,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .status(TeamCardStatus.OK)
                         .ntiMarkets(List.of(ntiMarket))
                         .name("Team card 1")
+                        .meetingRoomLink("meetingRoom@link.com")
                         .readinessLevel(ReadinessLevel.LEVEL_1)
                         .build(),
                 BaseApplicationTest.USER);
@@ -133,6 +136,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .status(TeamCardStatus.OK)
                         .ntiMarkets(List.of(ntiMarket))
                         .name("Team card 2")
+                        .meetingRoomLink("meetingRoom@link.com")
                         .readinessLevel(ReadinessLevel.LEVEL_1)
                         .build(),
                 BaseApplicationTest.USER);
@@ -159,6 +163,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
         var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
                 .name("Team card1")
+                .meetingRoomLink("meetingRoom@link.com")
                 .ntiMarkets(List.of(ntiMarket))
                 .username(BaseApplicationTest.USER)
                 .readinessLevel(ReadinessLevel.LEVEL_1)

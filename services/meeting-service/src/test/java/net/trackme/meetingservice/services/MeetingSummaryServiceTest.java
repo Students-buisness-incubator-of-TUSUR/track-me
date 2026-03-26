@@ -33,7 +33,7 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
         var meeting = new Meeting();
         meeting.setTeamCardId(UUID.randomUUID());
         meeting.setNumber("test number");
-        meeting.setLink("test link");
+        meeting.setRecordLink("test link");
         meeting.setStartDate(OffsetDateTime.now().minusDays(3));
         meeting.setStatus(MeetingStatus.SCHEDULED);
         meetingRepository.save(meeting);

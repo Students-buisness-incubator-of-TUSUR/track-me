@@ -46,6 +46,11 @@ public abstract class AbstractStreamService implements StreamService {
     }
 
     @Override
+    public List<Stream> findAll() {
+        return streamRepository.findAll();
+    }
+
+    @Override
     public List<NTIMarket> getNTIMarkets() {
         return ntiMarketRepository.findAll();
     }

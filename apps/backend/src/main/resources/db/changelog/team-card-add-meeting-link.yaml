@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: team-card-add-meeting-link
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meeting_room_link
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meeting_room_link
+                  type: VARCHAR(255)
+                  defaultValue: "Unknown"
+                  constraints:
+                    nullable: false

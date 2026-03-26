@@ -4,8 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardUpdateDto;
 import net.trackme.commons.filters.FilterRequest;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +28,7 @@ public interface TeamCardsAdminRestController {
                produces = "application/json")
   @Operation(summary = "Создание карточки команды")
   ResponseEntity<TeamCardDto> createTeamCard(
-      @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto,
+      @Valid @RequestBody TeamCardCreateDto teamCardDto,
       @RequestParam(required = false) UUID streamId,
       @RequestParam String username);
 
@@ -38,7 +39,7 @@ public interface TeamCardsAdminRestController {
   ResponseEntity<TeamCardDto> updateTeamCard(@RequestParam UUID teamCardId,
                                              @RequestParam(required = false) String username,
                                              @RequestParam(required = false) UUID streamId,
-                                             @Valid @RequestBody TeamCardCreateOrUpdateDto teamCardDto);
+                                             @Valid @RequestBody TeamCardUpdateDto teamCardDto);
 
   @PostMapping(value = "team-cards",
                produces = "application/json")

@@ -23,6 +23,7 @@ const TeamCard = () => {
     const [selectedTracker, setSelectedTracker] = useState(null);
     const [formData, setFormData] = useState({
         name: "",
+        meetingRoomLink: "",
         description: "",
         tracker: "",
         streamId: null
@@ -189,6 +190,7 @@ useEffect(() => {
     const validateForm = () => {
         const errors = [];
         if (!formData.name?.trim()) errors.push("Название команды обязательно");
+        if (!formData.meetingRoomLink?.trim()) errors.push("Ссылка на комнату для встречи обязательна");
         if (selectedMarkets.length === 0) errors.push("Выберите хотя бы один рынок НТИ");
         if (!selectedTRL) errors.push("Выберите уровень TRL");
         if (!formData.streamId) errors.push("Привяжите к потоку");
@@ -210,6 +212,7 @@ if (isAdmin && !selectedTracker) {
         try {
             const payload = {
                 name: formData.name,
+                meetingRoomLink: formData.meetingRoomLink,
                 description: formData.description || "Описание карточки команды",
                 ntiMarketIds: selectedMarkets.map(m => m.id),
                 readinessLevel: selectedTRL.label
@@ -314,6 +317,20 @@ if (isAdmin && !selectedTracker) {
                             value={formData.name}
                             onChange={handleChange}
                             placeholder="Введите название команды"
+                        />
+                    </div>
+                    <img src={penIcon} alt="edit" className="create-edit-icon"/>
+                </div>
+
+                <div className="create-card-info">
+                    <span className="create-card-label">Ссылка на комнату для встречи:</span>
+                    <div className="create-input-wrapper">
+                        <input
+                            className="create-input"
+                            name="meetingRoomLink"
+                            value={formData.meetingRoomLink}
+                            onChange={handleChange}
+                            placeholder="https://webinar.tusur.ru/b/abc-qwe-zxc-vbn"
                         />
                     </div>
                     <img src={penIcon} alt="edit" className="create-edit-icon"/>

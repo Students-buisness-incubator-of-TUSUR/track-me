@@ -276,7 +276,7 @@ a {
     font-weight: 300;
     line-height: 30px;
     width: 55px;
-    font-family:'Mulish';
+    font-family: var(--text-font);
 }
 
 .team-input-widget::placeholder {
@@ -319,10 +319,9 @@ select.team-input-widget option {
 }
 
 .dropdown-toggle {
-    font-weight: bold;
     cursor: pointer;
     color: white;
-    font-family:'Mulish';
+    font-family: var(--text-font);
     font-size: 20px;
     font-weight: 600;
     background: #caa7f9;
@@ -330,8 +329,7 @@ select.team-input-widget option {
     border: none;
     width: 100%;
     box-sizing: border-box;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    
     text-align: left;
     position: relative;
     opacity: 1;
@@ -493,21 +491,20 @@ select.team-input-widget option {
     padding-right: 30px; 
     margin-left: -30px;
     
-    font-family:'Mulish';
+    font-family: var(--text-font);
 }
 
 .team-meeting-add {
-    width: 604px;
+    width: 540px;
     height: 58px;
     border-radius: 70px;
     cursor: pointer;
     color:#ffffff;
     font-size: 24px;
-    font-weight: 600;
     background: #878685;
     border: none;
     font-weight: 400;
-    font-family:'Mulish';
+    font-family: var(--text-font);
     flex: none;        /* не растягивается */
   
 }
