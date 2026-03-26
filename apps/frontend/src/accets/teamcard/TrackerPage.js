@@ -513,7 +513,9 @@ const options = {
                         <div className="Teams-header-chosefrom-cont">
                             <div className={`Teams-header-chosefrom-buttw ${showCheckboxesStream ? "Stream-checkboxes_remove-below-border-radius" : ""}`}>
                                 <div className="Teams-header-chosefrom-butt2"
-                                    onClick={() => setShowCheckboxesStream(!showCheckboxesStream)}>
+                                    onClick={() => setShowCheckboxesStream(!showCheckboxesStream)}
+                                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setShowCheckboxesStream(!showCheckboxesStream)}
+                                >
                                     <div className="Teams-header-chosefrom-butt-cont">
                                         <b className="Teams-header-chosefrom-butt-label">Все
                                             потоки</b>
