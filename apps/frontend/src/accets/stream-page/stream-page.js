@@ -393,7 +393,6 @@ const [userRole, setUserRole] = useState('');
                                                         onChange={() => handleYearCheckboxChange(checkbox.id, checkbox.label)}
                                                     />
                                                     <label
-                                                        // className='Stream-header-checkbox-label'
                                                         htmlFor={checkbox.id}>{checkbox.label}</label>
                                                 </div>
                                             ))}
