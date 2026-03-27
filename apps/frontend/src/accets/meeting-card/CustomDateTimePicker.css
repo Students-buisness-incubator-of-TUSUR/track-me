@@ -42,7 +42,8 @@
 .custom-datetime-picker {
     position: absolute;
     bottom: 100%;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     background: white;
     border: 2px solid #8338EB;
     border-radius: 20px;
@@ -51,7 +52,6 @@
     z-index: 10001;
     margin-bottom: 10px;
     width: 320px;
-    animation: slideUp 0.3s ease;
 }
 
 @keyframes slideUp {

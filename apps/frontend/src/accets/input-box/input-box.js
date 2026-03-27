@@ -59,7 +59,7 @@ const InputBox = ({
 
 
 InputBox.propTypes = {
-    placeholder: PropTypes.string.isRequired,
+    placeholder: PropTypes.string,
     placeholderIsAbove: PropTypes.bool,
     autoComplete: PropTypes.string,
     errorText: PropTypes.string,

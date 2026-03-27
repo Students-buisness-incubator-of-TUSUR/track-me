@@ -1,0 +1,117 @@
+.check-box_container {
+    position: relative;
+}
+
+.check-box_button {
+    width: 100%;
+    border-radius: 36px;
+    height: 52px;
+    background-color: var(--color-very-light-gray);
+    border: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 20px;
+    gap: 20px;
+    font-family: var(--text-font);
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.check-box_button--opened {
+    border-radius: 28px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.check-box_button svg {
+    height: 16px;
+    width: 16px;
+    color: var(--color-black);
+}
+
+.check-box_checkboxes {
+    position: absolute;
+    outline: none;
+    z-index: 1000;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-very-light-gray);
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 12px;
+    gap: 8px;
+}
+
+.check-box_row {
+    width: 100%;
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 8px;
+}
+
+.check-box_row label {
+    font-family: var(--text-font);
+    font-size: 13px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    user-select: none;
+    cursor: pointer;
+    text-wrap: wrap;
+}
+
+.check-box_row input[type="radio"] {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    appearance: none;
+    border: 1px solid var(--color-black);
+    border-radius: 100%;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
+}
+
+.check-box_row input[type="radio"]:checked::before {
+    content: "·";
+    color: var(--color-black);
+    font-size: 36px;
+    font-weight: bold;
+    position: absolute;
+    top: 35%;
+    left: 55%;
+    transform: translate(-50%, -50%);
+}
+
+.check-box_row input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    appearance: none;
+    border: 1px solid var(--color-black);
+    border-radius: 4px;
+    background-color: transparent;
+    cursor: pointer;
+    position: relative;
+}
+
+.check-box_row input[type="checkbox"]:checked::before {
+    content: "✔";
+    color: var(--color-black);
+    font-size: 14px;
+    font-weight: bold;
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

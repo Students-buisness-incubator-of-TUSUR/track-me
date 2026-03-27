@@ -423,7 +423,7 @@ const MeetingCard = () => {
 
     return (
         <>
-        <Header/>
+        <Header userRole={role}/>
         <div className="unique-meeting-container">
             <div className="unique-meeting-card">
                 <button className="unique-close-button" onClick={() => navigate(-1)}>
