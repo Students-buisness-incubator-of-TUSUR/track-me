@@ -382,7 +382,7 @@ const options = {
         if (selectedTrl.length > 0) {
             filters.push({
                 fieldName: "readinessLevel",
-                type: "EQ",
+                type: "IN",
                 values: selectedTrl,
             });
         }
