@@ -859,6 +859,19 @@ body {
 }
 
 @media (max-width: 480px) {
+    .Stream-header-afterclick-cont{
+        align-items: center;
+    }
+
+    .Stream-header-afterclick-right{
+        gap: 20px;
+    }
+
+    .Stream-header-afterclick-left{
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
     .Stream-header-logo,
     .Stream-title,
     .Stream-title2 {
@@ -950,7 +963,7 @@ body {
     .Stream-header-chosefrom-butt-pic {
         width: 16px !important;
         height: 16px !important;
-        margin: 0 5px !important;
+        margin: 0 10px !important;
     }
 
     .Stream-search-contcont {
