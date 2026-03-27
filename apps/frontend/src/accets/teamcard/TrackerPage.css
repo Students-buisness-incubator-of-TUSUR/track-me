@@ -247,18 +247,18 @@
 
 /* Зелёный рейтинг (1.00 - 0.51) */
 .card-image-rating.rating-green {
-    background-color: rgba(13, 184, 98, 0.7);
+    background-color: var(--color-rating-good);
 }
 
 /* Жёлтый рейтинг (0.50 - 0.26) */
 .card-image-rating.rating-yellow {
-    background-color: rgba(255, 196, 17, 0.808);
+    background-color: var(--color-rating-medium);
     color: #333;
 }
 
 /* Красный рейтинг (0.25 - 0.00) */
 .card-image-rating.rating-red {
-    background-color: rgba(255, 21, 4, 0.808);
+    background-color: var(--color-rating-bad);
 }
 
 /* Тело карточки */
