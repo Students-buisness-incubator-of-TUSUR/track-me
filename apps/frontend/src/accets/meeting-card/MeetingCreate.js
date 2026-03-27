@@ -56,7 +56,6 @@ const MeetingCreate = ({ onClose, teamId, userRole }) => {
                         // streams - это МАССИВ, берем первый элемент
                         if (teamCard.streams && teamCard.streams.length > 0) {
                             const stream = teamCard.streams[0];
-                            console.log('Данные потока:', stream);
                             
                             if (stream.endDate) {
                                 setStreamEndDate(stream.endDate);

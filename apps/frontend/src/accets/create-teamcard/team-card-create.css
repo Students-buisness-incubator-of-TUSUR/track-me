@@ -12,16 +12,15 @@ a {
 
 .create-card-container {
     position: relative;
-    width: 1719px;
-    min-width: 80vh;
-    min-height: 80vh;
-    max-height: 988px;
+    width: 1280px;
     margin: 40px auto;
-    padding: 40px;
+    padding: 60px;
     background: #fff;
     border-radius: 40px;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
     display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 .create-radio-style input[type="radio"] {
   width: 17px;
@@ -86,13 +85,9 @@ a {
 }
 
 .create-card-left {
-    width: 50%;
-    padding-right: 20px;
     display: flex;
     flex-direction: column;
     gap: 15px;
-    padding-left: 119px;
-    padding-top: 72px;
 }
 
 .create-card-info {
@@ -114,6 +109,11 @@ a {
     position: relative;
     width: 100%;
     max-width: 600px;
+}
+
+.create-input-wrapper-with-pen {
+    display: flex;
+    flex-direction: row;
 }
 
 .create-input {
@@ -283,7 +283,7 @@ max-width: 98px;
 
 .create-team-description-wrapper {
    position: relative;
-  width: 739px;
+  width: 600px;
   height: 238px;
   padding: 29px 30px 29px 41px;
   scrollbar-gutter: stable;            /* внутренняя «подушка» */
@@ -333,15 +333,12 @@ max-width: 98px;
 }
 
 .create-right-panel {
-    width: 50%;
     display: flex;
     flex-direction: column;
-    padding-top: 72px;
-    padding-right: 10px;
 }
 
 .create-meetings-block {
-    width: 604px;
+    width: 304px;
     height: 523px;
     border-radius: 35px;
     border: 3px solid #8338EB;
@@ -483,4 +480,38 @@ max-width: 98px;
 
 .tracker-option:last-child {
     border-bottom: none;
+}
+
+@media only screen and (max-width: 1280px) {
+    .create-card-container {
+        width: 940px;
+    }
+
+    .create-card-info {
+        flex-direction: column;
+        gap: 0px;
+    }
+
+    .create-team-description-wrapper {
+        width: 400px;
+    }
+}
+
+@media only screen and (max-width: 940px) {
+    .create-card-container {
+        width: 100%;
+        flex-direction: column;
+        height: 100%;
+        align-items: center;
+        gap: 20px;
+        padding: 20px 0px;
+    }
+
+    .create-card-left {
+        align-items: center;
+    }
+
+    .create-card-container .create-button-container {
+        position: unset;
+    }
 }

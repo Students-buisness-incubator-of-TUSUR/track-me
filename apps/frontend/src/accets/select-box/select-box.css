@@ -1,0 +1,28 @@
+.select-box_container {
+    border-radius: 36px;
+    height: 52px;
+    background-color: var(--color-very-light-gray);
+}
+
+.select-box_container select {
+    border-radius: inherit;
+    font-family: var(--text-font);
+    width: 100%;
+    height: 100%;
+    font-size: 16px;
+    border: none;
+    padding: 0px 20px;
+    background-color: inherit;
+    margin: 0;
+}
+
+.select-box_container:has(select[readonly]) {
+    pointer-events: none;
+    user-select: none;
+    background-color: var(--color-disabled);
+    appearance: none;
+}
+
+.select-box_container:has(select[readonly]) select {
+    appearance: none;
+}

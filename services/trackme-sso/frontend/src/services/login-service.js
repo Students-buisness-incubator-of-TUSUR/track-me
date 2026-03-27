@@ -24,6 +24,23 @@ export class LoginAPI {
             withCredentials: true
         });
     }
+
+    recoveryPassword(email) {
+        return axios.post(`${(this.basePath)}/api/v1/registration/recovery-password`, 
+            { email },
+            { withCredentials: true }
+        );
+    }
+
+    resetPassword(token, password) {
+        return axios.post(`${this.basePath}/api/v1/registration/reset-password`,
+            { password },
+            {
+                params: { token },
+                withCredentials: true
+            }
+        );
+    }
 }
 
 let loginAPI = new LoginAPI();

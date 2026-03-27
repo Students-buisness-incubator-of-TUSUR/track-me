@@ -263,6 +263,7 @@ if (isAdmin && !selectedTracker) {
             <div className="create-card-left">
                 <div className="create-card-info">
                     <span className="create-card-label" >Трекер:</span>
+                    <div className="create-input-wrapper-with-pen">
                     <div className="create-input-wrapper">
   {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN"))
  ? (
@@ -306,34 +307,39 @@ if (isAdmin && !selectedTracker) {
   <img src={penIcon} alt="edit" className="create-edit-icon"/>
 )}
 
+  </div>
                 </div>
 
                 <div className="create-card-info">
                     <span className="create-card-label">Название команды:</span>
-                    <div className="create-input-wrapper">
-                        <input
-                            className="create-input"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            placeholder="Введите название команды"
-                        />
+                    <div className="create-input-wrapper-with-pen">
+                        <div className="create-input-wrapper">
+                            <input
+                                className="create-input"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                placeholder="Введите название команды"
+                            />
+                        </div>
+                        <img src={penIcon} alt="edit" className="create-edit-icon"/>
                     </div>
-                    <img src={penIcon} alt="edit" className="create-edit-icon"/>
                 </div>
 
                 <div className="create-card-info">
                     <span className="create-card-label">Ссылка на комнату для встречи:</span>
-                    <div className="create-input-wrapper">
-                        <input
-                            className="create-input"
-                            name="meetingRoomLink"
-                            value={formData.meetingRoomLink}
-                            onChange={handleChange}
-                            placeholder="https://webinar.tusur.ru/b/abc-qwe-zxc-vbn"
-                        />
+                    <div className="create-input-wrapper-with-pen">
+                        <div className="create-input-wrapper">
+                            <input
+                                className="create-input"
+                                name="meetingRoomLink"
+                                value={formData.meetingRoomLink}
+                                onChange={handleChange}
+                                placeholder="https://webinar.tusur.ru/b/abc-qwe-zxc-vbn"
+                            />
+                        </div>
+                        <img src={penIcon} alt="edit" className="create-edit-icon"/>
                     </div>
-                    <img src={penIcon} alt="edit" className="create-edit-icon"/>
                 </div>
 
                 <div className={`create-dropdown-block${showStreams ? " open" : ""}`}>
@@ -457,9 +463,13 @@ if (isAdmin && !selectedTracker) {
             
 
             {error && (
-                <div className="error-message" style={{whiteSpace: 'pre-line'}}>
+                <button
+                    className="error-message"
+                    style={{whiteSpace: 'pre-line', border: "none", cursor: "pointer"}}
+                    onClick={() => setError("")}
+                >
                     {error}
-                </div>
+                </button>
             )}
 
             <div className="create-button-container">
