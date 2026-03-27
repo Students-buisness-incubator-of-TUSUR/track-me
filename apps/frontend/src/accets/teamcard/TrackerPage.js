@@ -489,6 +489,10 @@ const options = {
                             className="Stream-search"
                             value={searchQuery}
                             onChange={handleSearchChange}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter")
+                                    applyFilters();
+                            }}
                         />
                     </div>
                 </div>
