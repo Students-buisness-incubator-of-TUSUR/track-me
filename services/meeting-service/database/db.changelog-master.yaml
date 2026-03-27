@@ -12,4 +12,5 @@ databaseChangeLog:
       file: meeting-add-tasks-columns.yaml
   - include:
       file: meeting-add-image-column.yaml
-
+  - include:
+      file: meeting-rename-link-to-record-link.yaml

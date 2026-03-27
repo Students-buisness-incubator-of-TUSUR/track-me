@@ -127,6 +127,10 @@
     cursor: pointer;
     font-size: 16px;
     transition: background 0.3s;
+    border: 0;
+    width: 100%;
+    text-align: left;
+    font-family: 'Montserrat', sans-serif;
   }
   
   .status-option.ok {
@@ -248,12 +252,11 @@
     cursor: pointer;
     font-size: 20px;
     font-weight: 700;
-    width: 190px;
+    width: 200px;
     position: absolute;
-    top: 40px;
+    top: 38px;
     right: 140px;
     padding: 10px 20px;
-    transition: all 0.2s ease;
     min-width: 120px;
     text-align: center;
 }
@@ -352,9 +355,7 @@
 }
 .meeting-create-popup {
     position: absolute;
-    right: 150px;
-    top: 60%;
-    transform: translateY(-50%);
+    bottom: 74px;
     background: white;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -612,8 +613,8 @@
     .unique-edit-button {
       width: 150px;
       height: 36px;
-      font-size: 18px;
-      top: 30px;
+      font-size: 14px;
+      top: 27px;
       right: 100px;
     }
   
@@ -856,8 +857,7 @@
 
 .unique-image-upload {
     position: relative;
-    width: 432px;
-    height: 236px;
+    height: 270px;
     display: flex;
     align-items: center;
     margin-left: 30px;
@@ -866,18 +866,15 @@
 }
 
 .unique-meeting-image {
-    width: 432px;
-    height: 236px;
-    
-    object-fit: cover;
+    height: 270px;
+    object-fit: fill;
     border-radius: 30px;
 }
 
 .unique-screenshot-placeholder {
     background: #d1d5db;
     border-radius: 30px;
-    width: 432px;
-    height: 236px;
+    height: 270px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -902,25 +899,26 @@
     outline: none;
     border-color: #007bff;
 }
-/* Responsive styles for image-related elements */
-@media (max-width: 1024px) {
-    .unique-screenshot-placeholder,
-    .unique-meeting-image {
-        width: 300px;
-        height: 180px;
-    }
-
-    .unique-image-upload {
-        width: 300px;
-        height: 180px;
-    }
-}
 .unique-meeting-info {
     
    
     
     margin-bottom: 20px;
     gap: 15px;
+}
+
+@media only screen and (max-width: 600px) {
+    .unique-image-upload {
+        height: 216px;
+    }
+
+    .unique-meeting-image {
+        height: 216px;
+    }
+
+    .unique-screenshot-placeholder {
+        height: 216px;
+    }
 }
 
 /* Обновленные стили для кнопок статуса встречи */
@@ -1144,7 +1142,6 @@
 
     .unique-meeting-card {
         background: #F8F3FF;
-        border-radius: 0;
         min-height: 100%;
     }
     .unique-meeting-number {
@@ -1186,33 +1183,9 @@
         min-height: calc(100vh - 60px);
         max-height: 100%;
         margin-top: 60px;
-        border-radius: 0px;
         padding: 15px;
     }
 
-    .unique-screenshot-placeholder,
-    .unique-meeting-image {
-        width: 93%;
-        height: 150px;
-    }
-
-    .unique-image-upload {
-        width: 100%;
-        height: 150px;
-    }
-}
-
-@media (max-width: 480px) {
-    .unique-screenshot-placeholder,
-    .unique-meeting-image {
-        width: 100%;
-        height: 120px;
-    }
-
-    .unique-image-upload {
-        width: 100%;
-        height: 120px;
-    }
 }
 @media (max-width: 480px) {
     .unique-textarea,
@@ -1283,12 +1256,6 @@
     gap: 10px;
     justify-content: flex-start;
   }
-
-  .unique-edit-button {
-    font-size: 18px;
-    padding: 9px 16px;
-    min-width: 110px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -1299,7 +1266,6 @@
   }
 
   .unique-edit-button {
-    font-size: 16px;
     padding: 10px;
     text-align: center;
   }
@@ -1326,11 +1292,20 @@
   font-weight: 700;
 }
 
+@media (max-width: 1024px) {
+  .edit-actions-container {
+    top: 26px;
+    right: 80px;
+  }
+}
+
 @media (max-width: 768px) {
   .edit-actions-container {
-    top: 20px;
-    right: 70px;
-    gap: 10px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    top: 60px;
+    right: 20px;
   }
 
   .edit-actions-container .unique-edit-button {
@@ -1338,8 +1313,8 @@
     padding: 9px 16px;
   }
   .unique-edit-button {
-    top: 20px;
-    right: 70px;
+    top: 56px;
+    right: 20px;
   }
   .bbb-input-section {
       flex-direction: column;
@@ -1356,17 +1331,83 @@
   }
 }
 
-@media (max-width: 480px) {
-  .edit-actions-container {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    right: 70px;
-  }
+/* Добавить в meeting-card.css вместо старых .bbb-input-section стилей */
 
-  .edit-actions-container .unique-edit-button {
-    width: 120px;
-    font-size: 16px;
-    text-align: center;
+.unique-meeting-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+/* убираем нижний margin у самого number — он теперь на родителе */
+.unique-meeting-header .unique-meeting-number {
+  margin: 0;
+}
+
+.bbb-button-only {
+  display: none; /* на случай если где-то ещё есть */
+}
+
+.bbb-join-icon-button {
+  position: relative;
+  background: #22c55e;
+  border: none;
+  cursor: pointer;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+  flex-shrink: 0;
+}
+
+.bbb-join-icon-button:hover {
+  background: #16a34a;
+  transform: scale(1.08);
+}
+
+.bbb-join-icon-button:focus {
+  outline: 2px solid #16a34a;
+  outline-offset: 3px;
+}
+
+/* Тултип через CSS */
+.bbb-join-icon-button::after {
+  content: "Запустить встречу";
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.bbb-join-icon-button:hover::after {
+  opacity: 1;
+}
+
+.bbb-join-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+@media (max-width: 480px) {
+  .unique-meeting-header {
+    gap: 0px;
   }
 }

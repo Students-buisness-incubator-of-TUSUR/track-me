@@ -147,6 +147,10 @@
         margin-bottom: 23px;
     }
 
+    .register-box p {
+        color: #44069A;
+    }
+
     .register-input {
         width: 95%;
         border-radius: 50px;

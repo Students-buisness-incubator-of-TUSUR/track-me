@@ -1,13 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap");
-
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
     background: #ffffff;
     color: #333;
 }
+
 a {
-  font-family: 'Mulish', sans-serif;
+    font-family: 'Mulish', sans-serif;
 }
 
 .team-card-widget-container {
@@ -26,7 +25,7 @@ a {
 
 .close-button-widget {
     position: absolute;
-    
+
     font-size: 24px;
     background: transparent;
     border: none;
@@ -34,7 +33,7 @@ a {
     cursor: pointer;
     top: 42px;
     right: 50px;
-    
+
 }
 
 .team-title-widget {
@@ -61,21 +60,21 @@ a {
 }
 
 .stream-tooltip {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: #ffc;
-  color: #000;
-  font-size: 14px;
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  z-index: 100;
-  width: max-content;
-  max-width: 280px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  margin-top: 8px;
-  white-space: normal;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #ffc;
+    color: #000;
+    font-size: 14px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    z-index: 100;
+    width: max-content;
+    max-width: 280px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    margin-top: 8px;
+    white-space: normal;
 }
 
 
@@ -117,41 +116,49 @@ a {
 }
 
 .stream-info-block {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .stream-header {
-  display: flex;
-  justify-content: flex-start; /* Выравнивание по левому краю */
-  gap: 40px; /* Расстояние между элементами */
+    display: flex;
+    justify-content: flex-start;
+    /* Выравнивание по левому краю */
+    gap: 40px;
+    /* Расстояние между элементами */
 }
 
 .stream-data {
-  display: flex;
-  justify-content: flex-start; /* Выравнивание по левому краю */
-  gap: 40px; /* То же расстояние, что и у заголовков */
+    display: flex;
+    justify-content: flex-start;
+    /* Выравнивание по левому краю */
+    gap: 40px;
+    /* То же расстояние, что и у заголовков */
 }
 
 
 
 .stream-header-label {
-  font-weight: bold;
-  color: #333;
+    font-weight: bold;
+    color: #333;
 }
+
 .stream-header-label,
 .stream-name,
 .stream-count,
 .stream-dates {
-  flex: 0 0 auto; /* Не растягивать, не сжимать, авто-ширина */
-  text-align: left; /* Текст по левому краю */
-  min-width: 200px; /* Минимальная ширина для выравнивания */
+    flex: 0 0 auto;
+    /* Не растягивать, не сжимать, авто-ширина */
+    text-align: left;
+    /* Текст по левому краю */
+    min-width: 200px;
+    /* Минимальная ширина для выравнивания */
 }
 
 .team-input-list {
     display: flex;
     flex-wrap: wrap;
-    
+
     gap: 8px;
 }
 
@@ -178,38 +185,41 @@ a {
     font-weight: 400;
     white-space: nowrap;
 }
-.team-description-wrapper {
-  position: relative;
-  width: 739px;
-  height: 238px;
-  padding: 29px 30px 29px 41px;
-  scrollbar-gutter: stable;            /* внутренняя «подушка» */
-  border: 3px solid #8338EB;
-  border-radius: 70px;
-  box-sizing: border-box;
 
-  /* скролл теперь у обёртки: */
-                
-  
-  scrollbar-width: thin;            /* Firefox */
-  scrollbar-color: #8338EB transparent;
+.team-description-wrapper {
+    position: relative;
+    width: 739px;
+    height: 238px;
+    padding: 29px 30px 29px 41px;
+    scrollbar-gutter: stable;
+    /* внутренняя «подушка» */
+    border: 3px solid #8338EB;
+    border-radius: 70px;
+    box-sizing: border-box;
+
+    /* скролл теперь у обёртки: */
+
+
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: #8338EB transparent;
 }
 
 /* Внутрь wrapper-а textarea просто растягиваем по 100% */
 .team-description-wrapper .team-description-input {
-  width: 100%;
-  height: 100%;
-  border: none;
-  
-  resize: none;
-  outline: none;
-  box-sizing: border-box;
-  font-size: 24px;
-  font-weight: 300;
-  background: transparent;
-  
+    width: 100%;
+    height: 100%;
+    border: none;
 
-  padding-right: 20px;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+    font-size: 24px;
+    font-weight: 300;
+    background: transparent;
+
+
+    padding-right: 20px;
 }
 
 
@@ -249,11 +259,12 @@ a {
     line-height: 30px;
     width: 500px;
     min-width: 150px;
-    
+
 }
+
 .team-input-widget1 {
     height: 40px;
-    padding:  0 20px;
+    padding: 0 20px;
     border: none;
     background: #8338EB;
     border-radius: 30px;
@@ -262,9 +273,10 @@ a {
     font-weight: 300;
     line-height: 30px;
     width: 120px;
-    
-    
+
+
 }
+
 .team-input-widget2 {
     height: 40px;
     padding: 0 20px;
@@ -313,6 +325,7 @@ select.team-input-widget option {
     border-radius: 24px;
     overflow: visible;
 }
+
 .dropdown-block.open .create-dropdown-toggle {
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
@@ -329,7 +342,7 @@ select.team-input-widget option {
     border: none;
     width: 100%;
     box-sizing: border-box;
-    
+
     text-align: left;
     position: relative;
     opacity: 1;
@@ -392,7 +405,7 @@ select.team-input-widget option {
     width: 604px;
     height: 523px;
     border-radius: 35px;
-   
+
     border: 3px solid #8338EB;
     padding: 35px 20px 35px 30px;
     margin-left: auto;
@@ -400,60 +413,63 @@ select.team-input-widget option {
     flex-direction: column;
     gap: 15px;
     position: relative;
-    
+
 }
 
 .team-meetings-exist {
-    flex: 1 1 auto;    /* растягиваем на всё доступное место */
-  min-height: 0;     /* чтобы flex-контейнер правильно рассчитал высоту */
-  overflow-y: auto;
+    flex: 1 1 auto;
+    /* растягиваем на всё доступное место */
+    min-height: 0;
+    /* чтобы flex-контейнер правильно рассчитал высоту */
+    overflow-y: auto;
     flex-direction: column;
-    
-     overflow-x: hidden;
-     padding-right: 20px;
-     
-     
-     
-    
-    
+
+    overflow-x: hidden;
+    padding-right: 20px;
+
+
+
+
+
 }
+
 /* вместо width: 604px; */
 .team-meetings-exist .team-meeting {
-  width: 100%;
-  box-sizing: border-box;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .team-meetings-exist::-webkit-scrollbar {
-  width: 16px;
+    width: 16px;
 
 }
 
 .team-meetings-exist::-webkit-scrollbar-thumb {
-  /* цвет фона трека, которым потом обрамим белую зону */
-  border: 3px solid #8338EB;  
+    /* цвет фона трека, которым потом обрамим белую зону */
+    border: 3px solid #8338EB;
 
-  /* сам бегунок белый, но его размер — внутренняя область рамки */
-  background-color: #ffffff;
-  
-  /* чтобы background-color не растягивался под рамку */
-  background-clip: content-box;  
-  min-height: 4px;
+    /* сам бегунок белый, но его размер — внутренняя область рамки */
+    background-color: #ffffff;
 
-  /* и «уменьшаем» скругление чуть поменьше */
-  border-radius: 8px;          
-  
-  /* ключевой момент — считаем рамку внутрь размера */
-  box-sizing: content-box;
-  
-  
-  
+    /* чтобы background-color не растягивался под рамку */
+    background-clip: content-box;
+    min-height: 4px;
+
+    /* и «уменьшаем» скругление чуть поменьше */
+    border-radius: 8px;
+
+    /* ключевой момент — считаем рамку внутрь размера */
+    box-sizing: content-box;
+
+
+
 }
 
 .team-meetings-exist::-webkit-scrollbar-track {
-  background: #8338EB;
-  border-radius: 39px;
-  padding-right: 20px;
-  
+    background: #8338EB;
+    border-radius: 39px;
+    padding-right: 20px;
+
 }
 
 .team-meeting {
@@ -466,9 +482,10 @@ select.team-input-widget option {
     position: relative;
     margin-right: 8px !important;
     align-items: center;
-    margin-bottom: 12px;    /* расстояние между элементами */
-    
-  box-sizing: border-box;
+    margin-bottom: 12px;
+    /* расстояние между элементами */
+
+    box-sizing: border-box;
 }
 
 .meeting-date {
@@ -486,11 +503,11 @@ select.team-input-widget option {
     font-size: 24px;
     font-weight: 700;
     color: #ffffff;
-    padding-left: 90px; 
-    
-    padding-right: 30px; 
+    padding-left: 90px;
+
+    padding-right: 30px;
     margin-left: -30px;
-    
+
     font-family: var(--text-font);
 }
 
@@ -499,23 +516,26 @@ select.team-input-widget option {
     height: 58px;
     border-radius: 70px;
     cursor: pointer;
-    color:#ffffff;
+    color: #ffffff;
     font-size: 24px;
     background: #878685;
     border: none;
     font-weight: 400;
     font-family: var(--text-font);
-    flex: none;        /* не растягивается */
-  
+    flex: none;
+    /* не растягивается */
+
 }
+
 .stream-info-block {
-  margin-top: 100px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-weight: bold;
-  color: #6c2bd9;
+    margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-weight: bold;
+    color: #6c2bd9;
 }
+
 .create-description-input2 {
     width: 739px;
     height: 238px;
@@ -533,6 +553,7 @@ select.team-input-widget option {
     display: inline-block;
     white-space: nowrap;
 }
+
 .team-stream-block {
     color: #8338EB;
     font-size: 20px;
@@ -541,8 +562,9 @@ select.team-input-widget option {
     line-height: 100%;
     font-family: 'Montserrat', monospace;
 }
+
 .stream-loading-message {
-    
+
     color: #8338EB;
     font-size: 20px;
     margin-top: 100px;
@@ -556,10 +578,11 @@ select.team-input-widget option {
     background: #D1D5DB;
     cursor: pointer;
 }
+
 .team-rating {
     position: absolute;
-    
-   left: -1px;
+
+    left: -1px;
     background-color: #68D39D;
     color: black;
     font-weight: 700;
@@ -569,9 +592,10 @@ select.team-input-widget option {
     line-height: 50px;
     text-align: center;
     border-radius: 0px 271px 271px 0;
-    
+
     z-index: 10;
 }
+
 .dot-widget.active {
     background: #8B5CF6;
     width: 8px;
@@ -626,52 +650,59 @@ select.team-input-widget option {
     left: 149px;
     bottom: 40px;
 }
+
 .date-edit-container {
-  display: flex;
-  right: 10px;
-  gap: 8px;
+    display: flex;
+    right: 10px;
+    gap: 8px;
 }
+
 .team-meeting.meeting-status-completed {
-  background-color: #348a5fd7; /* зеленый фон */
-  
+    background-color: #348a5fd7;
+    /* зеленый фон */
+
 }
 
 .meeting-status-not-happened {
-  background-color: #bd2b2be3; /* красный фон */
- 
-}
-.date-input {
-    margin-left: 20px;
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+    background-color: #bd2b2be3;
+    /* красный фон */
+
 }
 
-.save-date-button, .cancel-date-button {
-  padding: 4px 8px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.date-input {
+    margin-left: 20px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.save-date-button,
+.cancel-date-button {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .save-date-button {
-  background-color: #4CAF50;
-  color: white;
+    background-color: #4CAF50;
+    color: white;
 }
 
 .cancel-date-button {
-  background-color: #f44336;
-  color: white;
+    background-color: #f44336;
+    color: white;
 }
 
 .meeting-date {
-  cursor: pointer;
-  text-decoration: underline;
+    cursor: pointer;
+    text-decoration: underline;
 }
 
 .meeting-date:hover {
-  color: #0066cc;
+    color: #0066cc;
 }
+
 .red-button-widget {
     background: #D34F4F;
     color: white;
@@ -743,13 +774,14 @@ select.team-input-widget option {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
 }
 
 .error-message {
-    position: absolute;
+    position: fixed;
     top: 80px;
     left: 50%;
     transform: translateX(-50%);
@@ -767,6 +799,7 @@ select.team-input-widget option {
         opacity: 0;
         transform: translate(-50%, -10px);
     }
+
     to {
         opacity: 1;
         transform: translate(-50%, 0);
@@ -774,7 +807,8 @@ select.team-input-widget option {
 }
 
 .show-meetings-mobile-btn {
-    display: none; /* По умолчанию кнопка скрыта */
+    display: none;
+    /* По умолчанию кнопка скрыта */
     width: 100%;
     padding: 10px;
     background: #8338EB;
@@ -798,7 +832,8 @@ select.team-input-widget option {
     }
 
     .team-meetings-block {
-        display: none; /* По умолчанию скрыт на мобильных */
+        display: none;
+        /* По умолчанию скрыт на мобильных */
         max-width: 100%;
         box-sizing: border-box;
         padding: 25px 10px 25px 15px;
@@ -806,7 +841,8 @@ select.team-input-widget option {
     }
 
     .team-meetings-block.show-mobile {
-        display: flex; /* Показываем при активном состоянии */
+        display: flex;
+        /* Показываем при активном состоянии */
     }
 
     .show-meetings-mobile-btn {
@@ -856,7 +892,8 @@ select.team-input-widget option {
     }
 
     .show-meetings-mobile-btn {
-        display: block; /* Показываем кнопку на мобильных */
+        display: block;
+        /* Показываем кнопку на мобильных */
         margin-top: 20px;
     }
 
@@ -894,15 +931,18 @@ select.team-input-widget option {
 
     .right-panel {
         width: 95%;
-        margin: 15px 0 0 0; /* Центрирование всей панели */
-        padding: 10px; /* Внутренние отступы */
+        margin: 15px 0 0 0;
+        /* Центрирование всей панели */
+        padding: 10px;
+        /* Внутренние отступы */
     }
 
     .team-meeting {
         height: 30px;
     }
 
-    .meeting-date, .meeting-title {
+    .meeting-date,
+    .meeting-title {
         font-size: 18px;
     }
 
@@ -912,9 +952,10 @@ select.team-input-widget option {
         font-size: 18px;
     }
 
-    .date-edit-container{
+    .date-edit-container {
         width: 100%;
     }
+
     .date-input {
         margin-left: 8px;
         max-width: 150px;
@@ -1002,8 +1043,9 @@ select.team-input-widget option {
 }
 
 @media (max-width: 480px) {
-     .header-left {
-        max-width: calc(100% - 60px); /* оставляем место для кнопки меню */
+    .header-left {
+        max-width: calc(100% - 60px);
+        /* оставляем место для кнопки меню */
         overflow: hidden;
     }
 
@@ -1030,24 +1072,33 @@ select.team-input-widget option {
     }
 
     .stream-attach-button-container {
-        width: 100%; /* На мобильных занимает всю ширину */
-        max-width: 200px; 
-      }
-    
+        width: 100%;
+        /* На мобильных занимает всю ширину */
+        max-width: 200px;
+    }
+
     .meetings-grid-widget {
-        display: grid; /* Грид-раскладка */
-        grid-template-columns: repeat(2, 1fr); /* 2 колонки */
-        gap: 10px; /* Расстояние между карточками */
-        margin-bottom: 8px; /* Отступ снизу */
+        display: grid;
+        /* Грид-раскладка */
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 колонки */
+        gap: 10px;
+        /* Расстояние между карточками */
+        margin-bottom: 8px;
+        /* Отступ снизу */
     }
-    
+
     .meeting-item-widget {
-        width: 110%; /* На всю ширину колонки */
-        height: 120px; /* Фиксированная высота */
-        border-radius: 50px; /* Скругление углов */
-        padding: 10px; /* Внутренние отступы */
+        width: 110%;
+        /* На всю ширину колонки */
+        height: 120px;
+        /* Фиксированная высота */
+        border-radius: 50px;
+        /* Скругление углов */
+        padding: 10px;
+        /* Внутренние отступы */
     }
-    
+
     .team-description-wrapper {
         width: 100%;
         height: 256px;
@@ -1097,9 +1148,10 @@ select.team-input-widget option {
         padding: 8px 15px;
         margin-bottom: 20px;
     }
-    
+
     .inputs-container {
-        gap: 10px; /* Расстояние между элементами */
+        gap: 10px;
+        /* Расстояние между элементами */
     }
 
     .team-input-widget {
@@ -1113,15 +1165,20 @@ select.team-input-widget option {
         width: 85px;
     }
 
-    .team-input-widget1, .team-input-widget2 {
+    .team-input-widget1,
+    .team-input-widget2 {
         height: 27px;
     }
 
-    .team-input-widget1, .team-input-widget2, .team-input-widget, .team-description-label, .team-description-input {
+    .team-input-widget1,
+    .team-input-widget2,
+    .team-input-widget,
+    .team-description-label,
+    .team-description-input {
         font-size: 18px !important;
     }
 
-    .create-dropdown-toggle{
+    .create-dropdown-toggle {
         height: 30px;
         font-size: 18px !important;
         padding: 3px 0 0 15px !important;
@@ -1136,6 +1193,446 @@ select.team-input-widget option {
     .stream-attach-button-container,
     .red-button-container {
         margin-bottom: 20px;
-        }
+    }
 }
 
+.team-card_main {
+    font-family: var(--text-font);
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.team-card_container {
+    position: relative;
+    width: 1280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background-color: var(--color-white);
+    margin-top: 24px;
+    border-radius: 32px;
+    padding: 24px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+    gap: 20px;
+}
+
+.team-card_header {
+    display: flex;
+    flex-direction: row-reverse;
+    padding: 0px 20px;
+    text-align: center;
+    height: 48px;
+    align-items: center;
+    gap: 40px;
+}
+
+.team-card_etc-button {
+    border: 0;
+    background-color: var(--color-light-purple);
+    border-radius: 32px;
+    color: var(--color-white);
+    height: 40px;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 0 20px;
+    cursor: pointer;
+}
+
+.team-card_close-button {
+    border: 0;
+    background-color: transparent;
+    border-radius: 100%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.team-card_close-button:hover {
+    background-color: var(--color-light-gray);
+}
+
+.team-card_close-button svg {
+    color: var(--color-light-purple);
+    width: 20px;
+    height: 20px;
+}
+
+.team-card_team-rating {
+    position: absolute;
+    left: 0px;
+    background-color: var(--color-mint);
+    color: var(--color-black);
+    font-weight: 700;
+    font-size: 24px;
+    width: 160px;
+    height: 48px;
+    line-height: 48px;
+    text-align: center;
+    border-radius: 0px 32px 32px 0;
+    z-index: 10;
+}
+
+.team-card_row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.team-card_fields {
+    display: flex;
+    flex-direction: column;
+    width: 600px;
+    gap: 12px;
+}
+
+.team-card_field {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+}
+
+.team-card_field p {
+    font-size: 16px;
+    width: 188px;
+    font-family: var(--text-font);
+    font-weight: 600;
+}
+
+.team-card_field-input {
+    width: 400px;
+}
+
+.team-card_field-nti-container {
+    width: 400px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 12px;
+}
+
+.team-card_field-nti-input {
+    width: 124px;
+}
+
+.team-card_field-nti-input input {
+    text-align: center;
+}
+
+.team-card_field-trl-input {
+    width: 80px;
+}
+
+.team-card_field-trl-input input {
+    text-align: center;
+}
+
+.team-card_description-field {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.team-card_field-description-input {
+    width: 100%;
+    height: 240px;
+}
+
+.team-card_stream-container {
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.team-card_stream-data {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    color: var(--color-purple);
+}
+
+.team-card_meetings-container {
+    width: 600px;
+    height: 100%;
+    border: 2px solid var(--color-light-purple);
+    border-radius: 32px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.team-card_meetings-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: auto;
+    gap: 12px;
+}
+
+.team-card_meetings-button {
+    position: relative;
+    width: 100%;
+    min-height: 56px;
+    border: none;
+    border-radius: 32px;
+    background-color: var(--color-gray);
+    color: var(--color-white);
+    font-size: 16px;
+    font-family: var(--text-font);
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+}
+
+.team-card_meeting-text {
+    font-weight: 600;
+}
+
+.team-card_meeting-status-completed {
+    background-color: var(--color-dark-green);
+}
+
+.team-card_meeting-status-not-happened {
+    background-color: var(--color-red);
+}
+
+.team-card_meeting-status-scheduled {
+    background-color: var(--color-light-purple);
+}
+
+.team-card_meeting-date {
+    outline: none;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    position: absolute;
+    left: 20px;
+    color: var(--color-white);
+    font-size: 16px;
+    font-family: var(--text-font);
+    text-decoration: underline;
+}
+
+.team-card_meeting-editing-container {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    cursor: default;
+}
+
+.team-card_meeting-edit-date {
+    height: 100%;
+    padding: 0px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 32px;
+    border: none;
+}
+
+.team-card_meeting-edit-button {
+    border: none;
+    height: 100%;
+    padding: 0px 8px;
+    font-size: 14px;
+    color: var(--color-white);
+    border-radius: 32px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.team-card_meeting-edit-button-save {
+    background-color: var(--color-green);
+}
+
+.team-card_meeting-edit-button-cancel {
+    background-color: var(--color-light-red);
+}
+
+.team-card_meeting-edit-button-delete {
+    background-color: var(--color-gray);
+}
+
+.team-card_field-nti-checkbox {
+    width: 280px;
+}
+
+.team-card_field-trl-checkbox {
+    width: 200px;
+}
+
+.team-card_field-stream-checkbox {
+    width: 400px;
+}
+
+.team-card_deactivate-button {
+    width: 280px;
+    background-color: var(--color-red);
+}
+
+.team-card_error-message {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-white);
+    padding: 10px 20px;
+    border-radius: 4px;
+    color: var(--color-light-red);
+    box-shadow: 0 2px 4px var(--color-black-transparent);
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.team-card_confirm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-black-transparent);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.team-card_confirm-modal {
+    background-color: var(--color-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px var(--color-black-transparent);
+    padding: 25px 30px;
+    width: 400px;
+    text-align: center;
+    animation: scaleIn 0.25s ease;
+}
+
+.team-card_confirm-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.team-card_confirm-button {
+    min-width: 100px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.team-card_confirm-button.yes {
+    background-color: var(--color-light-red);
+    color: var(--color-white);
+}
+
+.team-card_confirm-button.yes:hover {
+    background-color: var(--color-red);
+}
+
+.team-card_confirm-button.no {
+    background-color: var(--color-light-gray);
+    color: var(--color-gray);
+}
+
+.team-card_confirm-button.no:hover {
+    background-color: var(--color-gray);
+    color: var(--color-light-gray);
+}
+
+@media only screen and (max-width: 1280px) {
+    .team-card_container {
+        width: 940px;
+    }
+
+    .team-card_fields {
+        width: 400px;
+    }
+
+    .team-card_meetings-container {
+        width: 480px;
+    }
+
+    .team-card_field {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .team-card_field p {
+        width: unset;
+    }
+
+    .team-card_meeting-edit-date {
+        width: 120px;
+    }
+}
+
+@media only screen and (max-width: 940px) {
+    .team-card_row {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .team-card_field {
+        align-items: center;
+    }
+
+    .team-card_meetings-container {
+        width: 400px;
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .team-card_meeting-editing-container {
+        gap: 0px;
+    }
+
+    .team-card_field-nti-container {
+        justify-content: center;
+    }
+
+    .team-card_container {
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    .team-card_header {
+        gap: 8px;
+    }
+
+    .team-card_stream-container {
+        align-items: center;
+    }
+
+    .team-card_stream-data {
+        justify-content: center;
+    }
+
+    .team-card_deactivate-button-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

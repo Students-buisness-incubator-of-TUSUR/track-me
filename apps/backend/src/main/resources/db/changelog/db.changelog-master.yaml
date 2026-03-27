@@ -30,4 +30,5 @@ databaseChangeLog:
       file: db/changelog/meeting-add-image-column.yaml
   - include:
       file: db/changelog/team_card_average_grade_trigger.sql
-
+  - include:
+      file: db/changelog/team-card-add-meeting-link.yaml

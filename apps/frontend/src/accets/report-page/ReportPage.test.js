@@ -262,11 +262,11 @@ describe('ReportPage Component', () => {
     fireEvent.click(trackerFilterButton);
     
     // Проверяем, что dropdown-menu появился
-    const dropdownMenu = document.querySelector('.dropdown-menu');
+    const dropdownMenu = document.querySelector('.report-dropdown-menu');
     expect(dropdownMenu).toBeInTheDocument();
     
     // Проверяем, что в dropdown есть элементы
-    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    const dropdownItems = dropdownMenu.querySelectorAll('.report-dropdown-item');
     expect(dropdownItems.length).toBeGreaterThan(0);
     
     fireEvent.click(trackerFilterButton);
@@ -289,15 +289,15 @@ describe('ReportPage Component', () => {
     fireEvent.click(streamFilterButton);
     
     // Проверяем, что dropdown-menu появился
-    const dropdownMenu = document.querySelector('.dropdown-menu');
+    const dropdownMenu = document.querySelector('.report-dropdown-menu');
     expect(dropdownMenu).toBeInTheDocument();
     
     // Проверяем, что в dropdown есть элементы
-    const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+    const dropdownItems = dropdownMenu.querySelectorAll('.report-dropdown-item');
     expect(dropdownItems.length).toBeGreaterThan(0);
     
     fireEvent.click(streamFilterButton);
-    expect(document.querySelector('.dropdown-menu')).not.toBeInTheDocument();
+    expect(document.querySelector('.report-dropdown-menu')).not.toBeInTheDocument();
   });
 
   test('рендерит таблицу с данными', async () => {
@@ -344,14 +344,14 @@ describe('ReportPage Component', () => {
     });
     
     // Проверяем начальное состояние иконок
-    const trackerIcons = document.querySelectorAll('.dropdown-icon-img');
+    const trackerIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(trackerIcons[0]).toHaveAttribute('alt', 'Открыто');
     
     // Открываем фильтр и проверяем изменение иконки
     const trackerFilterButton = screen.getByTestId("trackers-btn");
     fireEvent.click(trackerFilterButton);
     
-    const updatedIcons = document.querySelectorAll('.dropdown-icon-img');
+    const updatedIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(updatedIcons[0]).toHaveAttribute('alt', 'Закрыто');
   });
 
@@ -442,19 +442,19 @@ describe('ReportPage Component', () => {
     const streamFilterButton = screen.getByText('Потоки');
     
     // Проверяем начальное состояние
-    const initialIcons = document.querySelectorAll('.dropdown-icon-img');
+    const initialIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(initialIcons[0]).toHaveAttribute('alt', 'Открыто');
     expect(initialIcons[1]).toHaveAttribute('alt', 'Открыто');
     
     // Открываем фильтр трекеров
     fireEvent.click(trackerFilterButton);
-    const afterTrackerOpenIcons = document.querySelectorAll('.dropdown-icon-img');
+    const afterTrackerOpenIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(afterTrackerOpenIcons[0]).toHaveAttribute('alt', 'Закрыто');
     expect(afterTrackerOpenIcons[1]).toHaveAttribute('alt', 'Открыто');
     
     // Закрываем фильтр трекеров
     fireEvent.click(trackerFilterButton);
-    const afterTrackerCloseIcons = document.querySelectorAll('.dropdown-icon-img');
+    const afterTrackerCloseIcons = document.querySelectorAll('.report-dropdown-icon-img');
     expect(afterTrackerCloseIcons[0]).toHaveAttribute('alt', 'Открыто');
     expect(afterTrackerCloseIcons[1]).toHaveAttribute('alt', 'Открыто');
   });
@@ -806,6 +806,191 @@ describe('filter selection', () => {
 
     await waitFor(() => {
       expect(fetchReports).toHaveBeenCalledWith({ page: 0, size: size, filters: [] });
+    });
+  });
+});
+
+describe('handleExportExcel', () => {
+  let createObjectURLMock;
+  let revokeObjectURLMock;
+  let appendChildSpy;
+  let removeChildSpy;
+  let clickMock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+
+    clickMock = jest.fn();
+    createObjectURLMock = jest.fn(() => 'blob:http://localhost/fake-url');
+    revokeObjectURLMock = jest.fn();
+    global.URL.createObjectURL = createObjectURLMock;
+    global.URL.revokeObjectURL = revokeObjectURLMock;
+
+    const originalAppendChild = document.body.appendChild.bind(document.body);
+    appendChildSpy = jest.spyOn(document.body, 'appendChild').mockImplementation((el) => {
+      if (el.tagName === 'A') {
+        el.click = clickMock;
+        return el;
+      }
+      return originalAppendChild(el);
+    });
+    removeChildSpy = jest.spyOn(document.body, 'removeChild').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    appendChildSpy.mockRestore();
+    removeChildSpy.mockRestore();
+  });
+
+  test('вызывает fetchReportExcel без фильтров и скачивает файл', async () => {
+    jest.useFakeTimers();
+    
+    const { fetchReportExcel } = require('../../services/requests');
+    fetchReportExcel.mockResolvedValue({
+      ok: true,
+      headers: {
+        get: () => "attachment; filename*=UTF-8''%D0%BE%D1%82%D1%87%D1%91%D1%82-%D0%BF%D0%BE-%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D0%B0%D0%BC-2026-03-10.xlsx",
+      },
+      blob: jest.fn().mockResolvedValue(new Blob(['fake-xlsx'])),
+    });
+
+    render(<Router><ReportPage defaultIsActive={false} /></Router>);
+    await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('Выгрузить отчет'));
+
+    await waitFor(() => {
+      expect(fetchReportExcel).toHaveBeenCalledWith({ filters: [] });
+    });
+
+    await waitFor(() => {
+      expect(createObjectURLMock).toHaveBeenCalled();
+      expect(clickMock).toHaveBeenCalled();
+      expect(removeChildSpy).toHaveBeenCalled();
+    });
+
+    expect(revokeObjectURLMock).not.toHaveBeenCalled();
+    jest.runAllTimers();
+    expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:http://localhost/fake-url');
+
+    jest.useRealTimers();
+  });
+
+  test('использует имя файла из Content-Disposition', async () => {
+    const { fetchReportExcel } = require('../../services/requests');
+    fetchReportExcel.mockResolvedValue({
+      ok: true,
+      headers: {
+        get: () => "attachment; filename*=UTF-8''%D0%BE%D1%82%D1%87%D1%91%D1%82-%D0%BF%D0%BE-%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D0%B0%D0%BC-2026-03-10.xlsx",
+      },
+      blob: jest.fn().mockResolvedValue(new Blob(['fake-xlsx'])),
+    });
+
+    render(<Router><ReportPage /></Router>);
+    await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('Выгрузить отчет'));
+
+    await waitFor(() => {
+      expect(appendChildSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          download: 'отчёт-по-командам-2026-03-10.xlsx',
+          href: 'blob:http://localhost/fake-url',
+        })
+      );
+    });
+  });
+
+  test('использует дефолтное имя если Content-Disposition отсутствует', async () => {
+    const { fetchReportExcel } = require('../../services/requests');
+    fetchReportExcel.mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      blob: jest.fn().mockResolvedValue(new Blob(['fake-xlsx'])),
+    });
+
+    render(<Router><ReportPage /></Router>);
+    await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('Выгрузить отчет'));
+
+    await waitFor(() => {
+      expect(appendChildSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ download: 'отчёт-по-командам.xlsx' })
+      );
+    });
+  });
+
+  test('вызывает fetchReportExcel с фильтром трекера', async () => {
+    const { fetchReportExcel } = require('../../services/requests');
+    fetchReportExcel.mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      blob: jest.fn().mockResolvedValue(new Blob(['fake-xlsx'])),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [{ username: 'tracker1', fullName: 'Tracker One' }],
+      }),
+    });
+
+    render(<Router><ReportPage defaultIsActive={false} /></Router>);
+    await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTestId('trackers-btn'));
+    const dropdown = await screen.findByTestId('trackers-dropdown-menu');
+    fireEvent.click(within(dropdown).getByText('Tracker One (tracker1)'));
+
+    fireEvent.click(screen.getByText('Выгрузить отчет'));
+
+    await waitFor(() => {
+      expect(fetchReportExcel).toHaveBeenCalledWith({
+        filters: [{ fieldName: 'username', type: 'EQ', value: 'tracker1' }],
+      });
+    });
+  });
+
+  test('вызывает fetchReportExcel с фильтром потока', async () => {
+    const { fetchReportExcel } = require('../../services/requests');
+    fetchReportExcel.mockResolvedValue({
+      ok: true,
+      headers: { get: () => null },
+      blob: jest.fn().mockResolvedValue(new Blob(['fake-xlsx'])),
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [{ name: 'Stream A' }],
+      }),
+    });
+
+    render(<Router><ReportPage defaultIsActive={false} /></Router>);
+    await waitFor(() => expect(screen.getByText('TrackMe')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText('Потоки'));
+    const dropdown = await screen.findByTestId('streams-dropdown-menu');
+    fireEvent.click(within(dropdown).getByText('Stream A'));
+
+    fireEvent.click(screen.getByText('Выгрузить отчет'));
+
+    await waitFor(() => {
+      expect(fetchReportExcel).toHaveBeenCalledWith({
+        filters: [{ fieldName: 'streams.name', type: 'EQ', value: 'Stream A' }],
+      });
     });
   });
 });

@@ -12,19 +12,25 @@ import java.time.OffsetDateTime;
 @Schema(description = "DTO обновления встречи команды")
 public record MeetingUpdateDto(
         @Nullable
-        @Schema(description = "Ссылка на встречу")
-        String link,
         @Schema(description = "Номер встречи")
         String number,
+
+        @Schema(description = "Ссылка на запись встречи")
+        String recordLink,
+
         @Schema(description = "Статус команды на встрече")
         TeamStatus teamStatus,
+
         @Schema(description = "Задачи на текущую встречу")
         String tasksCurrentMeeting,
+
         @Schema(description = "Задачи на следующую встречу")
         String tasksNextMeeting,
+
         @Nullable
         @Schema(description = "Дата начала встречи")
         OffsetDateTime startDate,
+
         @Nullable
         @Schema(description = "Статус встречи")
         MeetingStatus status

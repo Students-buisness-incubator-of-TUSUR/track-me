@@ -101,7 +101,7 @@ spring:
           issuer-uri: http://host.docker.internal:9000
 logging:
   level:
-    org.springframework.security: trace
+    org.springframework.security: debug
 app:
   api-url: ${BACKEND_URI:http://localhost}/meeting/
 

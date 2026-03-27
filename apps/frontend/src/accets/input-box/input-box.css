@@ -1,5 +1,4 @@
 .input-box_container-with-helper {
-    height: 100%;
     font-family: var(--text-font);
     display: flex;
     flex-direction: column;
@@ -45,6 +44,7 @@
 }
 
 .input-box_container input {
+    font-family: var(--text-font);
     width: 100%;
     padding: 0px 20px;
     border: none;

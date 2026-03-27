@@ -1,9 +1,10 @@
 package net.trackme.backend.mapping;
 
 import net.trackme.backend.domain.TeamCard;
-import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateOrUpdateDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
+import net.trackme.backend.rest.api.teamcard.dto.TeamCardUpdateDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -26,7 +27,23 @@ public interface TeamCardMapper {
     @Mapping(
             target = "readinessLevel",
             expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
-    TeamCard mapToEntity(TeamCardCreateOrUpdateDto dto);
+    TeamCard mapToEntity(TeamCardCreateDto dto);
+
+    @Mapping(target = "meetingsNotHappenedCount", ignore = true)
+    @Mapping(target = "meetingsCount", ignore = true)
+    @Mapping(target = "meetingsCompletedCount", ignore = true)
+    @Mapping(target = "meetingsCompletedAsNotHappenedCount", ignore = true)
+    @Mapping(target = "enabled", ignore = true)
+    @Mapping(target = "averageGrade", ignore = true)
+    @Mapping(target = "username", ignore = true)
+    @Mapping(target = "ntiMarkets", ignore = true)
+    @Mapping(target = "streams", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(
+            target = "readinessLevel",
+            expression = "java( dto.readinessLevel() == null ? null : ReadinessLevel.fromValue(dto.readinessLevel()) )")
+    TeamCard mapToEntity(TeamCardUpdateDto dto);
 
     @Mapping(target = "enabled", expression = "java( entity.isActive() )")
     @Mapping(
@@ -37,21 +54,18 @@ public interface TeamCardMapper {
             target = "streamName",
             expression = "java( entity"
                     + ".getStreams().stream()"
-                    + ".filter(Stream::isActive)"
                     + ".map(Stream::getName)"
                     + ".findFirst().orElse(\"\") )")
     @Mapping(
             target = "startDate",
             expression = "java( entity"
                     + ".getStreams().stream()"
-                    + ".filter(Stream::isActive)"
                     + ".map(Stream::getStartDate)"
                     + ".findFirst().orElse(null) )")
     @Mapping(
             target = "endDate",
             expression = "java( entity"
                     + ".getStreams().stream()"
-                    + ".filter(Stream::isActive)"
                     + ".map(Stream::getEndDate)"
                     + ".findFirst().orElse(null) )")
     @Mapping(target = "teamCardName", expression = "java( entity.getName() )")

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface TeamCardsService {
@@ -24,12 +25,19 @@ public interface TeamCardsService {
     TeamCard updateTeamCard(UUID teamCardId, TeamCard updateTeamCardDto);
 
     /**
-     * Получить список команд.
+     * Получить все карточки команд
+     * @param specification Фильтрация
+     * @return Список карточек команд
+     */
+    List<TeamCard> getTeamCards(Specification<TeamCard> specification);
+
+    /**
+     * Получить пагинированный список карточек команд.
      * @param specification Фильтрация
      * @param pageable Пагинация
      * @return Страница команд
      */
-    Page<TeamCard> getTeamCards(Specification<TeamCard> specification, Pageable pageable);
+    Page<TeamCard> getTeamCardsPageable(Specification<TeamCard> specification, Pageable pageable);
 
     /**
      * Получить карточку команды.
