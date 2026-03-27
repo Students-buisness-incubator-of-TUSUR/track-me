@@ -34,4 +34,20 @@ public record TeamCardReportRecordDto(
                 allowableValues = {"0-2", "3-5", "6-8", "9-10"})
         String readinessLevel
 ) {
+    public TeamCardReportRecordDto withAverageUserGrade(BigDecimal averageUserGrade) {
+        return new TeamCardReportRecordDto(
+                streamName,
+                startDate,
+                endDate,
+                teamCardName,
+                username,
+                averageTeamGrade,
+                averageUserGrade,
+                meetingsCountPlan,
+                meetingsCountFact,
+                ntiMarkets,
+                readinessLevel
+        );
+    }
+
 }

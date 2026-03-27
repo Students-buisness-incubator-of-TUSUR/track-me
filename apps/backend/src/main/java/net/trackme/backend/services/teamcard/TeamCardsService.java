@@ -25,19 +25,12 @@ public interface TeamCardsService {
     TeamCard updateTeamCard(UUID teamCardId, TeamCard updateTeamCardDto);
 
     /**
-     * Получить все карточки команд
-     * @param specification Фильтрация
-     * @return Список карточек команд
-     */
-    List<TeamCard> getTeamCards(Specification<TeamCard> specification);
-
-    /**
      * Получить пагинированный список карточек команд.
      * @param specification Фильтрация
      * @param pageable Пагинация
      * @return Страница команд
      */
-    Page<TeamCard> getTeamCardsPageable(Specification<TeamCard> specification, Pageable pageable);
+    Page<TeamCard> getTeamCards(Specification<TeamCard> specification, Pageable pageable);
 
     /**
      * Получить карточку команды.
