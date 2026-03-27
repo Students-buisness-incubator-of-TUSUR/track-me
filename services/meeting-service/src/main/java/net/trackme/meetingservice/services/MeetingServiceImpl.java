@@ -71,7 +71,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting','READ') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN')")
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
