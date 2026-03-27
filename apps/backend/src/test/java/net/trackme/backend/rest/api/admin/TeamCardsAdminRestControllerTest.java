@@ -143,6 +143,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
 
         mockMvc.perform(post("/api/v1/admin/team-cards")
                         .with(csrf())
+                        .param("sort", "name,asc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
