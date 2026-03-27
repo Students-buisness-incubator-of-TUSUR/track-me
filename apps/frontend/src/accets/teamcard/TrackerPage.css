@@ -2,7 +2,7 @@
     min-height: 100vh;
     background: linear-gradient(180deg, #ffffff 0%, #f9f6ff 100%);
     box-sizing: border-box;
-    font-family: sans-serif;
+    font-family: var(--text-font);
 }
 
 .Teams-header-afterclick-cont {
@@ -33,7 +33,7 @@
     border-radius: 40px;
     background-color: rgba(131, 56, 234, 1);
     color: white;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-family: var(--text-font);
     font-size: 20px;
     border: none;
     margin-top: 20px;
@@ -53,7 +53,7 @@
     border-radius: 31px;
     background-color: #CDAFF7;
     opacity: 100;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-family: var(--text-font);
     font-size: 13px;
     border: none;
     justify-content: space-between;
@@ -66,7 +66,7 @@
     width: 268px;
     height: 60px;
     color: white;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-family: var(--text-font);
     font-size: 20px;
     border: none;
     justify-content: space-between;
@@ -88,7 +88,7 @@
     border-radius: 40px;
     background-color: rgba(131, 56, 234, 1);
     color: white;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-family: var(--text-font);
     font-size: 20px;
     border: none;
     margin-top: 20px;
@@ -101,7 +101,7 @@
     border-radius: 40px;
     background-color: rgba(131, 56, 234, 0.4);
     color: white;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-family: var(--text-font);
     font-size: 20px;
     border-color: rgba(68, 6, 154, 1);
     margin-top: 20px;
@@ -132,7 +132,7 @@
 
 .Stream-title11 {
     color: #8202CD;
-    font-family: "Mulish", sans-serif;
+    font-family: var(--text-font);
     align-self: center;
     margin-left: 140px;
     font-size: 40px;
