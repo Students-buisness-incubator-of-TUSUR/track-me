@@ -351,9 +351,7 @@ const options = {
 
 
     // Фильтрация карточек по поисковому запросу
-    const filteredCards = cards.filter((card) =>
-        card.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredCards = cards;
     const visibleCards = filteredCards;
 
 
@@ -367,7 +365,6 @@ const options = {
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
-        setPage(0)
     };
 
     // Переключение отображения панели фильтров
@@ -378,6 +375,14 @@ const options = {
     // Обработчик применения фильтров
     const applyFilters = () => {
         const filters = [];
+
+        if (searchQuery?.length > 0) {
+            filters.push({
+                fieldName: "name",
+                type: "LIKE",
+                value: searchQuery,
+            });
+        }
 
         if (selectedTrl.length > 0) {
             filters.push({
@@ -796,11 +801,7 @@ const options = {
                         </div>
                     ))
                 ) : (
-                    <p>
-                        {searchQuery
-                            ? "Ничего не найдено по запросу"
-                            : "Ничего не найдено по запросу"}
-                    </p>
+                    <p>Ничего не найдено по запросу</p>
                 )}
             </div>
 
