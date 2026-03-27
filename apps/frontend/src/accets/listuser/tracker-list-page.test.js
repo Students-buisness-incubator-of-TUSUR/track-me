@@ -430,7 +430,7 @@ test('наведение на неактивный трекер вызывает
     expect(setHoveredButton).toHaveBeenCalledWith(null);
   });
 
-  test('рендер тултипа "Удалить", когда hoveredButton === "cancel"', () => {
+  test('рендер тултипа "Отключить", когда hoveredButton === "cancel"', () => {
     require('../hooks/useTrackerList').useTrackerList = () => ({
       trackers: [{ username: 'hovered', fullName: 'Hover User', telegramId: 'hover', enabled: true }],
       error: null,
@@ -454,10 +454,10 @@ test('наведение на неактивный трекер вызывает
     const TrackerListPage = require('./TrackerListPage').default;
     render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
 
-    expect(screen.getByText('Удалить')).toBeInTheDocument();
+    expect(screen.getByText('Отключить')).toBeInTheDocument();
   });
 
-  test('рендер тултипа "Удалить" или "Разблокировать" при наведении', () => {
+  test('рендер тултипа "Удалить", "Разблокировать", "Заблокировать", "Принять" при наведении', () => {
     require('../hooks/useTrackerList').useTrackerList = () => ({
       trackers: [{ username: 'hovered', fullName: 'Hover User', telegramId: 'hover', enabled: false }],
       error: null,
@@ -481,7 +481,7 @@ test('наведение на неактивный трекер вызывает
     const TrackerListPage = require('./TrackerListPage').default;
     render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
 
-    const greenTips = screen.queryAllByText(/Удалить|Разблокировать/);
+    const greenTips = screen.queryAllByText(/Удалить|Разблокировать|Заблокировать|Принять/);
     expect(greenTips.length).toBeGreaterThan(0);
   });
 
@@ -670,7 +670,7 @@ describe('TrackerListPage - Coverage for Lines 121, 139-140, 153-154, 179-180, 2
   });
 
   // Test for Lines 153-154: Cancel button hover tooltip for enabled tracker
-  test('рендер тултипа "Удалить" при наведении на cancel для активного трекера', () => {
+  test('рендер тултипа "Отключить" при наведении на cancel для активного трекера', () => {
     require('../hooks/useTrackerList').useTrackerList = () => ({
       trackers: [{ username: 'enabled1', fullName: 'Enabled', telegramId: 'tg', enabled: true }],
       error: null,
@@ -692,7 +692,7 @@ describe('TrackerListPage - Coverage for Lines 121, 139-140, 153-154, 179-180, 2
     });
 
     renderWithRouter(<TrackerListPage endpoint="/trackers" />);
-    expect(screen.getByText('Удалить')).toBeInTheDocument();
+    expect(screen.getByText('Отключить')).toBeInTheDocument();
   });
 
  
