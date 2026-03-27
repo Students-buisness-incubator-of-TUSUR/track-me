@@ -417,11 +417,11 @@ const [userRole, setUserRole] = useState('');
                                                         id={checkbox.id}
                                                         className="custom-checkbox"
                                                         checked={!!checkedMarkets[checkbox.id]}
-                                                        onChange={() => handleMarketCheckboxChange(checkbox.id, checkbox.description)}
+                                                        onChange={() => handleMarketCheckboxChange(checkbox.id, checkbox.name)}
                                                     />
                                                     <label
                                                         className='Stream-header-checkbox-label'
-                                                        htmlFor={checkbox.id}>{checkbox.name}</label>
+                                                        htmlFor={checkbox.id}>{checkbox.displayName}</label>
                                                 </div>
                                             ))}
                                         </div>
