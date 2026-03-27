@@ -526,8 +526,7 @@ const options = {
                                     onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setShowCheckboxesStream(!showCheckboxesStream)}
                                 >
                                     <div className="Teams-header-chosefrom-butt-cont">
-                                        <b className="Teams-header-chosefrom-butt-label">Все
-                                            потоки</b>
+                                        <b className="Teams-header-chosefrom-butt-label">Поток</b>
                                         <div className="Teams-header-chosefrom-butt-pic"></div>
                                     </div>
                                 </div>
@@ -560,7 +559,7 @@ const options = {
                                 >
                                     <div className="Teams-header-chosefrom-butt-cont">
                                         <b className="Teams-header-chosefrom-butt-label">
-                                            Рынки Нти
+                                            Рынок
                                         </b>
                                         <div className="Teams-header-chosefrom-butt-pic"></div>
                                     </div>

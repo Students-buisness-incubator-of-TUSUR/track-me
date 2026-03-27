@@ -110,12 +110,14 @@
 
 .Teams-header-chosefrom-butt-pic,
 .Teams-header-chosefrom-butt-label {
+    font-size: 20px;
     margin-inline: 34px;
     display: flex;
     align-items: center;
 }
 
 .Teams-header-chosefrom-butt-pic {
+    flex-shrink: 0;
     background-image: url(arrow.png);
     width: 22px;
     height: 22px;
@@ -598,7 +600,7 @@
     width: 140px !important;
     height: 50px !important;
     min-width: unset !important;
-    font-size: 20px !important;
+    font-size: 16px !important;
     padding: 0 8px !important;
     margin: 0 !important;
     border-radius: 40px !important;
@@ -625,7 +627,7 @@
   .Teams-header-chosefrom-butt-label {
     margin-inline: 0;
     margin-left: 16px;
-    font-size: 20px !important;
+    font-size: 16px !important;
     white-space: nowrap;
     text-decoration: none !important;
   }
@@ -640,7 +642,7 @@
     margin: 0px 10px 0px 5px;
     height: 50px;
     width: 140px;
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .Teams-header-chosefrom-butt {
