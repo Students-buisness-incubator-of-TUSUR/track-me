@@ -1016,4 +1016,34 @@ describe("Error handling / edge cases", () => {
     );
     await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
   });
+
+  it("applies green class when averageGrade >= 0.51", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.75 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-green")).toBeInTheDocument();
+  });
+
+  it("applies yellow class when averageGrade is between 0.26 and 0.50", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.40 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-yellow")).toBeInTheDocument();
+  });
+
+  it("applies red class when averageGrade < 0.26", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.10 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-red")).toBeInTheDocument();
+  });
+
+  it("applies green class at boundary value 0.51", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.51 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-green")).toBeInTheDocument();
+  });
+
+  it("applies yellow class at boundary value 0.26", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.26 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-yellow")).toBeInTheDocument();
+  });
 });
