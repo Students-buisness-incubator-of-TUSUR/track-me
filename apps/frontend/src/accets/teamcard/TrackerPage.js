@@ -511,7 +511,7 @@ const options = {
                             <button className="Teams-header-chose-butt">Поток
                                 [{selectedStreams.length}]
                             </button>
-                            <button className="Teams-header-chose-butt">Рынки
+                            <button className="Teams-header-chose-butt">Рынок
                                 [{selectedNtiMarkets.length}]
                             </button>
                             <button className="Teams-header-chose-butt">

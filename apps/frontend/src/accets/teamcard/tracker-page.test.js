@@ -325,8 +325,8 @@ test('открытие и закрытие панели фильтров по к
 
   fireEvent.click(filterToggleBtn);
 
-  expect(await screen.findByText((t) => t.startsWith('Поток'))).toBeInTheDocument();
-  expect(screen.getAllByText((t) => t.startsWith('Рынки'))[0]).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: /Поток/ })).toBeInTheDocument();
+  expect(screen.getAllByText((t) => t.startsWith('Рынок'))[0]).toBeInTheDocument();
   expect(screen.getAllByText((t) => t.startsWith('TRL'))[0]).toBeInTheDocument();
   expect(screen.getAllByText((t) => t.startsWith('Год'))[0]).toBeInTheDocument();
 
