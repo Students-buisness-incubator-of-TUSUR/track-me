@@ -1,6 +1,9 @@
 package net.trackme.meetingservice.services.integration;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.trackme.meetingservice.services.MeetingDataBackfiller;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -17,6 +20,12 @@ import java.io.IOException;
 @Component
 public class SecurityPropagationInterceptor implements ClientHttpRequestInterceptor {
 
+    private final MeetingDataBackfiller backfiller;
+
+    public SecurityPropagationInterceptor(@Lazy MeetingDataBackfiller backfiller) {
+        this.backfiller = backfiller;
+    }
+
     @NonNull
     @Override
     public ClientHttpResponse intercept(
@@ -30,6 +39,7 @@ public class SecurityPropagationInterceptor implements ClientHttpRequestIntercep
         if (authentication instanceof JwtAuthenticationToken jwtAuth) {
             var token = jwtAuth.getToken();
             var tokenValue = token.getTokenValue();
+            backfiller.run(tokenValue);
 
             request.getHeaders().setBearerAuth(tokenValue);
             log.debug("[Propagation] JWT поставлено для {} {} | subject={}",

@@ -1,4 +1,21 @@
 services:
+
+  trackme-pgadmin:
+    image: dpage/pgadmin4
+    container_name: trackme-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@trackme.net
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      trackme-postgres:
+        condition: service_healthy
+    networks:
+      - trackme-net
+    restart: unless-stopped
+
+
   trackme-postgres:
     image: 'postgres:latest'
     env_file:

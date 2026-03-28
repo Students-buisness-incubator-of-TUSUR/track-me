@@ -1,4 +1,4 @@
-package net.trackme.meetingservice.api;
+package net.trackme.meetingservice.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;

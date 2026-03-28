@@ -2,11 +2,13 @@ package net.trackme.meetingservice.configuration;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * Настройки приложения.
  */
 @Data
+@EnableAsync
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
     /**

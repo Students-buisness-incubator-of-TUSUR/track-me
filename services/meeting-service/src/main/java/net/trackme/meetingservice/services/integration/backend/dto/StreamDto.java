@@ -5,17 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TeamCardDto {
+public class StreamDto {
     private UUID id;
-    private String meetingRoomLink;
-    private List<StreamDto> streams;
-    private String username;
-    private String name;
 }

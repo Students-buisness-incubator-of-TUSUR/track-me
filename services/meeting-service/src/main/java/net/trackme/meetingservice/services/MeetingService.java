@@ -1,8 +1,8 @@
 package net.trackme.meetingservice.services;
 
-import net.trackme.meetingservice.api.MeetingCreateDto;
-import net.trackme.meetingservice.api.MeetingDto;
-import net.trackme.meetingservice.api.MeetingUpdateDto;
+import net.trackme.meetingservice.api.dto.MeetingCreateDto;
+import net.trackme.meetingservice.api.dto.MeetingDto;
+import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -3,16 +3,20 @@ package net.trackme.meetingservice.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.acl.AclService;
-import net.trackme.meetingservice.api.MeetingCreateDto;
-import net.trackme.meetingservice.api.MeetingDto;
-import net.trackme.meetingservice.api.MeetingUpdateDto;
+import net.trackme.meetingservice.api.dto.MeetingCreateDto;
+import net.trackme.meetingservice.api.dto.MeetingDto;
+import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.events.MeetingCreatedEvent;
 import net.trackme.meetingservice.events.MeetingUpdatedEvent;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.services.exceptions.*;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
+import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
+import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
+import net.trackme.meetingservice.services.messaging.MeetingEventsProducer;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -24,9 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toSet;
 import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
 import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardIdEquals;
 
@@ -50,8 +56,17 @@ public class MeetingServiceImpl implements MeetingService {
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
         var meeting = meetingMapper.mapToEntity(createDto);
+        TeamCardDto teamData = backendApiClient.getTeamCardById(teamCardId);
+
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.SCHEDULED);
+        updateNumericStatusValue(meeting);
+
+        // Denormalize
+        meeting.setTeamName(teamData.getName());
+        meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
+        meeting.setTrackerUsername(teamData.getUsername());
+
         meeting = meetingRepository.save(meeting);
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -87,7 +102,9 @@ public class MeetingServiceImpl implements MeetingService {
 
         var oldStatus = meeting.getStatus();
         meetingMapper.updateEntityFromDto(updateDto, meeting);
+        updateNumericStatusValue(meeting);
         meeting = meetingRepository.save(meeting);
+
         if (oldStatus != meeting.getStatus()) {
             sendMeetingUpdatedEvent(meeting, oldStatus);
         }
@@ -174,6 +191,19 @@ public class MeetingServiceImpl implements MeetingService {
         if (existsOnSameDay) {
             throw new MeetingAlreadyExistsInSameDayException(
                     "В этот день уже запланирована встреча для данной команды.");
+        }
+    }
+
+    /**
+     * Вспомогательный метод для расчета числового значения статуса.
+     */
+    private void updateNumericStatusValue(Meeting meeting) {
+        if (meeting.getStatus() == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+            meeting.setTeamStatusValue(BigDecimal.ZERO);
+        } else if (meeting.getTeamStatus() != null) {
+            meeting.setTeamStatusValue(BigDecimal.valueOf(meeting.getTeamStatus().getValue()));
+        } else {
+            meeting.setTeamStatusValue(BigDecimal.ZERO);
         }
     }
 

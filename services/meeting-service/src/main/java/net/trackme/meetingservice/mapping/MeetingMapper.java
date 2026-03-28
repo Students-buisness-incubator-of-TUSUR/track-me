@@ -1,8 +1,8 @@
 package net.trackme.meetingservice.mapping;
 
-import net.trackme.meetingservice.api.MeetingCreateDto;
-import net.trackme.meetingservice.api.MeetingDto;
-import net.trackme.meetingservice.api.MeetingUpdateDto;
+import net.trackme.meetingservice.api.dto.MeetingCreateDto;
+import net.trackme.meetingservice.api.dto.MeetingDto;
+import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.entities.Meeting;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

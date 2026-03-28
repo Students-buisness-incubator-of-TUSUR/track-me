@@ -7,6 +7,8 @@ import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -38,12 +40,12 @@ public class Meeting {
     @Column(length = 32)
     private TeamStatus teamStatus;
 
+    @Column(name = "team_status_value", precision = 3, scale = 2)
+    private java.math.BigDecimal teamStatusValue;
+
     @Enumerated(EnumType.STRING)
     @Column(length = 32)
     private MeetingStatus status;
-
-    @Column(name = "team_card_id", nullable = false)
-    private UUID teamCardId;
 
     @Column(name = "tasks_current", length = 2048)
     private String tasksCurrentMeeting;
@@ -55,4 +57,20 @@ public class Meeting {
     @Column(name = "image")
     private byte[] imageBytes;
 
+    // FK
+
+    @Column(name = "team_card_id", nullable = true)
+    private UUID teamCardId;
+
+    @Column(name = "team_name")
+    private String teamName;
+
+    @Column(name = "tracker_username", nullable = true)
+    private String trackerUsername;
+
+    @Builder.Default
+    @ElementCollection
+    @CollectionTable(name = "meeting_stream", joinColumns = @JoinColumn(name = "meeting_id"))
+    @Column(name = "stream_id")
+    private Set<UUID> streamIds = new HashSet<>();
 }

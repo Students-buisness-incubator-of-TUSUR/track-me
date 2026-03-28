@@ -1,4 +1,4 @@
-package net.trackme.meetingservice.services;
+package net.trackme.meetingservice.services.messaging;
 
 import lombok.RequiredArgsConstructor;
 import net.trackme.meetingservice.events.MeetingCreatedEvent;

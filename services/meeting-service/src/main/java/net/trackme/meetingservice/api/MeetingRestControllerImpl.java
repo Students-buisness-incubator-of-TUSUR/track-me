@@ -1,6 +1,9 @@
 package net.trackme.meetingservice.api;
 
 import lombok.RequiredArgsConstructor;
+import net.trackme.meetingservice.api.dto.MeetingCreateDto;
+import net.trackme.meetingservice.api.dto.MeetingDto;
+import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.services.MeetingService;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;

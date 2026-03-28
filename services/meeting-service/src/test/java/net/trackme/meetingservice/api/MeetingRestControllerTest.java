@@ -2,6 +2,8 @@ package net.trackme.meetingservice.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.trackme.meetingservice.AbstractIntegrationTest;
+import net.trackme.meetingservice.api.dto.MeetingCreateDto;
+import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
