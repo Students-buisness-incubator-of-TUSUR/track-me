@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
@@ -47,6 +48,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
+        validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
         var meeting = meetingMapper.mapToEntity(createDto);
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.SCHEDULED);
@@ -67,15 +69,22 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
+    @Transactional
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting','READ') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN')")
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
+
         if (MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
         }
+
+        if (updateDto.startDate() != null) {
+            validateNoMeetingOnSameDay(teamCardId, updateDto.startDate(), meetingId);
+        }
+
         var oldStatus = meeting.getStatus();
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         meeting = meetingRepository.save(meeting);
@@ -140,6 +149,32 @@ public class MeetingServiceImpl implements MeetingService {
             throw new MeetingImageNotFoundException(meetingId);
         }
         return new ByteArrayResource(meeting.getImageBytes());
+    }
+
+    /**
+     * Проверяет отсутствие встречи для карточки команды в указанный день.
+     *
+     * @param teamCardId идентификатор карточки команды
+     * @param startDate  дата и время встречи
+     * @param excludeId  идентификатор встречи для исключения из проверки,
+     *                   {@code null} при создании новой встречи
+     * @throws MeetingAlreadyExistsInSameDayException если встреча на этот день уже существует
+     */
+    private void validateNoMeetingOnSameDay(UUID teamCardId, OffsetDateTime startDate, UUID excludeId) {
+        var date = startDate.toLocalDate();
+        var from = date.atStartOfDay().atOffset(startDate.getOffset());
+        var to = date.plusDays(1).atStartOfDay().atOffset(startDate.getOffset());
+
+        boolean existsOnSameDay = excludeId == null
+                ? meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThan(
+                    teamCardId, from, to)
+                : meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThanAndIdNot(
+                    teamCardId, from, to, excludeId);
+
+        if (existsOnSameDay) {
+            throw new MeetingAlreadyExistsInSameDayException(
+                    "В этот день уже запланирована встреча для данной команды.");
+        }
     }
 
     private Meeting getMeeting(UUID meetingId) {

@@ -17,4 +17,17 @@ public interface MeetingRepository extends JpaRepository<Meeting, UUID>, JpaSpec
 
     List<Meeting> findByStatusAndStartDateBefore(MeetingStatus status, OffsetDateTime before,
                                                  Pageable pageable);
+
+    boolean existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThan(
+            UUID teamCardId,
+            OffsetDateTime from,
+            OffsetDateTime to
+    );
+
+    boolean existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThanAndIdNot(
+            UUID teamCardId,
+            OffsetDateTime from,
+            OffsetDateTime to,
+            UUID excludeId
+    );
 }
