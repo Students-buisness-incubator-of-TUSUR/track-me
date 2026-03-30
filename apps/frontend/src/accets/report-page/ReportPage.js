@@ -285,7 +285,7 @@ const [userRole, setUserRole] = useState('');
 
         <td>{item.teamCardName}</td>
 
-        <td>{item.username}</td>
+        <td>{`${trackers?.filter((tracker) => tracker.username === item.username)[0]?.fullName} (${item.username})`}</td>
 
         <td>{item.averageTeamGrade ?? "—"}</td>
 
