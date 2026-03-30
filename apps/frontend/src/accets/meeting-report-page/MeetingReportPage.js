@@ -166,7 +166,7 @@ export default function MeetingReportPage() {
           <div className="mrep-filters-container">
             <div className="mrep-dropdown">
               <button className={`mrep-dropdown-btn ${teamFilterOpen ? "open" : ""}`} onClick={() => { setTeamFilterOpen(!teamFilterOpen); setTrackerFilterOpen(false); setStatusFilterOpen(false); }}>
-                {filterTeam || "Команды"}
+                {filterTeam || "Команда"}
                 <img src={teamFilterOpen ? IconClose : IconOpen} alt="" className="mrep-dropdown-arrow" />
               </button>
               {teamFilterOpen && (
