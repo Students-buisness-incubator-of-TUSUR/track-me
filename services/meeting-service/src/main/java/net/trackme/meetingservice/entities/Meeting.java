@@ -62,11 +62,17 @@ public class Meeting {
     @Column(name = "team_card_id", nullable = true)
     private UUID teamCardId;
 
-    @Column(name = "team_name")
+    @Column(name = "team_name", nullable = true)
     private String teamName;
+
+    @Column(name = "tracker_id", nullable = true)
+    private String trackerId;
 
     @Column(name = "tracker_username", nullable = true)
     private String trackerUsername;
+
+    @Column(name = "tracker_full_name", nullable = true)
+    private String trackerFullName;
 
     @Builder.Default
     @ElementCollection

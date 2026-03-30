@@ -2,6 +2,7 @@ package net.trackme.meetingservice.mapping;
 
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
 import net.trackme.meetingservice.api.dto.MeetingDto;
+import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
 import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.entities.Meeting;
 import org.mapstruct.Mapper;
@@ -23,6 +24,9 @@ public interface MeetingMapper {
     @Mapping(target = "roomLink", ignore = true)
     @Mapping(target = "recordLink", ignore = false)
     MeetingDto mapToDto(Meeting meeting);
+
+    @Mapping(target = "trackerName", source = "trackerUsername")
+    MeetingReportRecordDto mapToReportDto(Meeting meeting);
 
     @Mapping(target = "teamCardId", ignore = true)
     @Mapping(target = "imageBytes", ignore = true)

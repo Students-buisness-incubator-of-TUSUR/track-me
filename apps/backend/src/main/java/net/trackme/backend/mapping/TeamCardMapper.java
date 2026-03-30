@@ -57,6 +57,11 @@ public interface TeamCardMapper {
                     + ".map(Stream::getName)"
                     + ".findFirst().orElse(\"\") )")
     @Mapping(
+            target = "streamId",
+            expression = "java( entity.getStreams().stream()"
+                    + ".map(net.trackme.backend.domain.Stream::getId)"
+                    + ".findFirst().orElse(null) )")
+    @Mapping(
             target = "startDate",
             expression = "java( entity"
                     + ".getStreams().stream()"

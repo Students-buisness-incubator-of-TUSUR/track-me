@@ -10,15 +10,18 @@ import { useGetUserInfo } from "../../services/util";
 
 import Header from "../header/header";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
 export default function ReportPage({ defaultIsActive = true }) {
 const [reports, setReports] = useState([]);
   const [trackers, setTrackers] = useState([]);
   const [streams, setStreams] = useState([]);
-const [page] = useState(0);
-const [size] = useState(10000);
-const [loading, setLoading] = useState(false);
-const [userRole, setUserRole] = useState('');
+  const [page] = useState(0);
+  const [size] = useState(10000);
+  const [loading, setLoading] = useState(false);
+  const [userRole, setUserRole] = useState('');
+
+  const navigate = useNavigate();
 
   // фильтры (заглушки)
   const [isActive, setIsActive] = useState(defaultIsActive);
@@ -276,7 +279,12 @@ const [userRole, setUserRole] = useState('');
       <tr key={index}>
         <td>{index + 1 + page * size}</td>
 
-        <td>{item.streamName}</td>
+        <td
+          style={{ cursor: 'pointer', color: '#843AEB', textDecoration: 'underline' }}
+          onClick={() => navigate(`/report/${item.streamId}`)}
+        >
+          {item.streamName}
+        </td>
 
         <td>
           {item.startDate} – {item.endDate}

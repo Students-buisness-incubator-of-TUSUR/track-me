@@ -1,15 +1,14 @@
 package net.trackme.meetingservice.services;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.dao.MeetingMetadataRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
+import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,27 +16,36 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
- * Сервис для разового заполнения денормализованных данных в старых встречах.
- * Подтягивает названия команд, трекеров и списки потоков из основного бэкенда.
- *
+ * Сервис для восстановления и аудита денормализованных данных во встречах.
+ * <p>
+ * <b>ВНИМАНИЕ:</b> Данный класс является временным костылем")для обеспечения
+ * консистентности данных между микросервисами (Backend, SSO и Meeting Service) в условиях отсутствия
+ * гарантированной доставки событий об изменении сущностей.
+ * </p>
  */
 @Component
 @Slf4j
 @Profile("!test")
-public class MeetingDataBackfiller  {
+public class MeetingDataBackfiller {
     private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final BackendApiClient backendApiClient;
+    private final SsoApiClient ssoApiClient;
     private final MeetingMetadataRepository metadataRepository;
 
-    public MeetingDataBackfiller(MeetingMetadataRepository metadataRepository, @Lazy BackendApiClient backendApiClient) {
+    public MeetingDataBackfiller(
+            MeetingMetadataRepository metadataRepository,
+            @Lazy BackendApiClient backendApiClient,
+            @Lazy SsoApiClient ssoApiClient
+    ) {
         this.metadataRepository = metadataRepository;
         this.backendApiClient = backendApiClient;
+        this.ssoApiClient = ssoApiClient;
     }
 
     @Transactional
@@ -46,46 +54,128 @@ public class MeetingDataBackfiller  {
             return;
         }
 
-        log.info("Checking if meeting data migration is required...");
         setupSystemSecurityContext(token);
+        log.info("[BACKFILL] Starting global meeting data synchronization process.");
 
         try {
-            List<UUID> teamIds = metadataRepository.findTeamIdsWithIncompleteMetadata();
-            if (teamIds.isEmpty()) {
-                log.info("No meetings require migration.");
-                return;
-            }
+            Map<String, UserDto> trackerMap = ssoApiClient.getTrackers().stream()
+                    .collect(Collectors.toMap(UserDto::getUsername, u -> u, (a, b) -> a));
 
-            log.info("Starting migration for {} teams...", teamIds.size());
+            Set<UUID> repairedTeamIds = repairCorruptedData(trackerMap);
+            verifyAndSyncRemainingData(trackerMap, repairedTeamIds);
 
-            for (UUID teamId : teamIds) {
-                try {
-                    TeamCardDto teamData = backendApiClient.getTeamCardById(teamId);
-                    List<Meeting> corruptedMeetings = metadataRepository.findAllIncompleteByTeamCardId(teamId);
-
-                    for (Meeting meeting : corruptedMeetings) {
-                        var streamIds = teamData.getStreams()
-                                .stream()
-                                .map(StreamDto::getId)
-                                .collect(Collectors.toSet());
-
-                        meeting.setTeamName(teamData.getName());
-                        meeting.setTrackerUsername(teamData.getUsername());
-                        meeting.setStreamIds(streamIds);
-                    }
-
-                    metadataRepository.saveAll(corruptedMeetings);
-                    log.info("Successfully repaired {} meetings for team: {}", corruptedMeetings.size(), teamData.getName());
-
-                } catch (Exception e) {
-                    log.error("Could not repair meetings for teamId {}: {}", teamId, e.getMessage());
-                }
-            }
+        } catch (Exception e) {
+            log.error("[BACKFILL] Critical error during synchronization: {}", e.getMessage(), e);
         } finally {
             SecurityContextHolder.clearContext();
+            log.info("[BACKFILL] Global synchronization process finished.");
+        }
+    }
+
+    private Set<UUID> repairCorruptedData(Map<String, UserDto> trackerMap) {
+        List<UUID> corruptedIds = metadataRepository.findTeamIdsWithIncompleteMetadata();
+        if (corruptedIds.isEmpty()) {
+            log.info("[PHASE 1] No corrupted data (NULL fields) found.");
+            return Collections.emptySet();
         }
 
-        log.info("Meeting data migration completed.");
+        log.info("[PHASE 1] Found {} teams with corrupted/incomplete metadata. Starting repair...", corruptedIds.size());
+
+        for (UUID teamId : corruptedIds) {
+            try {
+                TeamCardDto teamData = backendApiClient.getTeamCardById(teamId);
+                List<Meeting> meetings = metadataRepository.findAllIncompleteByTeamCardId(teamId);
+
+                syncMeetings(meetings, teamData, trackerMap, "REPAIR");
+            } catch (Exception e) {
+                log.error("[PHASE 1] Failed to repair team {}: {}", teamId, e.getMessage());
+            }
+        }
+        return new HashSet<>(corruptedIds);
+    }
+
+    private void verifyAndSyncRemainingData(Map<String, UserDto> trackerMap, Set<UUID> excludedIds) {
+        List<UUID> allTeamIds = metadataRepository.findAllUniqueTeamCardIds();
+        List<UUID> toVerify = allTeamIds.stream()
+                .filter(id -> !excludedIds.contains(id))
+                .toList();
+
+        if (toVerify.isEmpty()) {
+            log.info("[PHASE 2] No additional teams to verify.");
+            return;
+        }
+
+        log.info("[PHASE 2] Starting audit for remaining {} teams to ensure data consistency...", toVerify.size());
+
+        for (UUID teamId : toVerify) {
+            try {
+                TeamCardDto teamData = backendApiClient.getTeamCardById(teamId);
+                List<Meeting> meetings = metadataRepository.findAllByTeamCardId(teamId);
+
+                syncMeetings(meetings, teamData, trackerMap, "AUDIT");
+            } catch (Exception e) {
+                log.error("[PHASE 2] Failed to audit team {}: {}", teamId, e.getMessage());
+            }
+        }
+    }
+
+    private void syncMeetings(List<Meeting> meetings, TeamCardDto teamData, Map<String, UserDto> trackerMap, String mode) {
+        String username = teamData.getUsername();
+        UserDto ssoUser = trackerMap.get(username);
+        String fullName = (ssoUser != null) ? ssoUser.getFullName() : username;
+        String trackerId = (ssoUser != null) ? ssoUser.getId() : null;
+        Set<UUID> streamIds = teamData.getStreams().stream().map(StreamDto::getId).collect(Collectors.toSet());
+
+        boolean isChanged = false;
+        for (Meeting m : meetings) {
+            boolean meetingUpdated = false;
+
+            if (!Objects.equals(m.getTeamName(), teamData.getName())) {
+                log.trace("[{}] Team name mismatch for meeting {}: '{}' -> '{}'", mode, m.getId(), m.getTeamName(), teamData.getName());
+                m.setTeamName(teamData.getName());
+                meetingUpdated = true;
+            }
+
+            if (!Objects.equals(m.getTrackerUsername(), username) || !Objects.equals(m.getTrackerFullName(), fullName)) {
+                log.trace("[{}] Tracker mismatch for meeting {}: '{}' -> '{}'", mode, m.getId(), m.getTrackerUsername(), username);
+                m.setTrackerUsername(username);
+                m.setTrackerId(trackerId);
+                m.setTrackerFullName(fullName);
+                meetingUpdated = true;
+            }
+
+            if (!Objects.equals(m.getStreamIds(), streamIds)) {
+                m.setStreamIds(streamIds);
+                meetingUpdated = true;
+            }
+
+            BigDecimal oldWeight = m.getTeamStatusValue();
+            updateNumericStatusValue(m);
+            if (oldWeight == null || oldWeight.compareTo(m.getTeamStatusValue()) != 0) {
+                meetingUpdated = true;
+            }
+
+            if (meetingUpdated) isChanged = true;
+        }
+
+        if (isChanged) {
+            metadataRepository.saveAll(meetings);
+            log.info("[{}] Successfully synchronized {} meetings for team: {}", mode, meetings.size(), teamData.getName());
+        } else {
+            log.debug("[{}] Team '{}' is already up to date.", mode, teamData.getName());
+        }
+    }
+
+    private void updateNumericStatusValue(Meeting meeting) {
+        BigDecimal weight = BigDecimal.valueOf(0.0);
+        if (meeting.getStatus() != net.trackme.meetingservice.entities.MeetingStatus.COMPLETED_AS_NOT_HAPPENED && meeting.getTeamStatus() != null) {
+            weight = switch (meeting.getTeamStatus()) {
+                case OK -> BigDecimal.valueOf(1.0);
+                case WITH_ISSUES -> BigDecimal.valueOf(0.5);
+                case MANY_ISSUES -> BigDecimal.valueOf(0.25);
+            };
+        }
+        meeting.setTeamStatusValue(weight);
     }
 
     private void setupSystemSecurityContext(String tokenValue) {
@@ -93,7 +183,6 @@ public class MeetingDataBackfiller  {
                 .header("alg", "none")
                 .claim("sub", "migration-task")
                 .build();
-
         SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
     }
 }

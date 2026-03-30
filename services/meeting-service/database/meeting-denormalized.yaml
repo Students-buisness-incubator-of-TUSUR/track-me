@@ -88,3 +88,26 @@
             indexName: idx_meeting_stream_id
             columns:
               - column: { name: stream_id }
+
+  - changeSet:
+      id: meeting-add-tracker-extended-info
+      author: trackme-backend
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: meeting
+            columns:
+              - column:
+                  name: tracker_id
+                  type: varchar(255)
+                  remarks: "UUID или строковый ID пользователя из SSO"
+              - column:
+                  name: tracker_full_name
+                  type: varchar(255)
+                  remarks: "ФИО трекера для отображения в отчетах"
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: meeting
+            indexName: idx_meeting_tracker_full_name
+            columns:
+              - column: { name: tracker_full_name }

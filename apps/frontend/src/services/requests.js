@@ -1,5 +1,31 @@
 import { getCsrfConfigForFetch } from "../utils/csrf-utils";
-import { backendURLBackend, backendURLSSO } from "./constants";
+import { backendURLBackend, backendURLMeeting, backendURLSSO } from "./constants";
+
+
+export async function fetchMeetingReport({ streamId, filters, page, size }) {
+  return fetch(`${backendURLMeeting}/api/v1/meetings/reports?streamId=${streamId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getCsrfConfigForFetch(),
+    },
+    credentials: "include",
+    body: JSON.stringify({ filters: filters ?? [], page, size }),
+  });
+}
+
+export async function fetchMeetingReportExcel({ streamId, filters }) {
+  return fetch(`${backendURLMeeting}/api/v1/meetings/reports/excel?streamId=${streamId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ...getCsrfConfigForFetch(),
+    },
+    credentials: "include",
+    body: JSON.stringify({ filters: filters ?? [] }),
+  });
+}
 
 export async function fetchReports({ page, size, filters }) {
   const response = await fetch(

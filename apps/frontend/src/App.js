@@ -17,6 +17,7 @@ import MeetingCreate from "./accets/meeting-card/MeetingCreate.js";
 import FeedbackWidget from "./accets/FeedbackWidget/FeedbackWidget.js";
 import ProtectedRoute from "./accets/ProtectedRoute/ProtectedRoute.js"; // Импортируем компонент защиты
 import ReportPage from "./accets/report-page/ReportPage.js";
+import MeetingReportPage from "./accets/meeting-report-page/MeetingReportPage.js";
 
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
@@ -122,16 +123,20 @@ function App() {
                         </ProtectedRoute>
                     } />
                     <Route path="/profile/:username" element={
-    <ProtectedRoute>
-        <ProfilePage />
-    </ProtectedRoute>
-} />
+                        <ProtectedRoute>
+                            <ProfilePage />
+                        </ProtectedRoute>
+                    } />
                     <Route path="/report" element={
-  <ProtectedRoute>
-    <ReportPage />
-  </ProtectedRoute>
-} />
-
+                        <ProtectedRoute>
+                        <ReportPage />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/report/:streamId" element={
+                        <ProtectedRoute>
+                            <MeetingReportPage />
+                        </ProtectedRoute>
+                    } />
                 </Routes>
                 <FeedbackWidget />
             </div>

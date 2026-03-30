@@ -16,6 +16,8 @@ import net.trackme.meetingservice.services.exceptions.*;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
+import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
+import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
 import net.trackme.meetingservice.services.messaging.MeetingEventsProducer;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -51,21 +53,41 @@ public class MeetingServiceImpl implements MeetingService {
 
     private final BackendApiClient backendApiClient;
 
+    private final SsoApiClient ssoApiClient;
+
     @Override
     @Transactional
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
+
         var meeting = meetingMapper.mapToEntity(createDto);
-        TeamCardDto teamData = backendApiClient.getTeamCardById(teamCardId);
+        var teamData = backendApiClient.getTeamCardById(teamCardId);
+        var trackerUsername = teamData.getUsername();
 
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.SCHEDULED);
         updateNumericStatusValue(meeting);
 
-        // Denormalize
+        // Denormalize (Backend)
         meeting.setTeamName(teamData.getName());
         meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
-        meeting.setTrackerUsername(teamData.getUsername());
+        meeting.setTrackerUsername(trackerUsername);
+
+        // Denormalize (SSO)
+        if (trackerUsername != null) {
+            var tracker = ssoApiClient.getTrackers().stream()
+                    .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
+                    .findFirst();
+
+            if (tracker.isPresent()) {
+                UserDto user = tracker.get();
+                meeting.setTrackerId(user.getId());
+                meeting.setTrackerFullName(user.getFullName());
+            } else {
+                meeting.setTrackerFullName(trackerUsername);
+                log.warn("Tracker with username {} not found in SSO during meeting creation", trackerUsername);
+            }
+        }
 
         meeting = meetingRepository.save(meeting);
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
