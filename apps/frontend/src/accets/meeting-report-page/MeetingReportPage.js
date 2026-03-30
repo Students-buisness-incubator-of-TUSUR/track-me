@@ -38,9 +38,31 @@ export default function MeetingReportPage() {
   const [filterTeam, _setFilterTeam] = useState(null);
   const [filterStatus, _setFilterStatus] = useState(null);
 
+  const [teamNameDir, setTeamNameDir] = useState("asc");
+  const [secondarySort, setSecondarySort] = useState({ field: "startDate", direction: "desc" });
+
   const setFilterTracker = (v) => { _setFilterTracker(v); setTrackerFilterOpen(false); };
   const setFilterTeam = (v) => { _setFilterTeam(v); setTeamFilterOpen(false); };
   const setFilterStatus = (v) => { _setFilterStatus(v); setStatusFilterOpen(false); };
+
+  const requestSort = (field) => {
+    if (field === "teamName") {
+      setTeamNameDir(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSecondarySort(prev => ({
+        field: field,
+        direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
+      }));
+    }
+  };
+
+  const getEffectiveSortParams = useCallback(() => {
+    const params = [`teamName,${teamNameDir}`];
+    if (secondarySort.field) {
+      params.push(`${secondarySort.field},${secondarySort.direction}`);
+    }
+    return params;
+  }, [teamNameDir, secondarySort]);
 
   const buildFilters = useCallback(() => {
     const filters = [];
@@ -69,6 +91,7 @@ export default function MeetingReportPage() {
         filters: buildFilters(),
         page: 0,
         size: 10000,
+        sort: getEffectiveSortParams(),
       });
       if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
       const data = await response.json();
@@ -87,19 +110,15 @@ export default function MeetingReportPage() {
             }
           }
         });
-        
-        const sortedTrackers = Array.from(trackersMap.values()).sort((a, b) => 
-          a.fullName.localeCompare(b.fullName)
-        );
+        const sortedTrackers = Array.from(trackersMap.values()).sort((a, b) => a.fullName.localeCompare(b.fullName));
         const teams = [...new Set(data.content.map(i => i.teamName))].filter(Boolean).sort();
-        
         setAvailableTrackers(sortedTrackers);
         setAvailableTeams(teams);
       }
     } catch (error) {
       console.error("Ошибка загрузки", error);
     }
-  }, [streamId, buildFilters]);
+  }, [streamId, buildFilters, getEffectiveSortParams]);
 
   useEffect(() => {
     if (isFirstRun.current) {
@@ -120,30 +139,33 @@ export default function MeetingReportPage() {
 
   const handleExportExcel = async () => {
     try {
-      const response = await fetchMeetingReportExcel({ streamId, filters: buildFilters() });
+      const response = await fetchMeetingReportExcel({ 
+        streamId, 
+        filters: buildFilters(),
+        sort: getEffectiveSortParams() 
+      });
+      if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `отчет-встречи.xlsx`;
+      a.download = `отчёт-по-встречам.xlsx`;
       a.click();
-    } catch (e) { console.error(e); }
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Ошибка выгрузки отчёта", error);
+    }
   };
 
   return (
     <div className="mrep-page">
       <Header userRole={userRole} />
-
       <main className="mrep-main">
         <div className="mrep-header">
           <button className="mrep-btn-back" onClick={() => navigate(-1)}>← Назад</button>
-
           <div className="mrep-filters-container">
             <div className="mrep-dropdown">
-              <button
-                className={`mrep-dropdown-btn ${teamFilterOpen ? "open" : ""}`}
-                onClick={() => { setTeamFilterOpen(!teamFilterOpen); setTrackerFilterOpen(false); setStatusFilterOpen(false); }}
-              >
+              <button className={`mrep-dropdown-btn ${teamFilterOpen ? "open" : ""}`} onClick={() => { setTeamFilterOpen(!teamFilterOpen); setTrackerFilterOpen(false); setStatusFilterOpen(false); }}>
                 {filterTeam || "Команды"}
                 <img src={teamFilterOpen ? IconClose : IconOpen} alt="" className="mrep-dropdown-arrow" />
               </button>
@@ -156,12 +178,8 @@ export default function MeetingReportPage() {
                 </div>
               )}
             </div>
-
             <div className="mrep-dropdown">
-              <button
-                className={`mrep-dropdown-btn ${trackerFilterOpen ? "open" : ""}`}
-                onClick={() => { setTrackerFilterOpen(!trackerFilterOpen); setTeamFilterOpen(false); setStatusFilterOpen(false); }}
-              >
+              <button className={`mrep-dropdown-btn ${trackerFilterOpen ? "open" : ""}`} onClick={() => { setTrackerFilterOpen(!trackerFilterOpen); setTeamFilterOpen(false); setStatusFilterOpen(false); }}>
                 {filterTracker ? filterTracker.fullName : "Трекеры"}
                 <img src={trackerFilterOpen ? IconClose : IconOpen} alt="" className="mrep-dropdown-arrow" />
               </button>
@@ -169,19 +187,13 @@ export default function MeetingReportPage() {
                 <div className="mrep-dropdown-menu">
                   <button className="mrep-dropdown-item" onClick={() => setFilterTracker(null)}>— Все —</button>
                   {availableTrackers.map((t, i) => (
-                    <button key={i} className="mrep-dropdown-item" onClick={() => setFilterTracker(t)}>
-                      {`${t.fullName} (@${t.username})`}
-                    </button>
+                    <button key={i} className="mrep-dropdown-item" onClick={() => setFilterTracker(t)}>{`${t.fullName} (@${t.username})`}</button>
                   ))}
                 </div>
               )}
             </div>
-
             <div className="mrep-dropdown">
-              <button
-                className={`mrep-dropdown-btn ${statusFilterOpen ? "open" : ""}`}
-                onClick={() => { setStatusFilterOpen(!statusFilterOpen); setTeamFilterOpen(false); setTrackerFilterOpen(false); }}
-              >
+              <button className={`mrep-dropdown-btn ${statusFilterOpen ? "open" : ""}`} onClick={() => { setStatusFilterOpen(!statusFilterOpen); setTeamFilterOpen(false); setTrackerFilterOpen(false); }}>
                 {filterStatus ? COMBINED_STATUS_OPTIONS[filterStatus].label : "Статус"}
                 <img src={statusFilterOpen ? IconClose : IconOpen} alt="" className="mrep-dropdown-arrow" />
               </button>
@@ -195,21 +207,25 @@ export default function MeetingReportPage() {
               )}
             </div>
           </div>
-
           <button className="mrep-btn-export" onClick={handleExportExcel}>Выгрузить отчет</button>
         </div>
-
         <div className="mrep-table-container">
           <table className="mrep-table">
             <thead>
               <tr>
                 <th>№</th>
-                <th>Название команды</th>
-                <th>Дата встречи</th>
+                <th onClick={() => requestSort("teamName")} className="mrep-th-sortable">
+                  Название команды <span className="mrep-icon-active">{teamNameDir === "asc" ? "↑" : "↓"}</span>
+                </th>
+                <th onClick={() => requestSort("startDate")} className="mrep-th-sortable">
+                  Дата встречи {secondarySort.field === "startDate" ? <span className="mrep-icon-active">{secondarySort.direction === "asc" ? "↑" : "↓"}</span> : <span className="mrep-icon-inactive">↕</span>}
+                </th>
                 <th>Трекер</th>
                 <th>Задачи к следующей встрече</th>
                 <th>Выполнение задач / инфо по команде</th>
-                <th>Статус команды</th>
+                <th onClick={() => requestSort("teamStatusValue")} className="mrep-th-sortable">
+                  Статус команды {secondarySort.field === "teamStatusValue" ? <span className="mrep-icon-active">{secondarySort.direction === "asc" ? "↑" : "↓"}</span> : <span className="mrep-icon-inactive">↕</span>}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -223,17 +239,14 @@ export default function MeetingReportPage() {
                   const isNotHappened = item.status === "COMPLETED_AS_NOT_HAPPENED";
                   const isFirstInGroup = index === 0 || reports[index - 1].teamName !== item.teamName;
                   const isLastInGroup = index === reports.length - 1 || reports[index + 1].teamName !== item.teamName;
-
-                  let rowClass = "";
-                  if (isNotHappened) rowClass = "mrep-row-not-happened";
+                  let rowClass = isNotHappened ? "mrep-row-not-happened" : "";
                   if (isFirstInGroup) rowClass += " mrep-group-start";
                   if (isLastInGroup) rowClass += " mrep-group-end";
-
                   let displayStatus = "—";
                   let statusCellClass = ""; 
-
                   if (isScheduled) {
-                    displayStatus = "Запланирована";
+                    const teamStatusLabel = item.teamStatus ? COMBINED_STATUS_OPTIONS[item.teamStatus]?.label : null;
+                    displayStatus = teamStatusLabel ? `Запланирована (${teamStatusLabel})` : "Запланирована";
                     statusCellClass = "mrep-status-lavender"; 
                   } else if (isNotHappened) {
                     displayStatus = "Не состоялась";
@@ -243,18 +256,14 @@ export default function MeetingReportPage() {
                     if (item.teamStatus === "WITH_ISSUES") statusCellClass = "mrep-status-yellow";
                     if (item.teamStatus === "MANY_ISSUES") statusCellClass = "mrep-status-red";
                   }
-
-                  const tasksNext = (isScheduled || isNotHappened) ? "—" : item.tasksNextMeeting || "—";
-                  const tasksCurrent = (isScheduled || isNotHappened) ? "—" : item.tasksCurrentMeeting || "—";
-
                   return (
                     <tr key={index} className={rowClass}>
                       <td className="mrep-cell-left">{index + 1}</td>
                       <td>{item.teamName}</td>
                       <td>{item.startDate ? new Date(item.startDate).toLocaleDateString("ru-RU") : "—"}</td>
                       <td>{item.trackerFullName || item.trackerName || "—"}</td>
-                      <td className="mrep-text-wrap">{tasksNext}</td>
-                      <td className="mrep-text-wrap">{tasksCurrent}</td>
+                      <td className="mrep-text-wrap">{isScheduled || isNotHappened ? "—" : item.tasksNextMeeting || "—"}</td>
+                      <td className="mrep-text-wrap">{isScheduled || isNotHappened ? "—" : item.tasksCurrentMeeting || "—"}</td>
                       <td className={`${statusCellClass} mrep-cell-right`}>{displayStatus}</td>
                     </tr>
                   );

@@ -66,7 +66,6 @@ public class MeetingServiceImpl implements MeetingService {
 
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.SCHEDULED);
-        updateNumericStatusValue(meeting);
 
         // Denormalize (Backend)
         meeting.setTeamName(teamData.getName());
@@ -124,7 +123,6 @@ public class MeetingServiceImpl implements MeetingService {
 
         var oldStatus = meeting.getStatus();
         meetingMapper.updateEntityFromDto(updateDto, meeting);
-        updateNumericStatusValue(meeting);
         meeting = meetingRepository.save(meeting);
 
         if (oldStatus != meeting.getStatus()) {
@@ -213,19 +211,6 @@ public class MeetingServiceImpl implements MeetingService {
         if (existsOnSameDay) {
             throw new MeetingAlreadyExistsInSameDayException(
                     "В этот день уже запланирована встреча для данной команды.");
-        }
-    }
-
-    /**
-     * Вспомогательный метод для расчета числового значения статуса.
-     */
-    private void updateNumericStatusValue(Meeting meeting) {
-        if (meeting.getStatus() == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
-            meeting.setTeamStatusValue(BigDecimal.ZERO);
-        } else if (meeting.getTeamStatus() != null) {
-            meeting.setTeamStatusValue(BigDecimal.valueOf(meeting.getTeamStatus().getValue()));
-        } else {
-            meeting.setTeamStatusValue(BigDecimal.ZERO);
         }
     }
 

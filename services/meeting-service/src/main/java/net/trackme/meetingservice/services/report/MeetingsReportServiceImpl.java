@@ -60,32 +60,14 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
             List<Filter> filters,
             Pageable pageable
     ) {
-        Sort innerSort;
-        if (pageable.getSort().isUnsorted()) {
-            innerSort = DEFAULT_INNER_SORT;
-        } else {
-            innerSort = pageable.getSort();
-        }
-
-        Sort finalSort = DEFAULT_GROUP_BY_SORT.and(innerSort);
-        Pageable effectivePageable = PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                finalSort
-        );
-
+        Sort effectiveSort = calculateEffectiveSort(pageable.getSort());
+        Pageable effectivePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), effectiveSort);
         Specification<Meeting> baseSpec = buildBaseSpec(streamId, filters);
 
         Page<Meeting> idPage = meetingRepository.findAll(baseSpec, effectivePageable);
-        if (idPage.isEmpty()) return Page.empty(effectivePageable);
-        List<UUID> ids = idPage.getContent().stream().map(Meeting::getId).toList();
+        if (idPage.isEmpty()) return Page.empty(pageable);
 
-        List<Meeting> fullMeetings = meetingRepository.findAll(
-                withFetchJoins().and(idIn(ids)),
-                effectivePageable.getSort()
-        );
-
-        var dtos = fullMeetings.stream().map(meetingMapper::mapToReportDto).toList();
+        List<MeetingReportRecordDto> dtos = fetchFullMeetingsAsDtos(idPage.getContent(), effectiveSort);
         return new PageImpl<>(dtos, pageable, idPage.getTotalElements());
     }
 
@@ -93,37 +75,57 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
     public void streamRecordsToExcelForStream(
             UUID streamId,
             List<Filter> filters,
+            Sort sort,
             int fetchPageSize,
             int exportLimit,
             OutputStream outputStream
     ) throws IOException {
         Specification<Meeting> baseSpec = buildBaseSpec(streamId, filters);
         String streamName = streamId.toString();
+        Sort effectiveSort = calculateEffectiveSort(sort);
 
         var recordStream = IntStream.iterate(0, i -> i + 1)
                 .mapToObj(page -> {
-                    Pageable pageable = PageRequest.of(page, fetchPageSize, DEFAULT_SORT);
+                    Pageable pageable = PageRequest.of(page, fetchPageSize, effectiveSort);
                     var idPage = meetingRepository.findAll(baseSpec, pageable);
 
-                    if (idPage.isEmpty()) {
-                        return List.<MeetingReportRecordDto>of();
-                    }
+                    if (idPage.isEmpty()) return List.<MeetingReportRecordDto>of();
 
-                    List<UUID> ids = idPage.getContent().stream().map(Meeting::getId).toList();
-                    var fullMeetings = meetingRepository.findAll(
-                            withFetchJoins().and(idIn(ids)),
-                            idPage.getSort()
-                    );
-
-                    return fullMeetings.stream()
-                            .map(meetingMapper::mapToReportDto)
-                            .toList();
+                    // Используем тот же метод для загрузки данных пачки
+                    return fetchFullMeetingsAsDtos(idPage.getContent(), effectiveSort);
                 })
                 .takeWhile(batch -> !batch.isEmpty())
                 .flatMap(Collection::stream)
                 .limit(exportLimit);
 
         excelGenerator.generate(streamName, recordStream, outputStream);
+    }
+
+    /**
+     * Формирует "умную" сортировку.
+     */
+    private Sort calculateEffectiveSort(Sort clientSort) {
+        if (clientSort.getOrderFor(DEFAULT_GROUP_BY_SORT_FIELD) != null) {
+            return clientSort;
+        }
+
+        if (clientSort.isUnsorted()) {
+            return DEFAULT_SORT;
+        }
+
+        return DEFAULT_GROUP_BY_SORT.and(clientSort);
+    }
+
+    /**
+     * Вспомогательный метод для загрузки сущностей с JOIN FETCH по списку ID
+     * и преобразования их в DTO.
+     */
+    private List<MeetingReportRecordDto> fetchFullMeetingsAsDtos(List<Meeting> meetingsWithIds, Sort sort) {
+        List<UUID> ids = meetingsWithIds.stream().map(Meeting::getId).toList();
+        return meetingRepository.findAll(withFetchJoins().and(idIn(ids)), sort)
+                .stream()
+                .map(meetingMapper::mapToReportDto)
+                .toList();
     }
 
     private Specification<Meeting> buildBaseSpec(UUID streamId, List<Filter> filters) {

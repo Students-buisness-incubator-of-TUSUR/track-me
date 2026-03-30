@@ -107,6 +107,10 @@ public interface MeetingRestController {
             @RequestParam UUID streamId,
 
             @Parameter(description = "Фильтры для поиска записей отчета")
-            @RequestBody @Valid FilterRequest filters
+            @RequestBody @Valid FilterRequest filters,
+
+            @ParameterObject
+            @PageableDefault(size = 20)
+            Pageable pageable
     );
 }

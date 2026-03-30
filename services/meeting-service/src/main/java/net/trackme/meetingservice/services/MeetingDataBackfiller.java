@@ -150,7 +150,8 @@ public class MeetingDataBackfiller {
             }
 
             BigDecimal oldWeight = m.getTeamStatusValue();
-            updateNumericStatusValue(m);
+            m.updateTeamStatusValue();
+
             if (oldWeight == null || oldWeight.compareTo(m.getTeamStatusValue()) != 0) {
                 meetingUpdated = true;
             }
@@ -164,18 +165,6 @@ public class MeetingDataBackfiller {
         } else {
             log.debug("[{}] Team '{}' is already up to date.", mode, teamData.getName());
         }
-    }
-
-    private void updateNumericStatusValue(Meeting meeting) {
-        BigDecimal weight = BigDecimal.valueOf(0.0);
-        if (meeting.getStatus() != net.trackme.meetingservice.entities.MeetingStatus.COMPLETED_AS_NOT_HAPPENED && meeting.getTeamStatus() != null) {
-            weight = switch (meeting.getTeamStatus()) {
-                case OK -> BigDecimal.valueOf(1.0);
-                case WITH_ISSUES -> BigDecimal.valueOf(0.5);
-                case MANY_ISSUES -> BigDecimal.valueOf(0.25);
-            };
-        }
-        meeting.setTeamStatusValue(weight);
     }
 
     private void setupSystemSecurityContext(String tokenValue) {

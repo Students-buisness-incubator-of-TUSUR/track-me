@@ -93,4 +93,20 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
             @Param("newTrackerId") String newTrackerId,
             @Param("newFullName") String newFullName
     );
+
+    @Modifying
+    @Query(value = """
+        INSERT INTO meeting_stream (meeting_id, stream_id)
+        SELECT id, :streamId FROM meeting WHERE team_card_id = :teamId
+        ON CONFLICT DO NOTHING
+    """, nativeQuery = true)
+    void addStreamToTeamMeetings(UUID teamId, UUID streamId);
+
+    @Modifying
+    @Query(value = """
+        DELETE FROM meeting_stream 
+        WHERE stream_id = :streamId 
+        AND meeting_id IN (SELECT id FROM meeting WHERE team_card_id = :teamId)
+    """, nativeQuery = true)
+    void removeStreamFromTeamMeetings(UUID teamId, UUID streamId);
 }

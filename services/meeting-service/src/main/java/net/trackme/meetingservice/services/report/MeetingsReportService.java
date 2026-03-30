@@ -4,6 +4,7 @@ import net.trackme.commons.filters.Filter;
 import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,6 +50,7 @@ public interface MeetingsReportService {
      *
      * @param streamId      идентификатор потока.
      * @param filters       список критериев фильтрации.
+     * @param sort   параметры сортировки.
      * @param fetchPageSize количество записей, загружаемых из базы данных за одну итерацию.
      * @param exportLimit   максимально допустимое количество записей в итоговом файле.
      * @param outputStream  целевой поток записи (например, поток ответа HTTP).
@@ -57,6 +59,7 @@ public interface MeetingsReportService {
     void streamRecordsToExcelForStream(
         UUID streamId,
         List<Filter> filters,
+        Sort sort,
         int fetchPageSize,
         int exportLimit,
         OutputStream outputStream

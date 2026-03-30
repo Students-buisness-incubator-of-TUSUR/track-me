@@ -94,7 +94,11 @@ public class MeetingRestControllerImpl implements MeetingRestController {
     private int fetchPageSize;
 
     @Override
-    public ResponseEntity<StreamingResponseBody> getMeetingsReportExcel(UUID streamId, FilterRequest filters) {
+    public ResponseEntity<StreamingResponseBody> getMeetingsReportExcel(
+            UUID streamId,
+            FilterRequest filters,
+            Pageable pageable
+    ) {
         String filename = "отчёт-по-встречам-" +
             LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +
             ".xlsx";
@@ -108,6 +112,7 @@ public class MeetingRestControllerImpl implements MeetingRestController {
                 meetingsReportService.streamRecordsToExcelForStream(
                     streamId,
                     filters.filters(),
+                    pageable.getSort(),
                     fetchPageSize,
                     exportLimit,
                     outputStream

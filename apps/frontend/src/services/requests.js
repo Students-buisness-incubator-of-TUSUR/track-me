@@ -2,20 +2,43 @@ import { getCsrfConfigForFetch } from "../utils/csrf-utils";
 import { backendURLBackend, backendURLMeeting, backendURLSSO } from "./constants";
 
 
-export async function fetchMeetingReport({ streamId, filters, page, size }) {
-  return fetch(`${backendURLMeeting}/api/v1/meetings/reports?streamId=${streamId}`, {
+export async function fetchMeetingReport({ streamId, filters, page, size, sort }) {
+  let url = `${backendURLMeeting}/api/v1/meetings/reports?streamId=${streamId}`;
+  
+  if (page !== undefined) url += `&page=${page}`;
+  if (size !== undefined) url += `&size=${size}`;
+
+  if (sort) {
+    const sortArray = Array.isArray(sort) ? sort : [sort];
+    
+    sortArray.forEach(s => {
+      url += `&sort=${s}`; 
+    });
+  }
+
+  return fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...getCsrfConfigForFetch(),
     },
     credentials: "include",
-    body: JSON.stringify({ filters: filters ?? [], page, size }),
+    body: JSON.stringify({ filters: filters ?? [] }),
   });
 }
 
-export async function fetchMeetingReportExcel({ streamId, filters }) {
-  return fetch(`${backendURLMeeting}/api/v1/meetings/reports/excel?streamId=${streamId}`, {
+export async function fetchMeetingReportExcel({ streamId, filters, sort }) {
+  let url = `${backendURLMeeting}/api/v1/meetings/reports/excel?streamId=${streamId}`;
+
+  if (sort) {
+    if (Array.isArray(sort)) {
+      sort.forEach(s => url += `&sort=${s}`);
+    } else {
+      url += `&sort=${sort}`;
+    }
+  }
+
+  return fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

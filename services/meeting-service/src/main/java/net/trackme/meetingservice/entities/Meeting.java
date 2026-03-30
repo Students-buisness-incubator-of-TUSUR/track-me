@@ -6,6 +6,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -79,4 +80,28 @@ public class Meeting {
     @CollectionTable(name = "meeting_stream", joinColumns = @JoinColumn(name = "meeting_id"))
     @Column(name = "stream_id")
     private Set<UUID> streamIds = new HashSet<>();
+
+    @PrePersist
+    @PreUpdate
+    public void updateTeamStatusValue() {
+        if (this.status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+            this.teamStatusValue = BigDecimal.valueOf(-1.0);
+            return;
+        }
+
+        if (this.status == MeetingStatus.SCHEDULED) {
+            this.teamStatusValue = BigDecimal.valueOf(0.0);
+            return;
+        }
+
+        if (this.teamStatus != null) {
+            this.teamStatusValue = switch (this.teamStatus) {
+                case OK -> BigDecimal.valueOf(1.0);
+                case WITH_ISSUES -> BigDecimal.valueOf(0.5);
+                case MANY_ISSUES -> BigDecimal.valueOf(0.25);
+            };
+        } else {
+            this.teamStatusValue = BigDecimal.valueOf(0.0);
+        }
+    }
 }
