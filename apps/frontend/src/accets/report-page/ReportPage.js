@@ -159,17 +159,18 @@ const [userRole, setUserRole] = useState('');
             <button
               data-testid="button-isactive"
               className="report-page_btn-isactive"
-              onClick={() => setIsActive(!isActive)}
+              onClick={() => setIsActive((prev) => !prev)}
             >
               <input
                 id="isActive"
                 type="checkbox"
-                disabled={true}
                 checked={!isActive}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsActive((prev) => !prev)
+                }}
               />
-              <label
-                htmlFor="isActive"
-              >Показывать неактивные</label>
+              <label>Показывать неактивные</label>
             </button>
            <div className="report-dropdown1">
   <button

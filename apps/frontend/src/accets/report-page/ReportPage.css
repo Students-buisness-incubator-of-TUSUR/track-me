@@ -52,6 +52,7 @@
   margin: 0;
   position: relative;
   width: 30px;
+  cursor: pointer;
 }
 
 .report-page_btn-isactive input[type="checkbox"]::before {
@@ -77,10 +78,6 @@
   position: absolute;
   top: 3px;
   width: 14px;
-}
-
-.checkbox-wrapper-2 input[type=checkbox] {
-  cursor: default;
 }
 
 .report-page_btn-isactive input[type="checkbox"]:hover {
