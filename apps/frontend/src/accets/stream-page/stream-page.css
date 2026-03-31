@@ -89,6 +89,7 @@ body {
 .Stream-header-checkbox {
     width: 50%;
     display: flex;
+    
     align-items: center;
     margin-bottom: 10px;
 }
@@ -120,6 +121,7 @@ body {
 
 .Stream-header-checkbox label {
     flex: 1;
+    margin-left: 5px;
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
