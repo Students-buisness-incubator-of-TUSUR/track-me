@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from "react";
 import "./TrackerPage.css";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {useNavigate} from "react-router-dom";
 import StreamPlaceholder from './Заглушка для потока в TrackMe.png';
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
@@ -24,6 +24,7 @@ function TrackerPage() {
     const [username, setusername] = useState(null);
     const [selectedYears, setSelectedYears] = useState([]);
     const location = useLocation();
+    const [searchParams] = useSearchParams();
 const showAllCards = location.pathname === "/all-team-cards";
 const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
 const [page, setPage] = useState(0);
@@ -121,7 +122,7 @@ const [totalPages, setTotalPages] = useState(1);
     }));
 
     // Функция для запроса карточек с заданными фильтрами
-   const fetchCards = useCallback((filters = []) => {
+   const fetchCards = useCallback((filters = [], searchParams) => {
     if (!userRole || !username) return;
 
     const allFilters = [...filters];
@@ -134,7 +135,14 @@ const [totalPages, setTotalPages] = useState(1);
                 value: streamName,
             });
         }
-        if (showMyTeamsOnly) {
+        const seachUsername = searchParams.get("username");
+        if (seachUsername) {
+            allFilters.push({
+                fieldName: "username",
+                type: "EQ",
+                value: seachUsername,
+            });
+        } else if (showMyTeamsOnly) {
             allFilters.push({
                 fieldName: "username",
                 type: "EQ",
@@ -436,9 +444,9 @@ const options = {
     };
     useEffect(() => {
     if (userRole && username && streamName) {
-        fetchCards([]);
+        fetchCards([], searchParams);
     }
-}, [userRole, username, streamName, fetchCards]);
+}, [userRole, username, streamName, fetchCards, searchParams]);
 
 
     return (

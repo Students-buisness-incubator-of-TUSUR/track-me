@@ -135,7 +135,8 @@ function ProfilePage() {
 
     // Загрузка количества команд (только для трекеров и только для своего профиля)
     useEffect(() => {
-        if (!userData?.roles?.includes("TRACKER") || !isOwnProfile) return;
+        if (!userData) return;
+        if (!(isOwnProfile || ((currentUser?.roles?.includes("SUPER_ADMIN") || currentUser?.roles?.includes("ADMIN")) && !isOwnProfile))) return;
 
         fetchTeams({
             page: 0, size: 10000,
@@ -150,7 +151,8 @@ function ProfilePage() {
                     type: "EQ",
                     value: true
                 }
-            ]
+            ],
+            admin: currentUser?.roles?.includes("SUPER_ADMIN") || currentUser?.roles?.includes("ADMIN"),
         })
             .then(res => {
                 if (!res.ok) {
@@ -165,7 +167,7 @@ function ProfilePage() {
                 console.error("Ошибка при загрузке карточек:", err);
                 setTeamCount(0);
             });
-    }, [userData, isOwnProfile]);
+    }, [userData, isOwnProfile, currentUser]);
 
     const handleEditClick = () => {
         setIsEditing(true);
@@ -357,7 +359,7 @@ function ProfilePage() {
             role === "суперадмин" ||
             role === "super_admin"
         ) {
-            navigate("/streams");
+            navigate(`/all-team-cards?username=${userData.username}`);
         }
     };
 
@@ -381,6 +383,7 @@ function ProfilePage() {
         );
     }
 
+    console.log(userData);
     return (
         <>
             <Header userRole={currentUser.roles?.[0]} />
@@ -490,7 +493,7 @@ function ProfilePage() {
                         </div>
                     </div>
                     <div className="profile-page_row">
-                        {!isEditing && isOwnProfile && (
+                        {!isEditing && (
                             <button
                                 className="profile-page_btn"
                                 onClick={handleTeamCardsClick}

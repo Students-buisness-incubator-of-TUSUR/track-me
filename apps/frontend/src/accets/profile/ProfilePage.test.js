@@ -209,7 +209,7 @@ describe('ProfilePage', () => {
     });
   });
 
-  test('should not fetch team cards for non-TRACKER role', async () => {
+  test('should fetch team cards for ADMIN role and show correct count', async () => {
     mockUserInfoUser(mockUserDataAdmin);
 
     render(
@@ -219,12 +219,12 @@ describe('ProfilePage', () => {
     );
 
     await waitFor(() => {
-      const teamButton = screen.getByRole('button', { 
-        name: 'Карточки команд (0)'
+      const teamButton = screen.getByRole('button', {
+        name: 'Карточки команд (5)'
       });
       expect(teamButton).toBeInTheDocument();
     });
-    expect(fetchTeams).not.toHaveBeenCalled();
+    expect(fetchTeams).toHaveBeenCalled();
   });
 
   // Existing test (modified): Handle team cards fetch error with non-ok response (lines 163-179)
