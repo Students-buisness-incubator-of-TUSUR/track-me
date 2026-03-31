@@ -1047,3 +1047,59 @@ describe("Error handling / edge cases", () => {
     expect(document.querySelector(".team-card_rating-yellow")).toBeInTheDocument();
   });
 });
+
+describe('getCommandCountText function', () => {
+  // Импортируем функцию напрямую для тестирования
+  const { getCommandCountText } = require('./team-card.js');
+
+  test('returns correct declension for 0 commands', () => {
+    expect(getCommandCountText(0)).toBe('0 команд');
+  });
+
+  test('returns correct declension for 1 command', () => {
+    expect(getCommandCountText(1)).toBe('1 команда');
+  });
+
+  test('returns correct declension for 2-4 commands', () => {
+    expect(getCommandCountText(2)).toBe('2 команды');
+    expect(getCommandCountText(3)).toBe('3 команды');
+    expect(getCommandCountText(4)).toBe('4 команды');
+  });
+
+  test('returns correct declension for 5-20 commands', () => {
+    expect(getCommandCountText(5)).toBe('5 команд');
+    expect(getCommandCountText(10)).toBe('10 команд');
+    expect(getCommandCountText(15)).toBe('15 команд');
+    expect(getCommandCountText(20)).toBe('20 команд');
+  });
+
+  test('returns correct declension for numbers ending with 1 (except 11)', () => {
+    expect(getCommandCountText(21)).toBe('21 команда');
+    expect(getCommandCountText(31)).toBe('31 команда');
+    expect(getCommandCountText(101)).toBe('101 команда');
+  });
+
+  test('returns correct declension for numbers ending with 2-4 (except 12-14)', () => {
+    expect(getCommandCountText(22)).toBe('22 команды');
+    expect(getCommandCountText(33)).toBe('33 команды');
+    expect(getCommandCountText(44)).toBe('44 команды');
+  });
+
+  test('returns correct declension for numbers 11-19', () => {
+    expect(getCommandCountText(11)).toBe('11 команд');
+    expect(getCommandCountText(12)).toBe('12 команд');
+    expect(getCommandCountText(13)).toBe('13 команд');
+    expect(getCommandCountText(14)).toBe('14 команд');
+    expect(getCommandCountText(15)).toBe('15 команд');
+    expect(getCommandCountText(16)).toBe('16 команд');
+    expect(getCommandCountText(17)).toBe('17 команд');
+    expect(getCommandCountText(18)).toBe('18 команд');
+    expect(getCommandCountText(19)).toBe('19 команд');
+  });
+
+  test('returns correct declension for large numbers', () => {
+    expect(getCommandCountText(100)).toBe('100 команд');
+    expect(getCommandCountText(125)).toBe('125 команд');
+    expect(getCommandCountText(1001)).toBe('1001 команда');
+  });
+});
