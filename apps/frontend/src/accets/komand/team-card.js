@@ -23,6 +23,27 @@ export const getMeetingStatusClass = (status) => {
             return ""; // Для SCHEDULED оставляем без специального класса
     }
 };
+
+// Функция для правильного склонения слова "команда"
+export const getCommandCountText = (count) => {
+    if (count === 0) return "0 команд";
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+    
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+        return `${count} команд`;
+    }
+    
+    if (lastDigit === 1) {
+        return `${count} команда`;
+    }
+    
+    if (lastDigit >= 2 && lastDigit <= 4) {
+        return `${count} команды`;
+    }
+    
+    return `${count} команд`;
+};
 const TeamCard = () => {
     const navigate = useNavigate();
     const {id} = useParams();
@@ -952,7 +973,7 @@ const deleteMeeting = async () => {
   </div>
   <div className="stream-data">
     <span className="stream-name">{streamInfo.name}</span>
-    <span className="stream-count">{teamCardsCount}</span>
+    <span className="stream-count">{getCommandCountText(teamCardsCount)}</span>
     <span className="stream-dates">{formatDates(streamInfo.startDate, streamInfo.endDate)}</span>
   </div>
 </div>
