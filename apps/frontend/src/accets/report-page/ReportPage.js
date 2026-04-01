@@ -142,6 +142,7 @@ const [userRole, setUserRole] = useState('');
     setUserRole(user.roles[0]);
   }, [user]);
 
+  const reportUsernames = reports.map((report) => report.username);
   return (
     <div className="Report">
       <Header userRole={userRole}></Header>
@@ -195,7 +196,7 @@ const [userRole, setUserRole] = useState('');
         className="report-dropdown-item"
         onClick={() => setFilterTrackers(null)}
       >—</button>
-      {trackers.map((t, i) => (
+      {trackers.filter((tracker) => reportUsernames.includes(tracker.username)).map((t, i) => (
         <button
           key={i}
           className="report-dropdown-item"
