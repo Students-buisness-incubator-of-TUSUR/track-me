@@ -12,6 +12,7 @@ import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -21,6 +22,9 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
+
+// TODO: Выпилить при гарантии согласованности данных. (или хотя бы перенести в ApplicationRunnable/SheduledTask).
 
 /**
  * Сервис для восстановления и аудита денормализованных данных во встречах.
@@ -48,7 +52,11 @@ public class MeetingDataBackfiller {
         this.backendApiClient = backendApiClient;
         this.ssoApiClient = ssoApiClient;
     }
+    public boolean isAlreadyStarted() {
+        return isStarted.get();
+    }
 
+    @Async
     @Transactional
     public void run(String token) {
         if (!isStarted.compareAndSet(false, true)) {
@@ -56,7 +64,7 @@ public class MeetingDataBackfiller {
         }
 
         setupSystemSecurityContext(token);
-        log.info("[BACKFILL] Starting global meeting data synchronization process.");
+        log.info("[BACKFILL] Starting global meeting data synchronization in BACKGROUND.");
 
         try {
             Map<String, UserDto> trackerMap = ssoApiClient.getTrackers().stream()
@@ -66,7 +74,9 @@ public class MeetingDataBackfiller {
             verifyAndSyncRemainingData(trackerMap, repairedTeamIds);
 
         } catch (Exception e) {
-            log.error("[BACKFILL] Critical error during synchronization: {}", e.getMessage(), e);
+            log.error("[BACKFILL] Critical error, resetting flag for retry", e);
+            isStarted.set(false);
+            throw e;
         } finally {
             SecurityContextHolder.clearContext();
             log.info("[BACKFILL] Global synchronization process finished.");

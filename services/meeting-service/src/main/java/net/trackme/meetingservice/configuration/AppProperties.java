@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * Настройки приложения.
  */
 @Data
-@EnableAsync
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
     /**

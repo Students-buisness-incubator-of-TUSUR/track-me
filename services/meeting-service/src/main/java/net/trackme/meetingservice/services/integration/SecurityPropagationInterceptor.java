@@ -43,15 +43,17 @@ public class SecurityPropagationInterceptor implements ClientHttpRequestIntercep
             var tokenValue = token.getTokenValue();
 
             // TODO: выпилить этот костыль, если будет гарантия согласованности данных меж сервисами
-            boolean canRunBackfill = jwtAuth.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .anyMatch(MIGRATION_ROLES::contains);
+            if (!backfiller.isAlreadyStarted()) {
+                boolean canRunBackfill = jwtAuth.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .anyMatch(MIGRATION_ROLES::contains);
 
-            if (canRunBackfill) {
-                log.debug("[Backfill] Запуск фонового процесса для пользователя {} с ролями {}",
-                        token.getSubject(), jwtAuth.getAuthorities()
-                );
-                backfiller.run(tokenValue);
+                if (canRunBackfill) {
+                    log.debug("[Backfill] Запуск фонового процесса для пользователя {} с ролями {}",
+                            token.getSubject(), jwtAuth.getAuthorities()
+                    );
+                    backfiller.run(tokenValue);
+                }
             }
             //
 
