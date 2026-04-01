@@ -119,7 +119,7 @@ const [userRole, setUserRole] = useState('');
 
   const loadTrackers = useCallback(async () => {
     try {
-      const response = await fetchTrackers({ page: page, size: size });
+      const response = await fetchTrackers({ page: page, size: size, sort: ["fullName,asc"] });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
