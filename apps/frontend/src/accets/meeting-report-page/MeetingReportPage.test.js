@@ -122,6 +122,42 @@ describe("MeetingReportPage Component", () => {
     expect(mockNavigate).toHaveBeenCalledWith(-1);
   });
 
+  test("работает фильтр по трекеру", async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText("Team Alpha")).toBeInTheDocument();
+    });
+
+    const trackerFilterBtn = screen.getByText("Трекеры");
+    fireEvent.click(trackerFilterBtn);
+
+    const trackerOption = screen.getByRole("button", { name: "Иван Иванов (@tracker1)" });
+    fireEvent.click(trackerOption);
+
+    await waitFor(() => {
+      expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: [{ fieldName: "trackerFullName", type: "EQ", value: "Иван Иванов" }],
+        })
+      );
+    });
+
+    const activeFilterBtn = screen.getByRole("button", { name: "Иван Иванов" });
+    fireEvent.click(activeFilterBtn);
+
+    const allOption = screen.getByRole("button", { name: "— Все —" });
+    fireEvent.click(allOption);
+    
+    await waitFor(() => {
+      expect(requests.fetchMeetingReport).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filters: [],
+        })
+      );
+    });
+  });
+
   test("работает фильтр по команде", async () => {
     renderComponent();
 
@@ -132,7 +168,6 @@ describe("MeetingReportPage Component", () => {
     const teamFilterBtn = screen.getByText("Команда");
     fireEvent.click(teamFilterBtn);
 
-    // Используем getByRole, чтобы найти именно КНОПКУ в выпадающем списке, а не текст в таблице
     const teamOption = screen.getByRole("button", { name: "Team Beta" });
     fireEvent.click(teamOption);
 

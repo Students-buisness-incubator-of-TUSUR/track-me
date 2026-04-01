@@ -111,7 +111,9 @@ export default function MeetingReportPage() {
           }
         });
         const sortedTrackers = Array.from(trackersMap.values()).sort((a, b) => a.fullName.localeCompare(b.fullName));
-        const teams = [...new Set(data.content.map(i => i.teamName))].filter(Boolean).sort();
+        const teams = [...new Set(data.content.map(i => i.teamName))]
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
         setAvailableTrackers(sortedTrackers);
         setAvailableTeams(teams);
       }
