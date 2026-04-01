@@ -14,6 +14,7 @@ import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
+import net.trackme.meetingservice.services.report.MeetingsReportService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,18 +25,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -62,6 +69,9 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private MeetingsReportService reportService;
 
     @MockitoBean(name = "userBackendApiClient")
     private BackendApiClient userBackendApiClient;
@@ -109,16 +119,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .tasksCurrentMeeting("tasksCurrentMeeting")
                 .tasksNextMeeting("tasksNextMeeting")
                 .build());
-    }
-
-    @AfterEach
-    void tearDown() {
-        meetingRepository.deleteAll();
-    }
-
-    @Test
-    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
-    void createMeeting_success() throws Exception {
 
         var mockTeamCard = TeamCardDto.builder()
                 .id(TEAM_CARD_ID)
@@ -137,6 +137,16 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         when(userBackendApiClient.getTeamCardById(TEAM_CARD_ID)).thenReturn(mockTeamCard);
         when(ssoApiClient.getTrackers()).thenReturn(List.of(mockTracker));
 
+    }
+
+    @AfterEach
+    void tearDown() {
+        meetingRepository.deleteAll();
+    }
+
+    @Test
+    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
+    void createMeeting_success() throws Exception {
         var meetingCreateDto = MeetingCreateDto.builder()
                 .recordLink("https://example.com/meeting")
                 .number("12345")
@@ -435,5 +445,45 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                         .content(objectMapper.writeValueAsString(meetingUpdateDto)))
                 .andDo(print())
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void getMeetingsReport_success() throws Exception {
+        UUID streamId = UUID.randomUUID();
+        when(reportService.getReportRecordsForStream(eq(streamId), anyList(), any()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        mockMvc.perform(post("/api/v1/meetings/reports")
+                        .param("streamId", streamId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\":[]}")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void getMeetingsReportExcel_streamsFile() throws Exception {
+        UUID streamId = UUID.randomUUID();
+
+        doAnswer(invocation -> {
+            java.io.OutputStream out = invocation.getArgument(5);
+            out.write("fake-excel-content".getBytes());
+            return null;
+        }).when(reportService).streamRecordsToExcelForStream(any(), any(), any(), anyInt(), anyInt(), any());
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/meetings/reports/excel")
+                        .param("streamId", streamId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\":[]}")
+                        .with(csrf()))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION))
+                .andExpect(content().contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(content().bytes("fake-excel-content".getBytes()));
     }
 }
