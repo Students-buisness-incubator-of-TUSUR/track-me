@@ -44,7 +44,7 @@ public class MeetingsReportExcelGenerator {
             sheet.setColumnWidth(1, 15 * 256);
             sheet.setColumnWidth(2, 25 * 256);
             sheet.setColumnWidth(3, 40 * 256);
-            sheet.setColumnWidth(4, 40 * 256);
+            sheet.setColumnWidth(4, 75 * 256);
             sheet.setColumnWidth(5, 20 * 256);
 
             var styles = new Styles(workbook);
