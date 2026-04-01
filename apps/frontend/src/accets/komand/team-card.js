@@ -32,6 +32,25 @@ const getMeetingStatusClass = (status) => {
   }
 };
 
+export const getCommandCountText = (count) => {
+    if (count === 0) return "0 команд";
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+    
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+        return `${count} команд`;
+    }
+    
+    if (lastDigit === 1) {
+        return `${count} команда`;
+    }
+    
+    if (lastDigit >= 2 && lastDigit <= 4) {
+        return `${count} команды`;
+    }
+    
+    return `${count} команд`;
+};
 const TeamCard = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -694,7 +713,12 @@ const TeamCard = () => {
         <div className="team-card_container">
           <div className="team-card_header">
             {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
-              <div className="team-card_team-rating">
+              <div
+                className={`team-card_team-rating ${teamData.averageGrade >= 0.51 ? 'team-card_rating-green' :
+                    teamData.averageGrade >= 0.26 ? 'team-card_rating-yellow' :
+                      'team-card_rating-red'
+                  }`}
+              >
                 {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             )}
@@ -971,7 +995,7 @@ const TeamCard = () => {
               <span>Поток:</span>
               <div className="team-card_stream-data">
                 <span>{streamInfo.name}</span>
-                <span>{teamCardsCount} команд</span>
+                <span>{getCommandCountText(teamCardsCount)}</span>
                 <span>{formatDates(streamInfo.startDate, streamInfo.endDate)}</span>
               </div>
             </div>

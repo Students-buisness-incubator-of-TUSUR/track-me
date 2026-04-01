@@ -325,8 +325,8 @@ test('открытие и закрытие панели фильтров по к
 
   fireEvent.click(filterToggleBtn);
 
-  expect(await screen.findByText((t) => t.startsWith('Поток'))).toBeInTheDocument();
-  expect(screen.getAllByText((t) => t.startsWith('Рынки'))[0]).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: /Поток/ })).toBeInTheDocument();
+  expect(screen.getAllByText((t) => t.startsWith('Рынок'))[0]).toBeInTheDocument();
   expect(screen.getAllByText((t) => t.startsWith('TRL'))[0]).toBeInTheDocument();
   expect(screen.getAllByText((t) => t.startsWith('Год'))[0]).toBeInTheDocument();
 
@@ -337,67 +337,6 @@ test('открытие и закрытие панели фильтров по к
   });
 });
 
-
-  test('поисковая строка фильтрует результаты', async () => {
-    const mockCard = {
-      id: 'cardSearch',
-      name: 'UniqueName',
-      description: 'Desc',
-      enabled: true,
-      ntiMarket: { displayName: 'Mkt' },
-      readinessLevel: '8',
-      userId: 'u1',
-    };
-
-    global.fetch = jest.fn((url) => {
-      if (url.includes('/api/v1/streams')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              content: [
-                { id: '1', name: 'StreamA', startDate: '2025-01-01', endDate: '2025-12-31' },
-              ],
-            }),
-        });
-      }
-      if (url.endsWith('/streams/nti-markets')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([]),
-        });
-      }
-      if (url.includes('/team-cards')) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              content: [mockCard],
-              page: { totalPages: 1 },
-            }),
-        });
-      }
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }),
-      });
-    });
-
-    render(
-      <MemoryRouter>
-        <TrackerPage />
-      </MemoryRouter>
-    );
-
-    expect(await screen.findByText('UniqueName')).toBeInTheDocument();
-
-    const searchInput = screen.getByPlaceholderText('Найти');
-    fireEvent.change(searchInput, { target: { value: 'NoMatch' } });
-    expect(await screen.findByText('Ничего не найдено по запросу')).toBeInTheDocument();
-
-    fireEvent.change(searchInput, { target: { value: 'UniqueName' } });
-    expect(await screen.findByText('UniqueName')).toBeInTheDocument();
-  });
 
   test('рейтинги и статус получают правильные css-классы (green/yellow/red + inactive)', async () => {
     const mockCards = [
@@ -640,8 +579,19 @@ describe('TrackerPage - Полное покрытие', () => {
     render(<MemoryRouter><TrackerPage /></MemoryRouter>);
     const searchInput = await screen.findByPlaceholderText('Найти');
     fireEvent.change(searchInput, { target: { value: 'NoMatch' } });
-    expect(await screen.findByText('Ничего не найдено по запросу')).toBeInTheDocument();
+
+    const filterToggleBtn = document.querySelector('.Stream-settings-pic');
+    fireEvent.click(filterToggleBtn);
+    const applyBtn = screen.getByText('Применить');
+    fireEvent.click(applyBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Ничего не найдено по запросу')).toBeInTheDocument();
+    });
     fireEvent.change(searchInput, { target: { value: 'UniqueName' } });
+
+    fireEvent.click(applyBtn);
+
     expect(await screen.findByText('UniqueName')).toBeInTheDocument();
   });
 

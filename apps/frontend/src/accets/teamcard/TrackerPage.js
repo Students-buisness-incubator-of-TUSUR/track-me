@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from "react";
 import "./TrackerPage.css";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {useNavigate} from "react-router-dom";
 import StreamPlaceholder from './Заглушка для потока в TrackMe.png';
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
@@ -24,6 +24,7 @@ function TrackerPage() {
     const [username, setusername] = useState(null);
     const [selectedYears, setSelectedYears] = useState([]);
     const location = useLocation();
+    const [searchParams] = useSearchParams();
 const showAllCards = location.pathname === "/all-team-cards";
 const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
 const [page, setPage] = useState(0);
@@ -121,7 +122,7 @@ const [totalPages, setTotalPages] = useState(1);
     }));
 
     // Функция для запроса карточек с заданными фильтрами
-   const fetchCards = useCallback((filters = []) => {
+   const fetchCards = useCallback((filters = [], searchParams) => {
     if (!userRole || !username) return;
 
     const allFilters = [...filters];
@@ -134,7 +135,14 @@ const [totalPages, setTotalPages] = useState(1);
                 value: streamName,
             });
         }
-        if (showMyTeamsOnly) {
+        const seachUsername = searchParams.get("username");
+        if (seachUsername) {
+            allFilters.push({
+                fieldName: "username",
+                type: "EQ",
+                value: seachUsername,
+            });
+        } else if (showMyTeamsOnly) {
             allFilters.push({
                 fieldName: "username",
                 type: "EQ",
@@ -351,9 +359,7 @@ const options = {
 
 
     // Фильтрация карточек по поисковому запросу
-    const filteredCards = cards.filter((card) =>
-        card.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredCards = cards;
     const visibleCards = filteredCards;
 
 
@@ -367,7 +373,6 @@ const options = {
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
-        setPage(0)
     };
 
     // Переключение отображения панели фильтров
@@ -379,10 +384,18 @@ const options = {
     const applyFilters = () => {
         const filters = [];
 
+        if (searchQuery?.length > 0) {
+            filters.push({
+                fieldName: "name",
+                type: "LIKE",
+                value: searchQuery,
+            });
+        }
+
         if (selectedTrl.length > 0) {
             filters.push({
                 fieldName: "readinessLevel",
-                type: "EQ",
+                type: "IN",
                 values: selectedTrl,
             });
         }
@@ -431,9 +444,9 @@ const options = {
     };
     useEffect(() => {
     if (userRole && username && streamName) {
-        fetchCards([]);
+        fetchCards([], searchParams);
     }
-}, [userRole, username, streamName, fetchCards]);
+}, [userRole, username, streamName, fetchCards, searchParams]);
 
 
     return (
@@ -484,6 +497,10 @@ const options = {
                             className="Stream-search"
                             value={searchQuery}
                             onChange={handleSearchChange}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter")
+                                    applyFilters();
+                            }}
                         />
                     </div>
                 </div>
@@ -502,7 +519,7 @@ const options = {
                             <button className="Teams-header-chose-butt">Поток
                                 [{selectedStreams.length}]
                             </button>
-                            <button className="Teams-header-chose-butt">Рынки
+                            <button className="Teams-header-chose-butt">Рынок
                                 [{selectedNtiMarkets.length}]
                             </button>
                             <button className="Teams-header-chose-butt">
@@ -517,8 +534,7 @@ const options = {
                                     onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setShowCheckboxesStream(!showCheckboxesStream)}
                                 >
                                     <div className="Teams-header-chosefrom-butt-cont">
-                                        <b className="Teams-header-chosefrom-butt-label">Все
-                                            потоки</b>
+                                        <b className="Teams-header-chosefrom-butt-label">Поток</b>
                                         <div className="Teams-header-chosefrom-butt-pic"></div>
                                     </div>
                                 </div>
@@ -551,7 +567,7 @@ const options = {
                                 >
                                     <div className="Teams-header-chosefrom-butt-cont">
                                         <b className="Teams-header-chosefrom-butt-label">
-                                            Рынки Нти
+                                            Рынок
                                         </b>
                                         <div className="Teams-header-chosefrom-butt-pic"></div>
                                     </div>
@@ -796,11 +812,7 @@ const options = {
                         </div>
                     ))
                 ) : (
-                    <p>
-                        {searchQuery
-                            ? "Ничего не найдено по запросу"
-                            : "Ничего не найдено по запросу"}
-                    </p>
+                    <p>Ничего не найдено по запросу</p>
                 )}
             </div>
 

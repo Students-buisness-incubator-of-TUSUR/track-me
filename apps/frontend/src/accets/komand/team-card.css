@@ -1262,7 +1262,6 @@ select.team-input-widget option {
 .team-card_team-rating {
     position: absolute;
     left: 0px;
-    background-color: var(--color-mint);
     color: var(--color-black);
     font-weight: 700;
     font-size: 24px;
@@ -1272,6 +1271,18 @@ select.team-input-widget option {
     text-align: center;
     border-radius: 0px 32px 32px 0;
     z-index: 10;
+}
+
+.team-card_rating-red {
+    background-color: var(--color-rating-bad);
+}
+
+.team-card_rating-yellow {
+    background-color: var(--color-rating-medium);
+}
+
+.team-card_rating-green {
+    background-color: var(--color-rating-good);
 }
 
 .team-card_row {
