@@ -390,7 +390,7 @@ describe('ReportPage Component', () => {
     
     await waitFor(() => {
       const dropdownMenu = screen.getByTestId('trackers-dropdown-menu');
-      expect(dropdownMenu.children).toHaveLength(1);
+      expect(dropdownMenu.children).toHaveLength(2);
     });
     
     // Закрываем фильтр трекеров
@@ -530,7 +530,36 @@ describe('loadStreams and loadTrackers', () => {
     });
     fetchReports.mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({ content: [] })
+      json: jest.fn().mockResolvedValue({ content: [
+        { 
+          id: '1',
+          username: 'tracker1', 
+          streamName: 'Stream 1',
+          startDate: '2024-01-01',
+          endDate: '2024-01-31',
+          teamCardName: 'Team A',
+          averageTeamGrade: 4.5,
+          averageUserGrade: 4.2,
+          meetingsCountFact: 15,
+          meetingsCountPlan: 16,
+          ntiMarkets: ['MarketX'],
+          readinessLevel: 'High'
+        },
+        { 
+          id: '2',
+          username: 'tracker2', 
+          streamName: 'Stream 2',
+          startDate: '2024-01-02',
+          endDate: '2024-01-31',
+          teamCardName: 'Team B',
+          averageTeamGrade: 4.8,
+          averageUserGrade: 4.6,
+          meetingsCountFact: 20,
+          meetingsCountPlan: 20,
+          ntiMarkets: ['MarketY'],
+          readinessLevel: 'Medium'
+        }
+      ] })
     });
   });
 
@@ -564,7 +593,7 @@ describe('loadStreams and loadTrackers', () => {
     );
 
     await waitFor(() => {
-      expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: size });
+      expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: size, sort: ["fullName,asc"] });
     });
 
     const trackerFilterButton = screen.getByTestId("trackers-btn");
@@ -676,9 +705,38 @@ describe('loadStreams and loadTrackers', () => {
 describe('filter selection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    fetchReports.mockResolvedValue({
+        fetchReports.mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({ content: [] })
+      json: jest.fn().mockResolvedValue({ content: [
+        { 
+          id: '1',
+          username: 'tracker1', 
+          streamName: 'Stream 1',
+          startDate: '2024-01-01',
+          endDate: '2024-01-31',
+          teamCardName: 'Team A',
+          averageTeamGrade: 4.5,
+          averageUserGrade: 4.2,
+          meetingsCountFact: 15,
+          meetingsCountPlan: 16,
+          ntiMarkets: ['MarketX'],
+          readinessLevel: 'High'
+        },
+        { 
+          id: '2',
+          username: 'tracker2', 
+          streamName: 'Stream 2',
+          startDate: '2024-01-02',
+          endDate: '2024-01-31',
+          teamCardName: 'Team B',
+          averageTeamGrade: 4.8,
+          averageUserGrade: 4.6,
+          meetingsCountFact: 20,
+          meetingsCountPlan: 20,
+          ntiMarkets: ['MarketY'],
+          readinessLevel: 'Medium'
+        }
+      ] })
     });
     fetchStreams.mockResolvedValue({
       ok: true,
@@ -822,7 +880,36 @@ describe('handleExportExcel', () => {
 
     fetchReports.mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({ content: [] }),
+      json: jest.fn().mockResolvedValue({ content: [
+        { 
+          id: '1',
+          username: 'tracker1', 
+          streamName: 'Stream 1',
+          startDate: '2024-01-01',
+          endDate: '2024-01-31',
+          teamCardName: 'Team A',
+          averageTeamGrade: 4.5,
+          averageUserGrade: 4.2,
+          meetingsCountFact: 15,
+          meetingsCountPlan: 16,
+          ntiMarkets: ['MarketX'],
+          readinessLevel: 'High'
+        },
+        { 
+          id: '2',
+          username: 'tracker2', 
+          streamName: 'Stream 2',
+          startDate: '2024-01-02',
+          endDate: '2024-01-31',
+          teamCardName: 'Team B',
+          averageTeamGrade: 4.8,
+          averageUserGrade: 4.6,
+          meetingsCountFact: 20,
+          meetingsCountPlan: 20,
+          ntiMarkets: ['MarketY'],
+          readinessLevel: 'Medium'
+        }
+      ] })
     });
     fetchStreams.mockResolvedValue({
       ok: true,
