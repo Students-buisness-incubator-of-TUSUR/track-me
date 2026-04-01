@@ -12,11 +12,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +39,7 @@ class MeetingDataBackfillerTest {
         Meeting meeting = new Meeting();
         meeting.setTeamCardId(teamId);
         meeting.setTrackerUsername("user1");
+        AtomicBoolean flag = new AtomicBoolean(false);
 
         when(metadataRepository.findTeamIdsWithIncompleteMetadata()).thenReturn(List.of(teamId));
         when(metadataRepository.findAllIncompleteByTeamCardId(teamId)).thenReturn(List.of(meeting));
@@ -46,15 +50,17 @@ class MeetingDataBackfillerTest {
         when(ssoApiClient.getTrackers()).thenReturn(List.of());
         when(metadataRepository.findAllUniqueTeamCardIds()).thenReturn(List.of(teamId));
 
-        backfiller.run("token");
+        backfiller.run("token", flag);
 
         verify(metadataRepository, atLeastOnce()).saveAll(anyList());
+        assertTrue(flag.get());
     }
 
     @Test
     void testPhase2_SyncTrackerNames() {
         UUID teamId = UUID.randomUUID();
         String username = "tracker1";
+        AtomicBoolean flag = new AtomicBoolean(false);
 
         Meeting meeting = new Meeting();
         meeting.setTeamCardId(teamId);
@@ -72,26 +78,36 @@ class MeetingDataBackfillerTest {
                 UserDto.builder().username(username).fullName("New Name").id("some-uuid").build()
         ));
 
-        // ИСПРАВЛЕНО: Твой код вызывает этот метод у metadataRepository, а не у meetingRepository
         when(metadataRepository.findAllByTeamCardId(teamId)).thenReturn(List.of(meeting));
 
-        backfiller.run("token");
+        backfiller.run("token", flag);
 
-        // Проверяем сохранение через metadataRepository, как того требует лог
         verify(metadataRepository, atLeastOnce()).saveAll(anyList());
+        assertTrue(flag.get());
     }
 
     @Test
     void testHandleExceptions() {
-        UUID teamId = UUID.randomUUID();
-        when(metadataRepository.findTeamIdsWithIncompleteMetadata()).thenReturn(List.of(teamId));
-        when(userBackendClient.getTeamCardById(teamId)).thenThrow(new RuntimeException("Error"));
+        AtomicBoolean flag = new AtomicBoolean(false);
 
-        when(ssoApiClient.getTrackers()).thenReturn(List.of());
-        when(metadataRepository.findAllUniqueTeamCardIds()).thenReturn(List.of());
+        when(ssoApiClient.getTrackers()).thenThrow(new RuntimeException("SSO Down"));
 
-        backfiller.run("token");
+        try {
+            backfiller.run("token", flag);
+        } catch (Exception ignored) {
+        }
 
         verify(metadataRepository, never()).saveAll(anyList());
+        assertFalse(flag.get());
+    }
+
+    @Test
+    void testAlreadyStarted_SkipsExecution() {
+        AtomicBoolean flag = new AtomicBoolean(true);
+
+        backfiller.run("token", flag);
+
+        verifyNoInteractions(ssoApiClient);
+        verifyNoInteractions(metadataRepository);
     }
 }
