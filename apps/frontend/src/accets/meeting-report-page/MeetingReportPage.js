@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./MeetingReportPage.css";
 
@@ -18,6 +18,31 @@ const COMBINED_STATUS_OPTIONS = {
   COMPLETED_AS_NOT_HAPPENED: { label: "Не состоялась", isTeamStatus: false },
 };
 
+const getStatusInfo = (item) => {
+  if (item.status === "SCHEDULED") {
+    const teamStatusLabel = item.teamStatus ? COMBINED_STATUS_OPTIONS[item.teamStatus]?.label : null;
+    return {
+      text: teamStatusLabel ? `Запланирована (${teamStatusLabel})` : "Запланирована",
+      className: "mrep-status-lavender"
+    };
+  }
+  
+  if (item.status === "COMPLETED_AS_NOT_HAPPENED") {
+    return { text: "Не состоялась", className: "" };
+  }
+
+  const statusMap = {
+    OK: "mrep-status-green",
+    WITH_ISSUES: "mrep-status-yellow",
+    MANY_ISSUES: "mrep-status-red"
+  };
+
+  return {
+    text: COMBINED_STATUS_OPTIONS[item.teamStatus]?.label || "—",
+    className: statusMap[item.teamStatus] || ""
+  };
+};
+
 export default function MeetingReportPage() {
   const { streamId } = useParams();
   const navigate = useNavigate();
@@ -25,127 +50,105 @@ export default function MeetingReportPage() {
 
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [userRole, setUserRole] = useState("");
+  const [availableData, setAvailableData] = useState({ trackers: [], teams: [] });
+  const [openMenu, setOpenMenu] = useState({ tracker: false, team: false, status: false });
+  const [filters, setFilters] = useState({ tracker: null, team: null, status: null });
+  const [sortConfig, setSortConfig] = useState({ 
+    teamNameDir: "asc", 
+    secondary: { field: "startDate", direction: "desc" } 
+  });
 
-  const [availableTrackers, setAvailableTrackers] = useState([]);
-  const [availableTeams, setAvailableTeams] = useState([]);
+  const user = useGetUserInfo();
+  const userRole = user?.roles?.[0] || "";
 
-  const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
-  const [teamFilterOpen, setTeamFilterOpen] = useState(false);
-  const [statusFilterOpen, setStatusFilterOpen] = useState(false);
+  const updateFilter = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setOpenMenu({ tracker: false, team: false, status: false });
+  };
 
-  const [filterTracker, _setFilterTracker] = useState(null);
-  const [filterTeam, _setFilterTeam] = useState(null);
-  const [filterStatus, _setFilterStatus] = useState(null);
-
-  const [teamNameDir, setTeamNameDir] = useState("asc");
-  const [secondarySort, setSecondarySort] = useState({ field: "startDate", direction: "desc" });
-
-  const setFilterTracker = (v) => { _setFilterTracker(v); setTrackerFilterOpen(false); };
-  const setFilterTeam = (v) => { _setFilterTeam(v); setTeamFilterOpen(false); };
-  const setFilterStatus = (v) => { _setFilterStatus(v); setStatusFilterOpen(false); };
+  const toggleMenu = (key) => {
+    setOpenMenu(prev => ({ tracker: false, team: false, status: false, [key]: !prev[key] }));
+  };
 
   const requestSort = (field) => {
     if (field === "teamName") {
-      setTeamNameDir(prev => prev === "asc" ? "desc" : "asc");
+      setSortConfig(prev => ({ ...prev, teamNameDir: prev.teamNameDir === "asc" ? "desc" : "asc" }));
     } else {
-      setSecondarySort(prev => ({
-        field: field,
-        direction: prev.field === field && prev.direction === "asc" ? "desc" : "asc"
+      setSortConfig(prev => ({
+        ...prev,
+        secondary: { field, direction: prev.secondary.field === field && prev.secondary.direction === "asc" ? "desc" : "asc" }
       }));
     }
   };
 
-  const getEffectiveSortParams = useCallback(() => {
-    const params = [`teamName,${teamNameDir}`];
-    if (secondarySort.field) {
-      params.push(`${secondarySort.field},${secondarySort.direction}`);
+  const effectiveSortParams = useMemo(() => {
+    const params = [`teamName,${sortConfig.teamNameDir}`];
+    if (sortConfig.secondary.field) {
+      params.push(`${sortConfig.secondary.field},${sortConfig.secondary.direction}`);
     }
     return params;
-  }, [teamNameDir, secondarySort]);
+  }, [sortConfig]);
 
-  const buildFilters = useCallback(() => {
-    const filters = [];
-    if (filterTracker) {
-      filters.push({ fieldName: "trackerFullName", type: "EQ", value: filterTracker.fullName });
-    }
-    if (filterTeam) {
-      filters.push({ fieldName: "teamName", type: "EQ", value: filterTeam });
-    }
-    if (filterStatus) {
-      const config = COMBINED_STATUS_OPTIONS[filterStatus];
+  const apiFilters = useMemo(() => {
+    const result = [];
+    if (filters.tracker) result.push({ fieldName: "trackerFullName", type: "EQ", value: filters.tracker.fullName });
+    if (filters.team) result.push({ fieldName: "teamName", type: "EQ", value: filters.team });
+    if (filters.status) {
+      const config = COMBINED_STATUS_OPTIONS[filters.status];
       if (config.isTeamStatus) {
-        filters.push({ fieldName: "teamStatus", type: "EQ", value: filterStatus });
-        filters.push({ fieldName: "status", type: "EQ", value: "COMPLETED" });
+        result.push(
+          { fieldName: "teamStatus", type: "EQ", value: filters.status },
+          { fieldName: "status", type: "EQ", value: "COMPLETED" }
+        );
       } else {
-        filters.push({ fieldName: "status", type: "EQ", value: filterStatus });
+        result.push({ fieldName: "status", type: "EQ", value: filters.status });
       }
     }
-    return filters;
-  }, [filterTracker, filterTeam, filterStatus]);
+    return result;
+  }, [filters]);
 
-  const loadReports = useCallback(async (isInitialLoad = false) => {
+  const loadReports = useCallback(async (isInitial = false) => {
     try {
       const response = await fetchMeetingReport({
-        streamId,
-        filters: buildFilters(),
-        page: 0,
-        size: 10000,
-        sort: getEffectiveSortParams(),
+        streamId, filters: apiFilters, page: 0, size: 10000, sort: effectiveSortParams,
       });
       if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
       const data = await response.json();
       setReports(data.content);
 
-      if (isInitialLoad) {
+      if (isInitial) {
         const trackersMap = new Map();
         data.content.forEach(item => {
-          const username = item.trackerName; 
-          if (username) {
-            if (!trackersMap.has(username)) {
-              trackersMap.set(username, {
-                fullName: item.trackerFullName || username,
-                username: username
-              });
-            }
+          if (item.trackerName && !trackersMap.has(item.trackerName)) {
+            trackersMap.set(item.trackerName, {
+              fullName: item.trackerFullName || item.trackerName,
+              username: item.trackerName
+            });
           }
         });
-        const sortedTrackers = Array.from(trackersMap.values()).sort((a, b) => a.fullName.localeCompare(b.fullName));
-        const teams = [...new Set(data.content.map(i => i.teamName))]
-          .filter(Boolean)
-          .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-        setAvailableTrackers(sortedTrackers);
-        setAvailableTeams(teams);
+        setAvailableData({
+          trackers: Array.from(trackersMap.values()).sort((a, b) => a.fullName.localeCompare(b.fullName)),
+          teams: [...new Set(data.content.map(i => i.teamName))]
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, 'ru', { numeric: true }))
+        });
       }
     } catch (error) {
       console.error(error);
     }
-  }, [streamId, buildFilters, getEffectiveSortParams]);
+  }, [streamId, apiFilters, effectiveSortParams]);
 
   useEffect(() => {
-    if (isFirstRun.current) {
-      setLoading(true);
-      loadReports(true).finally(() => {
-        setLoading(false);
-        isFirstRun.current = false;
-      });
-    } else {
-      loadReports(false);
-    }
+    setLoading(true);
+    loadReports(isFirstRun.current).finally(() => {
+      setLoading(false);
+      isFirstRun.current = false;
+    });
   }, [loadReports]);
-
-  const user = useGetUserInfo();
-  useEffect(() => {
-    if (user && user.roles) setUserRole(user.roles[0]);
-  }, [user]);
 
   const handleExportExcel = async () => {
     try {
-      const response = await fetchMeetingReportExcel({ 
-        streamId, 
-        filters: buildFilters(),
-        sort: getEffectiveSortParams() 
-      });
+      const response = await fetchMeetingReportExcel({ streamId, filters: apiFilters, sort: effectiveSortParams });
       if (!response.ok) throw new Error(`Ошибка HTTP: ${response.status}`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -159,124 +162,110 @@ export default function MeetingReportPage() {
     }
   };
 
+  const renderTableContent = () => {
+    if (loading) return <tr><td colSpan="7">Загрузка...</td></tr>;
+    if (reports.length === 0) return <tr><td colSpan="7">Нет данных</td></tr>;
+
+    return reports.map((item, index) => {
+      const isNotHappened = item.status === "COMPLETED_AS_NOT_HAPPENED";
+      const isFirstInGroup = index === 0 || reports[index - 1].teamName !== item.teamName;
+      const isLastInGroup = index === reports.length - 1 || reports[index + 1].teamName !== item.teamName;
+      
+      const rowClass = `${isNotHappened ? "mrep-row-not-happened" : ""} ${isFirstInGroup ? "mrep-group-start" : ""} ${isLastInGroup ? "mrep-group-end" : ""}`;
+      const { text: displayStatus, className: statusCellClass } = getStatusInfo(item);
+      const showTasks = item.status === "COMPLETED";
+
+      return (
+        <tr key={`${item.teamName}-${item.startDate}`} className={rowClass}>
+          <td className="mrep-cell-left">{index + 1}</td>
+          <td className="mrep-truncate" title={item.teamName}>{item.teamName}</td>
+          <td>{item.startDate ? new Date(item.startDate).toLocaleDateString("ru-RU") : "—"}</td>
+          <td>{item.trackerFullName || item.trackerName || "—"}</td>
+          <td className="mrep-text-wrap">{showTasks ? item.tasksNextMeeting || "—" : "—"}</td>
+          <td className="mrep-text-wrap">{showTasks ? item.tasksCurrentMeeting || "—" : "—"}</td>
+          <td className={`${statusCellClass} mrep-cell-right`}>{displayStatus}</td>
+        </tr>
+      );
+    });
+  };
+
   return (
     <div className="mrep-page">
       <Header userRole={userRole} />
       <main className="mrep-main">
         <div className="mrep-header">
           <button className="mrep-btn-back" onClick={() => navigate(-1)}>← Назад</button>
+          
           <div className="mrep-filters-container">
-            <div className="mrep-dropdown">
-              <button className={`mrep-dropdown-btn ${teamFilterOpen ? "open" : ""}`} onClick={() => { setTeamFilterOpen(!teamFilterOpen); setTrackerFilterOpen(false); setStatusFilterOpen(false); }}>
-                {filterTeam || "Команда"}
-                <img src={teamFilterOpen ? IconClose : IconOpen} alt="" className="mrep-dropdown-arrow" />
-              </button>
-              {teamFilterOpen && (
-                <div className="mrep-dropdown-menu">
-                  <button className="mrep-dropdown-item" onClick={() => setFilterTeam(null)}>— Все —</button>
-                  {availableTeams.map((name, i) => (
-                    <button key={i} className="mrep-dropdown-item mrep-truncate" title={name} onClick={() => setFilterTeam(name)}>{name}</button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="mrep-dropdown">
-              <button className={`mrep-dropdown-btn ${trackerFilterOpen ? "open" : ""}`} onClick={() => { setTrackerFilterOpen(!trackerFilterOpen); setTeamFilterOpen(false); setStatusFilterOpen(false); }}>
-                {filterTracker ? filterTracker.fullName : "Трекеры"}
-                <img src={trackerFilterOpen ? IconClose : IconOpen} alt="" className="mrep-dropdown-arrow" />
-              </button>
-              {trackerFilterOpen && (
-                <div className="mrep-dropdown-menu">
-                  <button className="mrep-dropdown-item" onClick={() => setFilterTracker(null)}>— Все —</button>
-                  {availableTrackers.map((t, i) => (
-                    <button key={i} className="mrep-dropdown-item" onClick={() => setFilterTracker(t)}>
-                      {`${t.fullName} (@${t.username})`}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="mrep-dropdown">
-              <button className={`mrep-dropdown-btn ${statusFilterOpen ? "open" : ""}`} onClick={() => { setStatusFilterOpen(!statusFilterOpen); setTeamFilterOpen(false); setTrackerFilterOpen(false); }}>
-                {filterStatus ? COMBINED_STATUS_OPTIONS[filterStatus].label : "Статус"}
-                <img src={statusFilterOpen ? IconClose : IconOpen} alt="" className="mrep-dropdown-arrow" />
-              </button>
-              {statusFilterOpen && (
-                <div className="mrep-dropdown-menu">
-                  <button className="mrep-dropdown-item" onClick={() => setFilterStatus(null)}>— Все —</button>
-                  {Object.entries(COMBINED_STATUS_OPTIONS).map(([key, opt]) => (
-                    <button key={key} className="mrep-dropdown-item" onClick={() => setFilterStatus(key)}>{opt.label}</button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Dropdown label={filters.team || "Команда"} isOpen={openMenu.team} onToggle={() => toggleMenu('team')}>
+              <button className="mrep-dropdown-item" onClick={() => updateFilter('team', null)}>— Все —</button>
+              {availableData.teams.map(name => (
+                <button key={name} className="mrep-dropdown-item mrep-truncate" title={name} onClick={() => updateFilter('team', name)}>{name}</button>
+              ))}
+            </Dropdown>
+
+            <Dropdown label={filters.tracker?.fullName || "Трекеры"} isOpen={openMenu.tracker} onToggle={() => toggleMenu('tracker')}>
+              <button className="mrep-dropdown-item" onClick={() => updateFilter('tracker', null)}>— Все —</button>
+              {availableData.trackers.map(t => (
+                <button key={t.username} className="mrep-dropdown-item" onClick={() => updateFilter('tracker', t)}>{`${t.fullName} (@${t.username})`}</button>
+              ))}
+            </Dropdown>
+
+            <Dropdown label={filters.status ? COMBINED_STATUS_OPTIONS[filters.status].label : "Статус"} isOpen={openMenu.status} onToggle={() => toggleMenu('status')}>
+              <button className="mrep-dropdown-item" onClick={() => updateFilter('status', null)}>— Все —</button>
+              {Object.entries(COMBINED_STATUS_OPTIONS).map(([key, opt]) => (
+                <button key={key} className="mrep-dropdown-item" onClick={() => updateFilter('status', key)}>{opt.label}</button>
+              ))}
+            </Dropdown>
           </div>
+
           <button className="mrep-btn-export" onClick={handleExportExcel}>Выгрузить отчет</button>
         </div>
+
         <div className="mrep-table-container">
           <table className="mrep-table">
             <thead>
               <tr>
                 <th>№</th>
-                <th onClick={() => requestSort("teamName")} className="mrep-th-sortable">
-                  Название команды <span className="mrep-icon-active">{teamNameDir === "asc" ? "А→Я" : "Я→А"}</span>  
-                </th>
-                <th onClick={() => requestSort("startDate")} className="mrep-th-sortable">
-                  Дата встречи {secondarySort.field === "startDate" ? <span className="mrep-icon-active">{secondarySort.direction === "asc" ? "↑" : "↓"}</span> : <span className="mrep-icon-inactive">↕</span>}
-                </th>
+                <SortableHeader title="Название команды" dir={sortConfig.teamNameDir} onSort={() => requestSort("teamName")} />
+                <SortableHeader title="Дата встречи" currentSort={sortConfig.secondary} field="startDate" onSort={() => requestSort("startDate")} />
                 <th>Трекер</th>
                 <th>Задачи к следующей встрече</th>
                 <th>Выполнение задач / инфо по команде</th>
-                <th onClick={() => requestSort("teamStatusValue")} className="mrep-th-sortable">
-                  Статус команды {secondarySort.field === "teamStatusValue" ? <span className="mrep-icon-active">{secondarySort.direction === "asc" ? "↑" : "↓"}</span> : <span className="mrep-icon-inactive">↕</span>}
-                </th>
+                <SortableHeader title="Статус команды" currentSort={sortConfig.secondary} field="teamStatusValue" onSort={() => requestSort("teamStatusValue")} />
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr><td colSpan="7">Загрузка...</td></tr>
-              ) : reports.length === 0 ? (
-                <tr><td colSpan="7">Нет данных</td></tr>
-              ) : (
-                reports.map((item, index) => {
-                  const isScheduled = item.status === "SCHEDULED";
-                  const isNotHappened = item.status === "COMPLETED_AS_NOT_HAPPENED";
-                  const isFirstInGroup = index === 0 || reports[index - 1].teamName !== item.teamName;
-                  const isLastInGroup = index === reports.length - 1 || reports[index + 1].teamName !== item.teamName;
-                  let rowClass = isNotHappened ? "mrep-row-not-happened" : "";
-                  if (isFirstInGroup) rowClass += " mrep-group-start";
-                  if (isLastInGroup) rowClass += " mrep-group-end";
-                  let displayStatus = "—";
-                  let statusCellClass = ""; 
-                  if (isScheduled) {
-                    const teamStatusLabel = item.teamStatus ? COMBINED_STATUS_OPTIONS[item.teamStatus]?.label : null;
-                    displayStatus = teamStatusLabel ? `Запланирована (${teamStatusLabel})` : "Запланирована";
-                    statusCellClass = "mrep-status-lavender"; 
-                  } else if (isNotHappened) {
-                    displayStatus = "Не состоялась";
-                  } else if (item.teamStatus) {
-                    displayStatus = COMBINED_STATUS_OPTIONS[item.teamStatus]?.label || "—";
-                    if (item.teamStatus === "OK") statusCellClass = "mrep-status-green";
-                    if (item.teamStatus === "WITH_ISSUES") statusCellClass = "mrep-status-yellow";
-                    if (item.teamStatus === "MANY_ISSUES") statusCellClass = "mrep-status-red";
-                  }
-                  return (
-                    <tr key={index} className={rowClass}>
-                      <td className="mrep-cell-left">{index + 1}</td>
-                      <td className="mrep-truncate" title={item.teamName}>{item.teamName}</td>
-                      <td>{item.startDate ? new Date(item.startDate).toLocaleDateString("ru-RU") : "—"}</td>
-                      <td>{item.trackerFullName || item.trackerName || "—"}</td>
-                      <td className="mrep-text-wrap">{isScheduled || isNotHappened ? "—" : item.tasksNextMeeting || "—"}</td>
-                      <td className="mrep-text-wrap">{isScheduled || isNotHappened ? "—" : item.tasksCurrentMeeting || "—"}</td>
-                      <td className={`${statusCellClass} mrep-cell-right`}>{displayStatus}</td>
-                    </tr>
-                  );
-                })
-              )}
+              {renderTableContent()}
             </tbody>
           </table>
         </div>
       </main>
     </div>
+  );
+}
+
+function Dropdown({ label, isOpen, onToggle, children }) {
+  return (
+    <div className="mrep-dropdown">
+      <button className={`mrep-dropdown-btn ${isOpen ? "open" : ""}`} onClick={onToggle}>
+        {label}
+        <img src={isOpen ? IconClose : IconOpen} alt="" className="mrep-dropdown-arrow" />
+      </button>
+      {isOpen && <div className="mrep-dropdown-menu">{children}</div>}
+    </div>
+  );
+}
+
+function SortableHeader({ title, dir, currentSort, field, onSort }) {
+  const isActive = currentSort ? currentSort.field === field : true;
+  const icon = currentSort 
+    ? (currentSort.direction === "asc" ? "↑" : "↓") 
+    : (dir === "asc" ? "А→Я" : "Я→А");
+
+  return (
+    <th onClick={onSort} className="mrep-th-sortable">
+      {title} <span className={isActive ? "mrep-icon-active" : "mrep-icon-inactive"}>{isActive ? icon : "↕"}</span>
+    </th>
   );
 }
