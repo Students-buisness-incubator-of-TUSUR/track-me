@@ -1,6 +1,6 @@
-package net.trackme.backend.services.teamcard;
+package net.trackme.backend.messaging;
 
-import net.trackme.backend.messaging.*;
+import net.trackme.backend.services.teamcard.TeamCardEventsProducer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
