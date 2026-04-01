@@ -279,6 +279,17 @@
   padding: 12px 8px;
 }
 
+.report-search-input {
+  cursor: text;
+  background-color: var(--color-very-light-gray) !important;
+  border: 1px solid #ccc;
+  border-radius: 8px !important;
+}
+
+.report-search-input::placeholder {
+  color: var(--color-black);
+}
+
 /* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (ReportPage) ===== */
 @media (max-width: 600px) {
   .Report {

@@ -26,8 +26,10 @@ const [userRole, setUserRole] = useState('');
   const [streamFilterOpen, setStreamFilterOpen] = useState(false);
   const [filterTrackers, _setFilterTrackers] = useState(null);
   const [filterStreams, _setFilterStreams] = useState(null);
+  const [trackerSearchQuery, setTrackerSearchQuery] = useState('');
   const setFilterTrackers = (newTracker) => {
     _setFilterTrackers(newTracker);
+    setTrackerSearchQuery("");
     setTrackerFilterOpen(false);
   }
   const setFilterStreams = (newStreams) => {
@@ -191,12 +193,25 @@ const [userRole, setUserRole] = useState('');
   </button>
   {trackerFilterOpen && (
     <div data-testid="trackers-dropdown-menu" className="report-dropdown-menu">
+                  <input
+                    type="text"
+                    placeholder="Поиск по имени или логину..."
+                    className="report-dropdown-item report-search-input"
+                    value={trackerSearchQuery}
+                    onChange={(e) => setTrackerSearchQuery(e.target.value)}
+                  />
       <button
         key={0}
         className="report-dropdown-item"
         onClick={() => setFilterTrackers(null)}
       >—</button>
-      {trackers.filter((tracker) => reportUsernames.includes(tracker.username)).map((t, i) => (
+      {trackers.filter((tracker) => {
+                    const query = trackerSearchQuery.toLowerCase();
+                    return reportUsernames.includes(tracker.username) && (
+                      tracker.fullName.toLowerCase().includes(query) ||
+                      tracker.username.toLowerCase().includes(query)
+                    );
+                  }).map((t, i) => (
         <button
           key={i}
           className="report-dropdown-item"
