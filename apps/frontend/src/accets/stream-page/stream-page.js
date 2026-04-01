@@ -19,7 +19,6 @@ export default function Stream() {
     const [checkboxesData2, setCheckboxesData2] = useState([]);
     const [data, setData] = useState({content: [], page: {}});
     // eslint-disable-next-line
-    const [fdata, setfData] = useState({fieldName: " ", type: " ", value: " "});
     const [checkedYears, setCheckedYears] = useState({});
     const [checkedMarkets, setCheckedMarkets] = useState({});
     const [checkedTRLs, setCheckedTRLs] = useState({});
@@ -59,31 +58,6 @@ const [userRole, setUserRole] = useState('');
             setLoading(false);
         }
     }, [backendHost, page]);
-
-    useEffect(() => {
-        const newFilters = {
-            filters: [
-                
-                ...Array.from(selectedYears).map(year => ({
-                    fieldName: "year",
-                    type: 'EQ',
-                    value: year,
-                })),
-                ...Array.from(selectedMarkets).map(market => ({
-                    fieldName: "ntiMarkets.name",
-                    type: "EQ",
-                    value: market,
-                })),
-                ...Array.from(selectedTRLs).map(trl => ({
-                    fieldName: "teamCards.readinessLevel",
-                    type: "EQ",
-                    value: trl,
-                })),
-            ],
-        };
-        fetchData(newFilters);
-        // eslint-disable-next-line
-    }, [fetchData]);
 
     const cardd = data.content.map((item, index) => ({
         id: item.id,
@@ -220,7 +194,6 @@ const [userRole, setUserRole] = useState('');
     const handleSearch = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
-        setfData({fieldName: "name", type: "LIKE", value: query});
     };
 
     const handleYearCheckboxChange = (id, label) => {
@@ -273,30 +246,50 @@ const [userRole, setUserRole] = useState('');
 
     const handleApplyFilters = () => {
         setpage(0);
-        const newFilters = {
-            filters: [
-                
-                ...Array.from(selectedYears).map(year => ({
-                    fieldName: "year",
-                    type: 'EQ',
-                    value: year,
-                })),
-                ...Array.from(selectedMarkets).map(market => ({
-                    fieldName: "ntiMarkets.name",
-                    type: "EQ",
-                    value: market,
-                })),
-                ...Array.from(selectedTRLs).map(trl => ({
-                    fieldName: "teamCards.readinessLevel",
-                    type: "EQ",
-                    value: trl,
-                })),
-            ],
-        };
+        const newFilters = [];
 
-        setFilters(newFilters); // Обновляем состояние фильтров
-        fetchData(newFilters); // Выполняем запрос с новыми фильтрами
+        if (searchQuery?.length > 0) {
+            newFilters.push({
+                fieldName: "name",
+                type: "LIKE",
+                value: searchQuery,
+            });
+        }
+        if (selectedTRLs.size > 0) {
+            newFilters.push({
+                fieldName: "teamCards.readinessLevel",
+                type: "IN",
+                values: Array.from(selectedTRLs),
+            });
+        }
+        if (selectedMarkets.size > 0) {
+            newFilters.push({
+                fieldName: "ntiMarkets.name",
+                type: "IN",
+                values: Array.from(selectedMarkets),
+            });
+        }
+        if (selectedYears.size > 0) {
+            newFilters.push({
+                fieldName: "year", // имя поля уточни при необходимости
+                type: "EQ",
+                values: Array.from(selectedYears),
+            });
+        }
+
+        setFilters({
+            filters: newFilters,
+        }); // Обновляем состояние фильтров
+        fetchData({
+            filters: newFilters,
+        }); // Выполняем запрос с новыми фильтрами
     };
+
+    useEffect(() => {
+        handleApplyFilters()
+        // eslint-disable-next-line
+    }, [fetchData]);
+
 
     const visibleCards = cardd.slice(visibleCardsStart, visibleCardsStart + 6);
 
@@ -349,6 +342,10 @@ const [userRole, setUserRole] = useState('');
                             type="search"
                             placeholder="Найти"
                             onChange={handleSearch}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter")
+                                    handleApplyFilters();
+                            }}
                             value={searchQuery}
                             className="Stream-search"
                         />
@@ -417,11 +414,11 @@ const [userRole, setUserRole] = useState('');
                                                         id={checkbox.id}
                                                         className="custom-checkbox"
                                                         checked={!!checkedMarkets[checkbox.id]}
-                                                        onChange={() => handleMarketCheckboxChange(checkbox.id, checkbox.description)}
+                                                        onChange={() => handleMarketCheckboxChange(checkbox.id, checkbox.name)}
                                                     />
                                                     <label
                                                         className='Stream-header-checkbox-label'
-                                                        htmlFor={checkbox.id}>{checkbox.name}</label>
+                                                        htmlFor={checkbox.id}>{checkbox.displayName}</label>
                                                 </div>
                                             ))}
                                         </div>

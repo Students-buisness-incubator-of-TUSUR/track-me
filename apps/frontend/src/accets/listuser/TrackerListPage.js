@@ -269,7 +269,7 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "cancel" && (
-                      <span className="tooltip tooltip-red">Удалить</span>
+                      <span className="tooltip tooltip-red">Отключить</span>
                     )}
 
                     {/* Удалить */}
@@ -277,7 +277,7 @@ function TrackerListPage({ endpoint }) {
                       className="cancel-button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!window.confirm("Вы точно хотите удалить этого пользователя?")) {
+                        if (!window.confirm("Вы точно хотите отключить этого пользователя?")) {
                           return;
                         }
                         deleteUser(tracker.username);
@@ -314,7 +314,7 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "cancel" && (
-                      <span className="tooltip tooltip-red">Удалить</span>
+                      <span className="tooltip tooltip-red">{showLockedOnly ? "Удалить" : "Заблокировать"}</span>
                     )}
 
                     {/* Отклонить */}
@@ -322,7 +322,7 @@ function TrackerListPage({ endpoint }) {
                       className="cancel-button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!window.confirm("Вы точно хотите удалить этого пользователя?")) {
+                        if (!window.confirm(`Вы точно хотите ${showLockedOnly ? "удалить" : "заблокировать"} этого пользователя?`)) {
                           return;
                         }
                         deleteUser(tracker.username);
@@ -337,7 +337,7 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "confirm" && (
-                      <span className="tooltip tooltip-green">Разблокировать</span>
+                      <span className="tooltip tooltip-green">{showLockedOnly ? "Разблокировать" : "Принять"}</span>
                     )}
                   </>
                 )}
