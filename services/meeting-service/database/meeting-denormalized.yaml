@@ -20,12 +20,12 @@
                   name: team_status_value
                   type: decimal(3, 2)
                   defaultValueNumeric: 0
-                  remarks: "Вес статуса (1.0, 0.5, 0.25, 0.0) для сортировки рейтинга"
+                  remarks: "Вес статуса (1.0, 0.5, 0.25, 0.0, -1.0) для сортировки рейтинга"
         - sql:
             sql: |
               UPDATE meeting
               SET team_status_value = CASE 
-                  WHEN status = 'COMPLETED_AS_NOT_HAPPENED' THEN 0.0
+                  WHEN status = 'COMPLETED_AS_NOT_HAPPENED' THEN -1.0 
                   WHEN team_status = 'OK' THEN 1.0
                   WHEN team_status = 'WITH_ISSUES' THEN 0.5
                   WHEN team_status = 'MANY_ISSUES' THEN 0.25

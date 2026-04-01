@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Сервис для восстановления и аудита денормализованных данных во встречах.
  * <p>
- * <b>ВНИМАНИЕ:</b> Данный класс является временным костылем")для обеспечения
+ * <b>ВНИМАНИЕ:</b> Данный класс является временным костылем для обеспечения
  * консистентности данных между микросервисами (Backend, SSO и Meeting Service) в условиях отсутствия
  * гарантированной доставки событий об изменении сущностей.
  * </p>
@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Profile("!test")
 public class MeetingDataBackfiller {
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final BackendApiClient backendApiClient;
     private final SsoApiClient ssoApiClient;
     private final MeetingMetadataRepository metadataRepository;
@@ -52,21 +51,20 @@ public class MeetingDataBackfiller {
         this.backendApiClient = backendApiClient;
         this.ssoApiClient = ssoApiClient;
     }
-    public boolean isAlreadyStarted() {
-        return isStarted.get();
-    }
 
     @Async
     @Transactional
-    public void run(String token) {
-        if (!isStarted.compareAndSet(false, true)) {
+    public void run(String token, AtomicBoolean completionFlag) {
+        if (!completionFlag.compareAndSet(false, true)) {
             return;
         }
 
-        setupSystemSecurityContext(token);
-        log.info("[BACKFILL] Starting global meeting data synchronization in BACKGROUND.");
+        var originalContext = SecurityContextHolder.getContext();
 
         try {
+            setupSystemSecurityContext(token);
+            log.info("[BACKFILL] Starting global meeting data synchronization in BACKGROUND.");
+
             Map<String, UserDto> trackerMap = ssoApiClient.getTrackers().stream()
                     .collect(Collectors.toMap(UserDto::getUsername, u -> u, (a, b) -> a));
 
@@ -75,10 +73,10 @@ public class MeetingDataBackfiller {
 
         } catch (Exception e) {
             log.error("[BACKFILL] Critical error, resetting flag for retry", e);
-            isStarted.set(false);
+            completionFlag.set(false);
             throw e;
         } finally {
-            SecurityContextHolder.clearContext();
+            SecurityContextHolder.setContext(originalContext);
             log.info("[BACKFILL] Global synchronization process finished.");
         }
     }

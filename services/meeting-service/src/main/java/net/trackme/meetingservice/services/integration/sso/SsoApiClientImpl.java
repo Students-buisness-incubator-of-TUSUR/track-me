@@ -2,7 +2,6 @@ package net.trackme.meetingservice.services.integration.sso;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import net.trackme.meetingservice.services.integration.SecurityPropagationInterceptor;
 import net.trackme.meetingservice.services.integration.exceptions.IntegrationException;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
 import org.springframework.beans.factory.annotation.Qualifier;

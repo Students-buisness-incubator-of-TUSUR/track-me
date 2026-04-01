@@ -1,4 +1,5 @@
 package net.trackme.meetingservice.dao;
+
 import net.trackme.meetingservice.entities.Meeting;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -23,13 +24,16 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
      */
     @Query("""
         SELECT DISTINCT m.teamCardId FROM Meeting m
-        WHERE m.teamName IS NULL
-           OR m.trackerUsername IS NULL
-           OR m.trackerId IS NULL
-           OR m.trackerFullName IS NULL
-           OR m.teamStatusValue IS NULL
-           OR m.streamIds IS EMPTY
-    """)
+        WHERE m.teamCardId IS NOT NULL\s
+          AND (
+               m.teamName IS NULL
+            OR m.trackerUsername IS NULL
+            OR m.trackerId IS NULL
+            OR m.trackerFullName IS NULL
+            OR m.teamStatusValue IS NULL
+            OR m.streamIds IS EMPTY
+          )
+   \s""")
     List<UUID> findTeamIdsWithIncompleteMetadata();
 
     /**
@@ -41,12 +45,14 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
     @Query("""
         SELECT m FROM Meeting m
         WHERE m.teamCardId = :teamId
-          AND (m.teamName IS NULL\s
-               OR m.trackerUsername IS NULL\s
-               OR m.trackerId IS NULL
-               OR m.trackerFullName IS NULL\s
-               OR m.teamStatusValue IS NULL
-               OR m.streamIds IS EMPTY)
+          AND (
+               m.teamName IS NULL\s
+            OR m.trackerUsername IS NULL\s
+            OR m.trackerId IS NULL
+            OR m.trackerFullName IS NULL\s
+            OR m.teamStatusValue IS NULL
+            OR m.streamIds IS EMPTY
+          )
    \s""")
     List<Meeting> findAllIncompleteByTeamCardId(@Param("teamId") UUID teamId);
 
@@ -56,7 +62,7 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
      *
      * @return список уникальных UUID всех команд.
      */
-    @Query("SELECT DISTINCT m.teamCardId FROM Meeting m")
+    @Query("SELECT DISTINCT m.teamCardId FROM Meeting m WHERE m.teamCardId IS NOT NULL")
     List<UUID> findAllUniqueTeamCardIds();
 
     /**
@@ -77,7 +83,7 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
      * @param newTrackerId новый внутренний идентификатор трекера.
      * @param newFullName  новое полное имя трекера.
      */
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("""
         UPDATE Meeting m
         SET m.teamName = COALESCE(:newName, m.teamName),
@@ -94,26 +100,26 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
             @Param("newFullName") String newFullName
     );
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = """
         INSERT INTO meeting_stream (meeting_id, stream_id)
         SELECT id, :streamId FROM meeting WHERE team_card_id = :teamId
         ON CONFLICT DO NOTHING
     """, nativeQuery = true)
-    void addStreamToTeamMeetings(UUID teamId, UUID streamId);
+    void addStreamToTeamMeetings(@Param("teamId") UUID teamId, @Param("streamId") UUID streamId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = """
         DELETE FROM meeting_stream 
         WHERE stream_id = :streamId 
         AND meeting_id IN (SELECT id FROM meeting WHERE team_card_id = :teamId)
     """, nativeQuery = true)
-    void removeStreamFromTeamMeetings(UUID teamId, UUID streamId);
+    void removeStreamFromTeamMeetings(@Param("teamId") UUID teamId, @Param("streamId") UUID streamId);
 
     /**
      * Массово обновляет ФИО трекера во всех встречах, где указан соответствующий username.
      */
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Meeting m SET m.trackerFullName = :fullName WHERE m.trackerUsername = :username")
     void updateTrackerFullNameByUsername(@Param("username") String username, @Param("fullName") String fullName);
 }

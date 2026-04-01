@@ -118,7 +118,7 @@ public class MeetingRestControllerImpl implements MeetingRestController {
                     outputStream
                 );
             } catch (Exception e) {
-                log.error("Error during Excel streaming", e);
+                log.error("Error during Excel streaming for streamId={}", streamId, e);
             }
         };
 

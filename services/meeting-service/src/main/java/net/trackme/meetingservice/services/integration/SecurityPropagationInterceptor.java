@@ -2,7 +2,7 @@ package net.trackme.meetingservice.services.integration;
 
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.services.MeetingDataBackfiller;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -16,16 +16,18 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Component
 public class SecurityPropagationInterceptor implements ClientHttpRequestInterceptor {
+    private final ObjectProvider<MeetingDataBackfiller> backfillerProvider;
+    private final AtomicBoolean backfillCompletedOrDisabled = new AtomicBoolean(false);
 
-    private final MeetingDataBackfiller backfiller;
     private static final Set<String> MIGRATION_ROLES = Set.of("ROLE_ADMIN", "ROLE_SUPER_ADMIN");
 
-    public SecurityPropagationInterceptor(@Lazy MeetingDataBackfiller backfiller) {
-        this.backfiller = backfiller;
+    public SecurityPropagationInterceptor(ObjectProvider<MeetingDataBackfiller> backfillerProvider) {
+        this.backfillerProvider = backfillerProvider;
     }
 
     @NonNull
@@ -42,20 +44,24 @@ public class SecurityPropagationInterceptor implements ClientHttpRequestIntercep
             var token = jwtAuth.getToken();
             var tokenValue = token.getTokenValue();
 
-            // TODO: выпилить этот костыль, если будет гарантия согласованности данных меж сервисами
-            if (!backfiller.isAlreadyStarted()) {
-                boolean canRunBackfill = jwtAuth.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .anyMatch(MIGRATION_ROLES::contains);
+            if (!backfillCompletedOrDisabled.get()) {
+                MeetingDataBackfiller bf = backfillerProvider.getIfAvailable();
 
-                if (canRunBackfill) {
-                    log.debug("[Backfill] Запуск фонового процесса для пользователя {} с ролями {}",
-                            token.getSubject(), jwtAuth.getAuthorities()
-                    );
-                    backfiller.run(tokenValue);
+                if (bf == null) {
+                    backfillCompletedOrDisabled.set(true);
+                } else {
+                    boolean canRunBackfill = jwtAuth.getAuthorities().stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .anyMatch(MIGRATION_ROLES::contains);
+
+                    if (canRunBackfill) {
+                        log.debug("[Backfill] Запуск фонового процесса для пользователя {} с ролями {}",
+                                token.getSubject(), jwtAuth.getAuthorities()
+                        );
+                        bf.run(tokenValue, backfillCompletedOrDisabled);
+                    }
                 }
             }
-            //
 
             request.getHeaders().setBearerAuth(tokenValue);
 

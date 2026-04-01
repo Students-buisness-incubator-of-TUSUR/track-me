@@ -65,9 +65,9 @@
             teamCard = teamCardsRepository.save(teamCard);
 
             eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
-                    teamCardId,
-                    teamCardDto.getName(),
-                    teamCardDto.getUsername()
+                teamCardId,
+                teamCard.getName(),
+                teamCard.getUsername()
             ));
 
             return teamCard;
@@ -126,8 +126,8 @@
             teamCard = teamCardsRepository.save(teamCard);
             eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
                 teamCardId,
-                teamCardDto.getName(),
-                username
+                teamCard.getName(),
+                teamCard.getUsername()
             ));
 
             return teamCard;

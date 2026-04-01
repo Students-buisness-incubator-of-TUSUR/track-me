@@ -10,7 +10,7 @@ import java.time.OffsetDateTime;
 @Builder
 @Schema(description = "Запись отчета о встречах")
 public record MeetingReportRecordDto(
-    @Schema(description = "Название команды, для которой бяыла встрча")
+    @Schema(description = "Название команды, для которой была встрча")
     String teamName,
 
     @Schema(description = "Дата начала встречи")

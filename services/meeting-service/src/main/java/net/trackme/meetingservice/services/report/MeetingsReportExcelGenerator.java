@@ -39,20 +39,19 @@ public class MeetingsReportExcelGenerator {
             workbook.setCompressTempFiles(true);
 
             var sheet = workbook.createSheet("Встречи");
-            sheet.setDefaultColumnWidth(22);
+
+            sheet.setColumnWidth(0, 25 * 256);
+            sheet.setColumnWidth(1, 15 * 256);
+            sheet.setColumnWidth(2, 25 * 256);
+            sheet.setColumnWidth(3, 40 * 256);
+            sheet.setColumnWidth(4, 40 * 256);
+            sheet.setColumnWidth(5, 20 * 256);
 
             var styles = new Styles(workbook);
             writeTitle(sheet, styles, streamName);
             writeHeaders(sheet, styles);
 
-            List<MeetingReportRecordDto> recordList = records.toList();
-            writeData(sheet, recordList, styles);
-
-            sheet.trackAllColumnsForAutoSizing();
-            for (int i = 0; i < HEADERS.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-
+            writeData(sheet, records, styles);
             workbook.write(outputStream);
         }
     }
@@ -76,16 +75,15 @@ public class MeetingsReportExcelGenerator {
         }
     }
 
-    private void writeData(Sheet sheet, List<MeetingReportRecordDto> records, Styles styles) {
-        int startRow = 2;
-        int currentRowNum = startRow;
-        String lastTeamName = null;
-        int groupStartRow = startRow;
+    private void writeData(Sheet sheet, Stream<MeetingReportRecordDto> records, Styles styles) {
+        final int[] rowTracker = {2};
+        final int[] groupStartRow = {2};
+        final String[] lastTeamName = {null};
 
         PropertyTemplate pt = new PropertyTemplate();
 
-        for (int i = 0; i < records.size(); i++) {
-            MeetingReportRecordDto record = records.get(i);
+        records.forEach(record -> {
+            int currentRowNum = rowTracker[0]++;
             var row = sheet.createRow(currentRowNum);
 
             MeetingStatus mStatus = record.status();
@@ -127,19 +125,19 @@ public class MeetingsReportExcelGenerator {
                 statusCell.setCellStyle(getStyleByTeamStatus(record.teamStatus(), styles));
             }
 
-            if (lastTeamName != null && !Objects.equals(lastTeamName, record.teamName())) {
-                applyGroupBorder(pt, groupStartRow, currentRowNum - 1);
-                groupStartRow = currentRowNum;
-            }
-            if (i == records.size() - 1) {
-                applyGroupBorder(pt, groupStartRow, currentRowNum);
+            // Логика группировки (границы)
+            if (lastTeamName[0] != null && !Objects.equals(lastTeamName[0], record.teamName())) {
+                applyGroupBorder(pt, groupStartRow[0], currentRowNum - 1);
+                groupStartRow[0] = currentRowNum;
             }
 
-            lastTeamName = record.teamName();
-            currentRowNum++;
+            lastTeamName[0] = record.teamName();
+        });
+
+        if (rowTracker[0] > 2) {
+            applyGroupBorder(pt, groupStartRow[0], rowTracker[0] - 1);
+            pt.applyBorders(sheet);
         }
-
-        pt.applyBorders(sheet);
     }
 
     private void applyGroupBorder(PropertyTemplate pt, int firstRow, int lastRow) {
