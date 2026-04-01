@@ -116,7 +116,7 @@ export default function MeetingReportPage() {
         setAvailableTeams(teams);
       }
     } catch (error) {
-      console.error("Ошибка загрузки", error);
+      console.error(error);
     }
   }, [streamId, buildFilters, getEffectiveSortParams]);
 
@@ -153,7 +153,7 @@ export default function MeetingReportPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Ошибка выгрузки отчёта", error);
+      console.error(error);
     }
   };
 
@@ -173,7 +173,7 @@ export default function MeetingReportPage() {
                 <div className="mrep-dropdown-menu">
                   <button className="mrep-dropdown-item" onClick={() => setFilterTeam(null)}>— Все —</button>
                   {availableTeams.map((name, i) => (
-                    <button key={i} className="mrep-dropdown-item" onClick={() => setFilterTeam(name)}>{name}</button>
+                    <button key={i} className="mrep-dropdown-item mrep-truncate" title={name} onClick={() => setFilterTeam(name)}>{name}</button>
                   ))}
                 </div>
               )}
@@ -187,7 +187,9 @@ export default function MeetingReportPage() {
                 <div className="mrep-dropdown-menu">
                   <button className="mrep-dropdown-item" onClick={() => setFilterTracker(null)}>— Все —</button>
                   {availableTrackers.map((t, i) => (
-                    <button key={i} className="mrep-dropdown-item" onClick={() => setFilterTracker(t)}>{`${t.fullName} (@${t.username})`}</button>
+                    <button key={i} className="mrep-dropdown-item" onClick={() => setFilterTracker(t)}>
+                      {`${t.fullName} (@${t.username})`}
+                    </button>
                   ))}
                 </div>
               )}
@@ -215,7 +217,7 @@ export default function MeetingReportPage() {
               <tr>
                 <th>№</th>
                 <th onClick={() => requestSort("teamName")} className="mrep-th-sortable">
-                  Название команды <span className="mrep-icon-active">{teamNameDir === "asc" ? "↑" : "↓"}</span>
+                  Название команды <span className="mrep-icon-active">{teamNameDir === "asc" ? "А→Я" : "Я→А"}</span>  
                 </th>
                 <th onClick={() => requestSort("startDate")} className="mrep-th-sortable">
                   Дата встречи {secondarySort.field === "startDate" ? <span className="mrep-icon-active">{secondarySort.direction === "asc" ? "↑" : "↓"}</span> : <span className="mrep-icon-inactive">↕</span>}
@@ -259,7 +261,7 @@ export default function MeetingReportPage() {
                   return (
                     <tr key={index} className={rowClass}>
                       <td className="mrep-cell-left">{index + 1}</td>
-                      <td>{item.teamName}</td>
+                      <td className="mrep-truncate" title={item.teamName}>{item.teamName}</td>
                       <td>{item.startDate ? new Date(item.startDate).toLocaleDateString("ru-RU") : "—"}</td>
                       <td>{item.trackerFullName || item.trackerName || "—"}</td>
                       <td className="mrep-text-wrap">{isScheduled || isNotHappened ? "—" : item.tasksNextMeeting || "—"}</td>

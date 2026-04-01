@@ -38,19 +38,16 @@
   display: flex;
   flex-direction: column;
   min-width: 180px; 
-  border-radius: 29px;
-  border: 2px solid #44069A;
-  background-color: white;
   cursor: pointer;
   z-index: 10;
 }
 
 .mrep-dropdown-btn {
   padding: 13px 18px;
-  border: none;
-  background: transparent;
+  border: 2px solid #44069A;
+  background-color: white;
   color: #843AEB;
-  border-radius: 31px;
+  border-radius: 29px;
   font-weight: 700;
   font-size: 20px;
   cursor: pointer;
@@ -59,6 +56,10 @@
   align-items: center;
   width: 100%;
   box-sizing: border-box;
+}
+
+.mrep-dropdown-btn.open {
+  border-radius: 29px 29px 0 0;
 }
 
 .mrep-dropdown-btn:hover {
@@ -74,9 +75,9 @@
 
 .mrep-dropdown-menu {
   position: absolute;
-  top: 100%;
-  left: -2px;
-  width: calc(100% + 4px);
+  top: calc(100% - 2px);
+  left: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   background-color: white;
@@ -85,6 +86,7 @@
   border-radius: 0 0 29px 29px;
   max-height: 300px;
   overflow-y: auto;
+  overflow-x: hidden;
   box-sizing: border-box;
   z-index: 20;
 }
@@ -98,6 +100,16 @@
   color: black;
   cursor: pointer;
   text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.mrep-dropdown-item.mrep-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mrep-dropdown-item:nth-child(odd) { background-color: #843AEB15; }
@@ -128,6 +140,13 @@
   background: #8338eb44;
   font-size: 17px;
   font-weight: 700;
+}
+
+td.mrep-truncate {
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mrep-th-sortable {
@@ -211,11 +230,25 @@
   .mrep-filters-container {
     flex-direction: column;
     width: 100%;
+    gap: 8px;
   }
   .mrep-dropdown {
-      width: 100%;
+    width: 100%;
+    position: static;
+  }
+  .mrep-dropdown-btn {
+    justify-content: center; 
+    text-align: center;
+  }
+  .mrep-dropdown-menu {
+    position: static; 
+    border-top: none;
+    margin-top: -2px;
+    border-radius: 0 0 29px 29px;
+    width: 100%;
+    left: 0;
   }
   .mrep-table-container {
-      padding: 20px 50px;
+    padding: 20px 50px;
   }
 }
