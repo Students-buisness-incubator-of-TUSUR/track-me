@@ -1,9 +1,6 @@
-package net.trackme.meetingservice.services.messaging;
+package net.trackme.meetingservice.messaging.own;
 
 import lombok.RequiredArgsConstructor;
-import net.trackme.meetingservice.events.MeetingCreatedEvent;
-import net.trackme.meetingservice.events.MeetingUpdatedEvent;
-import net.trackme.meetingservice.events.MeetingSummaryEvent;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.support.MessageBuilder;

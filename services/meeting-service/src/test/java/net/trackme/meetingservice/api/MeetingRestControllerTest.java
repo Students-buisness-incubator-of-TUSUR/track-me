@@ -9,6 +9,11 @@ import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.services.MeetingService;
+import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
+import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
+import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
+import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
+import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,8 +32,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -55,8 +63,26 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockitoBean(name = "userBackendApiClient")
+    private BackendApiClient userBackendApiClient;
+
+    @MockitoBean(name = "systemBackendApiClient")
+    private BackendApiClient systemBackendApiClient;
+
+    @MockitoBean
+    private SsoApiClient ssoApiClient;
+
     @MockitoBean
     private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @MockitoBean
+    private org.springframework.security.oauth2.client.registration.ClientRegistrationRepository clientRegistrationRepository;
+
+    @MockitoBean
+    private org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager authorizedClientManager;
+
+    @MockitoBean
+    private org.springframework.security.oauth2.jwt.JwtDecoder jwtDecoder;
 
     @BeforeEach
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
@@ -93,6 +119,23 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @Test
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
     void createMeeting_success() throws Exception {
+
+        var mockTeamCard = TeamCardDto.builder()
+                .id(TEAM_CARD_ID)
+                .name("Test Team")
+                .username("tracker_user")
+                .streams(List.of(new StreamDto(UUID.randomUUID())))
+                .meetingRoomLink("https://zoom.us/j/123")
+                .build();
+
+        var mockTracker = UserDto.builder()
+                .id(String.valueOf(UUID.randomUUID()))
+                .username("tracker_user")
+                .fullName("Иван Трекеров")
+                .build();
+
+        when(userBackendApiClient.getTeamCardById(TEAM_CARD_ID)).thenReturn(mockTeamCard);
+        when(ssoApiClient.getTrackers()).thenReturn(List.of(mockTracker));
 
         var meetingCreateDto = MeetingCreateDto.builder()
                 .recordLink("https://example.com/meeting")

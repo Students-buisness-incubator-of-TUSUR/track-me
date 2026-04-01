@@ -9,6 +9,7 @@ import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,7 +41,7 @@ public class MeetingDataBackfiller {
 
     public MeetingDataBackfiller(
             MeetingMetadataRepository metadataRepository,
-            @Lazy BackendApiClient backendApiClient,
+            @Lazy @Qualifier("userBackendApiClient") BackendApiClient backendApiClient,
             @Lazy SsoApiClient ssoApiClient
     ) {
         this.metadataRepository = metadataRepository;

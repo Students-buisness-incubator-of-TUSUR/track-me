@@ -87,11 +87,10 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
         var recordStream = IntStream.iterate(0, i -> i + 1)
                 .mapToObj(page -> {
                     Pageable pageable = PageRequest.of(page, fetchPageSize, effectiveSort);
-                    var idPage = meetingRepository.findAll(baseSpec, pageable);
 
+                    var idPage = meetingRepository.findAll(baseSpec, pageable);
                     if (idPage.isEmpty()) return List.<MeetingReportRecordDto>of();
 
-                    // Используем тот же метод для загрузки данных пачки
                     return fetchFullMeetingsAsDtos(idPage.getContent(), effectiveSort);
                 })
                 .takeWhile(batch -> !batch.isEmpty())

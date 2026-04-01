@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.services.integration.SecurityPropagationInterceptor;
 import net.trackme.meetingservice.services.integration.exceptions.IntegrationException;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,11 @@ public class SsoApiClientImpl implements SsoApiClient {
     private static final String SERVICE_NAME = "trackme-sso";
 
     public SsoApiClientImpl(
-            RestClient.Builder restClientBuilder,
-            SecurityPropagationInterceptor securityPropagationInterceptor,
+            @Qualifier("serviceRestClient") RestClient serviceRestClient,
             @Value("${SSO_INNER_URI:http://trackme-sso:9000}") String ssoUri) {
 
-        this.restClient = restClientBuilder
-                .requestInterceptor(securityPropagationInterceptor)
+        this.restClient = serviceRestClient
+                .mutate()
                 .baseUrl(ssoUri)
                 .build();
     }

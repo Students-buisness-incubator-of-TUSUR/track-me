@@ -1,4 +1,4 @@
-package net.trackme.meetingservice.events;
+package net.trackme.meetingservice.messaging.own;
 
 public enum MeetingEventType {
     MEETING_CREATED,

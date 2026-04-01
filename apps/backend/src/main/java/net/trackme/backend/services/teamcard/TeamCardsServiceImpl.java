@@ -127,7 +127,7 @@
             eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
                 teamCardId,
                 teamCardDto.getName(),
-                teamCardDto.getUsername()
+                username
             ));
 
             return teamCard;

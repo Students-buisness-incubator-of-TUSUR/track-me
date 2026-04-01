@@ -109,4 +109,11 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
         AND meeting_id IN (SELECT id FROM meeting WHERE team_card_id = :teamId)
     """, nativeQuery = true)
     void removeStreamFromTeamMeetings(UUID teamId, UUID streamId);
+
+    /**
+     * Массово обновляет ФИО трекера во всех встречах, где указан соответствующий username.
+     */
+    @Modifying
+    @Query("UPDATE Meeting m SET m.trackerFullName = :fullName WHERE m.trackerUsername = :username")
+    void updateTrackerFullNameByUsername(@Param("username") String username, @Param("fullName") String fullName);
 }

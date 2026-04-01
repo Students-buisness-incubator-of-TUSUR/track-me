@@ -1,6 +1,5 @@
 package net.trackme.meetingservice.services;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.acl.AclService;
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
@@ -9,16 +8,16 @@ import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
-import net.trackme.meetingservice.events.MeetingCreatedEvent;
-import net.trackme.meetingservice.events.MeetingUpdatedEvent;
+import net.trackme.meetingservice.messaging.own.MeetingCreatedEvent;
+import net.trackme.meetingservice.messaging.own.MeetingUpdatedEvent;
 import net.trackme.meetingservice.mapping.MeetingMapper;
 import net.trackme.meetingservice.services.exceptions.*;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
-import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
-import net.trackme.meetingservice.services.messaging.MeetingEventsProducer;
+import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -40,7 +38,6 @@ import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardI
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingMapper meetingMapper;
@@ -51,9 +48,25 @@ public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingEventsProducer meetingEventsProducer;
 
-    private final BackendApiClient backendApiClient;
+    private final BackendApiClient userBackendClient;
 
     private final SsoApiClient ssoApiClient;
+
+    public MeetingServiceImpl(
+            MeetingMapper meetingMapper,
+            MeetingRepository meetingRepository,
+            AclService aclService,
+            MeetingEventsProducer meetingEventsProducer,
+            @Qualifier("userBackendApiClient") BackendApiClient userBackendClient,
+            SsoApiClient ssoApiClient) {
+
+        this.meetingMapper = meetingMapper;
+        this.meetingRepository = meetingRepository;
+        this.aclService = aclService;
+        this.meetingEventsProducer = meetingEventsProducer;
+        this.userBackendClient = userBackendClient;
+        this.ssoApiClient = ssoApiClient;
+    }
 
     @Override
     @Transactional
@@ -61,7 +74,7 @@ public class MeetingServiceImpl implements MeetingService {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
 
         var meeting = meetingMapper.mapToEntity(createDto);
-        var teamData = backendApiClient.getTeamCardById(teamCardId);
+        var teamData = userBackendClient.getTeamCardById(teamCardId);
         var trackerUsername = teamData.getUsername();
 
         meeting.setTeamCardId(teamCardId);
@@ -246,7 +259,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     private String fetchRoomLink(UUID teamCardId) {
         try {
-            var teamCard = backendApiClient.getTeamCardById(teamCardId);
+            var teamCard = userBackendClient.getTeamCardById(teamCardId);
 
             return teamCard != null
                     ? teamCard.getMeetingRoomLink()

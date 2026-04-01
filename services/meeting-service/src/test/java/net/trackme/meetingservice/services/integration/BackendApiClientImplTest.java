@@ -1,7 +1,7 @@
 package net.trackme.meetingservice.services.integration;
 
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
-import net.trackme.meetingservice.services.integration.backend.BackendApiClientImpl;
+import net.trackme.meetingservice.services.integration.backend.UserBackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.backend.exceptions.TeamCardNotFoundException;
 
@@ -34,7 +34,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @ActiveProfiles("test")
-@RestClientTest(BackendApiClientImpl.class)
+@RestClientTest(UserBackendApiClient.class)
 public class BackendApiClientImplTest {
 
     @Autowired

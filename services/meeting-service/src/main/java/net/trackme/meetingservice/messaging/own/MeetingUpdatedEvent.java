@@ -1,4 +1,4 @@
-package net.trackme.meetingservice.events;
+package net.trackme.meetingservice.messaging.own;
 
 import lombok.Builder;
 import net.trackme.meetingservice.entities.MeetingStatus;
