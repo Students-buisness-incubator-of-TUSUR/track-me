@@ -1,4 +1,4 @@
-﻿package net.trackme.sso.services.impl;
+package net.trackme.sso.services.impl;
 
 import net.trackme.sso.AbstractIntegrationTest;
 import net.trackme.sso.dao.entity.UserEntity;
