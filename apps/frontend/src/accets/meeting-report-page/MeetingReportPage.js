@@ -200,7 +200,7 @@ export default function MeetingReportPage() {
             <Dropdown label={filters.team || "Команда"} isOpen={openMenu.team} onToggle={() => toggleMenu('team')}>
               <button className="mrep-dropdown-item" onClick={() => updateFilter('team', null)}>— Все —</button>
               {availableData.teams.map(name => (
-                <button key={name} className="mrep-dropdown-item mrep-truncate" title={name} onClick={() => updateFilter('team', name)}>{name}</button>
+                <button key={name} className="mrep-dropdown-item" title={name} onClick={() => updateFilter('team', name)}>{name}</button>
               ))}
             </Dropdown>
 
