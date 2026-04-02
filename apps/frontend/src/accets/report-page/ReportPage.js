@@ -29,8 +29,10 @@ const [reports, setReports] = useState([]);
   const [streamFilterOpen, setStreamFilterOpen] = useState(false);
   const [filterTrackers, _setFilterTrackers] = useState(null);
   const [filterStreams, _setFilterStreams] = useState(null);
+  const [trackerSearchQuery, setTrackerSearchQuery] = useState('');
   const setFilterTrackers = (newTracker) => {
     _setFilterTrackers(newTracker);
+    setTrackerSearchQuery("");
     setTrackerFilterOpen(false);
   }
   const setFilterStreams = (newStreams) => {
@@ -122,7 +124,7 @@ const [reports, setReports] = useState([]);
 
   const loadTrackers = useCallback(async () => {
     try {
-      const response = await fetchTrackers({ page: page, size: size });
+      const response = await fetchTrackers({ page: page, size: size, sort: ["fullName,asc"] });
       if (!response.ok) {
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
@@ -145,6 +147,7 @@ const [reports, setReports] = useState([]);
     setUserRole(user.roles[0]);
   }, [user]);
 
+  const reportUsernames = reports.map((report) => report.username);
   return (
     <div className="Report">
       <Header userRole={userRole}></Header>
@@ -193,12 +196,25 @@ const [reports, setReports] = useState([]);
   </button>
   {trackerFilterOpen && (
     <div data-testid="trackers-dropdown-menu" className="report-dropdown-menu">
+                  <input
+                    type="text"
+                    placeholder="Поиск по имени или логину..."
+                    className="report-dropdown-item report-search-input"
+                    value={trackerSearchQuery}
+                    onChange={(e) => setTrackerSearchQuery(e.target.value)}
+                  />
       <button
         key={0}
         className="report-dropdown-item"
         onClick={() => setFilterTrackers(null)}
       >—</button>
-      {trackers.map((t, i) => (
+      {trackers.filter((tracker) => {
+                    const query = trackerSearchQuery.toLowerCase();
+                    return reportUsernames.includes(tracker.username) && (
+                      tracker.fullName.toLowerCase().includes(query) ||
+                      tracker.username.toLowerCase().includes(query)
+                    );
+                  }).map((t, i) => (
         <button
           key={i}
           className="report-dropdown-item"
