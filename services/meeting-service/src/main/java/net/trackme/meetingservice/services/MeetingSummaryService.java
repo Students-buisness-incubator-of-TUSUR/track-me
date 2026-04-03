@@ -45,29 +45,32 @@ public class MeetingSummaryService {
      * Сообщить о пропущенных встречах за период.
      */
     @Transactional
-    @Scheduled(cron = "0 2 5 * * 1")
+    @Scheduled(cron = "0 0 12 * * 1")
     public void reportAboutNotHappenedMeetings() {
         log.info("Scheduled not happened meetings summary started");
-        var dateAfter = OffsetDateTime.now().minusDays(MEETING_SUMMARY_PERIOD);
-        sendNotHappenedMeetingSummary(dateAfter);
+
+        var now = OffsetDateTime.now();
+        var dateAfter = now.minusDays(MEETING_SUMMARY_PERIOD);
+
+        sendNotHappenedMeetingSummary(dateAfter, now);
         log.info("Scheduled not happened meetings summary completed");
     }
 
-    private void sendNotHappenedMeetingSummary(OffsetDateTime dateAfter) {
-        List<MeetingSummaryEvent> meetingSummaryEvents = new ArrayList<>();
-
-        List<Meeting> meetings = meetingRepository
-                .findByStatusAndStartDateAfter(MeetingStatus.COMPLETED_AS_NOT_HAPPENED, dateAfter);
-
+    private void sendNotHappenedMeetingSummary(OffsetDateTime dateAfter, OffsetDateTime now) {
+        List<Meeting> meetings = meetingRepository.findMissedAndOverdueMeetings(dateAfter, now);
         if (meetings.isEmpty()) {
+            log.debug("No missed meetings to report for the last 7 days");
             return;
         }
+
+        List<MeetingSummaryEvent> meetingSummaryEvents = new ArrayList<>();
         for (Meeting meeting : meetings) {
             var meetingSummaryEvent = MeetingSummaryEvent.builder()
                     .meetingNumber(meeting.getNumber())
                     .meetingLink(getMeetingLink(meeting))
                     .teamCardId(meeting.getTeamCardId())
                     .build();
+
             meetingSummaryEvents.add(meetingSummaryEvent);
         }
 
