@@ -93,6 +93,25 @@ public class TeamCard {
             fetch = FetchType.EAGER)
     private Set<MeetingGrade> meetingGrades = new HashSet<>();
 
+    public Integer getMeetingsCountPlan() {
+        return streams.stream()
+                .findFirst()
+                .map(stream -> {
+                    java.time.LocalDate now = java.time.LocalDate.now();
+                    java.time.LocalDate start = stream.getTrackStartDate();
+
+                    if (start == null || now.isBefore(start)) {
+                        return 0;
+                    }
+
+                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(start, now);
+                    if (daysBetween <= 7) return 1;
+
+                    return (int) ((daysBetween - 1) / 7) + 1;
+                })
+                .orElse(0);
+    }
+
     public void addStream(Stream stream) {
         streams.clear();
         streams.add(stream);
