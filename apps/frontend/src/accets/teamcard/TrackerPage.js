@@ -161,9 +161,7 @@ const [totalPages, setTotalPages] = useState(1);
         ? `${backendHost}/api/v1/admin/team-cards`
         : `${backendHost}/api/v1/team-cards`;
 
-    const sortParams = (userRole === "TRACKER")
-        ? "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc&sort=name,asc"
-        : "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc";
+    const sortParams = "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc&sort=name,asc";
 
     fetch(`${endpoint}?page=${page}&size=${pageSize}&${sortParams}`, {
         method: "POST",
