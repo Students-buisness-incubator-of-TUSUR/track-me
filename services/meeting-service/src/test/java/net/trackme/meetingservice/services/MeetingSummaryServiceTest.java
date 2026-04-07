@@ -40,7 +40,8 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
     void reportAboutNotHappenedMeetings_success() {
         // Arrange
         UUID teamId = UUID.randomUUID();
-
+        meetingRepository.deleteAll();
+        
         Meeting cancelledMeeting = new Meeting();
         cancelledMeeting.setTeamCardId(teamId);
         cancelledMeeting.setNumber("CANCELLED-1");
