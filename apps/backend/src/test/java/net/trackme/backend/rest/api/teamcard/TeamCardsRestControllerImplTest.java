@@ -1283,6 +1283,72 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         }
     }
 
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReport_shouldReturnCorrectMeetingsCountPlan() throws Exception {
+        var now = LocalDate.now();
+        var streamEndDate = now.plusDays(60);
+
+        // Arrange
+        var streamWithOldTrackDate = streamRepository.save(Stream.builder()
+                .name("Stream with old track date")
+                .startDate(now.minusDays(30))
+                .endDate(streamEndDate)
+                .trackStartDate(now.minusDays(8))
+                .build()
+        );
+
+        var streamCreatedRightNow =  streamRepository.save(Stream.builder()
+                .name("Stream created right now")
+                .startDate(now)
+                .endDate(streamEndDate)
+                .trackStartDate(now)
+                .build()
+        );
+
+        saveTeamCardWithStream("tracker1", "Team With Plan", 4.0, streamWithOldTrackDate);
+        saveTeamCardWithStream("tracker2", "Team With pLan 2", 4.0, streamCreatedRightNow);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "filters": [
+                                    {
+                                      "fieldName": "streams.name",
+                                      "value": "Stream with old track date",
+                                      "type": "EQ"
+                                    }
+                                  ]
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
+                .andExpect(jsonPath("$.content[0].meetingsCountPlan", is(2)));
+
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "filters": [
+                                    {
+                                      "fieldName": "streams.name",
+                                      "value": "Stream created right now",
+                                      "type": "EQ"
+                                    }
+                                  ]
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
+                .andExpect(jsonPath("$.content[0].meetingsCountPlan", is(1)));
+    }
+
     private void saveTeamCardWithStream(String username, String name, double grade, Stream stream) {
         teamCardsService.createTeamCard(TeamCard.builder()
                 .username(username)
