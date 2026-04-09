@@ -1080,4 +1080,43 @@ describe('handleExportExcel', () => {
       });
     });
   });
+  
+});
+test("клик по названию команды вызывает navigate", async () => {
+  fetchReports.mockResolvedValueOnce({
+    ok: true,
+    json: jest.fn().mockResolvedValue({
+      content: [
+        {
+          teamId: "123",
+          teamCardName: "Название команды очень длинное",
+          teamName: "Название команды очень длинное",
+          streamName: "Поток",
+          startDate: "01.01.2025",
+          endDate: "02.01.2025",
+          username: "Тест",
+          averageTeamGrade: 5,
+          averageUserGrade: 5,
+          meetingsCountFact: 1,
+          meetingsCountPlan: 1,
+          ntiMarkets: ["HealthNet"],
+          readinessLevel: "1",
+        },
+      ],
+    }),
+  });
+
+  render(
+    <Router>
+      <ReportPage defaultIsActive={false} />
+    </Router>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText("Название команды очень длинное")).toBeInTheDocument();
+  });
+
+  fireEvent.click(screen.getByText("Название команды очень длинное"));
+
+  expect(mockNavigate).toHaveBeenCalledWith("/teamcard/123");
 });
