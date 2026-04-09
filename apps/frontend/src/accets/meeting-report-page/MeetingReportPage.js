@@ -182,7 +182,7 @@ export default function MeetingReportPage() {
           style={{ cursor: 'pointer', color: '#843AEB', textDecoration: 'underline' }}
           onClick={() => navigate(`/teamcard/${item.teamId}`)}
         >
-          {item.teamCardName}
+          {item.teamName}
         </td>
           <td>{item.startDate ? new Date(item.startDate).toLocaleDateString("ru-RU") : "—"}</td>
           <td>{item.trackerFullName || item.trackerName || "—"}</td>
