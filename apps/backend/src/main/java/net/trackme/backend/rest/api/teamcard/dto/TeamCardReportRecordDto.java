@@ -22,6 +22,8 @@ public record TeamCardReportRecordDto(
         LocalDate endDate,
         @Schema(description = "Название карточки команды")
         String teamCardName,
+        @Schema(description = "Идентификатор карточки команды")
+        UUID teamId,
         @Schema(description = "Имя пользователя, которому принадлежит карточка команды")
         String username,
         @Schema(description = "Средняя оценка команды")
@@ -45,6 +47,7 @@ public record TeamCardReportRecordDto(
                 startDate,
                 endDate,
                 teamCardName,
+                teamId,
                 username,
                 averageTeamGrade,
                 averageUserGrade,

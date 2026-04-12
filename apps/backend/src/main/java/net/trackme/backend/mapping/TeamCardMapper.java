@@ -74,6 +74,7 @@ public interface TeamCardMapper {
                     + ".map(Stream::getEndDate)"
                     + ".findFirst().orElse(null) )")
     @Mapping(target = "teamCardName", expression = "java( entity.getName() )")
+    @Mapping(target = "teamId", source = "id")
     @Mapping(target = "username", expression = "java( entity.getUsername() )")
     @Mapping(target = "averageTeamGrade", expression = "java( entity.getAverageGrade() )")
     @Mapping(target = "averageUserGrade", ignore = true)

@@ -541,6 +541,7 @@ describe("ADMIN-specific edit mode", () => {
   it("fetches and displays only enabled trackers in SelectBox", async () => {
     renderTeamCard({ role: "ADMIN" });
     await waitForLoad();
+    fireEvent.click(screen.getByText("Редактировать"));
     const select = screen.getByTestId("selectbox-username");
     expect(within(select).getByText("Иван Иванов")).toBeInTheDocument();
     expect(within(select).getByText("Мария Петрова")).toBeInTheDocument();

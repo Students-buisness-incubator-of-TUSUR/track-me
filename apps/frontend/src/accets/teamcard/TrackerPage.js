@@ -135,7 +135,7 @@ const [totalPages, setTotalPages] = useState(1);
                 value: streamName,
             });
         }
-        const seachUsername = searchParams.get("username");
+        const seachUsername = searchParams?.get("username");
         if (seachUsername) {
             allFilters.push({
                 fieldName: "username",
