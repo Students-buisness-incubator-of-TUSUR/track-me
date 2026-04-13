@@ -78,10 +78,14 @@ public interface TeamCardMapper {
     @Mapping(target = "username", expression = "java( entity.getUsername() )")
     @Mapping(target = "averageTeamGrade", expression = "java( entity.getAverageGrade() )")
     @Mapping(target = "averageUserGrade", ignore = true)
-    @Mapping(target = "meetingsCountPlan", expression = "java( entity.getMeetingsCount() )")
+    @Mapping(
+            target = "meetingsCountPlan",
+            expression = "java( entity.getMeetingsCountPlan() )"
+    )
     @Mapping(
             target = "meetingsCountFact",
-            expression = "java( entity.getMeetingsCompletedCount() )")
+            expression = "java( entity.getMeetingsCompletedCount() )"
+    )
     @Mapping(
             target = "ntiMarkets",
             expression = "java( entity.getNtiMarkets().stream().map(NTIMarket::getName).toList() )")
