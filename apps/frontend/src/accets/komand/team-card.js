@@ -77,6 +77,7 @@ const TeamCard = () => {
   const [streams, setStreams] = useState([]);
   const [ntiMarkets, setNtiMarkets] = useState([]);
   const [trackers, setTrackers] = useState([]);
+  const [trackerFullName, setTrackerFullName] = useState("");
   const forceEdit = query.get("edit") === "true";
   const [isEditing, setIsEditing] = useState(forceEdit);
   const [selectedMarket, setSelectedMarket] = useState(null);
@@ -139,17 +140,15 @@ const TeamCard = () => {
             credentials: "include"
           });
           if (!res.ok) throw new Error("Ошибка получения данных пользователя");
-          await res.json();
-          // const data = await res.json();
-          // setTrackerFullName(data.fullName);
+          const data = await res.json();
+          setTrackerFullName(data.fullName || data.username || "");
         } else if (role === "TRACKER") {
           const res = await fetch(`${backendHost1}/api/v1/account/info`, {
             credentials: "include"
           });
           if (!res.ok) throw new Error("Ошибка получения данных текущего пользователя");
-          await res.json();
-          // const data = await res.json();
-          // setTrackerFullName(data.fullName);
+          const data = await res.json();
+          setTrackerFullName(data.fullName || data.username || "");
         }
       } catch (err) {
         handleApiError(err, "загрузке ФИО трекера");
@@ -158,6 +157,7 @@ const TeamCard = () => {
 
     fetchFullName();
   }, [role, passedUsername, teamData.username]);
+
   useEffect(() => {
     if (streamInfo?.meetingsCount) {
       setMaxMeetingsCount(streamInfo.meetingsCount);
@@ -739,20 +739,29 @@ const TeamCard = () => {
             <div className="team-card_fields">
               <div className="team-card_field">
                 <p>Трекер:</p>
-                <SelectBox
-                  className="team-card_field-input"
-                  name="username"
-                  value={editedData.username || ""}
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                >
-                  <option value="">Выберите трекера</option>
-                  {Array.isArray(trackers) && trackers.map(tracker => (
-                    <option key={tracker.id} value={tracker.username}>
-                      {tracker.fullName}
-                    </option>
-                  ))}
-                </SelectBox>
+                {isEditing ? (
+                  <SelectBox
+                    className="team-card_field-input"
+                    name="username"
+                    value={editedData.username || ""}
+                    onChange={handleChange}
+                    disabled={role === "TRACKER"}
+                  >
+                    <option value="">Выберите трекера</option>
+                    {Array.isArray(trackers) && trackers.map(tracker => (
+                      <option key={tracker.id} value={tracker.username}>
+                        {tracker.fullName}
+                      </option>
+                    ))}
+                  </SelectBox>
+                ) : (
+                  <InputBox
+                    className="team-card_field-input"
+                    name="username"
+                    value={trackerFullName || editedData.username || ""}
+                    readOnly
+                  />
+                )}
               </div>
               <div className="team-card_field">
                 <p>Название команды:</p>

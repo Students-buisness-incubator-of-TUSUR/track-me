@@ -178,7 +178,12 @@ export default function MeetingReportPage() {
       return (
         <tr key={`${item.teamName}-${item.startDate}`} className={rowClass}>
           <td className="mrep-cell-left">{index + 1}</td>
-          <td className="mrep-truncate" title={item.teamName}>{item.teamName}</td>
+          <td
+          style={{ cursor: 'pointer', color: '#843AEB', textDecoration: 'underline' }}
+          onClick={() => navigate(`/teamcard/${item.teamId}`)}
+        >
+          {item.teamName}
+        </td>
           <td>{item.startDate ? new Date(item.startDate).toLocaleDateString("ru-RU") : "—"}</td>
           <td>{item.trackerFullName || item.trackerName || "—"}</td>
           <td className="mrep-text-wrap">{showTasks ? item.tasksNextMeeting || "—" : "—"}</td>

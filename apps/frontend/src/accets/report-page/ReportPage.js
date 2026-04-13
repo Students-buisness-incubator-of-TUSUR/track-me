@@ -307,7 +307,12 @@ const [reports, setReports] = useState([]);
           {item.startDate} – {item.endDate}
         </td>
 
-        <td>{item.teamCardName}</td>
+        <td
+          style={{ cursor: 'pointer', color: '#843AEB', textDecoration: 'underline' }}
+          onClick={() => navigate(`/teamcard/${item.teamId}`)}
+        >
+          {item.teamCardName}
+        </td>
 
         <td>{`${trackers?.filter((tracker) => tracker.username === item.username)[0]?.fullName} (${item.username})`}</td>
 
