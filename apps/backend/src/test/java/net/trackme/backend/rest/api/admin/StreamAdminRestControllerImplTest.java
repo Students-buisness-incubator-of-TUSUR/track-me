@@ -1,5 +1,6 @@
 package net.trackme.backend.rest.api.admin;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.trackme.backend.BaseApplicationTest;
 import net.trackme.backend.domain.NTIMarket;
 import net.trackme.backend.domain.Stream;
@@ -10,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,6 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
 class StreamAdminRestControllerImplTest extends BaseApplicationTest {
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private NtiMarketRepository ntiMarketRepository;
@@ -81,32 +86,36 @@ class StreamAdminRestControllerImplTest extends BaseApplicationTest {
         var stream = streamRepository.findAll().getFirst();
         var trackStartDate = LocalDate.now().plusDays(1);
         var startDate = LocalDate.now();
-        var endDate = startDate.plusYears(1);
+
+        var startDateToUpdate = startDate.plusYears(1);
+        var endDateToUpdate = startDateToUpdate.plusDays(60);
 
         var ntiMarkets = ntiMarketRepository.findAll().stream()
                 .map(NTIMarket::getId)
                 .map(UUID::toString)
                 .toList();
 
-        mockMvc.perform(patch("/api/v1/admin/stream/%s".formatted(stream.getId().toString()))
-                        .with(csrf())
-                        .param("streamId", stream.getId().toString())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("""
-                                {
-                                  "name": "Test name",
-                                  "endDate": "%s",
-                                  "trackStartDate": "%s",
-                                  "ntiMarketIds": ["%s"]
-                                }
-                                """.formatted(endDate,
-                            trackStartDate,
-                            String.join("\", \"", ntiMarkets))))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", is("Test name")))
-                .andExpect(jsonPath("$.endDate", is(endDate.toString())))
-                .andExpect(jsonPath("$.trackStartDate", is(trackStartDate.toString())));
+        var body = Map.of(
+                "name", "Test name",
+                "startDate", startDateToUpdate,
+                "endDate", endDateToUpdate,
+                "trackStartDate", trackStartDate,
+                "ntiMarketIds", ntiMarkets
+        );
+
+        var request = patch("/api/v1/admin/stream/{id}", stream.getId())
+            .with(csrf())
+            .param("streamId", stream.getId().toString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(body));
+
+        mockMvc.perform(request)
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is("Test name")))
+            .andExpect(jsonPath("$.startDate", is(startDateToUpdate.toString())))
+            .andExpect(jsonPath("$.endDate", is(endDateToUpdate.toString())))
+            .andExpect(jsonPath("$.trackStartDate", is(trackStartDate.toString())));
     }
 
     @Test
