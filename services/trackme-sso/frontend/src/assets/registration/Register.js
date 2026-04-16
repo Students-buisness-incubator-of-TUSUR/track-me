@@ -68,7 +68,7 @@ const Register = () => {
     };
 
     useEffect(() => {
-        fetch('/terms-of-use.txt')
+        fetch(`${basePath}/terms-of-use.txt`)
             .then(response => {
             if (!response.ok) throw new Error('Файл не найден');
             return response.text();

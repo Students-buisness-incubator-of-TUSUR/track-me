@@ -592,8 +592,8 @@ describe('loadStreams and loadTrackers', () => {
       </Router>
     );
 
-    await waitFor(() => {
-      expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: size, sort: ["fullName,asc"] });
+await waitFor(() => {
+      expect(fetchTrackers).toHaveBeenCalledWith({ page: 0, size: size });
     });
 
     const trackerFilterButton = screen.getByTestId("trackers-btn");
@@ -1119,4 +1119,705 @@ test("клик по названию команды вызывает navigate", 
   fireEvent.click(screen.getByText("Название команды очень длинное"));
 
   expect(mockNavigate).toHaveBeenCalledWith("/teamcard/123");
+});
+
+describe('Сортировка колонок таблицы', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          {
+            streamName: 'Stream A',
+            startDate: '2020-01-01',
+            endDate: '2020-06-30',
+            teamCardName: 'Team A',
+            username: 'User1',
+            averageTeamGrade: 3.5,
+            averageUserGrade: 4.0,
+            meetingsCountFact: 5,
+            meetingsCountPlan: 10,
+            ntiMarkets: ['Market1'],
+            readinessLevel: '5'
+          },
+          {
+            streamName: 'Stream A',
+            startDate: '2020-01-01',
+            endDate: '2020-06-30',
+            teamCardName: 'Team B',
+            username: 'User2',
+            averageTeamGrade: 4.8,
+            averageUserGrade: 4.5,
+            meetingsCountFact: 8,
+            meetingsCountPlan: 10,
+            ntiMarkets: ['Market2'],
+            readinessLevel: '7'
+          },
+          {
+            streamName: 'Stream A',
+            startDate: '2020-01-01',
+            endDate: '2020-06-30',
+            teamCardName: 'Team C',
+            username: 'User3',
+            averageTeamGrade: 4.2,
+            averageUserGrade: 4.2,
+            meetingsCountFact: 6,
+            meetingsCountPlan: 10,
+            ntiMarkets: ['Market3'],
+            readinessLevel: '6'
+          }
+        ]
+      }),
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+  });
+
+  test('сортировка по средней оценке команды (desc)', async () => {
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Team A')).toBeInTheDocument();
+    });
+
+    const gradeHeader = screen.getByText('Средняя оценка команды');
+    fireEvent.click(gradeHeader);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(within(rows[1]).getByText('Team B')).toBeInTheDocument();
+      expect(within(rows[2]).getByText('Team C')).toBeInTheDocument();
+      expect(within(rows[3]).getByText('Team A')).toBeInTheDocument();
+    });
+  });
+
+  test('сортировка по средней оценке команды (asc) при повторном клике', async () => {
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Team A')).toBeInTheDocument();
+    });
+
+    const gradeHeader = screen.getByText('Средняя оценка команды');
+    fireEvent.click(gradeHeader);
+    fireEvent.click(gradeHeader);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(within(rows[1]).getByText('Team A')).toBeInTheDocument();
+      expect(within(rows[2]).getByText('Team C')).toBeInTheDocument();
+      expect(within(rows[3]).getByText('Team B')).toBeInTheDocument();
+    });
+  });
+
+  test('сортировка по названию команды (А-Я)', async () => {
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Название команды/)).toBeInTheDocument();
+    });
+
+    const teamHeader = screen.getByText(/Название команды/);
+    fireEvent.click(teamHeader);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      const firstRowText = rows[1].textContent;
+      expect(firstRowText).toContain('Team C');
+    });
+
+    fireEvent.click(teamHeader);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      const firstRowText = rows[1].textContent;
+      expect(firstRowText).toContain('Team A');
+    });
+  });
+
+  test('сортировка по уровню TRL', async () => {
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Team A')).toBeInTheDocument();
+    });
+
+    const trlHeader = screen.getByText('Уровень TRL');
+    fireEvent.click(trlHeader);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(within(rows[1]).getByText('7')).toBeInTheDocument();
+      expect(within(rows[2]).getByText('6')).toBeInTheDocument();
+      expect(within(rows[3]).getByText('5')).toBeInTheDocument();
+    });
+  });
+
+  test('сортировка по средней оценке трекера (desc)', async () => {
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Team A')).toBeInTheDocument();
+    });
+
+    const gradeHeader = screen.getByText('Средняя оценка трекера');
+    fireEvent.click(gradeHeader);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole('row');
+      expect(within(rows[1]).getByText('Team B')).toBeInTheDocument();
+      expect(within(rows[2]).getByText('Team C')).toBeInTheDocument();
+      expect(within(rows[3]).getByText('Team A')).toBeInTheDocument();
+    });
+  });
+
+  test('надпись сортировки для названия команды отображается корректно', async () => {
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Team A')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Название команды А→Я')).toBeInTheDocument();
+
+    const teamHeader = screen.getByText('Название команды А→Я');
+    fireEvent.click(teamHeader);
+
+    await waitFor(() => {
+      expect(screen.getByText('Название команды Я→А')).toBeInTheDocument();
+    });
+  });
+});
+
+describe('Фильтр потоков - активные и неактивные', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+  });
+
+  test('активные потоки показываются сверху с зелёным кружком', async () => {
+    const today = new Date();
+    const formatDate = (offsetDays) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() + offsetDays);
+      return d.toISOString().split('T')[0];
+    };
+
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { name: 'Inactive Stream', startDate: '2020-01-01', endDate: '2020-12-31' },
+          { name: 'Active Stream 1', startDate: formatDate(-30), endDate: formatDate(30) },
+          { name: 'Active Stream 2', startDate: formatDate(-60), endDate: formatDate(60) },
+        ]
+      }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Потоки')).toBeInTheDocument();
+    });
+
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+
+    await waitFor(() => {
+      const dropdown = screen.getByTestId('streams-dropdown-menu');
+      const items = within(dropdown).getAllByRole('button');
+      expect(items).toHaveLength(4);
+
+      expect(items[1]).toHaveTextContent('Active Stream 2');
+      expect(items[1].querySelector('.active-stream-dot')).toBeInTheDocument();
+
+      expect(items[2]).toHaveTextContent('Active Stream 1');
+      expect(items[2].querySelector('.active-stream-dot')).toBeInTheDocument();
+
+      expect(items[3]).toHaveTextContent('Inactive Stream');
+      expect(items[3].querySelector('.active-stream-dot')).not.toBeInTheDocument();
+    });
+  });
+
+  test('активные потоки сортируются по дате окончания (выше - позже)', async () => {
+    const today = new Date();
+    const formatDate = (offsetDays) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() + offsetDays);
+      return d.toISOString().split('T')[0];
+    };
+
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { name: 'Active Later', startDate: formatDate(-30), endDate: formatDate(60) },
+          { name: 'Active Sooner', startDate: formatDate(-60), endDate: formatDate(30) },
+        ]
+      }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Потоки')).toBeInTheDocument();
+    });
+
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+
+    await waitFor(() => {
+      const dropdown = screen.getByTestId('streams-dropdown-menu');
+      const items = within(dropdown).getAllByRole('button');
+      expect(items[1]).toHaveTextContent('Active Later');
+      expect(items[2]).toHaveTextContent('Active Sooner');
+    });
+  });
+
+  test('активные потоки сортируются по алфавиту при равных датах', async () => {
+    const today = new Date();
+    const formatDate = (offsetDays) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() + offsetDays);
+      return d.toISOString().split('T')[0];
+    };
+
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { name: 'Stream Z', startDate: formatDate(-30), endDate: formatDate(30) },
+          { name: 'Stream A', startDate: formatDate(-30), endDate: formatDate(30) },
+        ]
+      }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Потоки')).toBeInTheDocument();
+    });
+
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+
+    await waitFor(() => {
+      const dropdown = screen.getByTestId('streams-dropdown-menu');
+      const items = within(dropdown).getAllByRole('button');
+      expect(items[1]).toHaveTextContent('Stream A');
+      expect(items[2]).toHaveTextContent('Stream Z');
+    });
+  });
+
+  test('неактивные потоки сортируются по дате окончания (выше - позже)', async () => {
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { name: 'Inactive Later', startDate: '2020-01-01', endDate: '2020-12-31' },
+          { name: 'Inactive Sooner', startDate: '2020-01-01', endDate: '2020-06-30' },
+        ]
+      }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Потоки')).toBeInTheDocument();
+    });
+
+    const streamFilterButton = screen.getByText('Потоки');
+    fireEvent.click(streamFilterButton);
+
+    await waitFor(() => {
+      const dropdown = screen.getByTestId('streams-dropdown-menu');
+      const items = within(dropdown).getAllByRole('button');
+      expect(items[1]).toHaveTextContent('Inactive Later');
+      expect(items[2]).toHaveTextContent('Inactive Sooner');
+    });
+  });
+});
+
+describe('Подсветка активных строк в таблице', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('активные потоки подсвечиваются зелёным при включенном фильтре isActive', async () => {
+    const today = new Date();
+    const formatDate = (offsetDays) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() + offsetDays);
+      return d.toISOString().split('T')[0];
+    };
+
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          {
+            streamName: 'Inactive Stream',
+            startDate: '2020-01-01',
+            endDate: '2020-12-31',
+            teamCardName: 'Team Inactive',
+            username: 'User1',
+            averageTeamGrade: 4.0,
+            averageUserGrade: 4.0,
+            meetingsCountFact: 5,
+            meetingsCountPlan: 10,
+            ntiMarkets: ['Market1'],
+            readinessLevel: '5'
+          },
+          {
+            streamName: 'Active Stream',
+            startDate: formatDate(-30),
+            endDate: formatDate(30),
+            teamCardName: 'Team Active',
+            username: 'User2',
+            averageTeamGrade: 4.5,
+            averageUserGrade: 4.5,
+            meetingsCountFact: 8,
+            meetingsCountPlan: 10,
+            ntiMarkets: ['Market2'],
+            readinessLevel: '6'
+          }
+        ]
+      }),
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Team Active')).toBeInTheDocument();
+    });
+
+    const rows = screen.getAllByRole('row');
+    const activeRow = rows.find(row => within(row).queryByText('Team Active'));
+    expect(activeRow).toHaveClass('active-row');
+  });
+});
+
+test("клик по названию потока вызывает navigate", async () => {
+  fetchReports.mockResolvedValueOnce({
+    ok: true,
+    json: jest.fn().mockResolvedValue({
+      content: [
+        {
+          streamId: "stream-123",
+          streamName: "Test Stream",
+          startDate: "2024-01-01",
+          endDate: "2024-12-31",
+          teamCardName: "Team A",
+          username: "User1",
+          averageTeamGrade: 4,
+          averageUserGrade: 4,
+          meetingsCountFact: 1,
+          meetingsCountPlan: 1,
+          ntiMarkets: ["Market1"],
+          readinessLevel: "5",
+        },
+      ],
+    }),
+  });
+
+  render(
+    <Router>
+      <ReportPage defaultIsActive={false} />
+    </Router>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText("Test Stream")).toBeInTheDocument();
+  });
+
+  fireEvent.click(screen.getByText("Test Stream"));
+
+  expect(mockNavigate).toHaveBeenCalledWith("/report/stream-123");
+});
+
+describe('Поиск по трекерам в фильтре', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('отображается поле поиска в фильтре трекеров', async () => {
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { streamName: 'Stream 1', startDate: '2024-01-01', endDate: '2024-12-31', teamCardName: 'Team 1', username: 'ivanov', averageTeamGrade: 4, averageUserGrade: 4, meetingsCountFact: 1, meetingsCountPlan: 1, ntiMarkets: ['Market1'], readinessLevel: '5' },
+          { streamName: 'Stream 1', startDate: '2024-01-01', endDate: '2024-12-31', teamCardName: 'Team 2', username: 'petrov', averageTeamGrade: 4, averageUserGrade: 4, meetingsCountFact: 1, meetingsCountPlan: 1, ntiMarkets: ['Market1'], readinessLevel: '5' },
+        ]
+      }),
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { username: 'ivanov', fullName: 'Иванов Иван' },
+          { username: 'petrov', fullName: 'Петров Петр' },
+        ]
+      }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("trackers-btn")).toBeInTheDocument();
+    });
+
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
+    fireEvent.click(trackerFilterButton);
+
+    await waitFor(() => {
+      const input = screen.getByPlaceholderText('Поиск по имени или логину...');
+      expect(input).toBeInTheDocument();
+    });
+  });
+
+test('фильтрует трекеров по имени', async () => {
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { streamName: 'Stream 1', startDate: '2024-01-01', endDate: '2024-12-31', teamCardName: 'Team 1', username: 'ivanov', averageTeamGrade: 4, averageUserGrade: 4, meetingsCountFact: 1, meetingsCountPlan: 1, ntiMarkets: ['Market1'], readinessLevel: '5' },
+          { streamName: 'Stream 1', startDate: '2024-01-01', endDate: '2024-12-31', teamCardName: 'Team 2', username: 'petrov', averageTeamGrade: 4, averageUserGrade: 4, meetingsCountFact: 1, meetingsCountPlan: 1, ntiMarkets: ['Market1'], readinessLevel: '5' },
+        ]
+      }),
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { username: 'ivanov', fullName: 'Иванов Иван' },
+          { username: 'petrov', fullName: 'Петров Петр' },
+          { username: 'sidorov', fullName: 'Сидоров Сидор' },
+        ]
+      }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("trackers-btn")).toBeInTheDocument();
+    });
+
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
+    fireEvent.click(trackerFilterButton);
+
+    await waitFor(() => {
+      const input = screen.getByPlaceholderText('Поиск по имени или логину...');
+      fireEvent.change(input, { target: { value: 'Иванов' } });
+    });
+
+    await waitFor(() => {
+      const dropdown = screen.getByTestId('trackers-dropdown-menu');
+      const items = within(dropdown).getAllByRole('button');
+      expect(items).toHaveLength(2);
+      expect(items[1]).toHaveTextContent('Иванов Иван (ivanov)');
+    });
+  });
+
+  test('фильтрует трекеров по логину', async () => {
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { streamName: 'Stream 1', startDate: '2024-01-01', endDate: '2024-12-31', teamCardName: 'Team 1', username: 'ivanov', averageTeamGrade: 4, averageUserGrade: 4, meetingsCountFact: 1, meetingsCountPlan: 1, ntiMarkets: ['Market1'], readinessLevel: '5' },
+          { streamName: 'Stream 1', startDate: '2024-01-01', endDate: '2024-12-31', teamCardName: 'Team 2', username: 'petrov', averageTeamGrade: 4, averageUserGrade: 4, meetingsCountFact: 1, meetingsCountPlan: 1, ntiMarkets: ['Market1'], readinessLevel: '5' },
+        ]
+      }),
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { username: 'ivanov', fullName: 'Иванов Иван' },
+          { username: 'petrov', fullName: 'Петров Петр' },
+        ]
+      }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("trackers-btn")).toBeInTheDocument();
+    });
+
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
+    fireEvent.click(trackerFilterButton);
+
+    await waitFor(() => {
+      const input = screen.getByPlaceholderText('Поиск по имени или логину...');
+      fireEvent.change(input, { target: { value: 'petrov' } });
+    });
+
+    await waitFor(() => {
+      const dropdown = screen.getByTestId('trackers-dropdown-menu');
+      const items = within(dropdown).getAllByRole('button');
+      expect(items).toHaveLength(2);
+      expect(items[1]).toHaveTextContent('Петров Петр (petrov)');
+    });
+  });
+
+  test('при выборе трекера поле поиска очищается', async () => {
+    fetchReports.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { streamName: 'Stream 1', startDate: '2024-01-01', endDate: '2024-12-31', teamCardName: 'Team 1', username: 'ivanov', averageTeamGrade: 4, averageUserGrade: 4, meetingsCountFact: 1, meetingsCountPlan: 1, ntiMarkets: ['Market1'], readinessLevel: '5' },
+          { streamName: 'Stream 1', startDate: '2024-01-01', endDate: '2024-12-31', teamCardName: 'Team 2', username: 'petrov', averageTeamGrade: 4, averageUserGrade: 4, meetingsCountFact: 1, meetingsCountPlan: 1, ntiMarkets: ['Market1'], readinessLevel: '5' },
+        ]
+      }),
+    });
+    fetchStreams.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ content: [] }),
+    });
+    fetchTrackers.mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        content: [
+          { username: 'ivanov', fullName: 'Иванов Иван' },
+          { username: 'petrov', fullName: 'Петров Петр' },
+        ]
+      }),
+    });
+
+    render(
+      <Router>
+        <ReportPage defaultIsActive={false} />
+      </Router>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("trackers-btn")).toBeInTheDocument();
+    });
+
+    const trackerFilterButton = screen.getByTestId("trackers-btn");
+    fireEvent.click(trackerFilterButton);
+
+    await waitFor(() => {
+      const input = screen.getByPlaceholderText('Поиск по имени или логину...');
+      fireEvent.change(input, { target: { value: 'Иванов' } });
+    });
+
+    await waitFor(() => {
+      const dropdown = screen.getByTestId('trackers-dropdown-menu');
+      const items = within(dropdown).getAllByRole('button');
+      fireEvent.click(items[1]);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('trackers-dropdown-menu')).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(trackerFilterButton);
+    await waitFor(() => {
+      const input = screen.getByPlaceholderText('Поиск по имени или логину...');
+      expect(input.value).toBe('');
+    });
+  });
 });
