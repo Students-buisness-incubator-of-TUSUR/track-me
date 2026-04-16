@@ -80,7 +80,7 @@ const Register = () => {
             console.error("Ошибка загрузки соглашения:", err);
             setTermsText("Не удалось загрузить пользовательское соглашение. Пожалуйста, свяжитесь с поддержкой.");
             });
-    }, []);
+    }, [basePath]);
 
     return (
         <div className="register-container">
