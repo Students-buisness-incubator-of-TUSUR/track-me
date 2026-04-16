@@ -25,6 +25,7 @@ public interface MeetingMapper {
     @Mapping(target = "recordLink", ignore = false)
     MeetingDto mapToDto(Meeting meeting);
 
+    @Mapping(target = "teamId", source = "teamCardId")
     @Mapping(target = "trackerName", source = "trackerUsername")
     MeetingReportRecordDto mapToReportDto(Meeting meeting);
 
