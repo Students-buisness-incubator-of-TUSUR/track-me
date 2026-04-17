@@ -32,9 +32,6 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
     @MockitoBean
     private KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Captor
-    private ArgumentCaptor<Message<?>> messageCaptor;
-
     @Test
     void reportAboutNotHappenedMeetings_success() {
         // Arrange
@@ -71,6 +68,9 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
 
         // Act
         meetingSummaryService.reportAboutNotHappenedMeetings();
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Message<?>> messageCaptor = ArgumentCaptor.forClass((Class) Message.class);
 
         verify(kafkaTemplate).send(messageCaptor.capture());
         Message<?> capturedMessage = messageCaptor.getValue();

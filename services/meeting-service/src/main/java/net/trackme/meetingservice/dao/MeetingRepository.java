@@ -28,17 +28,4 @@ public interface MeetingRepository extends JpaRepository<Meeting, UUID>, JpaSpec
             OffsetDateTime to,
             UUID excludeId
     );
-
-    @Query("""
-    SELECT m FROM Meeting m\s
-    WHERE m.startDate >= :dateAfter\s
-      AND (
-           m.status = 'COMPLETED_AS_NOT_HAPPENED'\s
-        OR (m.status = 'SCHEDULED' AND m.startDate < :now)
-      )
-   \s""")
-    List<Meeting> findMissedAndOverdueMeetings(
-            @Param("dateAfter") OffsetDateTime dateAfter,
-            @Param("now") OffsetDateTime now
-    );
 }

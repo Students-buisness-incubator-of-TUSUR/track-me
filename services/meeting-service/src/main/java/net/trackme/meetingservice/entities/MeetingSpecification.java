@@ -6,6 +6,7 @@ import net.trackme.commons.filters.Filter;
 import net.trackme.commons.filters.FilterFieldNotAllowedException;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +37,30 @@ public record MeetingSpecification(List<Filter> filters) implements Specificatio
      */
     public static MeetingSpecification withFilters(List<Filter> filters) {
         return new MeetingSpecification(filters);
+    }
+
+    /**
+     * Спецификация для фильтрации митингов, начавшихся после указанной даты (включительно).
+     */
+    public static Specification<Meeting> startDateAfter(OffsetDateTime dateAfter) {
+        return (root, query, cb)
+                -> cb.greaterThanOrEqualTo(root.get(START_DATE_FIELD), dateAfter);
+    }
+
+    /**
+     * Спецификация для фильтрации митингов, начавшихся до указанной даты (не включительно).
+     */
+    public static Specification<Meeting> startDateBefore(OffsetDateTime dateBefore) {
+        return (root, query, cb)
+                -> cb.lessThan(root.get(START_DATE_FIELD), dateBefore);
+    }
+
+    /**
+     * Спецификация для фильтрации митингов по статусу.
+     */
+    public static Specification<Meeting> withStatus(MeetingStatus status) {
+        return (root, query, cb) ->
+                cb.equal(root.get(STATUS_FIELD), status);
     }
 
     /**
