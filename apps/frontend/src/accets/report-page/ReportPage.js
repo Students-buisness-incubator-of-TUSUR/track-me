@@ -273,7 +273,7 @@ const [reports, setReports] = useState([]);
                 <th>Имя трекера</th>
                 <th>Средняя оценка команды</th>
                 <th>Средняя оценка трекера</th>
-                <th>Трекшн-митинг (факт/план)</th>
+                <th>Трекшн-митинги (факт/план)</th>
                 <th>Рынки НТИ</th>
                 <th>Уровень TRL</th>
               </tr>
@@ -307,7 +307,12 @@ const [reports, setReports] = useState([]);
           {item.startDate} – {item.endDate}
         </td>
 
-        <td>{item.teamCardName}</td>
+        <td
+          style={{ cursor: 'pointer', color: '#843AEB', textDecoration: 'underline' }}
+          onClick={() => navigate(`/teamcard/${item.teamId}`)}
+        >
+          {item.teamCardName}
+        </td>
 
         <td>{`${trackers?.filter((tracker) => tracker.username === item.username)[0]?.fullName} (${item.username})`}</td>
 
