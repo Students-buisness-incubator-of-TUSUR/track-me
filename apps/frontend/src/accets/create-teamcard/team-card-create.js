@@ -289,9 +289,19 @@ if (isAdmin && !selectedTracker) {
             {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) ? (
                 <div className="tracker-select-container">
                     <div 
-                        className="tracker-select-trigger"
-                        onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
-                    >
+  className="tracker-select-trigger"
+  onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
+    }
+  }}
+  role="button"
+  tabIndex={0}
+  aria-expanded={isTrackerDropdownOpen}
+  aria-haspopup="listbox"
+>
                         <div className="tracker-select-value">
                             {selectedTracker ? selectedTracker.fullName : "Выберите трекера"}
                         </div>

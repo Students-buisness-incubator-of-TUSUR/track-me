@@ -134,6 +134,126 @@ describe("TeamCard — создание карточки команды", () => 
     });
   });
 
+  it("фильтрует список трекеров админа при вводе поискового запроса", async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ roles: ["ADMIN"], fullName: "Admin User" }),
+        });
+      }
+      if (url.includes("/users/trackers")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [
+                { id: 1, fullName: "Иван Иванов", username: "ivan", enabled: true },
+                { id: 2, fullName: "Мария Петрова", username: "maria", enabled: true },
+                { id: 3, fullName: "Отключённый Трекер", username: "disabled", enabled: false },
+              ],
+            }),
+        });
+      }
+      if (url.includes("/streams?page=0")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: 1, name: "Stream 1", active: true }],
+            }),
+        });
+      }
+      if (url.includes("/streams/nti-markets")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve([
+              { id: 1, displayName: "Market 1" },
+              { id: 2, displayName: "Market 2" },
+              { id: 3, displayName: "Market 3" },
+            ]),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/Выберите трекера/i));
+
+    const searchInput = await screen.findByPlaceholderText(/Поиск по ФИО/i);
+    fireEvent.click(searchInput);
+    expect(searchInput).toHaveFocus();
+
+    fireEvent.change(searchInput, { target: { value: "Мария" } });
+    expect(searchInput).toHaveValue("Мария");
+
+    await waitFor(() => {
+      expect(screen.getByText(/Мария Петрова/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Иван Иванов/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("не падает при клике вне дропдауна трекеров", async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ roles: ["ADMIN"], fullName: "Admin User" }),
+        });
+      }
+      if (url.includes("/users/trackers")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [
+                { id: 1, fullName: "Иван Иванов", username: "ivan", enabled: true },
+              ],
+            }),
+        });
+      }
+      if (url.includes("/streams?page=0")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: 1, name: "Stream 1", active: true }],
+            }),
+        });
+      }
+      if (url.includes("/streams/nti-markets")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 1, displayName: "Market 1" }]),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/Выберите трекера/i));
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
+    });
+
+    fireEvent.mouseDown(document.body);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
+    });
+  });
+
   it("открывает и закрывает dropdown при клике вне", async () => {
     renderComponent();
     fireEvent.click(screen.getByText(/TRL/i, { selector: ".create-dropdown-toggle" }));

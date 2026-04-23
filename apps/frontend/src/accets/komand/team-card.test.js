@@ -601,6 +601,51 @@ describe("ADMIN-specific edit mode", () => {
   });
 });
 
+  it("фильтрует трекеров в дропдауне по поисковому запросу и выбирает их кликом", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+
+    const trackerButton = screen.getByRole("button", { name: /Иван Иванов|tracker1|Выберите трекера/i });
+    fireEvent.keyDown(trackerButton, { key: "Enter", code: "Enter" });
+
+    const searchInput = await screen.findByPlaceholderText(/Поиск по ФИО/i);
+    fireEvent.click(searchInput);
+    expect(searchInput).toHaveFocus();
+
+    fireEvent.change(searchInput, { target: { value: "Мария" } });
+    expect(searchInput).toHaveValue("Мария");
+
+    await waitFor(() => {
+      expect(screen.getByText(/Мария Петрова/i)).toBeInTheDocument();
+      const optionsContainer = screen.getByText(/Мария Петрова/i).closest('.team-card_field-select-options');
+      expect(within(optionsContainer).queryByText(/Иван Иванов/i)).not.toBeInTheDocument();
+    });
+
+    const option = screen.getByText(/Мария Петрова/i).closest(".team-card_field-select-option");
+    fireEvent.click(option);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Мария Петрова/i })).toBeInTheDocument();
+    });
+  });
+
+  it("не закрывает дропдаун трекера при клике по своему полю поиска", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await enterEditMode();
+
+    const trackerButton = screen.getByRole("button", { name: /Иван Иванов|tracker1|Выберите трекера/i });
+    fireEvent.keyDown(trackerButton, { key: "Enter", code: "Enter" });
+
+    const searchInput = await screen.findByPlaceholderText(/Поиск по ФИО/i);
+    fireEvent.click(searchInput);
+
+    fireEvent.mouseDown(document.body);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
+    });
+  });
+
   it("does NOT show stream selector for TRACKER", async () => {
     renderTeamCard({ role: "TRACKER" });
     await enterEditMode();

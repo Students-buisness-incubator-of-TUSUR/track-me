@@ -751,9 +751,19 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   {isEditing ? (
     <div className="check-box_container team-card_field-nti-checkbox">
       <div 
-        className={`check-box_container team-card_field-nti-checkbox ${!editedData.username ? 'placeholder' : ''}`}
-        onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
-      >
+  className={`check-box_container team-card_field-nti-checkbox ${!editedData.username ? 'placeholder' : ''}`}
+  onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
+    }
+  }}
+  role="button"
+  tabIndex={0}
+  aria-expanded={isTrackerDropdownOpen}
+  aria-haspopup="listbox"
+>
         <div 
     className="check-box_button" 
     style={{ 
@@ -791,16 +801,27 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
             ) : (
               filteredTrackers.map(tracker => (
                 <div
-                  key={tracker.id}
-                  className={`team-card_field-select-option ${
-                    editedData.username === tracker.username ? 'selected' : ''
-                  }`}
-                  onClick={() => {
-                    setEditedData(prev => ({ ...prev, username: tracker.username }));
-                    setTrackerSearchTerm("");
-                    setIsTrackerDropdownOpen(false);
-                  }}
-                >
+  key={tracker.id}
+  className={`team-card_field-select-option ${
+    editedData.username === tracker.username ? 'selected' : ''
+  }`}
+  onClick={() => {
+    setEditedData(prev => ({ ...prev, username: tracker.username }));
+    setTrackerSearchTerm("");
+    setIsTrackerDropdownOpen(false);
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setEditedData(prev => ({ ...prev, username: tracker.username }));
+      setTrackerSearchTerm("");
+      setIsTrackerDropdownOpen(false);
+    }
+  }}
+  role="option"
+  tabIndex={0}
+  aria-selected={editedData.username === tracker.username}
+>
                   <div className="team-card_field-select-option-name">{tracker.fullName}</div>
                   <div className="team-card_field-select-option-username">@{tracker.username}</div>
                 </div>
