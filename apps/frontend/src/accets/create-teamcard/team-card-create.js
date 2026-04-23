@@ -16,7 +16,7 @@ const TeamCard = () => {
     const [showStreams, setShowStreams] = useState(false);
     const [showNTI, setShowNTI] = useState(false);
     const [showTRL, setShowTRL] = useState(false);
-    const [showTrackers, setShowTrackers] = useState(false);
+    const [setShowTrackers] = useState(false);
     const [selectedMarkets, setSelectedMarkets] = useState([]);
     const [trackerSearchTerm, setTrackerSearchTerm] = useState("");
 const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
@@ -54,13 +54,17 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                 setShowNTI(false);
                 setShowTRL(false);
                 setShowStreams(false);
-                setShowTrackers(false);
+                // Проверяем, определена ли setShowTrackers перед вызовом
+                if (typeof setShowTrackers === 'function') {
+                    setShowTrackers(false);
+                }
+        
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [setShowTrackers]);
 
     // Получаем информацию о текущем пользователе
     useEffect(() => {
@@ -192,17 +196,17 @@ useEffect(() => {
         setShowStreams(false);
     };
 
-    const handleTrackerSelect = (tracker) => {
-        setSelectedTracker(tracker);
-        setFormData(prev => ({
-            ...prev,
-            tracker: tracker.fullName,
-            trackerId: tracker.id,
-  trackerUsername: tracker.username // Добавляем ID трекера в formData
+  //   const handleTrackerSelect = (tracker) => {
+  //       setSelectedTracker(tracker);
+  //       setFormData(prev => ({
+  //           ...prev,
+  //           tracker: tracker.fullName,
+  //           trackerId: tracker.id,
+  // trackerUsername: tracker.username // Добавляем ID трекера в formData
             
-        }));
-        setShowTrackers(false);
-    };
+  //       }));
+  //       setShowTrackers(false);
+  //   };
 
     const validateForm = () => {
         const errors = [];

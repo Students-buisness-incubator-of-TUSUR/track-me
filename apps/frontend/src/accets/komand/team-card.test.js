@@ -11,6 +11,16 @@ import '@testing-library/jest-dom';
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import TeamCard from "./team-card";
 
+const renderWithRouter = (ui, { route = "/team-card/1", state = {} } = {}) => {
+  window.history.pushState(state, "", route);
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path="/team-card/:id" element={ui} />
+      </Routes>
+    </MemoryRouter>
+  );
+};
 
 const mockNavigate = jest.fn();
 
@@ -539,14 +549,57 @@ describe("ADMIN-specific edit mode", () => {
   });
 
   it("fetches and displays only enabled trackers in SelectBox", async () => {
-    renderTeamCard({ role: "ADMIN" });
-    await waitForLoad();
-    fireEvent.click(screen.getByText("Редактировать"));
-    const select = screen.getByTestId("selectbox-username");
-    expect(within(select).getByText("Иван Иванов")).toBeInTheDocument();
-    expect(within(select).getByText("Мария Петрова")).toBeInTheDocument();
-    expect(within(select).queryByText("Отключённый Трекер")).not.toBeInTheDocument();
+  // Мокаем useGetUserInfo через уже существующий mock
+  mockUseGetUserInfo.mockReturnValue({
+    roles: ["ADMIN"],
+    username: "admin",
+    fullName: "Admin User",
   });
+
+  // Мокаем fetchTrackers с кастомными данными
+  mockFetchTrackers.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({
+      content: [
+        { id: 1, fullName: "Иван Иванов", username: "ivan.ivanov", enabled: true },
+        { id: 2, fullName: "Мария Петрова", username: "maria.petrova", enabled: true },
+        { id: 3, fullName: "Отключённый Трекер", username: "disabled.tracker", enabled: false },
+      ],
+    }),
+  });
+
+  renderTeamCard({ 
+    role: "ADMIN",
+    fetchOverrides: {
+      teamCard: {
+        ...TEAM_CARD,
+        username: "ivan.ivanov", // Здесь username, а не fullName
+      },
+    },
+  });
+  
+  await waitForLoad();
+  
+  // Переходим в режим редактирования (кнопка "Редактировать")
+  fireEvent.click(screen.getByRole("button", { name: /редактировать/i }));
+  
+  // Ждем появления элемента с трекером (отображается username: ivan.ivanov)
+  await waitFor(() => {
+    const trackerElement = screen.getByText("ivan.ivanov");
+    expect(trackerElement).toBeInTheDocument();
+  });
+  
+  // Открываем дропдаун трекера - кликаем по элементу с username
+  const trackerButton = screen.getByText("ivan.ivanov");
+  fireEvent.click(trackerButton);
+  
+  // Проверяем отображение только активных трекеров (ищем по fullName в дропдауне)
+  await waitFor(() => {
+    expect(screen.getByText("Иван Иванов")).toBeInTheDocument();
+    expect(screen.getByText("Мария Петрова")).toBeInTheDocument();
+    expect(screen.queryByText("Отключённый Трекер")).not.toBeInTheDocument();
+  });
+});
 
   it("does NOT show stream selector for TRACKER", async () => {
     renderTeamCard({ role: "TRACKER" });

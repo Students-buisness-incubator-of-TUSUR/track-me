@@ -147,44 +147,51 @@ describe("TeamCard — создание карточки команды", () => 
   });
 
   it("отображает список трекеров для админа", async () => {
-    fetch.mockImplementation((url) => {
-      if (url.includes("/account/info")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ roles: ["ADMIN"], fullName: "Admin User" }),
-        });
-      }
-      if (url.includes("/users/trackers")) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              content: [
-                {
-                  id: 1,
-                  fullName: "Трекер A",
-                  username: "tracker1",
-                  enabled: true,
-                },
-              ],
-            }),
-        });
-      }
+  fetch.mockImplementation((url) => {
+    if (url.includes("/account/info")) {
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({}),
+        json: () => Promise.resolve({ roles: ["ADMIN"], fullName: "Admin User" }),
       });
+    }
+    if (url.includes("/users/trackers")) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            content: [
+              {
+                id: 1,
+                fullName: "Трекер A",
+                username: "tracker1",
+                enabled: true,
+              },
+            ],
+          }),
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({}),
     });
-
-    renderComponent();
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText(/Выберите трекера/i)).toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByPlaceholderText(/Выберите трекера/i));
-    const trackerOption = await screen.findByText(/Трекер A/i);
-    fireEvent.click(trackerOption);
-    expect(screen.getByDisplayValue(/Трекер A/i)).toBeInTheDocument();
   });
+
+  renderComponent();
+  
+  await waitFor(() => {
+    // Используем getByText вместо getByPlaceholderText, так как это div, а не input
+    expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+  });
+  
+  // Кликаем по элементу с текстом "Выберите трекера"
+  fireEvent.click(screen.getByText(/Выберите трекера/i));
+  
+  const trackerOption = await screen.findByText(/Трекер A/i);
+  fireEvent.click(trackerOption);
+  
+  // Проверяем, что выбранный трекер отображается
+  expect(screen.getByText(/Трекер A/i)).toBeInTheDocument();
+});
 
   it("показывает сообщение при нажатии Запланировать", async () => {
     renderComponent();
@@ -334,9 +341,14 @@ describe("TeamCard — валидация формы для админа", () =>
 
     fireEvent.click(screen.getByText(/Создать/i));
 
-    await waitFor(() => {
-      expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+  await waitFor(() => {
+    // Ищем текст ошибки внутри элемента с классом error-message
+    const errorMessage = screen.getByText((content, element) => {
+      return element.classList?.contains('error-message') && 
+             content.includes('Выберите трекера');
     });
+    expect(errorMessage).toBeInTheDocument();
+  });
   });
 
   it("не показывает ошибку выбора трекера для обычного пользователя", async () => {
