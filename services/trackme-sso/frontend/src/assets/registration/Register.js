@@ -68,7 +68,7 @@ const Register = () => {
     };
 
     useEffect(() => {
-        fetch('/terms-of-use.txt')
+        fetch(`${basePath}/terms-of-use.txt`)
             .then(response => {
             if (!response.ok) throw new Error('Файл не найден');
             return response.text();
@@ -80,7 +80,7 @@ const Register = () => {
             console.error("Ошибка загрузки соглашения:", err);
             setTermsText("Не удалось загрузить пользовательское соглашение. Пожалуйста, свяжитесь с поддержкой.");
             });
-    }, []);
+    }, [basePath]);
 
     return (
         <div className="register-container">
