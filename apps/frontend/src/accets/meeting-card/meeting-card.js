@@ -535,7 +535,7 @@ const MeetingCard = () => {
                                 className="unique-date-input"
                                 disabled={isMeetingLocked}
                                 min={new Date().toISOString().split('T')[0]}
-                            />
+                            /> 
                             <img src={pencilIcon} alt="Редактировать" style={{ marginTop: "-6px" }} className="edit-icon23" />
                         </div>
                     ) : (
