@@ -40,7 +40,8 @@ const [userRole, setUserRole] = useState('');
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.post(`${backendHost}/api/v1/admin/streams?page=${page}&size=6`,
+            const sortParams = 'startDate,desc&sort=name,asc';
+            const response = await axios.post(`${backendHost}/api/v1/admin/streams?page=${page}&size=6&sort=${sortParams}`,
                 filters,
                 {   
                     ...getCsrfConfig(),
