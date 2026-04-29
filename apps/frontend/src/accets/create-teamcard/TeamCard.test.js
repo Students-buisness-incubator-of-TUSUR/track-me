@@ -134,19 +134,7 @@ describe("TeamCard — создание карточки команды", () => 
     });
   });
 
-  it("открывает и закрывает dropdown при клике вне", async () => {
-    renderComponent();
-    fireEvent.click(screen.getByText(/TRL/i, { selector: ".create-dropdown-toggle" }));
-    await waitFor(() => {
-      expect(screen.getByText(/0-2/i)).toBeInTheDocument();
-    });
-    fireEvent.mouseDown(document.body);
-    await waitFor(() => {
-      expect(screen.queryByText(/0-2/i)).not.toBeInTheDocument();
-    });
-  });
-
-  it("отображает список трекеров для админа", async () => {
+  it("фильтрует список трекеров админа при вводе поискового запроса", async () => {
     fetch.mockImplementation((url) => {
       if (url.includes("/account/info")) {
         return Promise.resolve({
@@ -160,31 +148,170 @@ describe("TeamCard — создание карточки команды", () => 
           json: () =>
             Promise.resolve({
               content: [
-                {
-                  id: 1,
-                  fullName: "Трекер A",
-                  username: "tracker1",
-                  enabled: true,
-                },
+                { id: 1, fullName: "Иван Иванов", username: "ivan", enabled: true },
+                { id: 2, fullName: "Мария Петрова", username: "maria", enabled: true },
+                { id: 3, fullName: "Отключённый Трекер", username: "disabled", enabled: false },
               ],
             }),
         });
       }
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve({}),
-      });
+      if (url.includes("/streams?page=0")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: 1, name: "Stream 1", active: true }],
+            }),
+        });
+      }
+      if (url.includes("/streams/nti-markets")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve([
+              { id: 1, displayName: "Market 1" },
+              { id: 2, displayName: "Market 2" },
+              { id: 3, displayName: "Market 3" },
+            ]),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
     });
 
     renderComponent();
+
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/Выберите трекера/i)).toBeInTheDocument();
+      expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByPlaceholderText(/Выберите трекера/i));
-    const trackerOption = await screen.findByText(/Трекер A/i);
-    fireEvent.click(trackerOption);
-    expect(screen.getByDisplayValue(/Трекер A/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText(/Выберите трекера/i));
+
+    const searchInput = await screen.findByPlaceholderText(/Поиск по ФИО/i);
+    fireEvent.click(searchInput);
+    expect(searchInput).toHaveFocus();
+
+    fireEvent.change(searchInput, { target: { value: "Мария" } });
+    expect(searchInput).toHaveValue("Мария");
+
+    await waitFor(() => {
+      expect(screen.getByText(/Мария Петрова/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Иван Иванов/i)).not.toBeInTheDocument();
+    });
   });
+
+  it("не падает при клике вне дропдауна трекеров", async () => {
+    fetch.mockImplementation((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ roles: ["ADMIN"], fullName: "Admin User" }),
+        });
+      }
+      if (url.includes("/users/trackers")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [
+                { id: 1, fullName: "Иван Иванов", username: "ivan", enabled: true },
+              ],
+            }),
+        });
+      }
+      if (url.includes("/streams?page=0")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              content: [{ id: 1, name: "Stream 1", active: true }],
+            }),
+        });
+      }
+      if (url.includes("/streams/nti-markets")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 1, displayName: "Market 1" }]),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/Выберите трекера/i));
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
+    });
+
+    fireEvent.mouseDown(document.body);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
+    });
+  });
+
+  it("открывает и закрывает dropdown при клике вне", async () => {
+    renderComponent();
+    fireEvent.click(screen.getByText(/TRL/i, { selector: ".create-dropdown-toggle" }));
+    await waitFor(() => {
+      expect(screen.getByText(/0-2/i)).toBeInTheDocument();
+    });
+    fireEvent.mouseDown(document.body);
+    await waitFor(() => {
+      expect(screen.queryByText(/0-2/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("отображает список трекеров для админа", async () => {
+  fetch.mockImplementation((url) => {
+    if (url.includes("/account/info")) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ roles: ["ADMIN"], fullName: "Admin User" }),
+      });
+    }
+    if (url.includes("/users/trackers")) {
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            content: [
+              {
+                id: 1,
+                fullName: "Трекер A",
+                username: "tracker1",
+                enabled: true,
+              },
+            ],
+          }),
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({}),
+    });
+  });
+
+  renderComponent();
+  
+  await waitFor(() => {
+    // Используем getByText вместо getByPlaceholderText, так как это div, а не input
+    expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+  });
+  
+  // Кликаем по элементу с текстом "Выберите трекера"
+  fireEvent.click(screen.getByText(/Выберите трекера/i));
+  
+  const trackerOption = await screen.findByText(/Трекер A/i);
+  fireEvent.click(trackerOption);
+  
+  // Проверяем, что выбранный трекер отображается
+  expect(screen.getByText(/Трекер A/i)).toBeInTheDocument();
+});
 
   it("показывает сообщение при нажатии Запланировать", async () => {
     renderComponent();
@@ -334,9 +461,14 @@ describe("TeamCard — валидация формы для админа", () =>
 
     fireEvent.click(screen.getByText(/Создать/i));
 
-    await waitFor(() => {
-      expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+  await waitFor(() => {
+    // Ищем текст ошибки внутри элемента с классом error-message
+    const errorMessage = screen.getByText((content, element) => {
+      return element.classList?.contains('error-message') && 
+             content.includes('Выберите трекера');
     });
+    expect(errorMessage).toBeInTheDocument();
+  });
   });
 
   it("не показывает ошибку выбора трекера для обычного пользователя", async () => {
