@@ -668,7 +668,7 @@ describe("ADMIN-specific edit mode", () => {
   });
 
   it("не закрывает дропдаун трекера при клике по своему полю поиска", async () => {
-    renderTeamCard({ role: "TRACKER" });
+    renderTeamCard({ role: "ADMIN" });
     await enterEditMode();
 
     const trackerButton = screen.getByRole("button", { name: /Иван Иванов|tracker1|Выберите трекера/i });
