@@ -71,6 +71,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
   const [teamData, setTeamData] = useState({});
   const [editedData, setEditedData] = useState({});
+  const [originalData, setOriginalData] = useState({});
   const [meetings, setMeetings] = useState([]);
   const [currentPage, setCurrentPage] = useState(0); // eslint-disable-line no-unused-vars
   const [totalPages, setTotalPages] = useState(1); // eslint-disable-line no-unused-vars
@@ -414,6 +415,30 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     setEditedData({ ...editedData, [e.target.name]: e.target.value });
   };
 
+  const hasUnsavedChanges = () => {
+    if (!isEditing || !originalData) return false;
+    
+    const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
+    for (const field of fieldsToCheck) {
+      const original = originalData[field];
+      const current = editedData[field];
+      
+      if (Array.isArray(original) && Array.isArray(current)) {
+        if (JSON.stringify(original.sort()) !== JSON.stringify(current.sort())) return true;
+      } else if (original !== current) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const handleMeetingClick = async (meeting) => {
+    if (hasUnsavedChanges()) {
+      await handleSave();
+    }
+    navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`);
+  };
+
   useEffect(() => {
     if (Array.isArray(ntiMarkets)) {
       setSelectedMarket(
@@ -491,6 +516,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       const updated = await response.json();
       setTeamData(updated);
       setEditedData(updated);
+      setOriginalData(null);
       setIsEditing(false);
 
     } catch (error) {
@@ -738,7 +764,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
               <CloseIcon />
             </button>
             <button
-              onClick={isEditing ? handleSave : () => setIsEditing(true)}
+              onClick={isEditing ? handleSave : () => { setOriginalData({...editedData}); setIsEditing(true); }}
               className="team-card_etc-button"
             >
               {isLoading ? "Сохранение..." : (isEditing ? "Сохранить" : "Редактировать")}
@@ -748,7 +774,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
             <div className="team-card_fields">
               <div className="team-card_field">
   <p>Трекер:</p>
-  {isEditing ? (
+  {isEditing && role !== "TRACKER" ? (
     <div className="check-box_container team-card_field-nti-checkbox">
       <div 
   className={`check-box_container team-card_field-nti-checkbox ${!editedData.username ? 'placeholder' : ''}`}
@@ -829,6 +855,14 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
             )}
           </div>
         </div>
+      )}
+      {role === "TRACKER" && (
+        <InputBox
+          className="team-card_field-input"
+          name="username"
+          value={trackerFullName || editedData.username || ""}
+          readOnly
+        />
       )}
     </div>
 ) : (
@@ -1030,7 +1064,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                 ) : (
                   <button
                     className={`team-card_meetings-button team-card_meeting-text ${getMeetingStatusClass(meeting.status)}`}
-                    onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
+                    onClick={() => handleMeetingClick(meeting)}
                   >
                     <button
                       className="team-card_meeting-date team-card_meeting-text"

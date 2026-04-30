@@ -1071,6 +1071,41 @@ describe("Meeting navigation", () => {
       expect.stringContaining("/meeting/m1")
     );
   });
+
+  it("saves changes before navigating to meeting when there are unsaved changes", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    
+    const editButton = screen.getByText("Редактировать");
+    fireEvent.click(editButton);
+    
+    await waitFor(() => expect(screen.getByText("Сохранить")).toBeInTheDocument());
+    
+    const nameInput = screen.getByTestId("inputbox-name");
+    fireEvent.change(nameInput, { target: { value: "Updated Team Name" } });
+    
+    const meetingBtn = screen.getByText("Встреча 1").closest("button");
+    fireEvent.click(meetingBtn);
+    
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining("/meeting/m1")
+      );
+    });
+  });
+
+  it("does not show warning when no unsaved changes and in view mode", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    
+    const meetingBtn = screen.getByText("Встреча 1").closest("button");
+    fireEvent.click(meetingBtn);
+    
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.stringContaining("/meeting/m1")
+    );
+    expect(screen.queryByText("Сохранить изменения?")).not.toBeInTheDocument();
+  });
 });
 
 describe("Stream info display", () => {
