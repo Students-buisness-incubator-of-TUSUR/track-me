@@ -453,6 +453,30 @@ describe("Edit mode", () => {
     expect(screen.getByRole("button", { name: /сохранить/i })).toBeInTheDocument();
   });
 
+  it("shows tracker full name instead of SelectBox for TRACKER role in edit mode", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    await enterEditMode();
+    
+    // TRACKER должен видеть InputBox с ФИО, а не SelectBox
+    expect(screen.queryByRole("button", { name: /Выберите трекера/i })).not.toBeInTheDocument();
+    
+    // Проверяем, что есть input с именем трекера (trackerFullName)
+    const trackerInput = screen.getByTestId("inputbox-username");
+    expect(trackerInput).toBeInTheDocument();
+    expect(trackerInput).toHaveAttribute("readonly");
+  });
+
+  it("shows SelectBox for ADMIN role in edit mode", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await waitForLoad();
+    await enterEditMode();
+    
+    // ADMIN должен видеть SelectBox
+    const trackerButton = screen.getByRole("button", { name: /Выберите трекера|Иван Иванов/i });
+    expect(trackerButton).toBeInTheDocument();
+  });
+
   it("shows meeting room link field only in edit mode", async () => {
     renderTeamCard();
     await waitForLoad();
