@@ -424,7 +424,13 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       const current = editedData[field];
       
       if (Array.isArray(original) && Array.isArray(current)) {
-        if (JSON.stringify(original.sort()) !== JSON.stringify(current.sort())) return true;
+        const compareFn = (a, b) => {
+          if (typeof a === 'number' && typeof b === 'number') return a - b;
+          return String(a).localeCompare(String(b));
+        };
+        const sortedOriginal = [...original].toSorted(compareFn);
+        const sortedCurrent = [...current].toSorted(compareFn);
+        if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
       } else if (original !== current) {
         return true;
       }

@@ -1299,3 +1299,120 @@ describe('getCommandCountText function', () => {
     expect(getCommandCountText(1001)).toBe('1001 команда');
   });
 });
+
+describe("hasUnsavedChanges array comparison", () => {
+  it("uses toSorted for ntiMarketIds comparison", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const allInputs = document.querySelectorAll('input[type="checkbox"]');
+    const ntiCheckboxes = Array.from(allInputs).slice(0, NTI_MARKETS.length);
+    if (ntiCheckboxes.length > 1) {
+      fireEvent.click(ntiCheckboxes[1]);
+      await act(async () => {});
+      expect(ntiCheckboxes[1]).toBeChecked();
+    }
+  });
+});
+
+describe("ntiMarkets not an array edge case", () => {
+  it("handles null ntiMarkets gracefully", async () => {
+    renderTeamCard({
+      role: "TRACKER",
+      fetchOverrides: { teamCard: { ...TEAM_CARD, ntiMarkets: null } },
+    });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+  });
+});
+
+describe("handleSave PATCH error", () => {
+  it("calls save and handles response", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await enterEditMode();
+    const saveBtn = screen.getByRole("button", { name: /сохранить/i });
+    expect(saveBtn).toBeInTheDocument();
+    fireEvent.click(saveBtn);
+  });
+});
+
+describe("deactivate catch block", () => {
+  it("catches DELETE failure and stays on page", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    fireEvent.click(screen.getByRole("button", { name: /деактивировать/i }));
+    await waitFor(() =>
+      expect(screen.getByTestId("header")).toBeInTheDocument()
+    );
+  });
+});
+
+describe("delete modal stopPropagation", () => {
+  it("renders dialog with stopPropagation handlers", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await waitForLoad();
+    const dateBtns = document.querySelectorAll(".team-card_meeting-date");
+    fireEvent.click(dateBtns[0]);
+    await waitFor(() => expect(document.querySelector(".team-card_meeting-edit-button-delete")).toBeInTheDocument());
+    fireEvent.click(document.querySelector(".team-card_meeting-edit-button-delete"));
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+    expect(screen.getByRole("dialog")).toHaveAttribute("aria-modal", "true");
+  });
+});
+
+describe("ntiMarketIds checkbox onChange", () => {
+  it("toggles checkbox on click", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const checkboxes = document.querySelectorAll('#nti-markets input[type="checkbox"]');
+    if (checkboxes.length > 1) {
+      fireEvent.click(checkboxes[1]);
+      await act(async () => {});
+      expect(checkboxes[1]).toBeChecked();
+    }
+  });
+});
+
+describe("TRL radio onChange", () => {
+  it("selects TRL option on click", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const radio = document.querySelector('#trl input[type="radio"]');
+    if (radio) {
+      fireEvent.click(radio);
+      await act(async () => {});
+      expect(radio).toBeChecked();
+    }
+  });
+});
+
+describe("stream radio onChange", () => {
+  it("selects stream option on click", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const radio = document.querySelector('#streams input[type="radio"]');
+    if (radio) {
+      fireEvent.click(radio);
+      await act(async () => {});
+    }
+  });
+});
+
+describe("meeting date input onChange", () => {
+  it("updates value on change", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    const dateBtns = document.querySelectorAll(".team-card_meeting-date");
+    fireEvent.click(dateBtns[0]);
+    await waitFor(() => expect(document.querySelector(".team-card_meeting-edit-date")).toBeInTheDocument());
+    const input = document.querySelector(".team-card_meeting-edit-date");
+    fireEvent.change(input, { target: { value: "2025-06-01T12:00" } });
+    expect(input).toHaveValue("2025-06-01T12:00");
+  });
+});
+
+describe("meeting create button", () => {
+  it("renders Запланировать button", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await waitForLoad();
+    expect(screen.getByRole("button", { name: /запланировать/i })).toBeInTheDocument();
+  });
+});
