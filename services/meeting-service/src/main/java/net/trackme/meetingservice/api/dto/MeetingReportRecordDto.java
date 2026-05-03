@@ -6,10 +6,14 @@ import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
 
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Builder
 @Schema(description = "Запись отчета о встречах")
 public record MeetingReportRecordDto(
+        @Schema(description = "ID команды")
+        UUID teamId,
+
     @Schema(description = "Название команды, для которой была встрча")
     String teamName,
 
