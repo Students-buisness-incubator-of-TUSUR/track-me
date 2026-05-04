@@ -18,7 +18,6 @@ public interface StreamMapper {
     @Mapping(target = "ntiMarkets", ignore = true)
     @Mapping(target = "imageBytes", ignore = true)
     @Mapping(target = "teamCards", ignore = true)
-    @Mapping(target = "startDate", ignore = true)
     @Mapping(target = "id", ignore = true)
     void updateFromDto(StreamUpdateDto dto, @MappingTarget Stream entity);
 

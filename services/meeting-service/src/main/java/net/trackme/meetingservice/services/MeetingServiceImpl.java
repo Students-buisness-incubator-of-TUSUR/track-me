@@ -1,18 +1,23 @@
 package net.trackme.meetingservice.services;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.acl.AclService;
-import net.trackme.meetingservice.api.MeetingCreateDto;
-import net.trackme.meetingservice.api.MeetingDto;
-import net.trackme.meetingservice.api.MeetingUpdateDto;
+import net.trackme.meetingservice.api.dto.MeetingCreateDto;
+import net.trackme.meetingservice.api.dto.MeetingDto;
+import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
-import net.trackme.meetingservice.events.MeetingCreatedEvent;
-import net.trackme.meetingservice.events.MeetingUpdatedEvent;
+import net.trackme.meetingservice.messaging.own.MeetingCreatedEvent;
+import net.trackme.meetingservice.messaging.own.MeetingUpdatedEvent;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.services.exceptions.*;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
+import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
+import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
+import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
+import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -27,12 +32,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toSet;
 import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
 import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardIdEquals;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingMapper meetingMapper;
@@ -43,15 +48,59 @@ public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingEventsProducer meetingEventsProducer;
 
-    private final BackendApiClient backendApiClient;
+    private final BackendApiClient userBackendClient;
+
+    private final SsoApiClient ssoApiClient;
+
+    public MeetingServiceImpl(
+            MeetingMapper meetingMapper,
+            MeetingRepository meetingRepository,
+            AclService aclService,
+            MeetingEventsProducer meetingEventsProducer,
+            @Qualifier("userBackendApiClient") BackendApiClient userBackendClient,
+            SsoApiClient ssoApiClient) {
+
+        this.meetingMapper = meetingMapper;
+        this.meetingRepository = meetingRepository;
+        this.aclService = aclService;
+        this.meetingEventsProducer = meetingEventsProducer;
+        this.userBackendClient = userBackendClient;
+        this.ssoApiClient = ssoApiClient;
+    }
 
     @Override
     @Transactional
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
+
         var meeting = meetingMapper.mapToEntity(createDto);
+        var teamData = userBackendClient.getTeamCardById(teamCardId);
+        var trackerUsername = teamData.getUsername();
+
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.SCHEDULED);
+
+        // Denormalize (Backend)
+        meeting.setTeamName(teamData.getName());
+        meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
+        meeting.setTrackerUsername(trackerUsername);
+
+        // Denormalize (SSO)
+        if (trackerUsername != null) {
+            var tracker = ssoApiClient.getTrackers().stream()
+                    .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
+                    .findFirst();
+
+            if (tracker.isPresent()) {
+                UserDto user = tracker.get();
+                meeting.setTrackerId(user.getId());
+                meeting.setTrackerFullName(user.getFullName());
+            } else {
+                meeting.setTrackerFullName(trackerUsername);
+                log.warn("Tracker with username {} not found in SSO during meeting creation", trackerUsername);
+            }
+        }
+
         meeting = meetingRepository.save(meeting);
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -88,6 +137,7 @@ public class MeetingServiceImpl implements MeetingService {
         var oldStatus = meeting.getStatus();
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         meeting = meetingRepository.save(meeting);
+
         if (oldStatus != meeting.getStatus()) {
             sendMeetingUpdatedEvent(meeting, oldStatus);
         }
@@ -209,7 +259,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     private String fetchRoomLink(UUID teamCardId) {
         try {
-            var teamCard = backendApiClient.getTeamCardById(teamCardId);
+            var teamCard = userBackendClient.getTeamCardById(teamCardId);
 
             return teamCard != null
                     ? teamCard.getMeetingRoomLink()

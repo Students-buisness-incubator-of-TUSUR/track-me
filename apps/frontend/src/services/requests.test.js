@@ -1,7 +1,83 @@
-import { fetchReports, fetchTrackers, fetchStreams, fetchTeams, fetchUserInfo, fetchUserPhoto, updateUserInfo, updateUserPhoto } from './requests';
+import { fetchReports, fetchTrackers, fetchStreams, fetchTeams, fetchUserInfo, fetchUserPhoto, updateUserInfo, updateUserPhoto, fetchMeetingReportExcel, fetchMeetingReport } from './requests';
 
 // Mock global fetch
 global.fetch = jest.fn();
+
+describe('fetchMeetingReport', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should construct correct URL with page, size and array of sort', async () => {
+    fetch.mockResolvedValue({ ok: true });
+    const params = {
+      streamId: 'uuid-123',
+      filters: [{ fieldName: 'team', type: 'EQ', value: 'Alpha' }],
+      page: 0,
+      size: 10,
+      sort: ['name,asc', 'date,desc']
+    };
+
+    await fetchMeetingReport(params);
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('api/v1/meetings/reports?streamId=uuid-123&page=0&size=10&sort=name,asc&sort=date,desc'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ filters: params.filters })
+      })
+    );
+  });
+
+  it('should handle single sort string and undefined page/size', async () => {
+    fetch.mockResolvedValue({ ok: true });
+
+    await fetchMeetingReport({ streamId: '1', sort: 'name,asc' });
+
+    const callUrl = fetch.mock.calls[0][0];
+    expect(callUrl).toContain('sort=name,asc');
+    expect(callUrl).not.toContain('page=');
+    expect(callUrl).not.toContain('size=');
+    
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ filters: [] });
+  });
+});
+
+describe('fetchMeetingReportExcel', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should set correct headers and handle sort array', async () => {
+    fetch.mockResolvedValue({ ok: true });
+
+    await fetchMeetingReportExcel({ 
+      streamId: '456', 
+      sort: ['team,asc', 'status,desc'],
+      filters: null 
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('reports/excel?streamId=456&sort=team,asc&sort=status,desc'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        })
+      })
+    );
+  });
+
+  it('should handle single sort string', async () => {
+    fetch.mockResolvedValue({ ok: true });
+
+    await fetchMeetingReportExcel({ streamId: '456', sort: 'single,asc' });
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('sort=single,asc'),
+      expect.any(Object)
+    );
+  });
+});
 
 
 describe('fetchReports', () => {
@@ -49,6 +125,8 @@ describe('fetchTrackers', () => {
       expect.any(Object)
     );
   });
+
+  
 });
 
 

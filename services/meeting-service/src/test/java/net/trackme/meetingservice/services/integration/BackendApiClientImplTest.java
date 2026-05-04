@@ -1,64 +1,53 @@
 package net.trackme.meetingservice.services.integration;
 
-import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
-import net.trackme.meetingservice.services.integration.backend.BackendApiClientImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.trackme.meetingservice.config.TestSecurityConfig;
+import net.trackme.meetingservice.services.integration.backend.UserBackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.backend.exceptions.TeamCardNotFoundException;
-
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
-
-import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.any;
-
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @ActiveProfiles("test")
-@RestClientTest(BackendApiClientImpl.class)
+@RestClientTest(UserBackendApiClient.class)
+@Import({TestSecurityConfig.class, BackendApiClientImplTest.LocalTestConfig.class})
 public class BackendApiClientImplTest {
 
-    @Autowired
-    private BackendApiClient client;
+    @TestConfiguration
+    static class LocalTestConfig {
+        @Bean(name = "userRestClient")
+        public RestClient userRestClient(RestClient.Builder builder) {
+            return builder.build();
+        }
+    }
 
-    @MockitoBean
-    private SecurityPropagationInterceptor securityPropagationInterceptor;
+    @Autowired
+    private UserBackendApiClient client;
 
     @Autowired
     private MockRestServiceServer server;
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setUp() throws IOException {
-        when(securityPropagationInterceptor.intercept(any(), any(), any()))
-                .thenAnswer(invocation -> {
-                    var request = invocation.getArgument(0, org.springframework.http.HttpRequest.class);
-                    var body = invocation.getArgument(1, byte[].class);
-                    var execution = invocation.getArgument(2, org.springframework.http.client.ClientHttpRequestExecution.class);
-                    return execution.execute(request, body);
-                });
-    }
 
     @Test
     public void getTeamCardById_success() throws Exception {
@@ -70,10 +59,8 @@ public class BackendApiClientImplTest {
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(objectMapper.writeValueAsString(expectedDto), MediaType.APPLICATION_JSON));
 
-        // Act
         var result = client.getTeamCardById(id);
 
-        // Assert
         Assertions.assertEquals(id, result.getId());
         server.verify();
     }

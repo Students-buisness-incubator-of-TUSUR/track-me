@@ -10,31 +10,156 @@ import { useGetUserInfo } from "../../services/util";
 
 import Header from "../header/header";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
 export default function ReportPage({ defaultIsActive = true }) {
-const [reports, setReports] = useState([]);
+  const navigate = useNavigate();
+  const [reports, setReports] = useState([]);
   const [trackers, setTrackers] = useState([]);
   const [streams, setStreams] = useState([]);
-const [page] = useState(0);
-const [size] = useState(10000);
-const [loading, setLoading] = useState(false);
-const [userRole, setUserRole] = useState('');
+  const [page] = useState(0);
+  const [size] = useState(10000);
+  const [loading, setLoading] = useState(false);
+  const [userRole, setUserRole] = useState('');
+  const [sortColumn, setSortColumn] = useState(null);
+  const [sortDirection, setSortDirection] = useState('desc');
 
-  // фильтры (заглушки)
+  // фильтры
   const [isActive, setIsActive] = useState(defaultIsActive);
   const [trackerFilterOpen, setTrackerFilterOpen] = useState(false);
   const [streamFilterOpen, setStreamFilterOpen] = useState(false);
   const [filterTrackers, _setFilterTrackers] = useState(null);
   const [filterStreams, _setFilterStreams] = useState(null);
+  const [trackerSearchQuery, setTrackerSearchQuery] = useState('');
   const setFilterTrackers = (newTracker) => {
     _setFilterTrackers(newTracker);
+    setTrackerSearchQuery("");
     setTrackerFilterOpen(false);
   }
   const setFilterStreams = (newStreams) => {
     _setFilterStreams(newStreams);
     setStreamFilterOpen(false);
   }
-  
+
+  // Определение активного потока
+  const isStreamActive = (stream) => {
+    const todayDate = new Date().toISOString().split('T')[0];
+    return stream.startDate <= todayDate && stream.endDate >= todayDate;
+  };
+
+  // Сортировка потоков в фильтре
+  const getSortedStreams = (streamsToSort) => {
+    const activeStreams = streamsToSort.filter(isStreamActive);
+    const inactiveStreams = streamsToSort.filter(s => !isStreamActive(s));
+
+    activeStreams.sort((a, b) => {
+      if (a.endDate !== b.endDate) {
+        return new Date(b.endDate) - new Date(a.endDate);
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    inactiveStreams.sort((a, b) => {
+      if (a.endDate !== b.endDate) {
+        return new Date(b.endDate) - new Date(a.endDate);
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    return [...activeStreams, ...inactiveStreams];
+  };
+
+  // Сортировка отчётов в таблице
+  const getSortedReports = (reportsToSort) => {
+    const todayDate = new Date().toISOString().split('T')[0];
+    let sorted = [...reportsToSort];
+
+    sorted.sort((a, b) => {
+      const aActive = a.startDate <= todayDate && a.endDate >= todayDate;
+      const bActive = b.startDate <= todayDate && b.endDate >= todayDate;
+
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
+
+      if (aActive && bActive) {
+        if (a.endDate !== b.endDate) {
+          return new Date(b.endDate) - new Date(a.endDate);
+        }
+      } else if (!aActive && !bActive) {
+        if (a.endDate !== b.endDate) {
+          return new Date(b.endDate) - new Date(a.endDate);
+        }
+      }
+
+        if (a.streamName !== b.streamName) {
+          return a.streamName.localeCompare(b.streamName);
+        }
+
+        return a.teamCardName.localeCompare(b.teamCardName);
+      });
+
+      if (sortColumn) {
+        sorted.sort((a, b) => {
+          let aVal, bVal;
+
+          if (sortColumn === 'averageTeamGrade') {
+            aVal = a.averageTeamGrade === null ? -1 : parseFloat(a.averageTeamGrade);
+            bVal = b.averageTeamGrade === null ? -1 : parseFloat(b.averageTeamGrade);
+          } else if (sortColumn === 'averageUserGrade') {
+            aVal = a.averageUserGrade === null ? -1 : parseFloat(a.averageUserGrade);
+            bVal = b.averageUserGrade === null ? -1 : parseFloat(b.averageUserGrade);
+          } else if (sortColumn === 'readinessLevel') {
+            aVal = a.readinessLevel ? parseInt(a.readinessLevel) : -1;
+            bVal = b.readinessLevel ? parseInt(b.readinessLevel) : -1;
+          } else if (sortColumn === 'teamCardName') {
+            aVal = a.teamCardName || '';
+            bVal = b.teamCardName || '';
+            if (sortDirection === 'desc') {
+              return bVal.localeCompare(aVal);
+            } else {
+              return aVal.localeCompare(bVal);
+            }
+          }
+
+          if (sortDirection === 'desc') {
+            return bVal - aVal;
+          } else {
+            return aVal - bVal;
+          }
+        });
+      }
+
+      return sorted;
+    };
+
+  // Обработчик сортировки колонок
+  const handleColumnSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortColumn !== field) {
+      return <span className="sort-icon sort-icon-inactive">↕</span>;
+    }
+    return (
+      <span className="sort-icon sort-icon-active">
+        {sortDirection === 'asc' ? '↑' : '↓'}
+      </span>
+    );
+  };
+
+  const getSortLabelForText = (field) => {
+    if (sortColumn !== field) {
+      return 'А→Я';
+    }
+    return sortDirection === 'asc' ? 'А→Я' : 'Я→А';
+  };
+   
   const buildFilters = useCallback(() => {
     const filters = [];
     if (filterTrackers) filters.push({
@@ -142,6 +267,7 @@ const [userRole, setUserRole] = useState('');
     setUserRole(user.roles[0]);
   }, [user]);
 
+  const reportUsernames = reports.map((report) => report.username);
   return (
     <div className="Report">
       <Header userRole={userRole}></Header>
@@ -159,17 +285,18 @@ const [userRole, setUserRole] = useState('');
             <button
               data-testid="button-isactive"
               className="report-page_btn-isactive"
-              onClick={() => setIsActive(!isActive)}
+              onClick={() => setIsActive((prev) => !prev)}
             >
               <input
                 id="isActive"
                 type="checkbox"
-                disabled={true}
                 checked={!isActive}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsActive((prev) => !prev)
+                }}
               />
-              <label
-                htmlFor="isActive"
-              >Показывать неактивные</label>
+              <label>Показывать неактивные</label>
             </button>
            <div className="report-dropdown1">
   <button
@@ -189,12 +316,25 @@ const [userRole, setUserRole] = useState('');
   </button>
   {trackerFilterOpen && (
     <div data-testid="trackers-dropdown-menu" className="report-dropdown-menu">
+      <input
+        type="text"
+        placeholder="Поиск по имени или логину..."
+        className="report-dropdown-item report-search-input"
+        value={trackerSearchQuery}
+        onChange={(e) => setTrackerSearchQuery(e.target.value)}
+      />
       <button
         key={0}
         className="report-dropdown-item"
         onClick={() => setFilterTrackers(null)}
       >—</button>
-      {trackers.map((t, i) => (
+      {trackers.filter((tracker) => {
+        const query = trackerSearchQuery.toLowerCase();
+        return reportUsernames.includes(tracker.username) && (
+          tracker.fullName.toLowerCase().includes(query) ||
+          tracker.username.toLowerCase().includes(query)
+        );
+      }).map((t, i) => (
         <button
           key={i}
           className="report-dropdown-item"
@@ -227,12 +367,15 @@ const [userRole, setUserRole] = useState('');
         className="report-dropdown-item"
         onClick={() => setFilterStreams(null)}
       >—</button>
-      {streams.map((t, i) => (
+      {getSortedStreams(streams).map((t, i) => (
         <button
           key={i}
-          className="report-dropdown-item"
+          className={`report-dropdown-item ${isStreamActive(t) ? 'active-stream' : ''}`}
           onClick={() => setFilterStreams(t.name)}
-        >{t.name}</button>
+        >
+          {isStreamActive(t) && <span className="active-stream-dot"></span>}
+          {t.name}
+        </button>
       ))}
     </div>
   )}
@@ -249,13 +392,33 @@ const [userRole, setUserRole] = useState('');
                 <th>№</th>
                 <th>Название потока</th>
                 <th>Сроки потока</th>
-                <th>Название команды</th>
+                <th 
+                  className={`sortable ${sortColumn === 'teamCardName' ? 'sorted ' + sortDirection : ''}`}
+                  onClick={() => handleColumnSort('teamCardName')}
+                >
+                  Название команды {getSortLabelForText('teamCardName')}
+                </th>
                 <th>Имя трекера</th>
-                <th>Средняя оценка команды</th>
-                <th>Средняя оценка трекера</th>
-                <th>Трекшн-митинг (план/факт)</th>
+                <th 
+                  className={`sortable ${sortColumn === 'averageTeamGrade' ? 'sorted ' + sortDirection : ''}`}
+                  onClick={() => handleColumnSort('averageTeamGrade')}
+                >
+                  Средняя оценка команды {getSortIcon('averageTeamGrade')}
+                </th>
+                <th 
+                  className={`sortable ${sortColumn === 'averageUserGrade' ? 'sorted ' + sortDirection : ''}`}
+                  onClick={() => handleColumnSort('averageUserGrade')}
+                >
+                  Средняя оценка трекера {getSortIcon('averageUserGrade')}
+                </th>
+                <th>Трекшн-митинги (факт/план)</th>
                 <th>Рынки НТИ</th>
-                <th>Уровень TRL</th>
+                <th 
+                  className={`sortable ${sortColumn === 'readinessLevel' ? 'sorted ' + sortDirection : ''}`}
+                  onClick={() => handleColumnSort('readinessLevel')}
+                >
+                  Уровень TRL {getSortIcon('readinessLevel')}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -272,33 +435,47 @@ const [userRole, setUserRole] = useState('');
   )}
 
   {!loading &&
-    reports.map((item, index) => (
-      <tr key={index}>
-        <td>{index + 1 + page * size}</td>
+    getSortedReports(reports).map((item, index) => {
+      const todayDate = new Date().toISOString().split('T')[0];
+      const itemIsActive = item.startDate <= todayDate && item.endDate >= todayDate;
+      return (
+        <tr key={index} className={!isActive && itemIsActive ? 'active-row' : ''}>
+          <td>{index + 1 + page * size}</td>
 
-        <td>{item.streamName}</td>
+          <td
+            style={{ cursor: 'pointer', color: '#843AEB', textDecoration: 'underline' }}
+            onClick={() => navigate(`/report/${item.streamId}`)}
+          >
+            {item.streamName}
+          </td>
 
-        <td>
-          {item.startDate} – {item.endDate}
-        </td>
+          <td>
+            {item.startDate} – {item.endDate}
+          </td>
 
-        <td>{item.teamCardName}</td>
+          <td
+            style={{ cursor: 'pointer', color: '#843AEB', textDecoration: 'underline' }}
+            onClick={() => navigate(`/teamcard/${item.teamId}`)}
+          >
+            {item.teamCardName}
+          </td>
 
-        <td>{item.username}</td>
+          <td>{`${trackers?.filter((tracker) => tracker.username === item.username)[0]?.fullName} (${item.username})`}</td>
 
-        <td>{item.averageTeamGrade ?? "—"}</td>
+          <td>{item.averageTeamGrade ?? "—"}</td>
 
-        <td>{item.averageUserGrade ?? "—"}</td>
+          <td>{item.averageUserGrade ?? "—"}</td>
 
-        <td>
-          {item.meetingsCountFact}/{item.meetingsCountPlan}
-        </td>
+          <td>
+            {item.meetingsCountFact}/{item.meetingsCountPlan}
+          </td>
 
-        <td>{item.ntiMarkets.join(", ")}</td>
+          <td>{item.ntiMarkets.join(", ")}</td>
 
-        <td>{item.readinessLevel}</td>
-      </tr>
-    ))}
+          <td>{item.readinessLevel}</td>
+        </tr>
+      );
+    })}
 </tbody>
 
           </table>

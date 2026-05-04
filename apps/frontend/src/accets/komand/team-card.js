@@ -10,7 +10,6 @@ import { fetchTrackers } from "../../services/requests";
 import InputBox from "../input-box/input-box";
 import { ReactComponent as CloseIcon } from '../../files/close.svg';
 import TextBox from "../text-box/text-box";
-import SelectBox from "../select-box/select-box";
 import { adminRoleName, backendURLBackend, backendURLMeeting, backendURLSSO, superadminRoleName } from "../../services/constants";
 import CheckBox from "../check-box/check-box";
 
@@ -33,11 +32,31 @@ const getMeetingStatusClass = (status) => {
   }
 };
 
+export const getCommandCountText = (count) => {
+    if (count === 0) return "0 команд";
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+    
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+        return `${count} команд`;
+    }
+    
+    if (lastDigit === 1) {
+        return `${count} команда`;
+    }
+    
+    if (lastDigit >= 2 && lastDigit <= 4) {
+        return `${count} команды`;
+    }
+    
+    return `${count} команд`;
+};
 const TeamCard = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-
+  const [trackerSearchTerm, setTrackerSearchTerm] = useState("");
+const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [showMeetingCreate, setShowMeetingCreate] = useState(false);
   const location = useLocation();
   const passedUsername = location.state?.username;
@@ -59,6 +78,7 @@ const TeamCard = () => {
   const [streams, setStreams] = useState([]);
   const [ntiMarkets, setNtiMarkets] = useState([]);
   const [trackers, setTrackers] = useState([]);
+  const [trackerFullName, setTrackerFullName] = useState("");
   const forceEdit = query.get("edit") === "true";
   const [isEditing, setIsEditing] = useState(forceEdit);
   const [selectedMarket, setSelectedMarket] = useState(null);
@@ -79,6 +99,7 @@ const TeamCard = () => {
   const [streamInfo, setStreamInfo] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState(null);
+<<<<<<< HEAD
 
   // Проверка, можно ли редактировать встречу
   const canEditMeeting = (meetingStatus) => {
@@ -92,6 +113,15 @@ const TeamCard = () => {
     }
     return true;
   };
+=======
+  const filteredTrackers = useMemo(() => {
+  if (!trackerSearchTerm.trim()) return trackers;
+  return trackers.filter(tracker => 
+    tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
+    tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
+  );
+}, [trackers, trackerSearchTerm]);
+>>>>>>> upstream/develop
 
   useEffect(() => {
     if (teamData.streams && teamData.streams.length > 0) {
@@ -133,13 +163,23 @@ const TeamCard = () => {
             credentials: "include"
           });
           if (!res.ok) throw new Error("Ошибка получения данных пользователя");
+<<<<<<< HEAD
           await res.json();
+=======
+          const data = await res.json();
+          setTrackerFullName(data.fullName || data.username || "");
+>>>>>>> upstream/develop
         } else if (role === "TRACKER") {
           const res = await fetch(`${backendHost1}/api/v1/account/info`, {
             credentials: "include"
           });
           if (!res.ok) throw new Error("Ошибка получения данных текущего пользователя");
+<<<<<<< HEAD
           await res.json();
+=======
+          const data = await res.json();
+          setTrackerFullName(data.fullName || data.username || "");
+>>>>>>> upstream/develop
         }
       } catch (err) {
         handleApiError(err, "загрузке ФИО трекера");
@@ -148,7 +188,11 @@ const TeamCard = () => {
 
     fetchFullName();
   }, [role, passedUsername, teamData.username]);
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> upstream/develop
   useEffect(() => {
     if (streamInfo?.meetingsCount) {
       setMaxMeetingsCount(streamInfo.meetingsCount);
@@ -287,6 +331,9 @@ const TeamCard = () => {
         page: 0,
         size: 1000,
         sort: ["fullName,asc"],
+        filters: [
+        { fieldName: "accountNonLocked", type: "EQ", value: true }
+      ]
       })
         .then(async (res) => {
           if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
@@ -687,7 +734,12 @@ const TeamCard = () => {
         <div className="team-card_container">
           <div className="team-card_header">
             {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
-              <div className="team-card_team-rating">
+              <div
+                className={`team-card_team-rating ${teamData.averageGrade >= 0.51 ? 'team-card_rating-green' :
+                    teamData.averageGrade >= 0.26 ? 'team-card_rating-yellow' :
+                      'team-card_rating-red'
+                  }`}
+              >
                 {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             )}
@@ -707,21 +759,98 @@ const TeamCard = () => {
           <div className="team-card_row">
             <div className="team-card_fields">
               <div className="team-card_field">
-                <p>Трекер:</p>
-                <SelectBox
-                  className="team-card_field-input"
-                  name="username"
-                  value={editedData.username || ""}
-                  onChange={handleChange}
-                  readOnly={!isEditing}
-                >
-                  <option value="">Выберите трекера</option>
-                  {Array.isArray(trackers) && trackers.map(tracker => (
-                    <option key={tracker.id} value={tracker.username}>
-                      {tracker.fullName}
-                    </option>
-                  ))}
-                </SelectBox>
+  <p>Трекер:</p>
+  {isEditing ? (
+    <div className="check-box_container team-card_field-nti-checkbox">
+      <div 
+  className={`check-box_container team-card_field-nti-checkbox ${!editedData.username ? 'placeholder' : ''}`}
+  onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
+    }
+  }}
+  role="button"
+  tabIndex={0}
+  aria-expanded={isTrackerDropdownOpen}
+  aria-haspopup="listbox"
+>
+        <div 
+    className="check-box_button" 
+    style={{ 
+        color: 'rgba(0, 0, 0, 1)',
+        backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 8px center',
+        
+    }}
+>
+    {editedData.username 
+        ? trackers.find(t => t.username === editedData.username)?.fullName || editedData.username
+        : "Выберите трекера"}
+</div>
+      </div>
+      
+      {isTrackerDropdownOpen && (
+        <div className="team-card_field-select-dropdown">
+          {/* Строка поиска внутри выпадающего списка */}
+          <div className="team-card_field-select-search">
+            <input
+              type="text"
+              className="team-card_field-select-search-input"
+              placeholder="Поиск по ФИО..."
+              value={trackerSearchTerm}
+              onChange={(e) => setTrackerSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              autoFocus
+            />
+          </div>
+          
+          <div className="team-card_field-select-options">
+            {filteredTrackers.length === 0 ? (
+              <div className="team-card_field-select-empty">Трекеры не найдены</div>
+            ) : (
+              filteredTrackers.map(tracker => (
+                <div
+  key={tracker.id}
+  className={`team-card_field-select-option ${
+    editedData.username === tracker.username ? 'selected' : ''
+  }`}
+  onClick={() => {
+    setEditedData(prev => ({ ...prev, username: tracker.username }));
+    setTrackerSearchTerm("");
+    setIsTrackerDropdownOpen(false);
+  }}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setEditedData(prev => ({ ...prev, username: tracker.username }));
+      setTrackerSearchTerm("");
+      setIsTrackerDropdownOpen(false);
+    }
+  }}
+  role="option"
+  tabIndex={0}
+  aria-selected={editedData.username === tracker.username}
+>
+                  <div className="team-card_field-select-option-name">{tracker.fullName}</div>
+                  <div className="team-card_field-select-option-username">@{tracker.username}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+) : (
+  <InputBox
+    className="team-card_field-input"
+    name="username"
+    value={trackerFullName || editedData.username || ""}
+    readOnly
+  />
+)}
               </div>
               <div className="team-card_field">
                 <p>Название команды:</p>
@@ -987,7 +1116,7 @@ const TeamCard = () => {
               <span>Поток:</span>
               <div className="team-card_stream-data">
                 <span>{streamInfo.name}</span>
-                <span>{teamCardsCount} команд</span>
+                <span>{getCommandCountText(teamCardsCount)}</span>
                 <span>{formatDates(streamInfo.startDate, streamInfo.endDate)}</span>
               </div>
             </div>

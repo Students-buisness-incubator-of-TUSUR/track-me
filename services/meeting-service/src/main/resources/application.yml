@@ -43,12 +43,37 @@ spring:
     change-log: classpath:db.changelog-master.yaml
   security:
     oauth2:
+      client:
+        registration:
+          trackme-service:
+            client-id: ${TRACKME_CLIENT_ID:track-me-client}
+            client-secret: ${TRACKME_CLIENT_SECRET:password}
+            authorization-grant-type: client_credentials
+            scope: openid, profile
+            client-authentication-method: client_secret_basic
+        provider:
+          trackme-service:
+            issuer-uri: ${SSO_URI:http://localhost:9000}
+            token-uri: ${SSO_URI:http://localhost:9000}/oauth2/token
       resourceserver:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: meeting-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.json.trusted.packages: "net.trackme.meetingservice.messaging.backend,net.trackme.meetingservice.messaging.sso"
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.type.mapping: >
+          net.trackme.backend.messaging.TeamCardUpdatedEvent:net.trackme.meetingservice.messaging.backend.TeamCardUpdatedEvent,
+          net.trackme.backend.messaging.TeamCardStreamAddedEvent:net.trackme.meetingservice.messaging.backend.TeamCardStreamAddedEvent,
+          net.trackme.backend.messaging.TeamCardStreamRemovedEvent:net.trackme.meetingservice.messaging.backend.TeamCardStreamRemovedEvent,
+          net.trackme.sso.messaging.UserUpdatedEvent:net.trackme.meetingservice.messaging.sso.UserUpdatedEvent
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -96,12 +121,19 @@ spring:
     contexts: dev prod
   security:
     oauth2:
+      client:
+        provider:
+          trackme-service:
+            issuer-uri: http://host.docker.internal:9000
+            token-uri: http://host.docker.internal:9000/oauth2/token
       resourceserver:
         jwt:
           issuer-uri: http://host.docker.internal:9000
 logging:
   level:
     org.springframework.security: debug
+    net.trackme.meetingservice.messaging.backend.TeamCardEventConsumer: debug
+    net.trackme.meetingservice.messaging.sso.SsoEventConsumer: debug
 app:
   api-url: ${BACKEND_URI:http://localhost}/meeting/
 

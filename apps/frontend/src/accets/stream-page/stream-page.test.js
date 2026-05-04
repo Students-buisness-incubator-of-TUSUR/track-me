@@ -164,6 +164,141 @@ describe('Stream Component', () => {
     fireEvent.click(marketWrapper.querySelector('.Stream-header-chosefrom-butt-cont'));
     expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
   });
+
+  it('should call fetchData with name filter when search query is set', async () => {
+    render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    fireEvent.change(screen.getByPlaceholderText('Найти'), { target: { value: 'test query' } });
+    fireEvent.click(document.querySelector('.Stream-settings-pic2'));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('streams'),
+        expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.objectContaining({ fieldName: 'name', type: 'LIKE', value: 'test query' }),
+          ]),
+        }),
+        expect.anything()
+      );
+    });
+  });
+
+  it('should call fetchData with empty filters when search query is empty', async () => {
+    render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    fireEvent.click(document.querySelector('.Stream-settings-pic2'));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('streams'),
+        expect.objectContaining({ filters: [] }),
+        expect.anything()
+      );
+    });
+  });
+
+  it('should call fetchData with TRL filter when TRL checkbox is selected', async () => {
+    const { container } = render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+    await waitFor(() => expect(container.querySelectorAll('.Stream-header-chosefrom-buttw').length).toBe(3));
+
+    const trlWrapper = container.querySelectorAll('.Stream-header-chosefrom-buttw')[2];
+    fireEvent.click(trlWrapper.querySelector('.Stream-header-chosefrom-butt-cont'));
+
+    await waitFor(() => expect(container.querySelectorAll('.custom-checkbox').length).toBeGreaterThan(0));
+    fireEvent.click(container.querySelectorAll('.custom-checkbox')[0]);
+
+    fireEvent.click(screen.getByText('Применить'));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('streams'),
+        expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.objectContaining({ fieldName: 'teamCards.readinessLevel', type: 'IN' }),
+          ]),
+        }),
+        expect.anything()
+      );
+    });
+  });
+
+  it('should call fetchData with market filter when market checkbox is selected', async () => {
+    axios.get.mockImplementation((url) => {
+      if (url.includes('nti-markets'))
+        return Promise.resolve({ data: [{ id: 1, name: 'Market 1', displayName: 'Market One' }] });
+      return Promise.resolve({ data: new Blob() });
+    });
+
+    const { container } = render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+    await waitFor(() => expect(container.querySelectorAll('.Stream-header-chosefrom-buttw').length).toBe(3));
+
+    const marketWrapper = container.querySelectorAll('.Stream-header-chosefrom-buttw')[1];
+    fireEvent.click(marketWrapper.querySelector('.Stream-header-chosefrom-butt-cont'));
+
+    await waitFor(() => expect(container.querySelectorAll('.custom-checkbox').length).toBeGreaterThan(0));
+    fireEvent.click(container.querySelectorAll('.custom-checkbox')[0]);
+
+    fireEvent.click(screen.getByText('Применить'));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('streams'),
+        expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.objectContaining({ fieldName: 'ntiMarkets.name', type: 'IN' }),
+          ]),
+        }),
+        expect.anything()
+      );
+    });
+  });
+
+  it('should call fetchData with year filter when year checkbox is selected', async () => {
+    const { container } = render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    fireEvent.click(container.querySelector('.Stream-settings-pic'));
+    await waitFor(() => expect(container.querySelectorAll('.Stream-header-chosefrom-buttw').length).toBe(3));
+
+    const yearWrapper = container.querySelectorAll('.Stream-header-chosefrom-buttw')[0];
+    fireEvent.click(yearWrapper.querySelector('.Stream-header-chosefrom-butt-cont'));
+
+    await waitFor(() => expect(container.querySelectorAll('.custom-checkbox').length).toBeGreaterThan(0));
+    fireEvent.click(container.querySelectorAll('.custom-checkbox')[0]);
+
+    fireEvent.click(screen.getByText('Применить'));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('streams'),
+        expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.objectContaining({ fieldName: 'year', type: 'EQ' }),
+          ]),
+        }),
+        expect.anything()
+      );
+    });
+  });
 });
 
 describe('User Role from localStorage', () => {
@@ -263,4 +398,5 @@ describe('User Role from localStorage', () => {
       expect(userData.roles).toBeUndefined();
     }
   });
+
 });

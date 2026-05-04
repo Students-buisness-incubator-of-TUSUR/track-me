@@ -1,0 +1,113 @@
+﻿databaseChangeLog:
+  # Добавление полей для денормализации
+  - changeSet:
+      id: meeting-add-denormalized-columns
+      author: trackme-backend
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: meeting
+            columns:
+              - column:
+                  name: team_name
+                  type: varchar(255)
+                  remarks: "Кэшированное название команды для отчетов и сортировки"
+              - column:
+                  name: tracker_username
+                  type: varchar(255)
+                  remarks: "Логин трекера для фильтрации"
+              - column:
+                  name: team_status_value
+                  type: decimal(3, 2)
+                  defaultValueNumeric: 0
+                  remarks: "Вес статуса (1.0, 0.5, 0.25, 0.0, -1.0) для сортировки рейтинга"
+        - sql:
+            sql: |
+              UPDATE meeting
+              SET team_status_value = CASE 
+                  WHEN status = 'COMPLETED_AS_NOT_HAPPENED' THEN -1.0 
+                  WHEN team_status = 'OK' THEN 1.0
+                  WHEN team_status = 'WITH_ISSUES' THEN 0.5
+                  WHEN team_status = 'MANY_ISSUES' THEN 0.25
+                  ELSE 0.0
+              END
+
+  # Связанная таблица для отношения айди стримов и встреч
+  - changeSet:
+      id: meeting-create-streams-join-table
+      author: trackme-backend
+      changes:
+        - createTable:
+            schemaName: ${db_schema}
+            tableName: meeting_stream
+            columns:
+              - column:
+                  name: meeting_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: ${db_schema}.meeting(id)
+                    foreignKeyName: fk_meeting_stream_meeting
+              - column:
+                  name: stream_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            schemaName: ${db_schema}
+            tableName: meeting_stream
+            columnNames: meeting_id, stream_id
+            constraintName: pk_meeting_stream
+
+  #  Индексы для фильтров и сортировки
+  - changeSet:
+      id: meeting-add-indices-for-reports
+      author: trackme-backend
+      changes:
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: meeting
+            indexName: idx_meeting_team_name
+            columns:
+              - column: { name: team_name }
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: meeting
+            indexName: idx_meeting_tracker_username
+            columns:
+              - column: { name: tracker_username }
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: meeting
+            indexName: idx_meeting_status_value
+            columns:
+              - column: { name: team_status_value }
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: meeting_stream
+            indexName: idx_meeting_stream_id
+            columns:
+              - column: { name: stream_id }
+
+  - changeSet:
+      id: meeting-add-tracker-extended-info
+      author: trackme-backend
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: meeting
+            columns:
+              - column:
+                  name: tracker_id
+                  type: varchar(255)
+                  remarks: "UUID или строковый ID пользователя из SSO"
+              - column:
+                  name: tracker_full_name
+                  type: varchar(255)
+                  remarks: "ФИО трекера для отображения в отчетах"
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: meeting
+            indexName: idx_meeting_tracker_full_name
+            columns:
+              - column: { name: tracker_full_name }

@@ -6,10 +6,14 @@ import lombok.Builder;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Builder
 @Schema(description = "DTO для записи отчета")
 public record TeamCardReportRecordDto(
+        @Schema(description = "Идентификатор потока")
+        UUID streamId,
+
         @Schema(description = "Имя потока")
         String streamName,
         @Schema(description = "Дата начала потока")
@@ -18,6 +22,8 @@ public record TeamCardReportRecordDto(
         LocalDate endDate,
         @Schema(description = "Название карточки команды")
         String teamCardName,
+        @Schema(description = "Идентификатор карточки команды")
+        UUID teamId,
         @Schema(description = "Имя пользователя, которому принадлежит карточка команды")
         String username,
         @Schema(description = "Средняя оценка команды")
@@ -36,10 +42,12 @@ public record TeamCardReportRecordDto(
 ) {
     public TeamCardReportRecordDto withAverageUserGrade(BigDecimal averageUserGrade) {
         return new TeamCardReportRecordDto(
+                streamId,
                 streamName,
                 startDate,
                 endDate,
                 teamCardName,
+                teamId,
                 username,
                 averageTeamGrade,
                 averageUserGrade,

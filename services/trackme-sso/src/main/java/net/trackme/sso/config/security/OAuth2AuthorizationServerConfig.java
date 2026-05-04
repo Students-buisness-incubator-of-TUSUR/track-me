@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -60,14 +61,23 @@ public class OAuth2AuthorizationServerConfig {
             if (!OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
                 return;
             }
+
             context.getClaims().claims(claims -> {
-                var principal = context.getPrincipal();
-                Set<String> roles =
-                        AuthorityUtils.authorityListToSet(principal.getAuthorities())
-                                .stream()
-                                .map(c -> c.replaceFirst("^ROLE_", ""))
-                                .collect(collectingAndThen(toSet(), Collections::unmodifiableSet));
+                Set<String> roles;
+
+                if (AuthorizationGrantType.CLIENT_CREDENTIALS.equals(context.getAuthorizationGrantType())) {
+                    roles = Set.of("ADMIN", "SUPER_ADMIN");
+                } else {
+                    var principal = context.getPrincipal();
+                    roles =
+                            AuthorityUtils.authorityListToSet(principal.getAuthorities())
+                                    .stream()
+                                    .map(c -> c.replaceFirst("^ROLE_", ""))
+                                    .collect(collectingAndThen(toSet(), Collections::unmodifiableSet));
+                }
+
                 claims.put("roles", roles);
+
                 var authorization = context.getAuthorization();
                 if (authorization != null) {
                     claims.put("authorization_id", authorization.getId());

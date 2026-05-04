@@ -11,6 +11,16 @@ import '@testing-library/jest-dom';
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import TeamCard from "./team-card";
 
+const renderWithRouter = (ui, { route = "/team-card/1", state = {} } = {}) => {
+  window.history.pushState(state, "", route);
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path="/team-card/:id" element={ui} />
+      </Routes>
+    </MemoryRouter>
+  );
+};
 
 const mockNavigate = jest.fn();
 
@@ -539,12 +549,139 @@ describe("ADMIN-specific edit mode", () => {
   });
 
   it("fetches and displays only enabled trackers in SelectBox", async () => {
+  // Мокаем useGetUserInfo через уже существующий mock
+  mockUseGetUserInfo.mockReturnValue({
+    roles: ["ADMIN"],
+    username: "admin",
+    fullName: "Admin User",
+  });
+
+  // Мокаем fetchTrackers с кастомными данными
+  mockFetchTrackers.mockResolvedValue({
+    ok: true,
+    json: () => Promise.resolve({
+      content: [
+        { id: 1, fullName: "Иван Иванов", username: "ivan.ivanov", enabled: true },
+        { id: 2, fullName: "Мария Петрова", username: "maria.petrova", enabled: true },
+        { id: 3, fullName: "Отключённый Трекер", username: "disabled.tracker", enabled: false },
+      ],
+    }),
+  });
+
+  renderTeamCard({ 
+    role: "ADMIN",
+    fetchOverrides: {
+      teamCard: {
+        ...TEAM_CARD,
+        username: "ivan.ivanov", // Здесь username, а не fullName
+      },
+    },
+  });
+  
+  await waitForLoad();
+  
+  // Переходим в режим редактирования (кнопка "Редактировать")
+  fireEvent.click(screen.getByRole("button", { name: /редактировать/i }));
+  
+  // Ждем появления элемента с трекером (отображается username: ivan.ivanov)
+  await waitFor(() => {
+    const trackerElement = screen.getByText("ivan.ivanov");
+    expect(trackerElement).toBeInTheDocument();
+  });
+  
+  // Открываем дропдаун трекера - кликаем по элементу с username
+  const trackerButton = screen.getByText("ivan.ivanov");
+  fireEvent.click(trackerButton);
+  
+  // Проверяем отображение только активных трекеров (ищем по fullName в дропдауне)
+  await waitFor(() => {
+    expect(screen.getByText("Иван Иванов")).toBeInTheDocument();
+    expect(screen.getByText("Мария Петрова")).toBeInTheDocument();
+    expect(screen.queryByText("Отключённый Трекер")).not.toBeInTheDocument();
+  });
+});
+
+  it("фильтрует трекеров в дропдауне по поисковому запросу и выбирает их кликом", async () => {
     renderTeamCard({ role: "ADMIN" });
-    await waitForLoad();
-    const select = screen.getByTestId("selectbox-username");
-    expect(within(select).getByText("Иван Иванов")).toBeInTheDocument();
-    expect(within(select).getByText("Мария Петрова")).toBeInTheDocument();
-    expect(within(select).queryByText("Отключённый Трекер")).not.toBeInTheDocument();
+    await enterEditMode();
+
+    const trackerButton = screen.getByRole("button", { name: /Иван Иванов|tracker1|Выберите трекера/i });
+    fireEvent.keyDown(trackerButton, { key: "Enter", code: "Enter" });
+
+    const searchInput = await screen.findByPlaceholderText(/Поиск по ФИО/i);
+    fireEvent.click(searchInput);
+    expect(searchInput).toHaveFocus();
+
+    fireEvent.change(searchInput, { target: { value: "Мария" } });
+    expect(searchInput).toHaveValue("Мария");
+
+    await waitFor(() => {
+      expect(screen.getByText(/Мария Петрова/i)).toBeInTheDocument();
+      const optionsContainer = screen.getByText(/Мария Петрова/i).closest('.team-card_field-select-options');
+      expect(within(optionsContainer).queryByText(/Иван Иванов/i)).not.toBeInTheDocument();
+    });
+
+    const option = screen.getByText(/Мария Петрова/i).closest(".team-card_field-select-option");
+    fireEvent.click(option);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Мария Петрова/i })).toBeInTheDocument();
+    });
+  });
+
+  it("выбирает трекера клавишей Enter в дропдауне", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+
+    const trackerButton = screen.getByRole("button", { name: /Иван Иванов|tracker1|Выберите трекера/i });
+    fireEvent.keyDown(trackerButton, { key: "Enter", code: "Enter" });
+
+    const searchInput = await screen.findByPlaceholderText(/Поиск по ФИО/i);
+    fireEvent.change(searchInput, { target: { value: "Мария" } });
+
+    const option = screen.getByText(/Мария Петрова/i).closest(".team-card_field-select-option");
+    fireEvent.keyDown(option, { key: "Enter", code: "Enter" });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Мария Петрова/i })).toBeInTheDocument();
+      expect(screen.queryByPlaceholderText(/Поиск по ФИО/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("выбирает трекера клавишей Space в дропдауне", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+
+    const trackerButton = screen.getByRole("button", { name: /Иван Иванов|tracker1|Выберите трекера/i });
+    fireEvent.keyDown(trackerButton, { key: "Enter", code: "Enter" });
+
+    const searchInput = await screen.findByPlaceholderText(/Поиск по ФИО/i);
+    fireEvent.change(searchInput, { target: { value: "Мария" } });
+
+    const option = screen.getByText(/Мария Петрова/i).closest(".team-card_field-select-option");
+    fireEvent.keyDown(option, { key: " ", code: "Space" });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Мария Петрова/i })).toBeInTheDocument();
+      expect(screen.queryByPlaceholderText(/Поиск по ФИО/i)).not.toBeInTheDocument();
+    });
+  });
+
+  it("не закрывает дропдаун трекера при клике по своему полю поиска", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await enterEditMode();
+
+    const trackerButton = screen.getByRole("button", { name: /Иван Иванов|tracker1|Выберите трекера/i });
+    fireEvent.keyDown(trackerButton, { key: "Enter", code: "Enter" });
+
+    const searchInput = await screen.findByPlaceholderText(/Поиск по ФИО/i);
+    fireEvent.click(searchInput);
+
+    fireEvent.mouseDown(document.body);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
+    });
   });
 
   it("does NOT show stream selector for TRACKER", async () => {
@@ -1015,5 +1152,91 @@ describe("Error handling / edge cases", () => {
       </MemoryRouter>
     );
     await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+  });
+
+  it("applies green class when averageGrade >= 0.51", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.75 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-green")).toBeInTheDocument();
+  });
+
+  it("applies yellow class when averageGrade is between 0.26 and 0.50", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.40 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-yellow")).toBeInTheDocument();
+  });
+
+  it("applies red class when averageGrade < 0.26", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.10 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-red")).toBeInTheDocument();
+  });
+
+  it("applies green class at boundary value 0.51", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.51 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-green")).toBeInTheDocument();
+  });
+
+  it("applies yellow class at boundary value 0.26", async () => {
+    renderTeamCard({ fetchOverrides: { teamCard: { ...TEAM_CARD, averageGrade: 0.26 } } });
+    await waitForLoad();
+    expect(document.querySelector(".team-card_rating-yellow")).toBeInTheDocument();
+  });
+});
+
+describe('getCommandCountText function', () => {
+  // Импортируем функцию напрямую для тестирования
+  const { getCommandCountText } = require('./team-card.js');
+
+  test('returns correct declension for 0 commands', () => {
+    expect(getCommandCountText(0)).toBe('0 команд');
+  });
+
+  test('returns correct declension for 1 command', () => {
+    expect(getCommandCountText(1)).toBe('1 команда');
+  });
+
+  test('returns correct declension for 2-4 commands', () => {
+    expect(getCommandCountText(2)).toBe('2 команды');
+    expect(getCommandCountText(3)).toBe('3 команды');
+    expect(getCommandCountText(4)).toBe('4 команды');
+  });
+
+  test('returns correct declension for 5-20 commands', () => {
+    expect(getCommandCountText(5)).toBe('5 команд');
+    expect(getCommandCountText(10)).toBe('10 команд');
+    expect(getCommandCountText(15)).toBe('15 команд');
+    expect(getCommandCountText(20)).toBe('20 команд');
+  });
+
+  test('returns correct declension for numbers ending with 1 (except 11)', () => {
+    expect(getCommandCountText(21)).toBe('21 команда');
+    expect(getCommandCountText(31)).toBe('31 команда');
+    expect(getCommandCountText(101)).toBe('101 команда');
+  });
+
+  test('returns correct declension for numbers ending with 2-4 (except 12-14)', () => {
+    expect(getCommandCountText(22)).toBe('22 команды');
+    expect(getCommandCountText(33)).toBe('33 команды');
+    expect(getCommandCountText(44)).toBe('44 команды');
+  });
+
+  test('returns correct declension for numbers 11-19', () => {
+    expect(getCommandCountText(11)).toBe('11 команд');
+    expect(getCommandCountText(12)).toBe('12 команд');
+    expect(getCommandCountText(13)).toBe('13 команд');
+    expect(getCommandCountText(14)).toBe('14 команд');
+    expect(getCommandCountText(15)).toBe('15 команд');
+    expect(getCommandCountText(16)).toBe('16 команд');
+    expect(getCommandCountText(17)).toBe('17 команд');
+    expect(getCommandCountText(18)).toBe('18 команд');
+    expect(getCommandCountText(19)).toBe('19 команд');
+  });
+
+  test('returns correct declension for large numbers', () => {
+    expect(getCommandCountText(100)).toBe('100 команд');
+    expect(getCommandCountText(125)).toBe('125 команд');
+    expect(getCommandCountText(1001)).toBe('1001 команда');
   });
 });

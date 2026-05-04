@@ -34,18 +34,20 @@ export default function Header({ userRole = "" }) {
             </Link>
             <div className="header_right-side">
                 <div className="header_nav-wrapper">
-                    {userRole === superadminRoleName &&
+                    {[superadminRoleName].includes(userRole) &&
                         <Link data-testid="superadmin-link" to="/list-admins">
                             <button className="header_nav-btn">Администраторы</button>
                         </Link>
                     }
-                    {(userRole === superadminRoleName || userRole === adminRoleName) &&
+                    {[superadminRoleName, adminRoleName].includes(userRole) &&
                         <Link data-testid="admin-link" to="/list-trackers">
                             <button className="header_nav-btn">Трекеры</button>
                         </Link>
                     }
                     <Link data-testid="everyone-link" to="/all-team-cards"><button className="header_nav-btn">Все команды</button></Link>
-                    <Link to="/report"><button className="header_nav-btn">Отчётность</button></Link>
+                    {[superadminRoleName, adminRoleName].includes(userRole) &&
+                        <Link to="/report"><button className="header_nav-btn">Отчётность</button></Link>
+                    }
                 </div>
                 <button data-testid="personal-acc-btn" className="header_account-btn" onClick={toggleProfileMenu}>
                     <img src="/images/personal-acc.svg" alt="Account" className="header_account-icon" />
@@ -71,18 +73,20 @@ export default function Header({ userRole = "" }) {
                 </button>
                 {isMenuOpen && (
                     <div data-testid="hamburger-dropdown" className="header_mobile-menu">
-                        {userRole === superadminRoleName &&
+                        {[superadminRoleName].includes(userRole) &&
                             <Link to="/list-admins">
                                 <button className="header_menu-item">Администраторы</button>
                             </Link>
                         }
-                        {(userRole === superadminRoleName || userRole === adminRoleName) &&
+                        {[superadminRoleName, adminRoleName].includes(userRole) &&
                             <Link to="/list-trackers">
                                 <button className="header_menu-item">Трекеры</button>
                             </Link>
                         }
                         <Link to="/all-team-cards"><button className="header_menu-item">Все команды</button></Link>
-                        <Link to="/report"> <button className="header_menu-item separator">Отчётность</button></Link>
+                        {[superadminRoleName, adminRoleName].includes(userRole) &&
+                            <Link to="/report"> <button className="header_menu-item separator">Отчётность</button></Link>
+                        }
                         <Link to="/profile"><button className="header_menu-item">Личный кабинет</button></Link>
                         <button className="header_menu-item" onClick={() => { setIsMenuOpen(!isMenuOpen); openFeedback() }}>Обратная связь</button>
                         <Link onClick={handleLogout} to={logoutHost}><button className="header_menu-item logout">Выйти</button></Link>

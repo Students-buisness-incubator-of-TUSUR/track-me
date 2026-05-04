@@ -52,6 +52,7 @@
   margin: 0;
   position: relative;
   width: 30px;
+  cursor: pointer;
 }
 
 .report-page_btn-isactive input[type="checkbox"]::before {
@@ -77,10 +78,6 @@
   position: absolute;
   top: 3px;
   width: 14px;
-}
-
-.checkbox-wrapper-2 input[type=checkbox] {
-  cursor: default;
 }
 
 .report-page_btn-isactive input[type="checkbox"]:hover {
@@ -216,7 +213,7 @@
  
 }
 .report-dropdown-icon2 {
-  margin-left: 140px; /* небольшой отступ от текста */
+  margin-left: 120px; /* небольшой отступ от текста */
  
 }
 .report-dropdown-item {
@@ -234,6 +231,22 @@
   background: #ede9fe;
   
 }
+
+/* Активные потоки в фильтре - зеленый кружок */
+.report-dropdown-item.active-stream {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.active-stream-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  flex-shrink: 0;
+}
+
 /* первый и последний элемент ровные */
 .report-dropdown-item:first-child {
   border-top-left-radius: 0;
@@ -280,6 +293,50 @@
   word-break: break-word;
   line-height: 1.2;     
   padding: 12px 8px;
+}
+
+/* Сортируемые колонки */
+.report-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.report-table th.sortable:hover {
+  background: #8338eb66;
+}
+
+.sort-icon {
+  font-size: 14px;
+  margin-left: 4px;
+}
+
+.sort-icon-active {
+  color: #843AEB;
+  font-weight: bold;
+}
+
+.sort-icon-inactive {
+  color: #999;
+}
+
+/* Активные строки в таблице */
+.report-table tbody tr.active-row {
+  background-color: rgba(144, 238, 144, 0.2);
+}
+
+.report-table tbody tr.active-row td {
+  background-color: rgba(144, 238, 144, 0.2);
+}
+
+.report-search-input {
+  cursor: text;
+  background-color: var(--color-very-light-gray) !important;
+  border: 1px solid #ccc;
+  border-radius: 8px !important;
+}
+
+.report-search-input::placeholder {
+  color: var(--color-black);
 }
 
 /* ===== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ (ReportPage) ===== */

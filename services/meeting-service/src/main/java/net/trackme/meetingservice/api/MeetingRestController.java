@@ -1,8 +1,15 @@
 package net.trackme.meetingservice.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import net.trackme.commons.filters.FilterRequest;
+import net.trackme.meetingservice.api.dto.MeetingCreateDto;
+import net.trackme.meetingservice.api.dto.MeetingDto;
+import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
+import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +18,7 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.util.UUID;
 
@@ -60,4 +68,49 @@ public interface MeetingRestController {
             value = "image/{meetingId}",
             produces = "image/png")
     ResponseEntity<Resource> getImage(@PathVariable UUID meetingId);
+
+    @PostMapping(
+        value = "meetings/reports",
+        produces = "application/json"
+    )
+    @Operation(
+        summary = "Получение отчета о встречах",
+        description = "Возвращает пагинированный список встреч для конкретного потока с применением фильтров"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Отчет успешно сформирован"
+    )
+    ResponseEntity<PagedModel<MeetingReportRecordDto>> getMeetingsReport(
+            @Parameter(description = "Идентификатор потока (обязательный)", required = true)
+            @RequestParam UUID streamId,
+
+            @Parameter(description = "Фильтры для поиска записей отчета")
+            @RequestBody @Valid FilterRequest filters,
+
+            @ParameterObject
+            @PageableDefault(size = 20)
+            Pageable pageable
+    );
+
+    @PostMapping(
+        value = "meetings/reports/excel",
+        produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    @Operation(
+        summary = "Получение отчета о встречах в excel",
+        description = "Генерирует и стримит Excel-файл со всеми встречами потока, подходящими под фильтры"
+    )
+    @ApiResponse(responseCode = "200", description = "Excel-файл успешно сформирован")
+    ResponseEntity<StreamingResponseBody> getMeetingsReportExcel(
+            @Parameter(description = "Идентификатор потока (обязательный)", required = true)
+            @RequestParam UUID streamId,
+
+            @Parameter(description = "Фильтры для поиска записей отчета")
+            @RequestBody @Valid FilterRequest filters,
+
+            @ParameterObject
+            @PageableDefault(size = 20)
+            Pageable pageable
+    );
 }
