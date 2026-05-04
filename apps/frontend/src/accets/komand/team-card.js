@@ -17,6 +17,7 @@ import CheckBox from "../check-box/check-box";
 const backendHost = backendURLBackend;
 const backendHost1 = backendURLSSO;
 const backendHost2 = backendURLMeeting;
+const MAX_NTI_MARKETS = 3;
 
 const getMeetingStatusClass = (status) => {
   switch (status) {
@@ -79,6 +80,18 @@ const TeamCard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState(null);
 
+  // Проверка, можно ли редактировать встречу
+  const canEditMeeting = (meetingStatus) => {
+    // Суперадминистратор может редактировать любые встречи (включая завершённые)
+    if (role === superadminRoleName) {
+      return true;
+    }
+    // Трекер и администратор не могут редактировать завершённые встречи
+    if (meetingStatus === "COMPLETED" || meetingStatus === "COMPLETED_AS_NOT_HAPPENED") {
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     if (teamData.streams && teamData.streams.length > 0) {
@@ -121,16 +134,12 @@ const TeamCard = () => {
           });
           if (!res.ok) throw new Error("Ошибка получения данных пользователя");
           await res.json();
-          // const data = await res.json();
-          // setTrackerFullName(data.fullName);
         } else if (role === "TRACKER") {
           const res = await fetch(`${backendHost1}/api/v1/account/info`, {
             credentials: "include"
           });
           if (!res.ok) throw new Error("Ошибка получения данных текущего пользователя");
           await res.json();
-          // const data = await res.json();
-          // setTrackerFullName(data.fullName);
         }
       } catch (err) {
         handleApiError(err, "загрузке ФИО трекера");
@@ -139,18 +148,20 @@ const TeamCard = () => {
 
     fetchFullName();
   }, [role, passedUsername, teamData.username]);
+  
   useEffect(() => {
     if (streamInfo?.meetingsCount) {
       setMaxMeetingsCount(streamInfo.meetingsCount);
     }
   }, [streamInfo]);
+  
   const checkMeetingCreation = () => {
     if (meetings.length >= maxMeetingsCount) {
       setMeetingError(`Невозможно создать новую встречу. Максимальное количество встреч в потоке: ${maxMeetingsCount}`);
-      setTimeout(() => setMeetingError(""), 3000); // Автоскрытие через 3 секунды
+      setTimeout(() => setMeetingError(""), 3000);
       return false;
     }
-    setMeetingError(""); // Сбрасываем ошибку если все ок
+    setMeetingError("");
     return true;
   };
 
@@ -187,7 +198,7 @@ const TeamCard = () => {
     };
 
     fetchTeamCardsCount();
-  }, [teamData]); // зависимость от teamData
+  }, [teamData]);
 
 
   useEffect(() => {
@@ -215,11 +226,10 @@ const TeamCard = () => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
 
-        // Сортируем встречи как числа
         const sortedMeetings = (data.content || []).sort((a, b) => {
           const numA = parseInt(a.number) || 0;
           const numB = parseInt(b.number) || 0;
-          return numA - numB; // по возрастанию
+          return numA - numB;
         });
 
         setMeetings(sortedMeetings);
@@ -260,17 +270,15 @@ const TeamCard = () => {
         setAllTeamCards(cards);
         const found = data.content?.find(card => String(card.id) === String(id));
 
-
         if (found) {
           setTeamData(found);
-          setEditedData(found); // если нужно редактирование
+          setEditedData(found);
         } else {
           setApiError("Карточка команды не найдена");
         }
       })
       .catch(err => handleApiError(err, "поиске карточки команды"));
   }, [username, role, id]);
-
 
 
   useEffect(() => {
@@ -285,7 +293,6 @@ const TeamCard = () => {
           return res.json();
         })
         .then((data) => {
-          // ⚠️ фильтруем только enabled === true
           const activeTrackers = (data.content || []).filter(t => t.enabled === true);
           setTrackers(activeTrackers);
         })
@@ -297,7 +304,6 @@ const TeamCard = () => {
   }, [role]);
 
 
-  // Замените useEffect загрузки потоков на этот:
   useEffect(() => {
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
       fetch(`${backendHost}/api/v1/streams?page=0&size=1500`, {
@@ -315,8 +321,6 @@ const TeamCard = () => {
         })
         .then((data) => {
           const allStreams = Array.isArray(data.content) ? data.content : [];
-
-          // Фильтруем: активные потоки + текущий поток команды (если есть)
           const currentTeamStreamId = teamData.streams?.[0]?.id;
           const filteredStreams = allStreams.filter(stream =>
             stream.active === true || stream.id === currentTeamStreamId
@@ -333,7 +337,7 @@ const TeamCard = () => {
         })
         .catch((err) => handleApiError(err, "загрузке потоков"));
     }
-  }, [role, teamData.streams]); // Добавляем teamData.streams в зависимости
+  }, [role, teamData.streams]);
 
   useEffect(() => {
     fetch(`${backendHost}/api/v1/streams/nti-markets`, {
@@ -345,6 +349,7 @@ const TeamCard = () => {
       })
       .catch(err => handleApiError(err, "загрузке рынков НТИ"));
   }, []);
+  
   useEffect(() => {
     if (!teamData || !teamData.id) return;
 
@@ -394,15 +399,15 @@ const TeamCard = () => {
         )
       );
     } else {
-      setSelectedMarket([]); // Устанавливаем пустой массив, если ntiMarkets не массив
+      setSelectedMarket([]);
     }
   }, [editedData.ntiMarketIds, ntiMarkets]);
+  
   const handleSave = async () => {
     setIsLoading(true);
     setApiError(null);
 
     try {
-      // 1. Проверка заполненности
       if (!editedData.name?.trim() ||
         !editedData.meetingRoomLink?.trim() ||
         !editedData.description?.trim() ||
@@ -419,13 +424,11 @@ const TeamCard = () => {
         }
       }
 
-      // 2. Выбираем endpoint
       const baseEndpoint =
         (role === "ADMIN" || role === "SUPER_ADMIN")
           ? `${backendHost}/api/v1/admin/team-card`
           : `${backendHost}/api/v1/team-card`;
 
-      // 2. Параметры запроса
       const params = new URLSearchParams();
       params.append("teamCardId", id);
       params.append("streamId", selectedStreamId);
@@ -433,9 +436,6 @@ const TeamCard = () => {
         params.append("username", usernameToSend);
       }
 
-
-
-      // 4. Тело запроса
       const patchData = {
         name: editedData.name.trim(),
         meetingRoomLink: editedData.meetingRoomLink.trim(),
@@ -444,7 +444,6 @@ const TeamCard = () => {
         readinessLevel: editedData.readinessLevel,
       };
 
-      // 5. Отправка PATCH
       const response = await fetch(
         `${baseEndpoint}?${params.toString()}`,
         {
@@ -481,16 +480,15 @@ const TeamCard = () => {
 
       const selectedDate = new Date(localISOTime);
 
-      // ✅ Используем функцию валидации для проверки переноса
       const validation = validateMeetingDateChange(
-        meetings,           // Все встречи
-        meetingId,         // Исключаем редактируемую встречу из подсчета
-        selectedDate       // Новая дата
+        meetings,
+        meetingId,
+        selectedDate
       );
 
       if (!validation.isValid) {
         setMeetingError(validation.errorMessage);
-        setTimeout(() => setMeetingError(""), 5000); // Увеличиваем время показа ошибки
+        setTimeout(() => setMeetingError(""), 5000);
         return;
       }
 
@@ -509,14 +507,12 @@ const TeamCard = () => {
     try {
       const isoDate = new Date(newMeetingDate).toISOString();
 
-      // ✅ ВАЖНО: создаем копию встреч БЕЗ текущей редактируемой
       const meetingsWithoutCurrent = meetings.filter(m => m.id !== editingMeetingId);
 
-      // ✅ Проверяем на копии данных
       const validation = validateMeetingDateChange(
-        meetingsWithoutCurrent,  // Все встречи кроме редактируемой
-        null,                    // Не нужно исключать, мы уже убрали
-        isoDate                  // Новая дата
+        meetingsWithoutCurrent,
+        null,
+        isoDate
       );
 
       if (!validation.isValid) {
@@ -526,7 +522,6 @@ const TeamCard = () => {
         return;
       }
 
-      // Отправляем на сервер
       const response = await fetch(
         `${backendHost2}/api/v1/update-meeting/${editingMeetingId}?teamCardId=${id}`,
         {
@@ -542,7 +537,6 @@ const TeamCard = () => {
 
       if (!response.ok) throw new Error('Ошибка при обновлении даты');
 
-      // ✅ Получаем обновленную встречу с сервера и обновляем стейт
       const updatedMeeting = await response.json();
 
       setMeetings(prev =>
@@ -554,7 +548,7 @@ const TeamCard = () => {
       );
 
       setEditingMeetingId(null);
-      setMeetingError(""); // Сбрасываем ошибку при успехе
+      setMeetingError("");
     } catch (error) {
       handleApiError(error, "сохранении даты встречи");
       setEditingMeetingId(null);
@@ -582,7 +576,6 @@ const TeamCard = () => {
         throw new Error(`Ошибка при удалении: ${response.status} ${errorText}`);
       }
 
-      // Успешно удалено → обновляем список встреч
       setMeetings(prev => prev.filter(m => m.id !== meetingToDelete));
       setEditingMeetingId(null);
       setShowDeleteModal(false);
@@ -611,7 +604,7 @@ const TeamCard = () => {
 
     if (isAdmin) {
       const userIdOrUsername = teamData?.user?.id || teamData?.username || "";
-      params.append("username", userIdOrUsername); // ← важно, если бэкенд требует
+      params.append("username", userIdOrUsername);
     }
 
     try {
@@ -625,7 +618,7 @@ const TeamCard = () => {
         throw new Error(`Ошибка при удалении: ${response.status}`);
       }
 
-      navigate(from); // или `navigate(-1)` для возврата
+      navigate(from);
     } catch (error) {
       handleApiError(error, "удалении карточки");
     }
@@ -758,6 +751,14 @@ const TeamCard = () => {
                           onChange={() => {
                             setEditedData(prev => {
                               const already = prev.ntiMarketIds?.includes(market.id);
+                              const currentCount = prev.ntiMarketIds?.length || 0;
+                              
+                              if (!already && currentCount >= 3) {
+                                setMeetingError("Нельзя выбрать более 3-х рынков НТИ");
+                                setTimeout(() => setMeetingError(""), 3000);
+                                return prev;
+                              }
+                              
                               return {
                                 ...prev,
                                 ntiMarketIds: already
@@ -920,11 +921,26 @@ const TeamCard = () => {
                 ) : (
                   <button
                     className={`team-card_meetings-button team-card_meeting-text ${getMeetingStatusClass(meeting.status)}`}
-                    onClick={() => navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`)}
+                    onClick={() => {
+                      if (canEditMeeting(meeting.status)) {
+                        navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`);
+                      }
+                    }}
+                    style={{ 
+                      cursor: canEditMeeting(meeting.status) ? 'pointer' : 'not-allowed', 
+                      opacity: canEditMeeting(meeting.status) ? 1 : 0.6 
+                    }}
+                    disabled={!canEditMeeting(meeting.status)}
                   >
                     <button
                       className="team-card_meeting-date team-card_meeting-text"
-                      onClick={(e) => { e.stopPropagation(); handleDateChange(meeting.id, meeting.startDate); }}
+                      onClick={(e) => { 
+                        e.stopPropagation();
+                        if (canEditMeeting(meeting.status)) {
+                          handleDateChange(meeting.id, meeting.startDate);
+                        }
+                      }}
+                      disabled={!canEditMeeting(meeting.status)}
                     >
                       {new Date(meeting.startDate).toLocaleDateString('ru-RU', {
                         day: '2-digit',
@@ -981,6 +997,5 @@ const TeamCard = () => {
     </>
   );
 };
-
 
 export default TeamCard;

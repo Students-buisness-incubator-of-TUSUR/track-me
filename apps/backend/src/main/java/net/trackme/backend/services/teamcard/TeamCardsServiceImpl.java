@@ -3,10 +3,13 @@ package net.trackme.backend.services.teamcard;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.trackme.backend.domain.NTIMarket;
+import net.trackme.backend.domain.Stream;
 import net.trackme.backend.domain.TeamCard;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.repos.TeamCardsRepository;
 import net.trackme.backend.services.exceptions.TeamCardNotFoundException;
+import net.trackme.backend.services.exceptions.ValidationException;
 import net.trackme.backend.services.stream.StreamService;
 import net.trackme.commons.acl.AclService;
 import org.springframework.data.domain.Page;
@@ -17,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -25,23 +29,40 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeamCardsServiceImpl implements TeamCardsService {
 
-    /**
-     * Репозиторий карточек команд.
-     */
     private final TeamCardsRepository teamCardsRepository;
-
-    /**
-     * Сервис потоков.
-     */
     private final StreamService streamService;
+    private final AclService aclService;
 
     /**
-     * Сервис ACL.
+     * Проверяет, что хотя бы один рынок НТИ команды соответствует рынкам НТИ потока.
      */
-    private final AclService aclService;
+    private void validateTeamMarketsAgainstStream(List<NTIMarket> teamMarkets, Stream stream) {
+        if (teamMarkets == null || teamMarkets.isEmpty()) {
+            throw new ValidationException("Необходимо выбрать хотя бы один рынок НТИ");
+        }
+        
+        List<UUID> streamMarketIds = stream.getNtiMarkets().stream()
+                .map(NTIMarket::getId)
+                .toList();
+        
+        boolean hasMatch = teamMarkets.stream()
+                .anyMatch(market -> streamMarketIds.contains(market.getId()));
+        
+        if (!hasMatch) {
+            throw new ValidationException(
+                "Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока."
+            );
+        }
+    }
 
     @Override
     public TeamCard createTeamCard(TeamCard createTeamCard) {
+        // Валидация соответствия рынков потоку
+        if (createTeamCard.getStreams() != null && !createTeamCard.getStreams().isEmpty()) {
+            Stream stream = createTeamCard.getStreams().iterator().next();
+            validateTeamMarketsAgainstStream(createTeamCard.getNtiMarkets(), stream);
+        }
+        
         createTeamCard.setStatus(TeamCardStatus.OK);
         createTeamCard = teamCardsRepository.save(createTeamCard);
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -53,13 +74,21 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     @PreAuthorize("hasPermission(#teamCardId, 'net.trackme.backend.domain.TeamCard', 'WRITE')")
     public TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCardDto) {
         var teamCard = get(teamCardId);
+        
+        // Валидация при обновлении рынков
+        if (teamCardDto.getNtiMarkets() != null && !teamCardDto.getNtiMarkets().isEmpty()) {
+            if (teamCard.getStreams() != null && !teamCard.getStreams().isEmpty()) {
+                Stream stream = teamCard.getStreams().iterator().next();
+                validateTeamMarketsAgainstStream(teamCardDto.getNtiMarkets(), stream);
+            }
+        }
+        
         updateTeamCard(teamCardDto, teamCard);
         return teamCardsRepository.save(teamCard);
     }
 
     @Override
-    public Page<TeamCard> getTeamCards(Specification<TeamCard> specification,
-                                       Pageable pageable) {
+    public Page<TeamCard> getTeamCards(Specification<TeamCard> specification, Pageable pageable) {
         return teamCardsRepository.findAll(specification, pageable);
     }
 
@@ -81,23 +110,34 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         create.setUsername(username);
         create.setStatus(TeamCardStatus.OK);
         create = teamCardsRepository.save(create);
-        aclService.createAclForUser(
-                create, username, SecurityContextHolder.getContext().getAuthentication().getName());
+        aclService.createAclForUser(create, username, SecurityContextHolder.getContext().getAuthentication().getName());
         return create;
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public TeamCard updateTeamCard(UUID teamCardId,
-                                   TeamCard teamCardDto,
-                                   UUID streamId,
-                                   String username) {
+    public TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCardDto, UUID streamId, String username) {
         var teamCard = get(teamCardId);
-        updateTeamCard(teamCardDto, teamCard);
+        
         if (streamId != null) {
             var stream = streamService.getById(streamId);
+            // Валидация для нового потока
+            if (teamCardDto.getNtiMarkets() != null && !teamCardDto.getNtiMarkets().isEmpty()) {
+                validateTeamMarketsAgainstStream(teamCardDto.getNtiMarkets(), stream);
+            }
             teamCard.addStream(stream);
+        } else {
+            // Если поток не меняется, проверяем по текущему потоку
+            if (teamCardDto.getNtiMarkets() != null && !teamCardDto.getNtiMarkets().isEmpty()) {
+                if (teamCard.getStreams() != null && !teamCard.getStreams().isEmpty()) {
+                    Stream stream = teamCard.getStreams().iterator().next();
+                    validateTeamMarketsAgainstStream(teamCardDto.getNtiMarkets(), stream);
+                }
+            }
         }
+        
+        updateTeamCard(teamCardDto, teamCard);
+        
         if (username != null) {
             teamCard.setUsername(username);
             aclService.updateAclOwner(teamCard, username);
@@ -130,6 +170,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
         if (streamId != null) {
             var stream = streamService.getById(streamId);
+            // Валидация при создании админом
+            validateTeamMarketsAgainstStream(teamCard.getNtiMarkets(), stream);
             teamCard.addStream(stream);
         }
         return createTeamCard(teamCard, username);
@@ -163,7 +205,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         if (source.getStatus() != null) {
             target.setStatus(source.getStatus());
         }
-        if (!source.getNtiMarkets().isEmpty()) {
+        if (source.getNtiMarkets() != null && !source.getNtiMarkets().isEmpty()) {
             target.setNtiMarkets(source.getNtiMarkets());
         }
         if (source.getReadinessLevel() != null) {
