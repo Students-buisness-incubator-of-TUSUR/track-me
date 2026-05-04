@@ -465,6 +465,7 @@
 }
 
 .unique-task {
+    line-height: 1.2;
     background: white;
     min-height: 45px;
     padding: 20px 30px;
@@ -472,8 +473,12 @@
     font-size: 20px;
     width: 100%;
     display: block;
-    word-break: break-all;
-    white-space: normal;
+    
+    /* Вместо word-break: break-all; используйте: */
+    word-wrap: break-word;      /* переносит длинные слова только при необходимости */
+    word-break: normal;         /* обычный перенос по слогам/пробелам */
+    overflow-wrap: break-word;  /* современный стандарт для переноса */
+    white-space: normal;        /* уже есть, нормальный перенос по пробелам */
 }
 
 .unique-input {
