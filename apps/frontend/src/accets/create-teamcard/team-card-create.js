@@ -1,11 +1,13 @@
-import React, {useEffect, useState,  useMemo} from "react";
+import React, {useEffect, useState, useMemo} from "react";
 import {useNavigate} from "react-router-dom";
 import "./team-card-create.css";
 import penIcon from "./pen.png";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
+
 const MAX_NTI_MARKETS = 3;
 const backendHost = process.env.REACT_APP_BACKEND_URI + '/backend';
 const backendHost1 = process.env.REACT_APP_BACKEND_URI + '/sso';
+
 const TeamCard = () => {
     const navigate = useNavigate();
 
@@ -17,10 +19,10 @@ const TeamCard = () => {
     const [showStreams, setShowStreams] = useState(false);
     const [showNTI, setShowNTI] = useState(false);
     const [showTRL, setShowTRL] = useState(false);
-    const [setShowTrackers] = useState(false);
+    const [showTrackers, setShowTrackers] = useState(false);
     const [selectedMarkets, setSelectedMarkets] = useState([]);
     const [trackerSearchTerm, setTrackerSearchTerm] = useState("");
-const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
+    const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     const [selectedTRL, setSelectedTRL] = useState(null);
     const [selectedTracker, setSelectedTracker] = useState(null);
     
@@ -32,22 +34,19 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         streamId: null
     });
     const [isLoading, setIsLoading] = useState(false);
+
     const filteredTrackers = useMemo(() => {
-    let filtered = trackers;
-    
-    // Фильтруем только enabled === true (подтвержденные)
-    filtered = filtered.filter(tracker => tracker.enabled === true);
-    
-    // Применяем поиск
-    if (trackerSearchTerm.trim()) {
-        filtered = filtered.filter(tracker => 
-            tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
-            tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
-        );
-    }
-    
-    return filtered;
-}, [trackers, trackerSearchTerm]);
+        let filtered = trackers;
+        filtered = filtered.filter(tracker => tracker.enabled === true);
+        if (trackerSearchTerm.trim()) {
+            filtered = filtered.filter(tracker => 
+                tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
+                tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
+            );
+        }
+        return filtered;
+    }, [trackers, trackerSearchTerm]);
+
     // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -55,17 +54,14 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                 setShowNTI(false);
                 setShowTRL(false);
                 setShowStreams(false);
-                // Проверяем, определена ли setShowTrackers перед вызовом
-                if (typeof setShowTrackers === 'function') {
-                    setShowTrackers(false);
-                }
-        
+                setShowTrackers(false);
+                setIsTrackerDropdownOpen(false);
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [setShowTrackers]);
+    }, []);
 
     // Получаем информацию о текущем пользователе
     useEffect(() => {
@@ -77,13 +73,9 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                 console.log("userData", userData);
                 setCurrentUser(userData);
                 const isAdmin = userData.roles?.includes("ADMIN") || userData.roles?.includes("SUPER_ADMIN");
-
                 
-                // Если пользователь не админ, устанавливаем его имя в поле трекера
                 if (!isAdmin) {
-                    setFormData(prev => ({...prev, tracker: userData.fullName
-                        
-                    }));
+                    setFormData(prev => ({...prev, tracker: userData.fullName}));
                 }
             })
             .catch((error) => {
@@ -101,29 +93,27 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
     // Загрузка потоков
     useEffect(() => {
-    fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json", 
-            ...getCsrfConfigForFetch()
-        },
-        body: JSON.stringify({filters: []}),
-        credentials: "include"
-    })
-        .then((res) => res.ok ? res.json() : Promise.reject(new Error("Ошибка при загрузке потоков")))
-        .then((data) => {
-            if (data?.content) {
-                const filteredStreams = data.content.filter(stream => 
-                    stream.active === true 
-                );
-                setStreams(filteredStreams);
-            }
+        fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json", 
+                ...getCsrfConfigForFetch()
+            },
+            body: JSON.stringify({filters: []}),
+            credentials: "include"
         })
-        .catch((err) => {
-            console.error("Ошибка при загрузке потоков:", err);
-            setError("Ошибка при загрузке потоков");
-        });
-}, []);
+            .then((res) => res.ok ? res.json() : Promise.reject(new Error("Ошибка при загрузке потоков")))
+            .then((data) => {
+                if (data?.content) {
+                    const filteredStreams = data.content.filter(stream => stream.active === true);
+                    setStreams(filteredStreams);
+                }
+            })
+            .catch((err) => {
+                console.error("Ошибка при загрузке потоков:", err);
+                setError("Ошибка при загрузке потоков");
+            });
+    }, []);
 
     // Загрузка рынков НТИ
     useEffect(() => {
@@ -139,37 +129,33 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     }, []);
 
     // Загрузка списка трекеров для админа
-    // Загрузка списка трекеров для админа (новый вариант)
-useEffect(() => {
-  if (currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN"))
- {
-    console.log("Запрашиваем трекеров...");
-    fetch(`${backendHost1}/api/v1/users/trackers?page=0&size=100000&sort=fullName,asc`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getCsrfConfigForFetch()
-      },
-      credentials: "include",
-      body: JSON.stringify({ filters: [{ fieldName: "accountNonLocked", type: "EQ", value: true }] })
-    })
-      .then((res) => res.ok ? res.json() : Promise.reject(res))
-      .then((data) => {
-        console.log("Получены трекеры:", data);
-        if (data?.content) {
-          setTrackers(data.content);
-        } else {
-          setTrackers([]);
+    useEffect(() => {
+        if (currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) {
+            console.log("Запрашиваем трекеров...");
+            fetch(`${backendHost1}/api/v1/users/trackers?page=0&size=100000&sort=fullName,asc`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getCsrfConfigForFetch()
+                },
+                credentials: "include",
+                body: JSON.stringify({ filters: [{ fieldName: "accountNonLocked", type: "EQ", value: true }] })
+            })
+                .then((res) => res.ok ? res.json() : Promise.reject(res))
+                .then((data) => {
+                    console.log("Получены трекеры:", data);
+                    if (data?.content) {
+                        setTrackers(data.content);
+                    } else {
+                        setTrackers([]);
+                    }
+                })
+                .catch((err) => {
+                    console.error("Ошибка при загрузке трекеров", err);
+                    setError("Ошибка при загрузке трекеров");
+                });
         }
-      })
-      .catch((err) => {
-        console.error("Ошибка при загрузке трекеров", err);
-        setError("Ошибка при загрузке трекеров");
-      });
-  }
-}, [currentUser]);
-
-
+    }, [currentUser]);
 
     const handleChange = (e) => {
         const {name, value} = e.target;
@@ -177,21 +163,19 @@ useEffect(() => {
     };
 
     const handleMarketSelect = (market) => {
-    setSelectedMarkets(prev => {
-        const isSelected = prev.some(m => m.id === market.id);
-        
-        if (isSelected) {
-            return prev.filter(m => m.id !== market.id);
-        } else {
-            if (prev.length >= 3) {
-                setError("Нельзя выбрать более 3-х рынков НТИ");
-                return prev;
+        setSelectedMarkets(prev => {
+            const isSelected = prev.some(m => m.id === market.id);
+            if (isSelected) {
+                return prev.filter(m => m.id !== market.id);
+            } else {
+                if (prev.length >= MAX_NTI_MARKETS) {
+                    setError("Нельзя выбрать более 3-х рынков НТИ");
+                    return prev;
+                }
+                return [...prev, market];
             }
-            return [...prev, market];
-        }
-    });
-};
-
+        });
+    };
 
     const handleTRLSelect = (trl) => {
         setSelectedTRL(trl);
@@ -203,7 +187,6 @@ useEffect(() => {
         setShowStreams(false);
     };
 
-<<<<<<< HEAD
     const handleTrackerSelect = (tracker) => {
         setSelectedTracker(tracker);
         setFormData(prev => ({
@@ -213,20 +196,8 @@ useEffect(() => {
             trackerUsername: tracker.username
         }));
         setShowTrackers(false);
+        setIsTrackerDropdownOpen(false);
     };
-=======
-  //   const handleTrackerSelect = (tracker) => {
-  //       setSelectedTracker(tracker);
-  //       setFormData(prev => ({
-  //           ...prev,
-  //           tracker: tracker.fullName,
-  //           trackerId: tracker.id,
-  // trackerUsername: tracker.username // Добавляем ID трекера в formData
-            
-  //       }));
-  //       setShowTrackers(false);
-  //   };
->>>>>>> upstream/develop
 
     const validateForm = () => {
         const errors = [];
@@ -261,7 +232,6 @@ useEffect(() => {
 
             let url = `${backendHost}`;
 
-            // Добавляем username в URL если выбран трекер
             if (currentUser && (currentUser.roles?.includes("ADMIN") || currentUser.roles?.includes("SUPER_ADMIN"))) {
                 url += `/api/v1/admin/team-card?streamId=${formData.streamId}&username=${formData.trackerUsername}`;
             } else {
@@ -279,7 +249,6 @@ useEffect(() => {
             });
 
             if (!response.ok) {
-                // Пытаемся получить сообщение об ошибке от сервера
                 let errorMessage = "Ошибка создания команды";
                 try {
                     const errorData = await response.json();
@@ -289,7 +258,6 @@ useEffect(() => {
                         errorMessage = errorData.error;
                     }
                 } catch (e) {
-                    // Если не удалось распарсить JSON, используем статус
                     if (response.status === 401) {
                         errorMessage = "Ошибка авторизации";
                     } else if (response.status === 400) {
@@ -301,7 +269,6 @@ useEffect(() => {
 
             const data = await response.json();
             console.log("Created team card data:", data); 
-            // После успешного создания переходим на страницу карточки
             navigate(`/teamcard/${data.id}`, {
                 state: {
                     streamId: formData.streamId,
@@ -321,33 +288,63 @@ useEffect(() => {
 
             <div className="create-card-left">
                 <div className="create-card-info">
-<<<<<<< HEAD
-                    <span className="create-card-label" >Трекер:</span>
+                    <span className="create-card-label">Трекер:</span>
                     <div className="create-input-wrapper-with-pen">
                         <div className="create-input-wrapper">
                             {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) ? (
                                 <div className="tracker-select-container">
-                                    <input
-                                        className="create-input"
-                                        name="tracker"
-                                        value={formData.tracker}
-                                        onClick={() => setShowTrackers(!showTrackers)}
-                                        readOnly
-                                        placeholder="Выберите трекера"
-                                    />
-                                    {showTrackers && (
-                                        <div className="trackers-dropdown">
-                                            {trackers
-                                                .filter((tracker) => tracker.enabled)
-                                                .map((tracker) => (
-                                                    <div
-                                                        key={tracker.id}
-                                                        className="tracker-option"
-                                                        onClick={() => handleTrackerSelect(tracker)}
-                                                    >
-                                                        {tracker.fullName}
-                                                    </div>
-                                                ))}
+                                    <div 
+                                        className="tracker-select-trigger"
+                                        onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
+                                            }
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-expanded={isTrackerDropdownOpen}
+                                        aria-haspopup="listbox"
+                                    >
+                                        <div className="tracker-select-value">
+                                            {selectedTracker ? selectedTracker.fullName : "Выберите трекера"}
+                                        </div>
+                                    </div>
+                                    
+                                    {isTrackerDropdownOpen && (
+                                        <div className="tracker-select-dropdown">
+                                            <div className="tracker-select-search">
+                                                <input
+                                                    type="text"
+                                                    className="tracker-select-search-input"
+                                                    placeholder="Поиск по ФИО..."
+                                                    value={trackerSearchTerm}
+                                                    onChange={(e) => setTrackerSearchTerm(e.target.value)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <div className="tracker-select-options">
+                                                {filteredTrackers.length === 0 ? (
+                                                    <div className="tracker-select-empty">Трекеры не найдены</div>
+                                                ) : (
+                                                    filteredTrackers.map((tracker) => (
+                                                        <div
+                                                            key={tracker.id}
+                                                            className={`tracker-select-option ${
+                                                                selectedTracker?.id === tracker.id ? 'selected' : ''
+                                                            }`}
+                                                            onClick={() => {
+                                                                handleTrackerSelect(tracker);
+                                                            }}
+                                                        >
+                                                            <div className="tracker-select-option-name">{tracker.fullName}</div>
+                                                            <div className="tracker-select-option-username">@{tracker.username}</div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -364,90 +361,7 @@ useEffect(() => {
                             <img src={penIcon} alt="edit" className="create-edit-icon"/>
                         )}
                     </div>
-=======
-    <span className="create-card-label">Трекер:</span>
-    <div className="create-input-wrapper-with-pen">
-        <div className="create-input-wrapper">
-            {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) ? (
-                <div className="tracker-select-container">
-                    <div 
-  className="tracker-select-trigger"
-  onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
-    }
-  }}
-  role="button"
-  tabIndex={0}
-  aria-expanded={isTrackerDropdownOpen}
-  aria-haspopup="listbox"
->
-                        <div className="tracker-select-value">
-                            {selectedTracker ? selectedTracker.fullName : "Выберите трекера"}
-                        </div>
-                    </div>
-                    
-                    {isTrackerDropdownOpen && (
-                        <div className="tracker-select-dropdown">
-                            <div className="tracker-select-search">
-                                <input
-                                    type="text"
-                                    className="tracker-select-search-input"
-                                    placeholder="Поиск по ФИО..."
-                                    value={trackerSearchTerm}
-                                    onChange={(e) => setTrackerSearchTerm(e.target.value)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    autoFocus
-                                />
-                            </div>
-                            <div className="tracker-select-options">
-                                {filteredTrackers.length === 0 ? (
-                                    <div className="tracker-select-empty">Трекеры не найдены</div>
-                                ) : (
-                                    filteredTrackers.map((tracker) => (
-                                        <div
-                                            key={tracker.id}
-                                            className={`tracker-select-option ${
-                                                selectedTracker?.id === tracker.id ? 'selected' : ''
-                                            }`}
-                                            onClick={() => {
-                                                setSelectedTracker(tracker);
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    tracker: tracker.fullName,
-                                                    trackerId: tracker.id,
-                                                    trackerUsername: tracker.username
-                                                }));
-                                                setTrackerSearchTerm("");
-                                                setIsTrackerDropdownOpen(false);
-                                            }}
-                                        >
-                                            <div className="tracker-select-option-name">{tracker.fullName}</div>
-                                            <div className="tracker-select-option-username">@{tracker.username}</div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    )}
->>>>>>> upstream/develop
                 </div>
-            ) : (
-                <input
-                    className="create-input"
-                    name="tracker"
-                    value={formData.tracker}
-                    readOnly
-                />
-            )}
-        </div>
-        {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) && (
-            <img src={penIcon} alt="edit" className="create-edit-icon"/>
-        )}
-    </div>
-</div>
 
                 <div className="create-card-info">
                     <span className="create-card-label">Название команды:</span>
