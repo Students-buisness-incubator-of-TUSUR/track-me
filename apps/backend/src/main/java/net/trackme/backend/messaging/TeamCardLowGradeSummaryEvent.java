@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 @Builder
 public record TeamCardLowGradeSummaryEvent(
+        String teamCardUsername,
         String teamCardName,
         String streamName,
         BigDecimal averageGrade) {

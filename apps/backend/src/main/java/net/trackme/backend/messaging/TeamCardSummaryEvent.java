@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record TeamCardSummaryEvent(
+        String teamCardUsername,
         String teamCardName,
         String streamName,
         String meetingNumber,
