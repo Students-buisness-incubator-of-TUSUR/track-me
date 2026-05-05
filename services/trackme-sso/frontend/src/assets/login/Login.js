@@ -44,7 +44,7 @@ const Login = () => {
                         type="text"
                         name="username"
                         className="login-input"
-                        placeholder="Логин"
+                        placeholder="Имя пользователя в Telegram (без @)"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
