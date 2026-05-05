@@ -51,12 +51,13 @@ export const getCommandCountText = (count) => {
     
     return `${count} команд`;
 };
+
 const TeamCard = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
   const [trackerSearchTerm, setTrackerSearchTerm] = useState("");
-const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
+  const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [showMeetingCreate, setShowMeetingCreate] = useState(false);
   const location = useLocation();
   const passedUsername = location.state?.username;
@@ -66,15 +67,15 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [role, setRole] = useState(null);
   const [username, setUsername] = useState(null);
 
-  const [allTeamCards, setAllTeamCards] = useState([]); // eslint-disable-line no-unused-vars
+  const [allTeamCards, setAllTeamCards] = useState([]);
   const [teamCardsCount, setTeamCardsCount] = useState(0);
-
 
   const [teamData, setTeamData] = useState({});
   const [editedData, setEditedData] = useState({});
+  const [originalData, setOriginalData] = useState({});
   const [meetings, setMeetings] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0); // eslint-disable-line no-unused-vars
-  const [totalPages, setTotalPages] = useState(1); // eslint-disable-line no-unused-vars
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [streams, setStreams] = useState([]);
   const [ntiMarkets, setNtiMarkets] = useState([]);
   const [trackers, setTrackers] = useState([]);
@@ -88,7 +89,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [newMeetingDate, setNewMeetingDate] = useState('');
   const [meetingError, setMeetingError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState(null); // eslint-disable-line no-unused-vars
+  const [apiError, setApiError] = useState(null);
   const [maxMeetingsCount, setMaxMeetingsCount] = useState(0);
   const trlLevels = useMemo(() => [
     { id: 1, label: "0-2" },
@@ -99,37 +100,32 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [streamInfo, setStreamInfo] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState(null);
-<<<<<<< HEAD
 
   // Проверка, можно ли редактировать встречу
   const canEditMeeting = (meetingStatus) => {
-    // Суперадминистратор может редактировать любые встречи (включая завершённые)
     if (role === superadminRoleName) {
       return true;
     }
-    // Трекер и администратор не могут редактировать завершённые встречи
     if (meetingStatus === "COMPLETED" || meetingStatus === "COMPLETED_AS_NOT_HAPPENED") {
       return false;
     }
     return true;
   };
-=======
+
   const filteredTrackers = useMemo(() => {
-  if (!trackerSearchTerm.trim()) return trackers;
-  return trackers.filter(tracker => 
-    tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
-    tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
-  );
-}, [trackers, trackerSearchTerm]);
->>>>>>> upstream/develop
+    if (!trackerSearchTerm.trim()) return trackers;
+    return trackers.filter(tracker => 
+      tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
+      tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
+    );
+  }, [trackers, trackerSearchTerm]);
 
   useEffect(() => {
     if (teamData.streams && teamData.streams.length > 0) {
-      setStreamInfo(teamData.streams[0]); // берем первый поток
+      setStreamInfo(teamData.streams[0]);
     }
   }, [teamData]);
 
-  // Форматируем даты для отображения
   const formatDates = (start, end) => {
     if (!start || !end) return '';
 
@@ -144,6 +140,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
     return `${formatDate(start)} - ${formatDate(end)}`;
   };
+
   useEffect(() => {
     if (teamData.stream?.id) {
       setSelectedStreamId(teamData.stream.id);
@@ -163,23 +160,15 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
             credentials: "include"
           });
           if (!res.ok) throw new Error("Ошибка получения данных пользователя");
-<<<<<<< HEAD
-          await res.json();
-=======
           const data = await res.json();
           setTrackerFullName(data.fullName || data.username || "");
->>>>>>> upstream/develop
         } else if (role === "TRACKER") {
           const res = await fetch(`${backendHost1}/api/v1/account/info`, {
             credentials: "include"
           });
           if (!res.ok) throw new Error("Ошибка получения данных текущего пользователя");
-<<<<<<< HEAD
-          await res.json();
-=======
           const data = await res.json();
           setTrackerFullName(data.fullName || data.username || "");
->>>>>>> upstream/develop
         }
       } catch (err) {
         handleApiError(err, "загрузке ФИО трекера");
@@ -188,11 +177,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
     fetchFullName();
   }, [role, passedUsername, teamData.username]);
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> upstream/develop
   useEffect(() => {
     if (streamInfo?.meetingsCount) {
       setMaxMeetingsCount(streamInfo.meetingsCount);
@@ -244,7 +229,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     fetchTeamCardsCount();
   }, [teamData]);
 
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest('.dropdown-block')) {
@@ -285,7 +269,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     loadMeetings();
   }, [id, currentPage]);
 
-
   useEffect(() => {
     if (!username || !role || !id) return;
 
@@ -324,7 +307,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       .catch(err => handleApiError(err, "поиске карточки команды"));
   }, [username, role, id]);
 
-
   useEffect(() => {
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
       fetchTrackers({
@@ -332,8 +314,8 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         size: 1000,
         sort: ["fullName,asc"],
         filters: [
-        { fieldName: "accountNonLocked", type: "EQ", value: true }
-      ]
+          { fieldName: "accountNonLocked", type: "EQ", value: true }
+        ]
       })
         .then(async (res) => {
           if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
@@ -349,7 +331,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         });
     }
   }, [role]);
-
 
   useEffect(() => {
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
@@ -425,8 +406,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     }
   }, [teamData, trlLevels]);
 
-
-
   const handleTRLSelect = (trl) => {
     setSelectedTRL(trl);
     if (isEditing) {
@@ -436,6 +415,36 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
   const handleChange = (e) => {
     setEditedData({ ...editedData, [e.target.name]: e.target.value });
+  };
+
+  const hasUnsavedChanges = () => {
+    if (!isEditing || !originalData) return false;
+    
+    const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
+    for (const field of fieldsToCheck) {
+      const original = originalData[field];
+      const current = editedData[field];
+      
+      if (Array.isArray(original) && Array.isArray(current)) {
+        const compareFn = (a, b) => {
+          if (typeof a === 'number' && typeof b === 'number') return a - b;
+          return String(a).localeCompare(String(b));
+        };
+        const sortedOriginal = [...original].sort(compareFn);
+        const sortedCurrent = [...current].sort(compareFn);
+        if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
+      } else if (original !== current) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const handleMeetingClick = async (meeting) => {
+    if (hasUnsavedChanges()) {
+      await handleSave();
+    }
+    navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`);
   };
 
   useEffect(() => {
@@ -509,6 +518,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       const updated = await response.json();
       setTeamData(updated);
       setEditedData(updated);
+      setOriginalData(null);
       setIsEditing(false);
 
     } catch (error) {
@@ -517,7 +527,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       setIsLoading(false);
     }
   };
-
 
   const handleDateChange = (meetingId, currentDate) => {
     try {
@@ -546,8 +555,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     }
   };
 
-
-
   const saveMeetingDate = async () => {
     if (!editingMeetingId || !newMeetingDate || !id) return;
 
@@ -574,7 +581,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         {
           method: 'PATCH',
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             ...getCsrfConfigForFetch()
           },
           credentials: 'include',
@@ -750,7 +757,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
               <CloseIcon />
             </button>
             <button
-              onClick={isEditing ? handleSave : () => setIsEditing(true)}
+              onClick={isEditing ? handleSave : () => { setOriginalData({...editedData}); setIsEditing(true); }}
               className="team-card_etc-button"
             >
               {isLoading ? "Сохранение..." : (isEditing ? "Сохранить" : "Редактировать")}
@@ -759,98 +766,104 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
           <div className="team-card_row">
             <div className="team-card_fields">
               <div className="team-card_field">
-  <p>Трекер:</p>
-  {isEditing ? (
-    <div className="check-box_container team-card_field-nti-checkbox">
-      <div 
-  className={`check-box_container team-card_field-nti-checkbox ${!editedData.username ? 'placeholder' : ''}`}
-  onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
-    }
-  }}
-  role="button"
-  tabIndex={0}
-  aria-expanded={isTrackerDropdownOpen}
-  aria-haspopup="listbox"
->
-        <div 
-    className="check-box_button" 
-    style={{ 
-        color: 'rgba(0, 0, 0, 1)',
-        backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'right 8px center',
-        
-    }}
->
-    {editedData.username 
-        ? trackers.find(t => t.username === editedData.username)?.fullName || editedData.username
-        : "Выберите трекера"}
-</div>
-      </div>
-      
-      {isTrackerDropdownOpen && (
-        <div className="team-card_field-select-dropdown">
-          {/* Строка поиска внутри выпадающего списка */}
-          <div className="team-card_field-select-search">
-            <input
-              type="text"
-              className="team-card_field-select-search-input"
-              placeholder="Поиск по ФИО..."
-              value={trackerSearchTerm}
-              onChange={(e) => setTrackerSearchTerm(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              autoFocus
-            />
-          </div>
-          
-          <div className="team-card_field-select-options">
-            {filteredTrackers.length === 0 ? (
-              <div className="team-card_field-select-empty">Трекеры не найдены</div>
-            ) : (
-              filteredTrackers.map(tracker => (
-                <div
-  key={tracker.id}
-  className={`team-card_field-select-option ${
-    editedData.username === tracker.username ? 'selected' : ''
-  }`}
-  onClick={() => {
-    setEditedData(prev => ({ ...prev, username: tracker.username }));
-    setTrackerSearchTerm("");
-    setIsTrackerDropdownOpen(false);
-  }}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setEditedData(prev => ({ ...prev, username: tracker.username }));
-      setTrackerSearchTerm("");
-      setIsTrackerDropdownOpen(false);
-    }
-  }}
-  role="option"
-  tabIndex={0}
-  aria-selected={editedData.username === tracker.username}
->
-                  <div className="team-card_field-select-option-name">{tracker.fullName}</div>
-                  <div className="team-card_field-select-option-username">@{tracker.username}</div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-) : (
-  <InputBox
-    className="team-card_field-input"
-    name="username"
-    value={trackerFullName || editedData.username || ""}
-    readOnly
-  />
-)}
+                <p>Трекер:</p>
+                {isEditing && role !== "TRACKER" ? (
+                  <div className="check-box_container team-card_field-nti-checkbox">
+                    <div 
+                      className={`check-box_container team-card_field-nti-checkbox ${!editedData.username ? 'placeholder' : ''}`}
+                      onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-expanded={isTrackerDropdownOpen}
+                      aria-haspopup="listbox"
+                    >
+                      <div 
+                        className="check-box_button" 
+                        style={{ 
+                          color: 'rgba(0, 0, 0, 1)',
+                          backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'right 8px center',
+                        }}
+                      >
+                        {editedData.username 
+                          ? trackers.find(t => t.username === editedData.username)?.fullName || editedData.username
+                          : "Выберите трекера"}
+                      </div>
+                    </div>
+                    
+                    {isTrackerDropdownOpen && (
+                      <div className="team-card_field-select-dropdown">
+                        <div className="team-card_field-select-search">
+                          <input
+                            type="text"
+                            className="team-card_field-select-search-input"
+                            placeholder="Поиск по ФИО..."
+                            value={trackerSearchTerm}
+                            onChange={(e) => setTrackerSearchTerm(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                          />
+                        </div>
+                        
+                        <div className="team-card_field-select-options">
+                          {filteredTrackers.length === 0 ? (
+                            <div className="team-card_field-select-empty">Трекеры не найдены</div>
+                          ) : (
+                            filteredTrackers.map(tracker => (
+                              <div
+                                key={tracker.id}
+                                className={`team-card_field-select-option ${
+                                  editedData.username === tracker.username ? 'selected' : ''
+                                }`}
+                                onClick={() => {
+                                  setEditedData(prev => ({ ...prev, username: tracker.username }));
+                                  setTrackerSearchTerm("");
+                                  setIsTrackerDropdownOpen(false);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setEditedData(prev => ({ ...prev, username: tracker.username }));
+                                    setTrackerSearchTerm("");
+                                    setIsTrackerDropdownOpen(false);
+                                  }
+                                }}
+                                role="option"
+                                tabIndex={0}
+                                aria-selected={editedData.username === tracker.username}
+                              >
+                                <div className="team-card_field-select-option-name">{tracker.fullName}</div>
+                                <div className="team-card_field-select-option-username">@{tracker.username}</div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {role === "TRACKER" && (
+                      <InputBox
+                        className="team-card_field-input"
+                        name="username"
+                        value={trackerFullName || editedData.username || ""}
+                        readOnly
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <InputBox
+                    className="team-card_field-input"
+                    name="username"
+                    value={trackerFullName || editedData.username || ""}
+                    readOnly
+                  />
+                )}
               </div>
               <div className="team-card_field">
                 <p>Название команды:</p>
@@ -882,7 +895,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                               const already = prev.ntiMarketIds?.includes(market.id);
                               const currentCount = prev.ntiMarketIds?.length || 0;
                               
-                              if (!already && currentCount >= 3) {
+                              if (!already && currentCount >= MAX_NTI_MARKETS) {
                                 setMeetingError("Нельзя выбрать более 3-х рынков НТИ");
                                 setTimeout(() => setMeetingError(""), 3000);
                                 return prev;
@@ -1052,7 +1065,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                     className={`team-card_meetings-button team-card_meeting-text ${getMeetingStatusClass(meeting.status)}`}
                     onClick={() => {
                       if (canEditMeeting(meeting.status)) {
-                        navigate(`/meeting/${meeting.id}?teamId=${id}&username=${username}`);
+                        handleMeetingClick(meeting);
                       }
                     }}
                     style={{ 
