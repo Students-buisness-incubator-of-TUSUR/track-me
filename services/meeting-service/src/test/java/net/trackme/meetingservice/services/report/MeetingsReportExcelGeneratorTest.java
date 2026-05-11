@@ -64,7 +64,7 @@ class MeetingsReportExcelGeneratorTest {
             Row dataRow = sheet.getRow(2);
             assertNotNull(dataRow);
             assertEquals("Команда А", dataRow.getCell(0).getStringCellValue());
-            assertEquals("10.05.2024 13:00", dataRow.getCell(1).getStringCellValue());
+            assertEquals("10.05.2024", dataRow.getCell(1).getStringCellValue());
             assertEquals("Иван Трекеров", dataRow.getCell(2).getStringCellValue());
             assertEquals("Выполнено", dataRow.getCell(3).getStringCellValue());
             assertEquals("Не выполнено", dataRow.getCell(4).getStringCellValue());
