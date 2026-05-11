@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -177,5 +178,37 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .with(user(BaseApplicationTest.USER).roles("SUPER_ADMIN")))
                 .andDo(print())
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void updateTeamCard_setPassiveStatus_success() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .ntiMarkets(List.of(ntiMarket))
+                .name("Test passive team")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.com")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .build());
+
+        mockMvc.perform(patch("/api/v1/admin/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "name": "Test passive team",
+                              "passive": true
+                            }
+                            """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive", is(true)));
+
+        // Проверяем, что пассивный статус сохранился в БД
+        var updatedTeam = teamCardsService.getTeamCard(teamCard.getId());
+        assertThat(updatedTeam.getPassive()).isTrue();
     }
 }

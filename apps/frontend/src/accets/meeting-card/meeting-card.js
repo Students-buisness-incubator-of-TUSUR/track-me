@@ -534,7 +534,8 @@ const MeetingCard = () => {
                                 onChange={handleChange}
                                 className="unique-date-input"
                                 disabled={isMeetingLocked}
-                            />
+                                min={new Date().toISOString().split('T')[0]}
+                            /> 
                             <img src={pencilIcon} alt="Редактировать" style={{ marginTop: "-6px" }} className="edit-icon23" />
                         </div>
                     ) : (
@@ -552,29 +553,28 @@ const MeetingCard = () => {
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Текущий статус команды:</span>
                     {isEditing ? (
-                        <div className="status-dropdown-wrapper">
-                            <div
-                                className="status-selected"
-                                onClick={() => !isMeetingCompleted && setShowStatusDropdown(prev => !prev)}
-                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isMeetingCompleted) setShowStatusDropdown(prev => !prev); }}
-                                tabIndex={0}
-                                role="button"
-                                aria-expanded={showStatusDropdown}
-                                aria-haspopup="listbox"
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <button
+                                type="button"
+                                style={{ background: '#0DB862', color: 'white', padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer' }}
+                                onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "OK" })); }}
                             >
-                                {meetingData.teamStatus === "OK" && "Всё ок"}
-                                {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
-                                {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
-                                {!meetingData.teamStatus && "Не указано"}
-                                <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
-                            </div>
-                            {showStatusDropdown && (
-                                <div className="status-options">
-                                    <button className="status-option ok" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "OK" })); setShowStatusDropdown(false); }}>Всё ок</button>
-                                    <button className="status-option problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "WITH_ISSUES" })); setShowStatusDropdown(false); }}>Есть проблемы</button>
-                                    <button className="status-option major-problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "MANY_ISSUES" })); setShowStatusDropdown(false); }}>Есть большие проблемы</button>
-                                </div>
-                            )}
+                                Всё ок
+                            </button>
+                            <button
+                                type="button"
+                                style={{ background: '#DBD76C', color: 'white', padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer' }}
+                                onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "WITH_ISSUES" })); }}
+                            >
+                                Есть проблемы
+                            </button>
+                            <button
+                                type="button"
+                                style={{ background: '#D34F4F', color: 'white', padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer' }}
+                                onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "MANY_ISSUES" })); }}
+                            >
+                                Есть большие проблемы
+                            </button>
                         </div>
                     ) : (
                         <div className={`unique-status ${meetingData.teamStatus?.toLowerCase() || ''}`}>

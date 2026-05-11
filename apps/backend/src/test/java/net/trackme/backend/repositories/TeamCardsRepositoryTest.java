@@ -129,7 +129,23 @@ class TeamCardsRepositoryTest extends AbstractIntegrationTest {
         assertThat(grades2025.containsKey("petrov")).isFalse();
     }
 
-    private void saveTeamCard(String username, String teamName, Double grade, Stream stream) {
+    @Test
+    void findByPassiveStatus_success() {
+        // Arrange
+        saveTeamCard("tracker1", "Active Team", 4.0, false);
+        saveTeamCard("tracker1", "Passive Team", 0.0, true);
+
+        // Act
+        Specification<TeamCard> spec = (root, query, cb) -> cb.isTrue(root.get("passive"));
+        var passiveCards = teamCardsRepository.findAll(spec);
+
+        // Assert
+        assertThat(passiveCards).hasSize(1);
+        assertThat(passiveCards.getFirst().getName()).isEqualTo("Passive Team");
+        assertThat(passiveCards.getFirst().getPassive()).isTrue();
+    }
+
+    private void saveTeamCard(String username, String teamName, Double grade, Stream stream, Boolean passive) {
         teamCardsRepository.save(TeamCard.builder()
                 .username(username)
                 .name(teamName)
@@ -139,10 +155,19 @@ class TeamCardsRepositoryTest extends AbstractIntegrationTest {
                 .averageGrade(grade == null ? null : BigDecimal.valueOf(grade))
                 .streams(stream != null ? Set.of(stream) : Set.of())
                 .enabled(true)
+                .passive(passive != null && passive)
                 .build());
     }
 
     private void saveTeamCard(String username, String teamName, Double grade) {
-        saveTeamCard(username, teamName, grade, null);
+        saveTeamCard(username, teamName, grade, null, false);
+    }
+
+    private void saveTeamCard(String username, String teamName, Double grade, Boolean passive) {
+        saveTeamCard(username, teamName, grade, null, passive);
+    }
+
+    private void saveTeamCard(String username, String teamName, Double grade, Stream stream) {
+        saveTeamCard(username, teamName, grade, stream, false);
     }
 }

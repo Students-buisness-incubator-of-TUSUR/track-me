@@ -75,6 +75,10 @@ public class Meeting {
     @Column(name = "tracker_full_name", nullable = true)
     private String trackerFullName;
 
+    @Column(name = "team_card_passive", nullable = false)
+    @Builder.Default
+    private Boolean teamCardPassive = false;
+
     @Builder.Default
     @ElementCollection
     @CollectionTable(name = "meeting_stream", joinColumns = @JoinColumn(name = "meeting_id"))
@@ -84,6 +88,11 @@ public class Meeting {
     @PrePersist
     @PreUpdate
     public void updateTeamStatusValue() {
+
+        if (this.teamCardPassive != null && this.teamCardPassive) {
+            return;
+        }
+
         if (this.status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
             this.teamStatusValue = BigDecimal.valueOf(-1.0);
             return;

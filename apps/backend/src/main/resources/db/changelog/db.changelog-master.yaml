@@ -32,3 +32,5 @@ databaseChangeLog:
       file: db/changelog/team_card_average_grade_trigger.sql
   - include:
       file: db/changelog/team-card-add-meeting-link.yaml
+  - include:
+      file: db/changelog/team-card-add-passive-column.yaml

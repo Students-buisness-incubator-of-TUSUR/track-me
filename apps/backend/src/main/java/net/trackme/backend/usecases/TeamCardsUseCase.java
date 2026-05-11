@@ -71,6 +71,13 @@ public class TeamCardsUseCase {
 
     public TeamCardDto updateTeamCard(UUID teamCardId,
                                       TeamCardUpdateDto createOrUpdateDto) {
+        var existingTeamCard = teamCardsService.getTeamCard(teamCardId);
+
+        // 2. ПРОВЕРКА: если команда пассивна, трекер не может её редактировать
+        if (existingTeamCard.getPassive() != null && existingTeamCard.getPassive()) {
+            throw new IllegalStateException("Нельзя редактировать пассивную команду.");
+        }
+
         var ntiMarketIds = createOrUpdateDto.ntiMarketIds();
         var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
         var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);

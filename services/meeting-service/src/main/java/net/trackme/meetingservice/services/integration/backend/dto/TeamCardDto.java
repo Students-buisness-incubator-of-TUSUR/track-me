@@ -20,4 +20,5 @@ public class TeamCardDto {
     private List<StreamDto> streams;
     private String username;
     private String name;
+    private Boolean passive;
 }

@@ -1363,4 +1363,33 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .streams(Set.of(stream))
                 .build());
     }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void updateTeamCard_passiveTeam_forbidden() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        // Создаём пассивную команду через админа
+        var passiveTeam = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .ntiMarkets(List.of(ntiMarket))
+                .name("Passive Team")
+                .username("other_tracker") // другой трекер
+                .meetingRoomLink("https://test.com")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .passive(true)
+                .build());
+
+        // Пытаемся отредактировать трекером (у которого нет прав на этот тимкард)
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", passiveTeam.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "name": "Try to rename"
+                            }
+                            """))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
 }
