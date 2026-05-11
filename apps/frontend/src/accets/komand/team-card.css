@@ -1633,6 +1633,9 @@ select.team-input-widget option {
     width: 400px;
     text-align: center;
     animation: scaleIn 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .team-card_confirm-modal-buttons {

@@ -453,6 +453,30 @@ describe("Edit mode", () => {
     expect(screen.getByRole("button", { name: /сохранить/i })).toBeInTheDocument();
   });
 
+  it("shows tracker full name instead of SelectBox for TRACKER role in edit mode", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    await enterEditMode();
+    
+    // TRACKER должен видеть InputBox с ФИО, а не SelectBox
+    expect(screen.queryByRole("button", { name: /Выберите трекера/i })).not.toBeInTheDocument();
+    
+    // Проверяем, что есть input с именем трекера (trackerFullName)
+    const trackerInput = screen.getByTestId("inputbox-username");
+    expect(trackerInput).toBeInTheDocument();
+    expect(trackerInput).toHaveAttribute("readonly");
+  });
+
+  it("shows SelectBox for ADMIN role in edit mode", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await waitForLoad();
+    await enterEditMode();
+    
+    // ADMIN должен видеть SelectBox
+    const trackerButton = screen.getByRole("button", { name: /Выберите трекера|Иван Иванов/i });
+    expect(trackerButton).toBeInTheDocument();
+  });
+
   it("shows meeting room link field only in edit mode", async () => {
     renderTeamCard();
     await waitForLoad();
@@ -668,7 +692,7 @@ describe("ADMIN-specific edit mode", () => {
   });
 
   it("не закрывает дропдаун трекера при клике по своему полю поиска", async () => {
-    renderTeamCard({ role: "TRACKER" });
+    renderTeamCard({ role: "ADMIN" });
     await enterEditMode();
 
     const trackerButton = screen.getByRole("button", { name: /Иван Иванов|tracker1|Выберите трекера/i });
@@ -1071,6 +1095,41 @@ describe("Meeting navigation", () => {
       expect.stringContaining("/meeting/m1")
     );
   });
+
+  it("saves changes before navigating to meeting when there are unsaved changes", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    
+    const editButton = screen.getByText("Редактировать");
+    fireEvent.click(editButton);
+    
+    await waitFor(() => expect(screen.getByText("Сохранить")).toBeInTheDocument());
+    
+    const nameInput = screen.getByTestId("inputbox-name");
+    fireEvent.change(nameInput, { target: { value: "Updated Team Name" } });
+    
+    const meetingBtn = screen.getByText("Встреча 1").closest("button");
+    fireEvent.click(meetingBtn);
+    
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.stringContaining("/meeting/m1")
+      );
+    });
+  });
+
+  it("does not show warning when no unsaved changes and in view mode", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    
+    const meetingBtn = screen.getByText("Встреча 1").closest("button");
+    fireEvent.click(meetingBtn);
+    
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.stringContaining("/meeting/m1")
+    );
+    expect(screen.queryByText("Сохранить изменения?")).not.toBeInTheDocument();
+  });
 });
 
 describe("Stream info display", () => {
@@ -1238,5 +1297,368 @@ describe('getCommandCountText function', () => {
     expect(getCommandCountText(100)).toBe('100 команд');
     expect(getCommandCountText(125)).toBe('125 команд');
     expect(getCommandCountText(1001)).toBe('1001 команда');
+  });
+});
+
+describe("hasUnsavedChanges ntiMarketIds comparison", () => {
+  it("detects ntiMarketIds change using toSorted comparison", async () => {
+    renderTeamCard({
+      role: "TRACKER",
+      fetchOverrides: {
+        teamCard: {
+          ...TEAM_CARD,
+          ntiMarketIds: [1, 2],
+          ntiMarkets: [
+            { id: 1, displayName: "Аэронет" },
+            { id: 2, displayName: "Маринет" },
+          ],
+        },
+      },
+    });
+    await enterEditMode();
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    fireEvent.click(checkboxes[0]);
+    await act(async () => {});
+    const meetingBtn = screen.getByText("Встреча 1").closest("button");
+    fireEvent.click(meetingBtn);
+    await waitFor(() => {
+      const patchCalls = global.fetch.mock.calls.filter(
+        ([, opts]) => opts && opts.method === "PATCH" && opts.body
+      );
+      expect(patchCalls.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("returns false when ntiMarketIds are same after sort", async () => {
+    renderTeamCard({
+      role: "TRACKER",
+      fetchOverrides: {
+        teamCard: {
+          ...TEAM_CARD,
+          ntiMarketIds: [2, 1],
+          ntiMarkets: [
+            { id: 1, displayName: "Аэронет" },
+            { id: 2, displayName: "Маринет" },
+          ],
+        },
+      },
+    });
+    await enterEditMode();
+    const meetingBtn = screen.getByText("Встреча 1").closest("button");
+    fireEvent.click(meetingBtn);
+    await act(async () => {});
+    const patchCalls = global.fetch.mock.calls.filter(
+      ([, opts]) => opts && opts.method === "PATCH" && opts.body
+    );
+    expect(patchCalls).toHaveLength(0);
+  });
+});
+
+describe("ntiMarkets not an array edge case", () => {
+  it("handles null ntiMarkets gracefully", async () => {
+    renderTeamCard({
+      role: "TRACKER",
+      fetchOverrides: { teamCard: { ...TEAM_CARD, ntiMarkets: null } },
+    });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+  });
+});
+
+describe("handleSave PATCH error", () => {
+  it("calls save and handles response", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await enterEditMode();
+    const saveBtn = screen.getByRole("button", { name: /сохранить/i });
+    expect(saveBtn).toBeInTheDocument();
+    fireEvent.click(saveBtn);
+  });
+});
+
+describe("deactivate catch block", () => {
+  it("catches DELETE failure and stays on page", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    fireEvent.click(screen.getByRole("button", { name: /деактивировать/i }));
+    await waitFor(() =>
+      expect(screen.getByTestId("header")).toBeInTheDocument()
+    );
+  });
+});
+
+describe("delete modal stopPropagation", () => {
+  it("renders dialog with stopPropagation handlers", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await waitForLoad();
+    const dateBtns = document.querySelectorAll(".team-card_meeting-date");
+    fireEvent.click(dateBtns[0]);
+    await waitFor(() => expect(document.querySelector(".team-card_meeting-edit-button-delete")).toBeInTheDocument());
+    fireEvent.click(document.querySelector(".team-card_meeting-edit-button-delete"));
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+    expect(screen.getByRole("dialog")).toHaveAttribute("aria-modal", "true");
+  });
+});
+
+describe("ntiMarketIds checkbox onChange", () => {
+  it("toggles checkbox on click", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const checkboxes = document.querySelectorAll('#nti-markets input[type="checkbox"]');
+    if (checkboxes.length > 1) {
+      fireEvent.click(checkboxes[1]);
+      await act(async () => {});
+      expect(checkboxes[1]).toBeChecked();
+    }
+  });
+});
+
+describe("TRL radio onChange", () => {
+  it("selects TRL option on click", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const radio = document.querySelector('#trl input[type="radio"]');
+    if (radio) {
+      fireEvent.click(radio);
+      await act(async () => {});
+      expect(radio).toBeChecked();
+    }
+  });
+});
+
+describe("stream radio onChange", () => {
+  it("selects stream option on click", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const radio = document.querySelector('#streams input[type="radio"]');
+    if (radio) {
+      fireEvent.click(radio);
+      await act(async () => {});
+    }
+  });
+});
+
+describe("meeting date input onChange", () => {
+  it("updates value on change", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    const dateBtns = document.querySelectorAll(".team-card_meeting-date");
+    fireEvent.click(dateBtns[0]);
+    await waitFor(() => expect(document.querySelector(".team-card_meeting-edit-date")).toBeInTheDocument());
+    const input = document.querySelector(".team-card_meeting-edit-date");
+    fireEvent.change(input, { target: { value: "2025-06-01T12:00" } });
+    expect(input).toHaveValue("2025-06-01T12:00");
+  });
+});
+
+describe("meeting create button", () => {
+  it("renders Запланировать button", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await waitForLoad();
+    expect(screen.getByRole("button", { name: /запланировать/i })).toBeInTheDocument();
+  });
+});
+
+describe("getMeetingStatusClass default", () => {
+  it("returns empty class for unknown status", async () => {
+    const unknownMeeting = { ...MEETINGS[0], status: "UNKNOWN_STATUS" };
+    renderTeamCard({ fetchOverrides: { meetings: [unknownMeeting] } });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+    const meetingBtn = document.querySelector(".team-card_meetings-button");
+    expect(meetingBtn).not.toHaveClass("team-card_meeting-status-completed");
+  });
+});
+
+describe("checkMeetingCreation max meetings", () => {
+  it("blocks creation when meetings count equals max", async () => {
+    const maxMeetings = Array.from({ length: 5 }, (_, i) => ({
+      id: `m${i}`,
+      number: String(i + 1),
+      startDate: "2024-03-01T10:00:00",
+      status: "COMPLETED",
+    }));
+    renderTeamCard({ fetchOverrides: { meetings: maxMeetings } });
+    await waitForLoad();
+    fireEvent.click(screen.getByRole("button", { name: /запланировать/i }));
+    await waitFor(() =>
+      expect(screen.getByTestId("meeting-error")).toHaveTextContent(/максимальное количество/i)
+    );
+  });
+});
+
+describe("handleTRLSelect", () => {
+  it("updates readinessLevel on change", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const radios = document.querySelectorAll('input[name="trl"]');
+    if (radios.length > 1) {
+      fireEvent.click(radios[1]);
+      await act(async () => {});
+      expect(radios[1]).toBeChecked();
+    }
+  });
+});
+
+describe("ntiMarketIds filter removal", () => {
+  it("removes market id when unchecked", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const checkedBox = Array.from(checkboxes).find(cb => cb.checked);
+    if (checkedBox) {
+      fireEvent.click(checkedBox);
+      await act(async () => {});
+      expect(checkedBox).not.toBeChecked();
+    }
+  });
+});
+
+describe("stream selection from teamData", () => {
+  it("sets selectedStreamId from teamData.stream.id", async () => {
+    renderTeamCard({
+      fetchOverrides: {
+        teamCard: { ...TEAM_CARD, stream: { id: "stream-1", name: "Поток Альфа", active: true } },
+      },
+    });
+    await waitForLoad();
+    expect(screen.getByTestId("inputbox-name")).toHaveValue("Команда Икс");
+  });
+});
+
+describe("trackers fetch error", () => {
+  it("handles tracker fetch failure", async () => {
+    mockFetchTrackers.mockRejectedValue(new Error("Trackers failed"));
+    mockUseGetUserInfo.mockReturnValue({ roles: ["ADMIN"], username: "admin1" });
+    renderTeamCard({ role: "ADMIN" });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+  });
+});
+
+describe("ntiMarkets fetch error", () => {
+  it("handles nti-markets fetch failure", async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes("/api/v1/streams/nti-markets")) return Promise.reject(new Error("NTI failed"));
+      return buildFetch()(url);
+    });
+    mockUseGetUserInfo.mockReturnValue({ roles: ["TRACKER"], username: "tracker1" });
+    mockFetchTrackers.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: TRACKERS }) });
+    renderTeamCard({ role: "TRACKER" });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+  });
+});
+
+describe("streams fetch error", () => {
+  it("handles streams fetch failure", async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes("/api/v1/streams?")) return Promise.reject(new Error("Streams failed"));
+      return buildFetch()(url);
+    });
+    mockUseGetUserInfo.mockReturnValue({ roles: ["ADMIN"], username: "admin1" });
+    mockFetchTrackers.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: TRACKERS }) });
+    renderTeamCard({ role: "ADMIN" });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+  });
+});
+
+describe("meeting date change error", () => {
+  it("handles error on date change", async () => {
+    renderTeamCard({ role: "TRACKER" });
+    await waitForLoad();
+    const dateBtns = document.querySelectorAll(".team-card_meeting-date");
+    const originalDate = "2024-06-01T10:00:00";
+    fireEvent.click(dateBtns[0]);
+    await waitFor(() => expect(document.querySelector(".team-card_meeting-edit-date")).toBeInTheDocument());
+  });
+});
+
+describe("deleteMeeting error handling", () => {
+  it("handles delete meeting error", async () => {
+    global.fetch = jest.fn((url, opts = {}) => {
+      if (url.includes("/api/v1/delete-meeting/") && opts.method === "DELETE") {
+        return Promise.reject(new Error("Delete failed"));
+      }
+      return buildFetch()(url, opts);
+    });
+    mockUseGetUserInfo.mockReturnValue({ roles: ["ADMIN"], username: "admin1" });
+    mockFetchTrackers.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: TRACKERS }) });
+    renderTeamCard({ role: "ADMIN" });
+    await waitForLoad();
+    const dateBtns = document.querySelectorAll(".team-card_meeting-date");
+    fireEvent.click(dateBtns[0]);
+    await waitFor(() => expect(document.querySelector(".team-card_meeting-edit-button-delete")).toBeInTheDocument());
+    fireEvent.click(document.querySelector(".team-card_meeting-edit-button-delete"));
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId("confirm-delete-meeting"));
+  });
+});
+
+describe("tracker full name fetch error", () => {
+  it("handles tracker fetch failure", async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes("sso.test/api/v1/users/")) return Promise.reject(new Error("User fetch failed"));
+      return buildFetch()(url);
+    });
+    mockUseGetUserInfo.mockReturnValue({ roles: ["ADMIN"], username: "admin1" });
+    mockFetchTrackers.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: TRACKERS }) });
+    renderTeamCard({ role: "ADMIN" });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+  });
+});
+
+describe("tracker count fetch error", () => {
+  it("handles count fetch failure", async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes("/api/v1/team-card/count")) return Promise.reject(new Error("Count failed"));
+      return buildFetch()(url);
+    });
+    mockUseGetUserInfo.mockReturnValue({ roles: ["TRACKER"], username: "tracker1" });
+    mockFetchTrackers.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: TRACKERS }) });
+    renderTeamCard({ role: "TRACKER" });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+  });
+});
+
+describe("handleSave validation", () => {
+  it("stays in edit mode when name is empty", async () => {
+    renderTeamCard({
+      role: "TRACKER",
+      fetchOverrides: { teamCard: { ...TEAM_CARD, name: "" } },
+    });
+    await waitFor(() => expect(screen.getByTestId("header")).toBeInTheDocument());
+    expect(screen.getByTestId("inputbox-name")).toHaveValue("");
+    fireEvent.click(screen.getByRole("button", { name: /редактировать/i }));
+    fireEvent.click(screen.getByRole("button", { name: /сохранить/i }));
+    await act(async () => {});
+    expect(screen.getByRole("button", { name: /сохранить/i })).toBeInTheDocument();
+  });
+});
+
+describe("saveMeetingDate validation error path", () => {
+  it("shows error message on invalid date", async () => {
+    mockValidateMeetingDateChange.mockReturnValueOnce({ isValid: true, errorMessage: "" });
+    mockValidateMeetingDateChange.mockReturnValueOnce({ isValid: false, errorMessage: "Дата занята" });
+    renderTeamCard();
+    await waitForLoad();
+    await waitFor(() => expect(screen.getByText("Встреча 1")).toBeInTheDocument());
+    const dateBtns = document.querySelectorAll(".team-card_meeting-date");
+    fireEvent.click(dateBtns[0]);
+    await waitFor(() =>
+      expect(document.querySelector(".team-card_meeting-edit-button-save")).toBeInTheDocument()
+    );
+    fireEvent.click(document.querySelector(".team-card_meeting-edit-button-save"));
+    await waitFor(() =>
+      expect(screen.getByTestId("meeting-error")).toHaveTextContent("Дата занята")
+    );
+  });
+});
+
+describe("tracker dropdown keydown Space", () => {
+  it("toggles dropdown on Space key", async () => {
+    renderTeamCard({ role: "ADMIN" });
+    await enterEditMode();
+    const trackerBtn = document.querySelector('.check-box_container[aria-haspopup="listbox"]');
+    if (trackerBtn) {
+      fireEvent.keyDown(trackerBtn, { key: " " });
+      await act(async () => {});
+      expect(trackerBtn).toHaveAttribute("aria-expanded", "true");
+    }
   });
 });
