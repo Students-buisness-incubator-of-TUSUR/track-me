@@ -41,15 +41,10 @@ import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardI
 public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingMapper meetingMapper;
-
     private final MeetingRepository meetingRepository;
-
     private final AclService aclService;
-
     private final MeetingEventsProducer meetingEventsProducer;
-
     private final BackendApiClient userBackendClient;
-
     private final SsoApiClient ssoApiClient;
 
     public MeetingServiceImpl(
@@ -73,31 +68,43 @@ public class MeetingServiceImpl implements MeetingService {
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
 
-        var meeting = meetingMapper.mapToEntity(createDto);
+        // ========== ОСНОВНАЯ ЛОГИКА ПЕРЕНОСА ЗАДАЧ ==========
+        // Задачи из поля "Задачи к следующей встрече" (tasksNextMeeting) предыдущей встречи
+        // должны парситься в поле "Выполнили задачи прошлой встречи" (tasksCurrentMeeting) текущей встречи
+        String tasksFromPreviousNextMeeting = extractTasksFromPreviousMeeting(teamCardId, createDto.number());
+        
+        // Создаём финальный DTO с перенесёнными задачами
+        MeetingCreateDto finalCreateDto = buildFinalCreateDto(createDto, tasksFromPreviousNextMeeting);
+        // ====================================================
+
+        var meeting = meetingMapper.mapToEntity(finalCreateDto);
         var teamData = userBackendClient.getTeamCardById(teamCardId);
         var trackerUsername = teamData.getUsername();
 
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.SCHEDULED);
 
-        // Denormalize (Backend)
         meeting.setTeamName(teamData.getName());
         meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
         meeting.setTrackerUsername(trackerUsername);
 
-        // Denormalize (SSO)
         if (trackerUsername != null) {
-            var tracker = ssoApiClient.getTrackers().stream()
-                    .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
-                    .findFirst();
+            try {
+                var tracker = ssoApiClient.getTrackers().stream()
+                        .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
+                        .findFirst();
 
-            if (tracker.isPresent()) {
-                UserDto user = tracker.get();
-                meeting.setTrackerId(user.getId());
-                meeting.setTrackerFullName(user.getFullName());
-            } else {
+                if (tracker.isPresent()) {
+                    UserDto user = tracker.get();
+                    meeting.setTrackerId(user.getId());
+                    meeting.setTrackerFullName(user.getFullName());
+                } else {
+                    meeting.setTrackerFullName(trackerUsername);
+                    log.warn("Tracker with username {} not found in SSO during meeting creation", trackerUsername);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch tracker info from SSO for username: {}, using username as fallback", trackerUsername, e);
                 meeting.setTrackerFullName(trackerUsername);
-                log.warn("Tracker with username {} not found in SSO during meeting creation", trackerUsername);
             }
         }
 
@@ -110,6 +117,73 @@ public class MeetingServiceImpl implements MeetingService {
         return enrichWithRoomLink(meetingMapper.mapToDto(meeting), teamCardId);
     }
 
+    /**
+     * Извлекает задачи из поля "tasksNextMeeting" предыдущей встречи
+     */
+    private String extractTasksFromPreviousMeeting(UUID teamCardId, String currentMeetingNumber) {
+        if (currentMeetingNumber == null || currentMeetingNumber.trim().isEmpty()) {
+            log.debug("Номер встречи не указан, перенос задач невозможен");
+            return null;
+        }
+        
+        try {
+            int currentNum = Integer.parseInt(currentMeetingNumber.trim());
+            
+            if (currentNum <= 1) {
+                log.debug("Первая встреча (номер {}), перенос задач не требуется", currentNum);
+                return null;
+            }
+            
+            var previousMeetingOpt = meetingRepository.findPreviousMeeting(teamCardId, currentMeetingNumber);
+            
+            if (previousMeetingOpt.isPresent()) {
+                Meeting previousMeeting = previousMeetingOpt.get();
+                String tasksNextMeeting = previousMeeting.getTasksNextMeeting();
+                
+                if (tasksNextMeeting != null && !tasksNextMeeting.trim().isEmpty()) {
+                    log.info("✅ Найдена предыдущая встреча #{}, tasksNextMeeting = '{}'", 
+                        previousMeeting.getNumber(), tasksNextMeeting);
+                    log.info("🔄 Выполняется копирование: 'Задачи к следующей встрече' -> 'Выполнили задачи прошлой встречи'");
+                    return tasksNextMeeting;
+                } else {
+                    log.info("Предыдущая встреча #{}, но 'Задачи к следующей встрече' пусты", previousMeeting.getNumber());
+                    return null;
+                }
+            } else {
+                log.warn("Не найдена предыдущая встреча для teamCardId={}, currentNumber={}", teamCardId, currentMeetingNumber);
+                return null;
+            }
+        } catch (NumberFormatException e) {
+            log.warn("Номер встречи '{}' не является числом", currentMeetingNumber, e);
+            return null;
+        } catch (Exception e) {
+            log.error("Ошибка при поиске предыдущей встречи", e);
+            return null;
+        }
+    }
+
+    /**
+     * Формирует финальный MeetingCreateDto с правильно размещёнными задачами
+     */
+    private MeetingCreateDto buildFinalCreateDto(
+            MeetingCreateDto originalDto, 
+            String tasksFromPreviousMeeting) {
+        
+        if (tasksFromPreviousMeeting == null || tasksFromPreviousMeeting.trim().isEmpty()) {
+            return originalDto;
+        }
+        
+        log.info("📝 ПЕРЕНОС ЗАДАЧ: '{}' -> в поле 'Выполнили задачи прошлой встречи'", tasksFromPreviousMeeting);
+        
+        return MeetingCreateDto.builder()
+                .number(originalDto.number())
+                .startDate(originalDto.startDate())
+                .recordLink(originalDto.recordLink())
+                .tasksCurrentMeeting(tasksFromPreviousMeeting)
+                .tasksNextMeeting(originalDto.tasksNextMeeting())
+                .build();
+    }
+
     @Override
     public Page<MeetingDto> getMeetings(UUID teamCardId, Pageable pageable) {
         var meetings = meetingRepository.findAll(teamCardIdEquals(teamCardId), pageable);
@@ -120,13 +194,20 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
 
-        if (MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
+        // ⚠️ ИЗМЕНЕНИЕ: Суперадминистратор может редактировать завершенные встречи
+        // Проверяем, является ли текущий пользователь SUPER_ADMIN
+        boolean isSuperAdmin = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        
+        // Если не суперадмин, то проверяем статус
+        if (!isSuperAdmin && MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
         }
 
@@ -147,7 +228,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public void deleteMeeting(UUID meetingId) {
         var meeting = meetingRepository.getReferenceById(meetingId);
         meetingRepository.delete(meeting);
@@ -157,7 +238,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public void addMeetingImage(UUID meetingId, MultipartFile file) {
         if (file.isEmpty()) {
             throw new MeetingEmptyImageException();
@@ -192,7 +273,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public Resource getMeetingImage(UUID meetingId) {
         var meeting = getMeeting(meetingId);
         if (meeting.getImageBytes() == null) {
@@ -201,15 +282,6 @@ public class MeetingServiceImpl implements MeetingService {
         return new ByteArrayResource(meeting.getImageBytes());
     }
 
-    /**
-     * Проверяет отсутствие встречи для карточки команды в указанный день.
-     *
-     * @param teamCardId идентификатор карточки команды
-     * @param startDate  дата и время встречи
-     * @param excludeId  идентификатор встречи для исключения из проверки,
-     *                   {@code null} при создании новой встречи
-     * @throws MeetingAlreadyExistsInSameDayException если встреча на этот день уже существует
-     */
     private void validateNoMeetingOnSameDay(UUID teamCardId, OffsetDateTime startDate, UUID excludeId) {
         var date = startDate.toLocalDate();
         var from = date.atStartOfDay().atOffset(startDate.getOffset());
