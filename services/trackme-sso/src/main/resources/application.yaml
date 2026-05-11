@@ -18,10 +18,10 @@ spring:
     resources:
       static-locations: classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/
   mail:
-    host: ${MAIL_HOST:localhost}
+    host: smtp.gmail.com
     port: ${MAIL_PORT:465}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: elenao5343@gmail.com
+    password: keno fjad ukye qava
     properties:
       mail:
         smtp:

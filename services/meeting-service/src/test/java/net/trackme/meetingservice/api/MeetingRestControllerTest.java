@@ -487,4 +487,36 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .andExpect(content().bytes("fake-excel-content".getBytes()));
     }
+
+    @Test
+    @WithMockUser(value = "tracker", roles = {"TRACKER"})
+    void createMeeting_forPassiveTeam_tracker_forbidden() throws Exception {
+        // Создаём пассивную команду
+        var passiveTeamCard = TeamCardDto.builder()
+                .id(UUID.randomUUID())
+                .name("Passive Team")
+                .username("tracker")
+                .passive(true)  // 👈 КЛЮЧЕВОЕ: пассивный статус
+                .streams(List.of(new StreamDto(UUID.randomUUID())))
+                .meetingRoomLink("https://zoom.us/j/123")
+                .build();
+
+        // Мокаем, что команда пассивная
+        when(userBackendApiClient.getTeamCardById(passiveTeamCard.getId()))
+                .thenReturn(passiveTeamCard);
+
+        var meetingCreateDto = MeetingCreateDto.builder()
+                .recordLink("https://example.com/meeting")
+                .number("999")
+                .startDate(OffsetDateTime.now().plusDays(3))
+                .build();
+
+        mockMvc.perform(post("/api/v1/create-meeting")
+                        .param("teamCardId", passiveTeamCard.getId().toString())
+                        .contentType("application/json")
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(meetingCreateDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest()); // 400, потому что IllegalStateException
+    }
 }

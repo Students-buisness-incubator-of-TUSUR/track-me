@@ -71,7 +71,17 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
+
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
+
+        // 👇 НОВАЯ ПРОВЕРКА
+        var teamDataForCheck = userBackendClient.getTeamCardById(teamCardId);
+        var currentRole = getCurrentUserRole();
+        boolean isAdmin = "ADMIN".equals(currentRole) || "SUPER_ADMIN".equals(currentRole);
+
+        if (teamDataForCheck.getPassive() != null && teamDataForCheck.getPassive() && !isAdmin) {
+            throw new IllegalStateException("Трекер не может создавать встречи для пассивной команды");
+        }
 
         var meeting = meetingMapper.mapToEntity(createDto);
         var teamData = userBackendClient.getTeamCardById(teamCardId);
@@ -125,6 +135,14 @@ public class MeetingServiceImpl implements MeetingService {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
+
+        var teamData = userBackendClient.getTeamCardById(teamCardId);
+        var currentRole = getCurrentUserRole();
+        boolean isAdmin = "ADMIN".equals(currentRole) || "SUPER_ADMIN".equals(currentRole);
+
+        if (teamData.getPassive() != null && teamData.getPassive() && !isAdmin) {
+            throw new IllegalStateException("Трекер не может редактировать встречи пассивной команды");
+        }
 
         if (MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
@@ -290,5 +308,15 @@ public class MeetingServiceImpl implements MeetingService {
                 dto.tasksCurrentMeeting(),
                 dto.tasksNextMeeting()
         );
+    }
+
+    private String getCurrentUserRole() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) return null;
+
+        return authentication.getAuthorities().stream()
+                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .findFirst()
+                .orElse(null);
     }
 }

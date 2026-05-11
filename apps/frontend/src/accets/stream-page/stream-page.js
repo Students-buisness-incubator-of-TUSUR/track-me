@@ -43,7 +43,7 @@ const [userRole, setUserRole] = useState('');
             const sortParams = 'startDate,desc&sort=name,asc';
             const response = await axios.post(`${backendHost}/api/v1/admin/streams?page=${page}&size=6&sort=${sortParams}`,
                 filters,
-                {   
+                {
                     ...getCsrfConfig(),
                     headers: {
                         "Content-Type": "application/json",
@@ -125,8 +125,6 @@ const [userRole, setUserRole] = useState('');
             setError("Ошибка загрузки чекбоксов рынков");
         }
     }, [backendHost]);
-
-    
 
     const handleClick = () => {
         setIsVisible(!isVisible);
@@ -471,8 +469,8 @@ const [userRole, setUserRole] = useState('');
                     <Link to="/team-cards" key={card.id} onClick={() => perehod(card)}
                           className="Stream-card">
                         <div className="Stream-card-pic">
-                            <img 
-                                src={imageUrls[card.id] || StreamPlaceholder} 
+                            <img
+                                src={imageUrls[card.id] || StreamPlaceholder}
                                 alt=""
                                 onError={(e) => {
                                     // e.target.onerror = null;

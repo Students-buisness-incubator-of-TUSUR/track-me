@@ -54,6 +54,8 @@ public class TeamCardEventConsumer {
             log.debug("[Kafka] Username трекера не изменился или отсутствует, обновление данных SSO не требуется.");
         }
 
+        metadataRepository.updatePassiveFlag(event.teamCardId(), event.newPassive());
+
         metadataRepository.updateMetadata(
                 event.teamCardId(),
                 event.newName(),

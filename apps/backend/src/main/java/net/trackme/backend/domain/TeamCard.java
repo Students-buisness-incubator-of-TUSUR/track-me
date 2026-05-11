@@ -35,6 +35,10 @@ public class TeamCard {
     @Builder.Default
     private Boolean enabled = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean passive = false;
+
     @Column(length = 32)
     @Enumerated(EnumType.STRING)
     private TeamCardStatus status;
@@ -94,21 +98,10 @@ public class TeamCard {
     private Set<MeetingGrade> meetingGrades = new HashSet<>();
 
     public Integer getMeetingsCountPlan() {
+        // Если команда пассивна, план все равно должен показываться.
         return streams.stream()
                 .findFirst()
-                .map(stream -> {
-                    java.time.LocalDate now = java.time.LocalDate.now();
-                    java.time.LocalDate start = stream.getTrackStartDate();
-
-                    if (start == null || now.isBefore(start)) {
-                        return 0;
-                    }
-
-                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(start, now);
-                    if (daysBetween <= 7) return 1;
-
-                    return (int) ((daysBetween - 1) / 7) + 1;
-                })
+                .map(Stream::getMeetingsCount) // 👈 Берем из потока
                 .orElse(0);
     }
 
