@@ -26,10 +26,13 @@ class MeetingsReportExcelGeneratorTest {
     void generate_createsValidExcelFileWithData() throws Exception {
         // Arrange
         String streamName = "Тестовый Поток 2024";
+        UUID teamId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+
         var record = new MeetingReportRecordDto(
+                teamId,
                 "Команда А",
                 OffsetDateTime.parse("2024-05-10T10:00:00Z"),
-                "Иван Трекеров",
+                "tracker_username",
                 "Иван Трекеров",
                 "Выполнено",
                 "Не выполнено",
@@ -61,7 +64,7 @@ class MeetingsReportExcelGeneratorTest {
             Row dataRow = sheet.getRow(2);
             assertNotNull(dataRow);
             assertEquals("Команда А", dataRow.getCell(0).getStringCellValue());
-            assertEquals("10.05.2024", dataRow.getCell(1).getStringCellValue());
+            assertEquals("10.05.2024 13:00", dataRow.getCell(1).getStringCellValue());
             assertEquals("Иван Трекеров", dataRow.getCell(2).getStringCellValue());
             assertEquals("Выполнено", dataRow.getCell(3).getStringCellValue());
             assertEquals("Не выполнено", dataRow.getCell(4).getStringCellValue());
@@ -72,10 +75,13 @@ class MeetingsReportExcelGeneratorTest {
     @Test
     void generate_handlesCancelledMeetingsCorrectly() throws Exception {
         // Arrange
+        UUID teamId = UUID.fromString("123e4567-e89b-12d3-a456-426614174001");
+
         var record = new MeetingReportRecordDto(
+                teamId,
                 "Команда",
                 OffsetDateTime.parse("2024-05-10T10:00:00Z"),
-                "Иван Трекеров",
+                "tracker_username",
                 "Сделать задачу 1",
                 null,
                 null,
