@@ -1,8 +1,8 @@
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useMemo } from "react";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
 
 export function useTrackerList(endpoint) {
-  const [trackers, setTrackers] = useState([]);
+  const [allTrackers, setAllTrackers] = useState([]);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [hoveredTracker, setHoveredTracker] = useState(null);
@@ -10,16 +10,16 @@ export function useTrackerList(endpoint) {
   
   // Пагинация
   const [page, setPage] = useState(0);
-  const [size] = useState(16);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
+  const trackersPerPage = 15;
 
   // Новое состояние для фильтра заблокированных пользователей
   const [showLockedOnly, setShowLockedOnly] = useState(false);
 
   const ssoServiceUri = (process.env.REACT_APP_BACKEND_URI || "http://localhost:8080") + "/sso";
 
-  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, currentSearchQuery = "", showLocked = false) => {
+  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, showLocked = false) => {
     try {
       const filters = [];
       
@@ -36,15 +36,6 @@ export function useTrackerList(endpoint) {
           fieldName: "accountNonLocked",
           type: "EQ",
           value: false,
-        });
-      }
-
-      // Фильтр по поисковому запросу
-      if (currentSearchQuery) {
-        filters.push({
-          fieldName: "fullName",
-          type: "LIKE",
-          value: currentSearchQuery,
         });
       }
 
@@ -84,35 +75,52 @@ export function useTrackerList(endpoint) {
       // Обновленная проверка ответа с учетом пагинации
       if (data.content && data.page) {
         const sortedContent = sortByActiveStatus(data.content);
-        setTrackers(sortedContent);
-        setTotalPages(data.page.totalPages);
-        setTotalElements(data.page.totalElements);
+        setAllTrackers(sortedContent);
+        setTotalPages(data.page.totalPages || 1);
+        setTotalElements(data.page.totalElements || data.content.length);
       } else if (Array.isArray(data)) {
         // Если бэкенд возвращает просто массив без пагинации
         const sortedData = sortByActiveStatus(data);
-        setTrackers(sortedData);
+        setAllTrackers(sortedData);
         setTotalPages(1);
-        setTotalElements(data.length);
+        setTotalElements(sortedData.length);
       } else {
         throw new Error("Неверный формат данных, полученных с сервера.");
       }
     } catch (err) {
       console.error("Ошибка при загрузке пользователей:", err);
       setError(err.message);
-      setTrackers([]);
-      setTotalPages(1);
-      setTotalElements(0);
+      setAllTrackers([]);
     }
   }, [ssoServiceUri, endpoint]);
 
+  // Фильтрация на клиенте по поисковому запросу (регистронезависимая)
+  const filteredTrackers = useMemo(() => {
+    if (!searchQuery) return allTrackers;
+    const query = searchQuery.toLowerCase();
+    return allTrackers.filter(t =>
+      t.fullName && t.fullName.toLowerCase().includes(query)
+    );
+  }, [allTrackers, searchQuery]);
+
+  // Пагинация на клиенте (используем backend totalPages для серверной пагинации)
+  const clientPaginatedTrackers = filteredTrackers.slice(
+    page * trackersPerPage,
+    (page + 1) * trackersPerPage
+  );
+
   useEffect(() => {
-    fetchTrackers(page, size, searchQuery, showLockedOnly);
-  }, [fetchTrackers, page, size, searchQuery, showLockedOnly]);
+    setPage(0);
+  }, [searchQuery, showLockedOnly]);
+
+  useEffect(() => {
+    fetchTrackers(0, 15, showLockedOnly);
+  }, [fetchTrackers, showLockedOnly]);
 
   // Функция для переключения отображения заблокированных пользователей
   const toggleShowLocked = () => {
     setShowLockedOnly(prev => !prev);
-    setPage(0); // Сбрасываем на первую страницу при переключении фильтра
+    setPage(0);
   };
 
   // Остальные функции остаются без изменений
@@ -127,10 +135,9 @@ export function useTrackerList(endpoint) {
 
       if (!response.ok) throw new Error(response.statusText);
 
-      setTrackers(prev => 
+      setAllTrackers(prev => 
         prev.map(t => t.username === username ? { ...t, enabled: true } : t)
       );
-      fetchTrackers(page, size, searchQuery, showLockedOnly);
     } catch (err) {
       console.error("Ошибка при подтверждении пользователя:", err);
       setError(`Ошибка при подтверждении пользователя: ${err.message}`);
@@ -148,7 +155,7 @@ export function useTrackerList(endpoint) {
 
       if (!response.ok) throw new Error(response.statusText);
 
-      await fetchTrackers(page, size, searchQuery, showLockedOnly);
+      await fetchTrackers(0, 15, showLockedOnly);
     } catch (err) {
       console.error("Ошибка при удалении пользователя:", err);
       setError(`Ошибка при удалении пользователя: ${err.message}`);
@@ -169,7 +176,7 @@ export function useTrackerList(endpoint) {
   };
 
   return {
-    trackers,
+    trackers: clientPaginatedTrackers,
     error,
     searchQuery,
     setSearchQuery,
@@ -183,15 +190,14 @@ export function useTrackerList(endpoint) {
     totalPages,
     totalElements,
     setPage,
-    size,
     handleFirstPage,
     handleLastPage,
     handleNextPage,
     handlePrevPage,
     handlePageJump,
     fetchTrackers,
-    // Добавляем новые функции и состояния
     showLockedOnly,
     toggleShowLocked,
+    trackersPerPage,
   };
 }

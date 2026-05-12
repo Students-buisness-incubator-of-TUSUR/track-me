@@ -356,8 +356,10 @@ const options = {
 }, [backendHost, userRole]);
 
 
-    // Фильтрация карточек по поисковому запросу
-    const filteredCards = cards;
+    // Фильтрация карточек по поисковому запросу (на клиенте, регистронезависимо)
+    const filteredCards = searchQuery
+        ? cards.filter(card => card.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+        : cards;
     const visibleCards = filteredCards;
 
 
@@ -382,13 +384,7 @@ const options = {
     const applyFilters = () => {
         const filters = [];
 
-        if (searchQuery?.length > 0) {
-            filters.push({
-                fieldName: "name",
-                type: "LIKE",
-                value: searchQuery,
-            });
-        }
+        // Поиск по name теперь на клиенте, не отправляем на бэкенд
 
         if (selectedTrl.length > 0) {
             filters.push({
@@ -434,7 +430,7 @@ const options = {
         setSelectedTrl("");
         setSelectedNtiMarkets([]);
         setSelectedStreams([]);
-        // Сбросить другие фильтры, если они будут добавлены
+        setSearchQuery("");
         fetchCards([]);
         setIsVisible(false);
         setSelectedYears([]);
@@ -498,6 +494,10 @@ const options = {
                             onKeyDown={(e) => {
                                 if (e.key === "Enter")
                                     applyFilters();
+                                if (e.key === "Escape") {
+                                    setSearchQuery("");
+                                    applyFilters();
+                                }
                             }}
                         />
                     </div>

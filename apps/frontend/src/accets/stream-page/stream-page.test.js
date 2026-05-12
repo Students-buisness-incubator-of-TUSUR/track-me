@@ -165,21 +165,21 @@ describe('Stream Component', () => {
     expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
   });
 
-  it('should call fetchData with name filter when search query is set', async () => {
+  it('should filter streams on client (case-insensitive) when search query is entered', async () => {
     render(<MemoryRouter><Stream /></MemoryRouter>);
 
     await waitFor(() => expect(axios.post).toHaveBeenCalled());
     axios.post.mockClear();
 
     fireEvent.change(screen.getByPlaceholderText('Найти'), { target: { value: 'test query' } });
-    fireEvent.click(document.querySelector('.Stream-settings-pic2'));
 
+    // LIKE filter should NOT be sent to backend (search is now client-side)
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining('streams'),
+      expect(axios.post).not.toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({
           filters: expect.arrayContaining([
-            expect.objectContaining({ fieldName: 'name', type: 'LIKE', value: 'test query' }),
+            expect.objectContaining({ fieldName: 'name', type: 'LIKE' }),
           ]),
         }),
         expect.anything()

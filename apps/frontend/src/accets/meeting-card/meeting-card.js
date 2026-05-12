@@ -157,17 +157,6 @@ const MeetingCard = () => {
         imagePreview
     );
 
-    const getMissingFields = () => {
-        const missing = [];
-        if (!meetingData.number) missing.push("Номер встречи");
-        if (!meetingData.recordLink) missing.push("Ссылка на запись");
-        if (!meetingData.tasksCurrentMeeting) missing.push("Задачи текущей встречи");
-        if (!meetingData.tasksNextMeeting) missing.push("Задачи следующей встречи");
-        if (!meetingData.teamStatus) missing.push("Статус команды");
-        if (!imagePreview) missing.push("Скриншот встречи");
-        return missing;
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setMeetingData(prev => ({
@@ -291,14 +280,24 @@ const MeetingCard = () => {
         }
 
         if (completed && !areAllFieldsFilled()) {
-            const missingFields = getMissingFields().join(", ");
-            setError(`Нельзя завершить встречу. Заполните все поля: ${missingFields}`);
+            setError("Нельзя завершить встречу как состоявшуюся. Заполните все поля.");
             setTimeout(() => setError(null), 5000);
             return;
         }
 
         try {
             const newStatus = completed ? "COMPLETED" : "COMPLETED_AS_NOT_HAPPENED";
+
+            const payload = {
+                status: newStatus,
+                recordLink: meetingData.recordLink || "",
+                number: meetingData.number || "",
+                teamStatus: newStatus === "COMPLETED" ? meetingData.teamStatus : null,
+                tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
+                tasksNextMeeting: meetingData.tasksNextMeeting || "",
+                startDate: meetingData.startDate || new Date().toISOString()
+            };
+
             setMeetingData(prev => ({ ...prev, status: newStatus }));
 
             const response = await fetch(`${backendHost}/api/v1/update-meeting/${meetingId}?teamCardId=${teamId}`, {
@@ -310,15 +309,7 @@ const MeetingCard = () => {
                 },
                 credentials: 'include',
                 mode: 'cors',
-                body: JSON.stringify({
-                    status: newStatus,
-                    recordLink: meetingData.recordLink || "",
-                    number: meetingData.number || "",
-                    teamStatus: meetingData.teamStatus,
-                    tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
-                    tasksNextMeeting: meetingData.tasksNextMeeting || "",
-                    startDate: meetingData.startDate || new Date().toISOString()
-                })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -597,7 +588,6 @@ const MeetingCard = () => {
                             tabIndex={0}
                             role="button"
                             aria-label="Загрузить изображение"
-                            style={{ marginLeft: '30px' }}
                         >
                             <input type="file" accept="image/*" onChange={handleImageChange} className="unique-image-input" ref={fileInputRef} disabled={isMeetingCompleted} />
                             {imagePreview
