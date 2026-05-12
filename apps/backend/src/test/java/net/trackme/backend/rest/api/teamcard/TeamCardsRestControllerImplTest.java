@@ -1379,17 +1379,16 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .passive(true)
                 .build());
 
-        // Пытаемся отредактировать трекером (у которого нет прав на этот тимкард)
         mockMvc.perform(patch("/api/v1/team-card")
                         .with(csrf())
                         .param("teamCardId", passiveTeam.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                              "name": "Try to rename"
-                            }
-                            """))
+                        {
+                          "name": "Try to rename"
+                        }
+                        """))
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
 }

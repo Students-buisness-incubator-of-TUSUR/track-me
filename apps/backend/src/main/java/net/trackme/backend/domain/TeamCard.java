@@ -6,7 +6,11 @@ import net.trackme.backend.models.TeamCardStatus;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -35,6 +39,11 @@ public class TeamCard {
     @Builder.Default
     private Boolean enabled = true;
 
+    /**
+     * Пассивный статус команды.
+     * Если true - команда не доступна для редактирования трекером,
+     * её рейтинг фиксируется, а план встреч отображается как есть.
+     */
     @Column(nullable = false)
     @Builder.Default
     private Boolean passive = false;

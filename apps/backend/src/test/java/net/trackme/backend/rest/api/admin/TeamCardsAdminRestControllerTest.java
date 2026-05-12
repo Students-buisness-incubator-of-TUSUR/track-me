@@ -191,6 +191,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 .username(BaseApplicationTest.USER)
                 .meetingRoomLink("https://test.com")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
+                .passive(false)
                 .build());
 
         mockMvc.perform(patch("/api/v1/admin/team-card")
@@ -198,16 +199,15 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .param("teamCardId", teamCard.getId().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
-                              "name": "Test passive team",
-                              "passive": true
-                            }
-                            """))
+                        {
+                          "name": "Test passive team",
+                          "passive": true
+                        }
+                        """))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.passive", is(true)));
 
-        // Проверяем, что пассивный статус сохранился в БД
         var updatedTeam = teamCardsService.getTeamCard(teamCard.getId());
         assertThat(updatedTeam.getPassive()).isTrue();
     }
