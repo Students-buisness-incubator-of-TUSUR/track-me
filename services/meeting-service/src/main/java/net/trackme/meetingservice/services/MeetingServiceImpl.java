@@ -70,43 +70,33 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
-    public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
-        validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
+    @PreAuthorize(
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
+        var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
+                        .and(meetingIdEquals(meetingId)))
+                .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
 
-        var meeting = meetingMapper.mapToEntity(createDto);
-        var teamData = userBackendClient.getTeamCardById(teamCardId);
-        var trackerUsername = teamData.getUsername();
-
-        meeting.setTeamCardId(teamCardId);
-        meeting.setStatus(MeetingStatus.SCHEDULED);
-
-        // Denormalize (Backend)
-        meeting.setTeamName(teamData.getName());
-        meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
-        meeting.setTrackerUsername(trackerUsername);
-
-        // Denormalize (SSO)
-        if (trackerUsername != null) {
-            var tracker = ssoApiClient.getTrackers().stream()
-                    .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
-                    .findFirst();
-
-            if (tracker.isPresent()) {
-                UserDto user = tracker.get();
-                meeting.setTrackerId(user.getId());
-                meeting.setTrackerFullName(user.getFullName());
-            } else {
-                meeting.setTrackerFullName(trackerUsername);
-                log.warn("Tracker with username {} not found in SSO during meeting creation", trackerUsername);
-            }
+        // SBI-800: Суперадминистратор может редактировать завершенные встречи
+        boolean isSuperAdmin = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        
+        if (!isSuperAdmin && MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
+            throw new MeetingCompletedException(meetingId, teamCardId);
         }
 
+        if (updateDto.startDate() != null) {
+            validateNoMeetingOnSameDay(teamCardId, updateDto.startDate(), meetingId);
+        }
+
+        var oldStatus = meeting.getStatus();
+        meetingMapper.updateEntityFromDto(updateDto, meeting);
         meeting = meetingRepository.save(meeting);
-        var username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        aclService.createAclForUser(meeting, username);
-        sendMeetingCreatedEvent(meeting);
-
+        if (oldStatus != meeting.getStatus()) {
+            sendMeetingUpdatedEvent(meeting, oldStatus);
+        }
         return enrichWithRoomLink(meetingMapper.mapToDto(meeting), teamCardId);
     }
 

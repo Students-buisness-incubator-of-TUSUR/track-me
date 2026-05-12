@@ -357,7 +357,7 @@ const MeetingCard = () => {
         }
     };
 
-    const handleEditClick = () => {
+       const handleEditClick = () => {
         if (isMeetingLocked && (role === "ADMIN" || role === "SUPER_ADMIN")) {
             setShowDeleteModal(true);
             return;
