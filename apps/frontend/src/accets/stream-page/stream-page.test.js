@@ -180,6 +180,31 @@ describe('Stream Component', () => {
     expect(searchInput.value).toBe('');
   });
 
+  it('should reset all filters and call fetchData with empty filters on reset button click', async () => {
+    render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    const filterToggleBtn = document.querySelector('.Stream-settings-pic');
+    fireEvent.click(filterToggleBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Сбросить')).toBeInTheDocument();
+    });
+
+    const resetBtn = screen.getByText('Сбросить');
+    fireEvent.click(resetBtn);
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('streams'),
+        expect.objectContaining({ filters: [] }),
+        expect.anything()
+      );
+    });
+  });
+
   it('should call handleApplyFilters on Enter key', async () => {
     render(<MemoryRouter><Stream /></MemoryRouter>);
 
