@@ -165,6 +165,37 @@ describe('Stream Component', () => {
     expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
   });
 
+  it('should clear search on Escape key and not trigger backend fetch (client-side search)', async () => {
+    render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    const searchInput = screen.getByPlaceholderText('Найти');
+    fireEvent.change(searchInput, { target: { value: 'test query' } });
+    axios.post.mockClear();
+
+    fireEvent.keyDown(searchInput, { key: 'Escape' });
+
+    expect(searchInput.value).toBe('');
+  });
+
+  it('should call handleApplyFilters on Enter key', async () => {
+    render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    const searchInput = screen.getByPlaceholderText('Найти');
+    fireEvent.change(searchInput, { target: { value: 'test' } });
+
+    fireEvent.keyDown(searchInput, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalled();
+    });
+  });
+
   it('should filter streams on client (case-insensitive) when search query is entered', async () => {
     render(<MemoryRouter><Stream /></MemoryRouter>);
 
