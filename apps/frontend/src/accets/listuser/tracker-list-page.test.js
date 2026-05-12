@@ -2256,4 +2256,36 @@ describe('Coverage for lines 200-203', () => {
     
     expect(window.location.href).toBe('');
   });
+
+  test('Escape очищает поисковый запрос (setSearchQuery called with empty string)', () => {
+    const setSearchQuery = jest.fn();
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [],
+      error: null,
+      searchQuery: 'test',
+      setSearchQuery,
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      deleteUser: jest.fn(),
+    });
+
+    const TrackerListPage = require('./TrackerListPage').default;
+    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
+    
+    const input = screen.getByPlaceholderText('Найти');
+    expect(input).toBeInTheDocument();
+    
+    fireEvent.keyDown(input, { key: 'Escape' });
+    expect(setSearchQuery).toHaveBeenCalledWith('');
+  });
 });
