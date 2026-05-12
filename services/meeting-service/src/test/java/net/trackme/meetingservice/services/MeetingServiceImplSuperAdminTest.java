@@ -80,6 +80,7 @@ class MeetingServiceImplSuperAdminTest {
                 .build();
     }
     
+    @SuppressWarnings("unchecked")
     private void mockSecurityContext(String role) {
         Authentication auth = mock(Authentication.class);
         Collection<? extends GrantedAuthority> authorities = List.of(
@@ -93,6 +94,7 @@ class MeetingServiceImplSuperAdminTest {
         SecurityContextHolder.setContext(securityContext);
     }
     
+    @SuppressWarnings("unchecked")
     @Test
     void superAdminCanEditCompletedMeeting() {
         mockSecurityContext("ROLE_SUPER_ADMIN");
@@ -106,6 +108,7 @@ class MeetingServiceImplSuperAdminTest {
         verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
     
+    @SuppressWarnings("unchecked")
     @Test
     void superAdminCanEditCompletedAsNotHappenedMeeting() {
         meeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
@@ -120,6 +123,7 @@ class MeetingServiceImplSuperAdminTest {
         verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
     
+    @SuppressWarnings("unchecked")
     @Test
     void adminCannotEditCompletedMeeting() {
         mockSecurityContext("ROLE_ADMIN");
@@ -132,6 +136,7 @@ class MeetingServiceImplSuperAdminTest {
         verify(meetingRepository, never()).save(any(Meeting.class));
     }
     
+    @SuppressWarnings("unchecked")
     @Test
     void trackerCannotEditCompletedMeeting() {
         mockSecurityContext("ROLE_TRACKER");
@@ -144,6 +149,7 @@ class MeetingServiceImplSuperAdminTest {
         verify(meetingRepository, never()).save(any(Meeting.class));
     }
     
+    @SuppressWarnings("unchecked")
     @Test
     void superAdminCanEditScheduledMeeting() {
         meeting.setStatus(MeetingStatus.SCHEDULED);
@@ -158,6 +164,7 @@ class MeetingServiceImplSuperAdminTest {
         verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
     
+    @SuppressWarnings("unchecked")
     @Test
     void adminCanEditScheduledMeeting() {
         meeting.setStatus(MeetingStatus.SCHEDULED);

@@ -11,7 +11,6 @@ import net.trackme.backend.messaging.internal.TeamCardStreamAddedInternalEvent;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.repos.TeamCardsRepository;
 import net.trackme.backend.services.exceptions.TeamCardNotFoundException;
-import net.trackme.backend.services.exceptions.ValidationException;
 import net.trackme.backend.services.stream.StreamService;
 import net.trackme.commons.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -37,12 +36,10 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     private final AclService aclService;
     private final ApplicationEventPublisher eventPublisher;
 
-    /**
-     * Проверяет, что хотя бы один рынок НТИ команды соответствует рынкам НТИ потока.
-     */
+    // Временная проверка (без ValidationException)
     private void validateTeamMarketsAgainstStream(List<NTIMarket> teamMarkets, Stream stream) {
         if (teamMarkets == null || teamMarkets.isEmpty()) {
-            throw new ValidationException("Необходимо выбрать хотя бы один рынок НТИ");
+            throw new IllegalArgumentException("Необходимо выбрать хотя бы один рынок НТИ");
         }
         
         List<UUID> streamMarketIds = stream.getNtiMarkets().stream()
@@ -53,7 +50,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
                 .anyMatch(market -> streamMarketIds.contains(market.getId()));
         
         if (!hasMatch) {
-            throw new ValidationException(
+            throw new IllegalArgumentException(
                 "Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока."
             );
         }
