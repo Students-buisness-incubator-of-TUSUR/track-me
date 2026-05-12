@@ -41,15 +41,10 @@ import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardI
 public class MeetingServiceImpl implements MeetingService {
 
     private final MeetingMapper meetingMapper;
-
     private final MeetingRepository meetingRepository;
-
     private final AclService aclService;
-
     private final MeetingEventsProducer meetingEventsProducer;
-
     private final BackendApiClient userBackendClient;
-
     private final SsoApiClient ssoApiClient;
 
     public MeetingServiceImpl(
@@ -80,24 +75,27 @@ public class MeetingServiceImpl implements MeetingService {
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.SCHEDULED);
 
-        // Denormalize (Backend)
         meeting.setTeamName(teamData.getName());
         meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
         meeting.setTrackerUsername(trackerUsername);
 
-        // Denormalize (SSO)
         if (trackerUsername != null) {
-            var tracker = ssoApiClient.getTrackers().stream()
-                    .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
-                    .findFirst();
+            try {
+                var tracker = ssoApiClient.getTrackers().stream()
+                        .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
+                        .findFirst();
 
-            if (tracker.isPresent()) {
-                UserDto user = tracker.get();
-                meeting.setTrackerId(user.getId());
-                meeting.setTrackerFullName(user.getFullName());
-            } else {
+                if (tracker.isPresent()) {
+                    UserDto user = tracker.get();
+                    meeting.setTrackerId(user.getId());
+                    meeting.setTrackerFullName(user.getFullName());
+                } else {
+                    meeting.setTrackerFullName(trackerUsername);
+                    log.warn("Tracker with username {} not found in SSO during meeting creation", trackerUsername);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch tracker info from SSO for username: {}, using username as fallback", trackerUsername, e);
                 meeting.setTrackerFullName(trackerUsername);
-                log.warn("Tracker with username {} not found in SSO during meeting creation", trackerUsername);
             }
         }
 
@@ -120,13 +118,18 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
 
-        if (MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
+        // SBI-800: Суперадминистратор может редактировать завершенные встречи
+        boolean isSuperAdmin = SecurityContextHolder.getContext().getAuthentication()
+                .getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        
+        if (!isSuperAdmin && MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
         }
 
@@ -147,7 +150,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public void deleteMeeting(UUID meetingId) {
         var meeting = meetingRepository.getReferenceById(meetingId);
         meetingRepository.delete(meeting);
@@ -157,7 +160,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @Transactional
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public void addMeetingImage(UUID meetingId, MultipartFile file) {
         if (file.isEmpty()) {
             throw new MeetingEmptyImageException();
@@ -192,7 +195,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN')")
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public Resource getMeetingImage(UUID meetingId) {
         var meeting = getMeeting(meetingId);
         if (meeting.getImageBytes() == null) {
@@ -201,15 +204,6 @@ public class MeetingServiceImpl implements MeetingService {
         return new ByteArrayResource(meeting.getImageBytes());
     }
 
-    /**
-     * Проверяет отсутствие встречи для карточки команды в указанный день.
-     *
-     * @param teamCardId идентификатор карточки команды
-     * @param startDate  дата и время встречи
-     * @param excludeId  идентификатор встречи для исключения из проверки,
-     *                   {@code null} при создании новой встречи
-     * @throws MeetingAlreadyExistsInSameDayException если встреча на этот день уже существует
-     */
     private void validateNoMeetingOnSameDay(UUID teamCardId, OffsetDateTime startDate, UUID excludeId) {
         var date = startDate.toLocalDate();
         var from = date.atStartOfDay().atOffset(startDate.getOffset());
