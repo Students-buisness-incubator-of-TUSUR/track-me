@@ -100,7 +100,7 @@ const TeamCard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState(null);
 
-  // SBI-800: Проверка, можно ли редактировать встречу
+    // SBI-800: Проверка прав на редактирование встречи
   const canEditMeeting = (meetingStatus) => {
     if (role === superadminRoleName) {
       return true;
@@ -110,7 +110,7 @@ const TeamCard = () => {
     }
     return true;
   };
-
+  
   const filteredTrackers = useMemo(() => {
     if (!trackerSearchTerm.trim()) return trackers;
     return trackers.filter(tracker => 

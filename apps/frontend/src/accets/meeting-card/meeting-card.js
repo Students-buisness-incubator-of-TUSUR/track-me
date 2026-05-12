@@ -358,7 +358,7 @@ const MeetingCard = () => {
     };
 
     // SBI-800: Обновлённая функция handleEditClick для суперадмина
-    const handleEditClick = () => {
+        const handleEditClick = () => {
         if (isMeetingLocked && (role === "ADMIN" || role === "SUPER_ADMIN")) {
             setShowDeleteModal(true);
             return;
