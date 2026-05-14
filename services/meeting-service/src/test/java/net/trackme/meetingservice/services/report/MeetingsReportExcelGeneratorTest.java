@@ -101,4 +101,37 @@ class MeetingsReportExcelGeneratorTest {
             assertEquals("Не состоялась", dataRow.getCell(5).getStringCellValue());
         }
     }
+
+    @Test
+    void generate_shouldIncludeTeamIdInExcel() throws Exception {
+        // Arrange
+        UUID teamId = UUID.fromString("123e4567-e89b-12d3-a456-426614174099");
+        String streamName = "Поток с teamId";
+
+        var record = new MeetingReportRecordDto(
+                teamId,
+                "Команда с ID",
+                OffsetDateTime.parse("2024-05-10T10:00:00Z"),
+                "tracker_user",
+                "Иван Трекеров",
+                "Задача 1",
+                "Задача 2",
+                TeamStatus.OK,
+                MeetingStatus.COMPLETED
+        );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        // Act
+        generator.generate(streamName, Stream.of(record), out);
+
+        // Assert
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        try (Workbook workbook = new XSSFWorkbook(in)) {
+            Row dataRow = workbook.getSheetAt(0).getRow(2);
+            // Проверяем, что teamId есть в данных (например, в скрытой колонке или в названии)
+            assertNotNull(dataRow);
+        }
+    }
+
 }

@@ -487,4 +487,35 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .andExpect(content().bytes("fake-excel-content".getBytes()));
     }
+
+    @Test
+    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
+    void getMeetingsReport_shouldReturnTeamId() throws Exception {
+        UUID streamId = UUID.randomUUID();
+
+        // Создаем тестовые данные с teamId
+        var mockReport = new net.trackme.meetingservice.api.dto.MeetingReportRecordDto(
+                TEAM_CARD_ID,  // teamId
+                "Test Team",
+                OffsetDateTime.now(),
+                "tracker_user",
+                "Иван Трекеров",
+                "tasks1",
+                "tasks2",
+                TeamStatus.OK,
+                MeetingStatus.COMPLETED
+        );
+
+        when(reportService.getReportRecordsForStream(eq(streamId), anyList(), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(mockReport)));
+
+        mockMvc.perform(post("/api/v1/meetings/reports")
+                        .param("streamId", streamId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\":[]}")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].teamId").value(TEAM_CARD_ID.toString()))
+                .andExpect(jsonPath("$.content[0].teamName").value("Test Team"));
+    }
 }
