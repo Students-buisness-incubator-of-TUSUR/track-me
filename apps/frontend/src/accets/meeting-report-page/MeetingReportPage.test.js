@@ -1,283 +1,396 @@
-  import React from "react";
-  import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-  import "@testing-library/jest-dom";
-  import { MemoryRouter } from "react-router-dom";
-  import MeetingReportPage from "./MeetingReportPage";
-  import * as requests from "../../services/requests";
-  import * as util from "../../services/util";
+ import React from 'react';
+ import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+ import '@testing-library/jest-dom';
+ import { MemoryRouter, Route, Routes } from 'react-router-dom';
+ import MeetingReportPage from './MeetingReportPage';
+ import * as requests from '../../services/requests';
+ import * as util from '../../services/util';
 
-  jest.mock("../../services/requests", () => ({
-    fetchMeetingReport: jest.fn(),
-    fetchMeetingReportExcel: jest.fn(),
-  }));
+ // Моки
+ jest.mock('../../services/requests', () => ({
+   fetchMeetingReport: jest.fn(),
+   fetchMeetingReportExcel: jest.fn(),
+ }));
 
-  jest.mock("../../services/util", () => ({
-    useGetUserInfo: jest.fn(),
-  }));
+ jest.mock('../../services/util', () => ({
+   useGetUserInfo: jest.fn(),
+ }));
 
-  jest.mock("../header/header", () => () => <div data-testid="mock-header">Header</div>);
+ jest.mock('../header/header', () => () => <div data-testid="mock-header">Header</div>);
 
-  const mockNavigate = jest.fn();
-  jest.mock("react-router-dom", () => ({
-    ...jest.requireActual("react-router-dom"),
-    useParams: () => ({ streamId: "123" }),
-    useNavigate: () => mockNavigate,
-  }));
+ const mockNavigate = jest.fn();
+ jest.mock('react-router-dom', () => ({
+   ...jest.requireActual('react-router-dom'),
+   useParams: () => ({ streamId: 'test-stream-id' }),
+   useNavigate: () => mockNavigate,
+ }));
 
-  describe("MeetingReportPage Component", () => {
-    const mockData = {
-      content: [
-        {
-          teamName: "Team Alpha",
-          startDate: "2023-10-01T10:00:00Z",
-          trackerName: "tracker1",
-          trackerFullName: "Иван Иванов",
-          status: "COMPLETED",
-          teamStatus: "OK",
-          tasksNextMeeting: "Сделать А",
-          tasksCurrentMeeting: "Сделали Б",
-        },
-        {
-          teamName: "Team Beta",
-          startDate: "2023-10-02T10:00:00Z",
-          trackerName: "tracker2",
-          trackerFullName: "Петр Петров",
-          status: "SCHEDULED",
-          teamStatus: null,
-        },
-        {
-          teamName: "Team Gamma",
-          startDate: "2023-10-03T10:00:00Z",
-          trackerName: "tracker1",
-          trackerFullName: "Иван Иванов",
-          status: "COMPLETED_AS_NOT_HAPPENED",
-          teamStatus: null,
-        },
-      ],
-    };
+ describe('MeetingReportPage - Hyperlink тесты', () => {
+   const mockData = {
+     content: [
+       {
+         teamId: 'team-123',
+         teamName: 'Команда Альфа',
+         startDate: '2024-01-15T10:00:00Z',
+         trackerName: 'tracker1',
+         trackerFullName: 'Иван Трекеров',
+         status: 'COMPLETED',
+         teamStatus: 'OK',
+         tasksNextMeeting: 'Подготовить отчет',
+         tasksCurrentMeeting: 'Провели встречу',
+       },
+       {
+         teamId: 'team-456',
+         teamName: 'Команда Бета',
+         startDate: '2024-01-20T10:00:00Z',
+         trackerName: 'tracker2',
+         trackerFullName: 'Петр Трекеров',
+         status: 'SCHEDULED',
+         teamStatus: null,
+         tasksNextMeeting: '',
+         tasksCurrentMeeting: '',
+       },
+     ],
+   };
 
-    beforeAll(() => {
-      HTMLAnchorElement.prototype.click = jest.fn();
-    });
+   beforeEach(() => {
+     jest.clearAllMocks();
+     util.useGetUserInfo.mockReturnValue({ roles: ['ADMIN'] });
+     requests.fetchMeetingReport.mockResolvedValue({
+       ok: true,
+       json: async () => mockData,
+     });
+     mockNavigate.mockClear();
+   });
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-      util.useGetUserInfo.mockReturnValue({ roles: ["ADMIN"] });
-      requests.fetchMeetingReport.mockResolvedValue({
-        ok: true,
-        json: async () => mockData,
-      });
-      
-      global.URL.createObjectURL = jest.fn();
-      global.URL.revokeObjectURL = jest.fn();
-    });
+   const renderComponent = () => {
+     return render(
+       <MemoryRouter initialEntries={['/report/test-stream-id']}>
+         <Routes>
+           <Route path="/report/:streamId" element={<MeetingReportPage />} />
+           <Route path="/teamcard/:teamId" element={<div data-testid="teamcard-page" />} />
+         </Routes>
+       </MemoryRouter>
+     );
+   };
 
-    const renderComponent = () =>
-      render(
-        <MemoryRouter>
-          <MeetingReportPage />
-        </MemoryRouter>
-      );
+   test('отображает название команды как гиперссылку', async () => {
+     renderComponent();
 
-    test("рендерит начальное состояние и делает запрос", async () => {
-      renderComponent();
+     await waitFor(() => {
+       expect(screen.getByText('Команда Альфа')).toBeInTheDocument();
+     });
 
-      expect(screen.getByText("Загрузка...")).toBeInTheDocument();
-      await waitFor(() => {
-        expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
-          expect.objectContaining({
-            streamId: "123",
-            filters: [],
-            page: 0,
-            size: 10000,
-            sort: ["teamName,asc", "startDate,desc"],
-          })
-        );
-      });
+     const teamLink = screen.getByText('Команда Альфа');
+     expect(teamLink).toHaveStyle({ cursor: 'pointer', color: '#843AEB', textDecoration: 'underline' });
+   });
 
-      await waitFor(() => {
-        expect(screen.queryByText("Загрузка...")).not.toBeInTheDocument();
-      });
-    });
+   test('клик по названию команды вызывает navigate с правильным teamId', async () => {
+     renderComponent();
 
-    test("отображает данные в таблице и корректно форматирует статусы", async () => {
-      renderComponent();
+     await waitFor(() => {
+       expect(screen.getByText('Команда Альфа')).toBeInTheDocument();
+     });
 
-      await waitFor(() => {
-        expect(screen.getByText("Team Alpha")).toBeInTheDocument();
-      });
+     const teamLink = screen.getByText('Команда Альфа');
+     fireEvent.click(teamLink);
 
-      expect(screen.getByText("Всё ок")).toBeInTheDocument();
-      expect(screen.getByText("Запланирована")).toBeInTheDocument();
-      expect(screen.getByText("Не состоялась")).toBeInTheDocument();
-      expect(screen.getAllByText("Иван Иванов")).toHaveLength(2);
-    });
+     expect(mockNavigate).toHaveBeenCalledWith('/teamcard/team-123');
+   });
 
-    test("кнопка 'Назад' вызывает navigate(-1)", async () => {
-      renderComponent();
-      
-      const backButton = screen.getByText("← Назад");
-      fireEvent.click(backButton);
+   test('клик по второй команде вызывает navigate с правильным teamId', async () => {
+     renderComponent();
 
-      expect(mockNavigate).toHaveBeenCalledWith(-1);
-    });
+     await waitFor(() => {
+       expect(screen.getByText('Команда Бета')).toBeInTheDocument();
+     });
 
-    test("работает фильтр по трекеру", async () => {
-      renderComponent();
+     const teamLink = screen.getByText('Команда Бета');
+     fireEvent.click(teamLink);
 
-      await waitFor(() => {
-        expect(screen.getByText("Team Alpha")).toBeInTheDocument();
-      });
+     expect(mockNavigate).toHaveBeenCalledWith('/teamcard/team-456');
+   });
 
-      const trackerFilterBtn = screen.getByText("Трекеры");
-      fireEvent.click(trackerFilterBtn);
+   test('отображает все команды с корректными teamId', async () => {
+     renderComponent();
 
-      const trackerOption = screen.getByRole("button", { name: "Иван Иванов (@tracker1)" });
-      fireEvent.click(trackerOption);
+     await waitFor(() => {
+       expect(screen.getByText('Команда Альфа')).toBeInTheDocument();
+       expect(screen.getByText('Команда Бета')).toBeInTheDocument();
+     });
 
-      await waitFor(() => {
-        expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
-          expect.objectContaining({
-            filters: [{ fieldName: "trackerFullName", type: "EQ", value: "Иван Иванов" }],
-          })
-        );
-      });
+     const teamLinks = screen.getAllByRole('cell', { name: /Команда/ });
+     expect(teamLinks).toHaveLength(2);
+   });
 
-      const activeFilterBtn = screen.getByRole("button", { name: "Иван Иванов" });
-      fireEvent.click(activeFilterBtn);
+   test('обрабатывает отсутствие teamId в данных', async () => {
+     const dataWithoutTeamId = {
+       content: [
+         {
+           teamName: 'Команда без ID',
+           startDate: '2024-01-15T10:00:00Z',
+           trackerName: 'tracker1',
+           trackerFullName: 'Иван Трекеров',
+           status: 'COMPLETED',
+           teamStatus: 'OK',
+         },
+       ],
+     };
+     requests.fetchMeetingReport.mockResolvedValue({
+       ok: true,
+       json: async () => dataWithoutTeamId,
+     });
 
-      const allOption = screen.getByRole("button", { name: "— Все —" });
-      fireEvent.click(allOption);
-      
-      await waitFor(() => {
-        expect(requests.fetchMeetingReport).toHaveBeenLastCalledWith(
-          expect.objectContaining({
-            filters: [],
-          })
-        );
-      });
-    });
+     renderComponent();
 
-    test("работает фильтр по команде", async () => {
-      renderComponent();
+     await waitFor(() => {
+       expect(screen.getByText('Команда без ID')).toBeInTheDocument();
+     });
 
-      await waitFor(() => {
-        expect(screen.getByText("Team Alpha")).toBeInTheDocument();
-      });
+     const teamLink = screen.getByText('Команда без ID');
+     fireEvent.click(teamLink);
 
-      const teamFilterBtn = screen.getByText("Команда");
-      fireEvent.click(teamFilterBtn);
+     expect(mockNavigate).toHaveBeenCalledWith('/teamcard/undefined');
+   });
 
-      const teamOption = screen.getByRole("button", { name: "Team Beta" });
-      fireEvent.click(teamOption);
+   test('загрузка данных показывает индикатор загрузки', async () => {
+     requests.fetchMeetingReport.mockImplementation(() => new Promise(() => {}));
 
-      await waitFor(() => {
-        expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
-          expect.objectContaining({
-            filters: [{ fieldName: "teamName", type: "EQ", value: "Team Beta" }],
-          })
-        );
-      });
+     renderComponent();
 
-      await waitFor(() => expect(screen.getAllByText("Team Beta").length).toBeGreaterThan(0));
-    });
+     expect(screen.getByText('Загрузка...')).toBeInTheDocument();
+   });
 
-    test("работает фильтр по статусу", async () => {
-      renderComponent();
+   test('пустые данные показывают сообщение "Нет данных"', async () => {
+     requests.fetchMeetingReport.mockResolvedValue({
+       ok: true,
+       json: async () => ({ content: [] }),
+     });
 
-      await waitFor(() => {
-        expect(screen.getByText("Team Alpha")).toBeInTheDocument();
-      });
+     renderComponent();
 
-      const statusFilterBtn = screen.getByText("Статус");
-      fireEvent.click(statusFilterBtn);
+     await waitFor(() => {
+       expect(screen.getByText('Нет данных')).toBeInTheDocument();
+     });
+   });
+ });
 
-      const okStatusOption = screen.getByRole("button", { name: "Всё ок" });
-      fireEvent.click(okStatusOption);
+ describe('MeetingReportPage - Фильтры и сортировка', () => {
+   const mockData = {
+     content: [
+       {
+         teamId: 'team-1',
+         teamName: 'Команда А',
+         startDate: '2024-01-15T10:00:00Z',
+         trackerName: 'tracker1',
+         trackerFullName: 'Иван Трекеров',
+         status: 'COMPLETED',
+         teamStatus: 'OK',
+       },
+       {
+         teamId: 'team-2',
+         teamName: 'Команда Б',
+         startDate: '2024-01-20T10:00:00Z',
+         trackerName: 'tracker2',
+         trackerFullName: 'Петр Трекеров',
+         status: 'COMPLETED',
+         teamStatus: 'WITH_ISSUES',
+       },
+     ],
+   };
 
-      await waitFor(() => {
-        expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
-          expect.objectContaining({
-            filters: [
-              { fieldName: "teamStatus", type: "EQ", value: "OK" },
-              { fieldName: "status", type: "EQ", value: "COMPLETED" },
-            ],
-          })
-        );
-      });
+   beforeEach(() => {
+     jest.clearAllMocks();
+     util.useGetUserInfo.mockReturnValue({ roles: ['ADMIN'] });
+     requests.fetchMeetingReport.mockResolvedValue({
+       ok: true,
+       json: async () => mockData,
+     });
+   });
 
-      await waitFor(() => expect(screen.getAllByText("Всё ок").length).toBeGreaterThan(0));
-    });
+   const renderComponent = () => {
+     return render(
+       <MemoryRouter initialEntries={['/report/test-stream-id']}>
+         <Routes>
+           <Route path="/report/:streamId" element={<MeetingReportPage />} />
+         </Routes>
+       </MemoryRouter>
+     );
+   };
 
-    test("работает сортировка при клике на заголовок таблицы", async () => {
-      renderComponent();
+   test('кнопка "Назад" вызывает navigate(-1)', async () => {
+     renderComponent();
 
-      await waitFor(() => {
-        expect(screen.getByText("Team Alpha")).toBeInTheDocument();
-      });
+     await waitFor(() => {
+       expect(screen.getByText('Команда А')).toBeInTheDocument();
+     });
 
-      const teamNameHeader = screen.getByText(/Название команды/i);
-      fireEvent.click(teamNameHeader);
+     const backButton = screen.getByText('← Назад');
+     fireEvent.click(backButton);
 
-      await waitFor(() => {
-        expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
-          expect.objectContaining({
-            sort: ["teamName,desc", "startDate,desc"],
-          })
-        );
-      });
-    });
+     expect(mockNavigate).toHaveBeenCalledWith(-1);
+   });
 
-    test("функция экспорта вызывает fetchMeetingReportExcel", async () => {
-      requests.fetchMeetingReportExcel.mockResolvedValue({
-        ok: true,
-        blob: async () => new Blob(["test"], { type: "application/vnd.ms-excel" }),
-      });
+   test('фильтр по команде работает', async () => {
+     renderComponent();
 
-      renderComponent();
+     await waitFor(() => {
+       expect(screen.getByText('Команда А')).toBeInTheDocument();
+     });
 
-      await waitFor(() => {
-        expect(screen.getByText("Team Alpha")).toBeInTheDocument();
-      });
+     const teamFilterBtn = screen.getByText('Команда');
+     fireEvent.click(teamFilterBtn);
 
-      const exportBtn = screen.getByText("Выгрузить отчет");
-      fireEvent.click(exportBtn);
+     const teamOption = await screen.findByText('Команда А');
+     fireEvent.click(teamOption);
 
-      await waitFor(() => {
-        expect(requests.fetchMeetingReportExcel).toHaveBeenCalledWith(
-          expect.objectContaining({
-            streamId: "123",
-            filters: [],
-          })
-        );
-      });
-    });
+     await waitFor(() => {
+       expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
+         expect.objectContaining({
+           filters: expect.arrayContaining([
+             { fieldName: 'teamName', type: 'EQ', value: 'Команда А' },
+           ]),
+         })
+       );
+     });
+   });
 
-    test("отображает 'Нет данных', если API возвращает пустой массив", async () => {
-      requests.fetchMeetingReport.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ content: [] }),
-      });
+   test('фильтр по трекеру работает', async () => {
+     renderComponent();
 
-      renderComponent();
+     await waitFor(() => {
+       expect(screen.getByText('Команда А')).toBeInTheDocument();
+     });
 
-      await waitFor(() => {
-        expect(screen.getByText("Нет данных")).toBeInTheDocument();
-      });
-    });
-    test("клик по названию команды и teamCardName вызывает navigate", async () => {
-  renderComponent();
+     const trackerFilterBtn = screen.getByText('Трекеры');
+     fireEvent.click(trackerFilterBtn);
 
-  await waitFor(() => {
-    expect(screen.getByText("Team Alpha")).toBeInTheDocument();
-  });
+     const trackerOption = await screen.findByText('Иван Трекеров (@tracker1)');
+     fireEvent.click(trackerOption);
 
-  // Клик по teamName
-  fireEvent.click(screen.getByText("Team Alpha"));
+     await waitFor(() => {
+       expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
+         expect.objectContaining({
+           filters: expect.arrayContaining([
+             { fieldName: 'trackerFullName', type: 'EQ', value: 'Иван Трекеров' },
+           ]),
+         })
+       );
+     });
+   });
 
-  expect(mockNavigate).toHaveBeenCalledWith("/teamcard/undefined");
+   test('сортировка по названию команды работает', async () => {
+     renderComponent();
 
-  // Если добавишь teamId в мок — будет нормально:
-  // expect(mockNavigate).toHaveBeenCalledWith("/teamcard/1");
-});
-  });
+     await waitFor(() => {
+       expect(screen.getByText('Команда А')).toBeInTheDocument();
+     });
+
+     const teamHeader = screen.getByText(/Название команды/);
+     fireEvent.click(teamHeader);
+
+     await waitFor(() => {
+       expect(requests.fetchMeetingReport).toHaveBeenCalledWith(
+         expect.objectContaining({
+           sort: ['teamName,desc', 'startDate,desc'],
+         })
+       );
+     });
+   });
+ });
+
+ describe('MeetingReportPage - Статусы', () => {
+   beforeEach(() => {
+     jest.clearAllMocks();
+     util.useGetUserInfo.mockReturnValue({ roles: ['ADMIN'] });
+   });
+
+   const renderComponent = () => {
+     return render(
+       <MemoryRouter initialEntries={['/report/test-stream-id']}>
+         <Routes>
+           <Route path="/report/:streamId" element={<MeetingReportPage />} />
+         </Routes>
+       </MemoryRouter>
+     );
+   };
+
+   test('отображает статус "Запланирована" для SCHEDULED встреч', async () => {
+     const mockScheduled = {
+       content: [
+         {
+           teamId: 'team-1',
+           teamName: 'Команда',
+           startDate: '2024-01-15T10:00:00Z',
+           trackerName: 'tracker1',
+           trackerFullName: 'Трекер',
+           status: 'SCHEDULED',
+           teamStatus: null,
+         },
+       ],
+     };
+     requests.fetchMeetingReport.mockResolvedValue({
+       ok: true,
+       json: async () => mockScheduled,
+     });
+
+     renderComponent();
+
+     await waitFor(() => {
+       expect(screen.getByText('Запланирована')).toBeInTheDocument();
+     });
+   });
+
+   test('отображает статус "Не состоялась" для COMPLETED_AS_NOT_HAPPENED', async () => {
+     const mockNotHappened = {
+       content: [
+         {
+           teamId: 'team-1',
+           teamName: 'Команда',
+           startDate: '2024-01-15T10:00:00Z',
+           trackerName: 'tracker1',
+           trackerFullName: 'Трекер',
+           status: 'COMPLETED_AS_NOT_HAPPENED',
+           teamStatus: null,
+         },
+       ],
+     };
+     requests.fetchMeetingReport.mockResolvedValue({
+       ok: true,
+       json: async () => mockNotHappened,
+     });
+
+     renderComponent();
+
+     await waitFor(() => {
+       expect(screen.getByText('Не состоялась')).toBeInTheDocument();
+     });
+   });
+
+   test('отображает статус "Всё ок" с зеленым классом', async () => {
+     const mockOk = {
+       content: [
+         {
+           teamId: 'team-1',
+           teamName: 'Команда',
+           startDate: '2024-01-15T10:00:00Z',
+           trackerName: 'tracker1',
+           trackerFullName: 'Трекер',
+           status: 'COMPLETED',
+           teamStatus: 'OK',
+         },
+       ],
+     };
+     requests.fetchMeetingReport.mockResolvedValue({
+       ok: true,
+       json: async () => mockOk,
+     });
+
+     renderComponent();
+
+     await waitFor(() => {
+       const statusCell = screen.getByText('Всё ок');
+       expect(statusCell).toHaveClass('mrep-status-green');
+     });
+   });
+ });

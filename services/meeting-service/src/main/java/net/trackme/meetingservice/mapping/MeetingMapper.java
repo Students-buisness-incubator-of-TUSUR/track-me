@@ -33,4 +33,5 @@ public interface MeetingMapper {
     @Mapping(target = "imageBytes", ignore = true)
     @Mapping(target = "id", ignore = true)
     void updateEntityFromDto(MeetingUpdateDto updateDto, @MappingTarget Meeting meeting);
+
 }
