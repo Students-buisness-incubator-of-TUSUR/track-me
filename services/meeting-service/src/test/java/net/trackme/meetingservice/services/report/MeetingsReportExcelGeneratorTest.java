@@ -203,8 +203,13 @@ class MeetingsReportExcelGeneratorTest {
 
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
             try (Workbook workbook = new XSSFWorkbook(in)) {
-                Row dataRow = workbook.getSheetAt(0).getRow(2);
-                assertEquals(expectedTexts[i], dataRow.getCell(5).getStringCellValue());
+                Sheet sheet = workbook.getSheetAt(0);
+                Row dataRow = sheet.getRow(2);
+                assertNotNull(dataRow, "Data row should exist");
+                // Проверяем последнюю ячейку (статус команды)
+                int lastCellNum = dataRow.getLastCellNum();
+                String statusText = dataRow.getCell(lastCellNum - 1).getStringCellValue();
+                assertEquals(expectedTexts[i], statusText);
             }
         }
     }

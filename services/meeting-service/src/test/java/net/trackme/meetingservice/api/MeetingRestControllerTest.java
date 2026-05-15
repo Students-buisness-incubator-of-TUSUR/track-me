@@ -31,6 +31,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -438,7 +439,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isConflict());
     }
 
-    // ========== ТЕСТ ДЛЯ teamId (ВАША ОСНОВНАЯ ЗАДАЧА) ==========
     @Test
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
     void getMeetingsReports_shouldReturnTeamId() throws Exception {
@@ -452,10 +452,12 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .teamStatus(TeamStatus.OK)
                 .startDate(OffsetDateTime.now())
                 .build();
-        meetingRepository.save(meeting);
+        meeting = meetingRepository.save(meeting);
+
+        UUID streamId = UUID.randomUUID();
 
         mockMvc.perform(post("/api/v1/meetings/reports")
-                        .param("streamId", UUID.randomUUID().toString())
+                        .param("streamId", streamId.toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"filters\":[]}")
                         .with(csrf()))
