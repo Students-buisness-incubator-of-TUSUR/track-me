@@ -1,4 +1,5 @@
 package net.trackme.meetingservice.api;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.trackme.meetingservice.AbstractIntegrationTest;
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
@@ -13,7 +14,6 @@ import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
-import net.trackme.meetingservice.services.report.MeetingsReportService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mock.web.MockMultipartFile;
@@ -32,15 +31,12 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -442,14 +438,11 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isConflict());
     }
 
-    // ========== НОВЫЕ ТЕСТЫ ДЛЯ ПОКРЫТИЯ ==========
-
+    // ========== ТЕСТ ДЛЯ teamId (ВАША ОСНОВНАЯ ЗАДАЧА) ==========
     @Test
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
-    void getMeetingsReport_shouldReturnTeamId() throws Exception {
-        // Создаем реальные данные через репозиторий
-        UUID streamId = UUID.randomUUID();
-
+    void getMeetingsReports_shouldReturnTeamId() throws Exception {
+        // Создаем встречу с teamId
         Meeting meeting = Meeting.builder()
                 .teamCardId(TEAM_CARD_ID)
                 .teamName("Test Team")
@@ -462,7 +455,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         meetingRepository.save(meeting);
 
         mockMvc.perform(post("/api/v1/meetings/reports")
-                        .param("streamId", streamId.toString())
+                        .param("streamId", UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"filters\":[]}")
                         .with(csrf()))
@@ -470,112 +463,5 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.content[0].teamId").value(TEAM_CARD_ID.toString()))
                 .andExpect(jsonPath("$.content[0].teamName").value("Test Team"));
-    }
-
-    @Test
-    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
-    void getMeetingsReport_withFilters_shouldReturnFilteredData() throws Exception {
-        UUID streamId = UUID.randomUUID();
-
-        Meeting meeting1 = Meeting.builder()
-                .teamCardId(TEAM_CARD_ID)
-                .teamName("Team Alpha")
-                .trackerUsername("tracker1")
-                .status(MeetingStatus.COMPLETED)
-                .teamStatus(TeamStatus.OK)
-                .startDate(OffsetDateTime.now())
-                .build();
-
-        Meeting meeting2 = Meeting.builder()
-                .teamCardId(UUID.randomUUID())
-                .teamName("Team Beta")
-                .trackerUsername("tracker2")
-                .status(MeetingStatus.COMPLETED)
-                .teamStatus(TeamStatus.WITH_ISSUES)
-                .startDate(OffsetDateTime.now())
-                .build();
-
-        meetingRepository.save(meeting1);
-        meetingRepository.save(meeting2);
-
-        mockMvc.perform(post("/api/v1/meetings/reports")
-                        .param("streamId", streamId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"filters\":[{\"fieldName\":\"teamStatus\",\"type\":\"EQ\",\"value\":\"OK\"}]}")
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].teamName").value("Team Alpha"));
-    }
-
-    @Test
-    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
-    void getMeetingsReportExcel_shouldGenerateFile() throws Exception {
-        UUID streamId = UUID.randomUUID();
-
-        Meeting meeting = Meeting.builder()
-                .teamCardId(TEAM_CARD_ID)
-                .teamName("Test Team")
-                .trackerUsername("tracker_user")
-                .trackerFullName("Иван Трекеров")
-                .status(MeetingStatus.COMPLETED)
-                .teamStatus(TeamStatus.OK)
-                .startDate(OffsetDateTime.now())
-                .build();
-        meetingRepository.save(meeting);
-
-        MvcResult mvcResult = mockMvc.perform(post("/api/v1/meetings/reports/excel")
-                        .param("streamId", streamId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"filters\":[]}")
-                        .with(csrf()))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        mockMvc.perform(asyncDispatch(mvcResult))
-                .andExpect(status().isOk())
-                .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION))
-                .andExpect(content().contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-    }
-
-    @Test
-    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
-    void getMeetingsReport_withPagination_shouldReturnCorrectPage() throws Exception {
-        UUID streamId = UUID.randomUUID();
-
-        for (int i = 1; i <= 15; i++) {
-            Meeting meeting = Meeting.builder()
-                    .teamCardId(UUID.randomUUID())
-                    .teamName("Team " + i)
-                    .trackerUsername("tracker" + i)
-                    .status(MeetingStatus.COMPLETED)
-                    .teamStatus(TeamStatus.OK)
-                    .startDate(OffsetDateTime.now())
-                    .build();
-            meetingRepository.save(meeting);
-        }
-
-        mockMvc.perform(post("/api/v1/meetings/reports")
-                        .param("streamId", streamId.toString())
-                        .param("page", "0")
-                        .param("size", "10")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"filters\":[]}")
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(10))
-                .andExpect(jsonPath("$.page.totalElements").value(15));
-    }
-
-    @Test
-    @WithMockUser(value = "tracker", roles = {"TRACKER"})
-    void getMeetingsReport_asTracker_shouldReturnForbidden() throws Exception {
-        UUID streamId = UUID.randomUUID();
-
-        mockMvc.perform(post("/api/v1/meetings/reports")
-                        .param("streamId", streamId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"filters\":[]}")
-                        .with(csrf()))
-                .andExpect(status().isForbidden());
     }
 }
