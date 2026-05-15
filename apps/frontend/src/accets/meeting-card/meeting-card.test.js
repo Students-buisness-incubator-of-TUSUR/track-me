@@ -2112,10 +2112,11 @@ describe('MeetingCard Validation Coverage (lines 215-217)', () => {
 });
 
 describe('SuperAdmin permissions in meeting-card', () => {
-    test('superadmin sees enabled edit button for completed meeting', async () => {
+    test('superadmin can edit completed meeting', async () => {
         const store = createStore(() => ({ user: { user: { roles: ['SUPER_ADMIN'] } } }));
         const completedMeeting = { ...mockExistingMeeting, status: 'COMPLETED' };
-        fetch.mockResolvedValue({
+        
+        global.fetch = jest.fn().mockResolvedValue({
             ok: true,
             json: () => Promise.resolve({ content: [completedMeeting] })
         });
@@ -2128,7 +2129,9 @@ describe('SuperAdmin permissions in meeting-card', () => {
             </Provider>
         );
 
-        await screen.findByText('Редактировать');
-        expect(screen.getByText('Редактировать')).toBeEnabled();
+        await waitFor(() => {
+            expect(screen.getByText('Редактировать')).toBeInTheDocument();
+        });
+        expect(screen.getByText('Редактировать')).not.toBeDisabled();
     });
 });

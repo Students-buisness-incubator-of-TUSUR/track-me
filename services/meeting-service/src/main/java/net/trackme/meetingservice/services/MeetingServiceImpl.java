@@ -1,6 +1,6 @@
 package net.trackme.meetingservice.services;
 
-import lombok.extern.slf4Slf4j;
+import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.acl.AclService;
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
 import net.trackme.meetingservice.api.dto.MeetingDto;
@@ -31,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
-
 import static java.util.stream.Collectors.toSet;
 import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
 import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardIdEquals;
@@ -63,7 +62,6 @@ public class MeetingServiceImpl implements MeetingService {
         this.ssoApiClient = ssoApiClient;
     }
 
-    // ==================== CREATE MEETING ====================
     @Override
     @Transactional
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
@@ -75,7 +73,6 @@ public class MeetingServiceImpl implements MeetingService {
 
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.SCHEDULED);
-
         meeting.setTeamName(teamData.getName());
         meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
         meeting.setTrackerUsername(trackerUsername);
@@ -85,7 +82,6 @@ public class MeetingServiceImpl implements MeetingService {
                 var tracker = ssoApiClient.getTrackers().stream()
                         .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
                         .findFirst();
-
                 if (tracker.isPresent()) {
                     UserDto user = tracker.get();
                     meeting.setTrackerId(user.getId());
@@ -95,21 +91,19 @@ public class MeetingServiceImpl implements MeetingService {
                     log.warn("Tracker with username {} not found in SSO during meeting creation", trackerUsername);
                 }
             } catch (Exception e) {
-                log.warn("Failed to fetch tracker info from SSO for username: {}, using username as fallback", trackerUsername, e);
+                log.warn("Failed to fetch tracker info from SSO for username: {}", trackerUsername, e);
                 meeting.setTrackerFullName(trackerUsername);
             }
         }
 
         meeting = meetingRepository.save(meeting);
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
-
         aclService.createAclForUser(meeting, username);
         sendMeetingCreatedEvent(meeting);
 
         return enrichWithRoomLink(meetingMapper.mapToDto(meeting), teamCardId);
     }
 
-    // ==================== GET MEETINGS ====================
     @Override
     public Page<MeetingDto> getMeetings(UUID teamCardId, Pageable pageable) {
         var meetings = meetingRepository.findAll(teamCardIdEquals(teamCardId), pageable);
@@ -117,21 +111,18 @@ public class MeetingServiceImpl implements MeetingService {
         return meetings.map(m -> withRoomLink(meetingMapper.mapToDto(m), roomLink));
     }
 
-    // ==================== UPDATE MEETING (SBI-800) ====================
     @Override
     @Transactional
-    @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
 
-        // SBI-800: Суперадминистратор может редактировать завершенные встречи
         boolean isSuperAdmin = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
-        
+
         if (!isSuperAdmin && MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
         }
@@ -150,34 +141,24 @@ public class MeetingServiceImpl implements MeetingService {
         return enrichWithRoomLink(meetingMapper.mapToDto(meeting), teamCardId);
     }
 
-    // ==================== DELETE MEETING ====================
     @Override
     @Transactional
-    @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public void deleteMeeting(UUID meetingId) {
         var meeting = meetingRepository.getReferenceById(meetingId);
         meetingRepository.delete(meeting);
         aclService.deleteAcl(meeting);
     }
 
-    // ==================== ADD MEETING IMAGE ====================
     @Override
     @Transactional
-    @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public void addMeetingImage(UUID meetingId, MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new MeetingEmptyImageException();
-        }
-
-        if (file.getSize() > MeetingService.MAX_FILE_SIZE) {
-            throw new MeetingLargeImageSizeException(file.getSize());
-        }
+        if (file.isEmpty()) throw new MeetingEmptyImageException();
+        if (file.getSize() > MeetingService.MAX_FILE_SIZE) throw new MeetingLargeImageSizeException(file.getSize());
 
         String contentType = file.getContentType();
-        if (!MediaType.IMAGE_PNG_VALUE.equals(contentType)
-                && !MediaType.IMAGE_JPEG_VALUE.equals(contentType)) {
+        if (!MediaType.IMAGE_PNG_VALUE.equals(contentType) && !MediaType.IMAGE_JPEG_VALUE.equals(contentType)) {
             throw new MeetingMIMETypeException(contentType);
         }
 
@@ -198,39 +179,30 @@ public class MeetingServiceImpl implements MeetingService {
         }
     }
 
-    // ==================== GET MEETING IMAGE ====================
     @Override
-    @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
     public Resource getMeetingImage(UUID meetingId) {
         var meeting = getMeeting(meetingId);
-        if (meeting.getImageBytes() == null) {
-            throw new MeetingImageNotFoundException(meetingId);
-        }
+        if (meeting.getImageBytes() == null) throw new MeetingImageNotFoundException(meetingId);
         return new ByteArrayResource(meeting.getImageBytes());
     }
 
-    // ==================== PRIVATE METHODS ====================
     private void validateNoMeetingOnSameDay(UUID teamCardId, OffsetDateTime startDate, UUID excludeId) {
         var date = startDate.toLocalDate();
         var from = date.atStartOfDay().atOffset(startDate.getOffset());
         var to = date.plusDays(1).atStartOfDay().atOffset(startDate.getOffset());
 
         boolean existsOnSameDay = excludeId == null
-                ? meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThan(
-                    teamCardId, from, to)
-                : meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThanAndIdNot(
-                    teamCardId, from, to, excludeId);
+                ? meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThan(teamCardId, from, to)
+                : meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThanAndIdNot(teamCardId, from, to, excludeId);
 
         if (existsOnSameDay) {
-            throw new MeetingAlreadyExistsInSameDayException(
-                    "В этот день уже запланирована встреча для данной команды.");
+            throw new MeetingAlreadyExistsInSameDayException("В этот день уже запланирована встреча для данной команды.");
         }
     }
 
     private Meeting getMeeting(UUID meetingId) {
-        return meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+        return meetingRepository.findById(meetingId).orElseThrow(() -> new MeetingNotFoundException(meetingId));
     }
 
     private void sendMeetingUpdatedEvent(Meeting meeting, MeetingStatus oldStatus) {
@@ -240,13 +212,8 @@ public class MeetingServiceImpl implements MeetingService {
                 .oldStatus(oldStatus)
                 .teamStatus(meeting.getTeamStatus())
                 .teamCardId(meeting.getTeamCardId())
-                .teamGrade(
-                        meeting.getTeamStatus() == null
-                                ? 0
-                                : meeting.getTeamStatus().getValue()
-                )
+                .teamGrade(meeting.getTeamStatus() == null ? 0 : meeting.getTeamStatus().getValue())
                 .build();
-
         meetingEventsProducer.sendMeetingUpdatedEvent(event);
     }
 
@@ -261,15 +228,9 @@ public class MeetingServiceImpl implements MeetingService {
     private String fetchRoomLink(UUID teamCardId) {
         try {
             var teamCard = userBackendClient.getTeamCardById(teamCardId);
-
-            return teamCard != null
-                    ? teamCard.getMeetingRoomLink()
-                    : null;
-
+            return teamCard != null ? teamCard.getMeetingRoomLink() : null;
         } catch (Exception e) {
-            log.warn("Не удалось получить roomLink для teamCardId={}: {} | cause: {}",
-                    teamCardId, e.getMessage(),
-                    e.getCause() != null ? e.getCause().getMessage() : "no cause");
+            log.warn("Не удалось получить roomLink для teamCardId={}: {}", teamCardId, e.getMessage());
             return null;
         }
     }
@@ -279,17 +240,7 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     private MeetingDto withRoomLink(MeetingDto dto, String roomLink) {
-        return new MeetingDto(
-                dto.id(),
-                dto.recordLink(),
-                roomLink,
-                dto.number(),
-                dto.startDate(),
-                dto.teamStatus(),
-                dto.status(),
-                dto.teamCardId(),
-                dto.tasksCurrentMeeting(),
-                dto.tasksNextMeeting()
-        );
+        return new MeetingDto(dto.id(), dto.recordLink(), roomLink, dto.number(), dto.startDate(),
+                dto.teamStatus(), dto.status(), dto.teamCardId(), dto.tasksCurrentMeeting(), dto.tasksNextMeeting());
     }
 }
