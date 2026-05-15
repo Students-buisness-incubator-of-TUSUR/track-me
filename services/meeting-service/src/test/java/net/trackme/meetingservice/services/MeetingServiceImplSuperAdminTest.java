@@ -36,88 +36,152 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class MeetingServiceImplSuperAdminTest {
 
-    @Mock MeetingRepository meetingRepository;
-    @Mock MeetingMapper meetingMapper;
-    @Mock AclService aclService;
-    @Mock MeetingEventsProducer meetingEventsProducer;
-    @Mock BackendApiClient userBackendClient;
-    @Mock SsoApiClient ssoApiClient;
-
-    @InjectMocks MeetingServiceImpl meetingService;
-
+    @Mock
+    private MeetingRepository meetingRepository;
+    
+    @Mock
+    private MeetingMapper meetingMapper;
+    
+    @Mock
+    private AclService aclService;
+    
+    @Mock
+    private MeetingEventsProducer meetingEventsProducer;
+    
+    @Mock
+    private BackendApiClient userBackendClient;
+    
+    @Mock
+    private SsoApiClient ssoApiClient;
+    
+    @InjectMocks
+    private MeetingServiceImpl meetingService;
+    
     private UUID meetingId;
     private UUID teamCardId;
     private Meeting meeting;
     private MeetingUpdateDto updateDto;
-
+    
     @BeforeEach
     void setUp() {
         meetingId = UUID.randomUUID();
         teamCardId = UUID.randomUUID();
+        
         meeting = new Meeting();
         meeting.setId(meetingId);
         meeting.setTeamCardId(teamCardId);
         meeting.setStatus(MeetingStatus.COMPLETED);
         meeting.setStartDate(OffsetDateTime.now());
-
+        
         updateDto = MeetingUpdateDto.builder()
                 .startDate(OffsetDateTime.now().plusDays(1))
-                .recordLink("https://new-link.com")
-                .tasksCurrentMeeting("new tasks")
+                .recordLink("https://new-record-link.com")
+                .tasksCurrentMeeting("Новые задачи")
                 .build();
     }
-
-    private void setAuth(String role) {
+    
+    private void setupSecurityContext(String role) {
         Authentication auth = mock(Authentication.class);
-        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
+        Collection<? extends GrantedAuthority> authorities = List.of(
+            new SimpleGrantedAuthority(role)
+        );
         when(auth.getAuthorities()).thenReturn((Collection) authorities);
-        SecurityContext context = mock(SecurityContext.class);
-        when(context.getAuthentication()).thenReturn(auth);
-        SecurityContextHolder.setContext(context);
+        when(auth.getName()).thenReturn("testuser");
+        
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        SecurityContextHolder.setContext(securityContext);
     }
-    //g
+    
     @SuppressWarnings("unchecked")
     @Test
-    void superAdmin_canEdit_COMPLETED() {
-        setAuth("ROLE_SUPER_ADMIN");
+    void superAdminCanEditCompletedMeeting() {
+        setupSecurityContext("ROLE_SUPER_ADMIN");
+        
+        // Явно указываем тип Specification
         when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(meeting));
         when(meetingRepository.save(any(Meeting.class))).thenReturn(meeting);
         
-        assertDoesNotThrow(() -> meetingService.updateMeeting(meetingId, teamCardId, updateDto));
+        assertDoesNotThrow(() -> {
+            meetingService.updateMeeting(meetingId, teamCardId, updateDto);
+        });
+        
         verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
-
+    
     @SuppressWarnings("unchecked")
     @Test
-    void superAdmin_canEdit_COMPLETED_AS_NOT_HAPPENED() {
+    void superAdminCanEditCompletedAsNotHappenedMeeting() {
         meeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
-        setAuth("ROLE_SUPER_ADMIN");
+        setupSecurityContext("ROLE_SUPER_ADMIN");
+        
         when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(meeting));
         when(meetingRepository.save(any(Meeting.class))).thenReturn(meeting);
         
-        assertDoesNotThrow(() -> meetingService.updateMeeting(meetingId, teamCardId, updateDto));
+        assertDoesNotThrow(() -> {
+            meetingService.updateMeeting(meetingId, teamCardId, updateDto);
+        });
+        
         verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
-
+    
     @SuppressWarnings("unchecked")
     @Test
-    void admin_cannotEdit_COMPLETED() {
-        setAuth("ROLE_ADMIN");
+    void adminCannotEditCompletedMeeting() {
+        setupSecurityContext("ROLE_ADMIN");
+        
         when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(meeting));
         
-        assertThrows(MeetingCompletedException.class, 
-            () -> meetingService.updateMeeting(meetingId, teamCardId, updateDto));
+        assertThrows(MeetingCompletedException.class, () -> {
+            meetingService.updateMeeting(meetingId, teamCardId, updateDto);
+        });
+        
         verify(meetingRepository, never()).save(any(Meeting.class));
     }
-
+    
     @SuppressWarnings("unchecked")
     @Test
-    void tracker_cannotEdit_COMPLETED() {
-        setAuth("ROLE_TRACKER");
+    void trackerCannotEditCompletedMeeting() {
+        setupSecurityContext("ROLE_TRACKER");
+        
         when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(meeting));
         
-        assertThrows(MeetingCompletedException.class, 
-            () -> meetingService.updateMeeting(meetingId, teamCardId, updateDto));
+        assertThrows(MeetingCompletedException.class, () -> {
+            meetingService.updateMeeting(meetingId, teamCardId, updateDto);
+        });
+        
         verify(meetingRepository, never()).save(any(Meeting.class));
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test
+    void superAdminCanEditScheduledMeeting() {
+        meeting.setStatus(MeetingStatus.SCHEDULED);
+        setupSecurityContext("ROLE_SUPER_ADMIN");
+        
+        when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(meeting));
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(meeting);
+        
+        assertDoesNotThrow(() -> {
+            meetingService.updateMeeting(meetingId, teamCardId, updateDto);
+        });
+        
+        verify(meetingRepository, times(1)).save(any(Meeting.class));
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test
+    void adminCanEditScheduledMeeting() {
+        meeting.setStatus(MeetingStatus.SCHEDULED);
+        setupSecurityContext("ROLE_ADMIN");
+        
+        when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(meeting));
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(meeting);
+        
+        assertDoesNotThrow(() -> {
+            meetingService.updateMeeting(meetingId, teamCardId, updateDto);
+        });
+        
+        verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
 }
