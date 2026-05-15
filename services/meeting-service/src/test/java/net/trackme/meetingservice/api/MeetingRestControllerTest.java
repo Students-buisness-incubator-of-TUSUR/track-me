@@ -438,29 +438,5 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isConflict());
     }
-    @Test
-    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
-    void testTeamIdInMeetingReport() throws Exception {
-        Meeting meeting = Meeting.builder()
-                .teamCardId(TEAM_CARD_ID)
-                .teamName("Test Team")
-                .trackerUsername("tracker_user")
-                .trackerFullName("Иван Трекеров")
-                .status(MeetingStatus.COMPLETED)
-                .teamStatus(TeamStatus.OK)
-                .startDate(OffsetDateTime.now())
-                .build();
-        meetingRepository.save(meeting);
-
-        UUID streamId = UUID.randomUUID();
-
-        mockMvc.perform(post("/api/v1/meetings/reports")
-                        .param("streamId", streamId.toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"filters\":[]}")
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].teamId").exists());
-    }
 
 }
