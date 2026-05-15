@@ -2110,3 +2110,25 @@ describe('MeetingCard Validation Coverage (lines 215-217)', () => {
     expect(callCount).toBeGreaterThan(2);
   });
 });
+
+describe('SuperAdmin permissions in meeting-card', () => {
+    test('superadmin sees enabled edit button for completed meeting', async () => {
+        const store = createStore(() => ({ user: { user: { roles: ['SUPER_ADMIN'] } } }));
+        const completedMeeting = { ...mockExistingMeeting, status: 'COMPLETED' };
+        fetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ content: [completedMeeting] })
+        });
+
+        render(
+            <Provider store={store}>
+                <MemoryRouter initialEntries={['/meeting/123?teamId=1']}>
+                    <MeetingCard />
+                </MemoryRouter>
+            </Provider>
+        );
+
+        await screen.findByText('Редактировать');
+        expect(screen.getByText('Редактировать')).toBeEnabled();
+    });
+});

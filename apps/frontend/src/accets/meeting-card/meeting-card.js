@@ -358,17 +358,17 @@ const MeetingCard = () => {
     };
 
     const handleEditClick = () => {
-        if (isMeetingLocked && (role === "ADMIN" || role === "SUPER_ADMIN")) {
-            setShowDeleteModal(true);
-            return;
-        }
-        if (isMeetingLocked) {
-            setError("Эту встречу нельзя редактировать, так как она завершена или не состоялась");
-            setTimeout(() => setError(null), 5000);
-            return;
-        }
-        setIsEditing(true);
-    };
+    if (isMeetingLocked && (role === "ADMIN" || role === "SUPER_ADMIN")) {
+        setShowDeleteModal(true);
+        return;
+    }
+    if (isMeetingLocked) {
+        setError("Эту встречу нельзя редактировать, так как она завершена или не состоялась");
+        setTimeout(() => setError(null), 5000);
+        return;
+    }
+    setIsEditing(true);
+};
 
     const handleMeetingRoomJoin = () => {
         const roomLink = meetingData.roomLink;
