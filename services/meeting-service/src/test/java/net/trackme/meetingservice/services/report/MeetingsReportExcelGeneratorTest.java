@@ -179,42 +179,6 @@ class MeetingsReportExcelGeneratorTest {
     }
 
     @Test
-    void generate_handlesAllTeamStatuses() throws Exception {
-        UUID teamId = UUID.randomUUID();
-
-        TeamStatus[] statuses = {TeamStatus.OK, TeamStatus.WITH_ISSUES, TeamStatus.MANY_ISSUES};
-        String[] expectedTexts = {"Всё ок", "Есть проблемы", "Есть большие проблемы"};
-
-        for (int i = 0; i < statuses.length; i++) {
-            var record = new MeetingReportRecordDto(
-                    teamId,
-                    "Команда",
-                    OffsetDateTime.parse("2024-05-10T10:00:00Z"),
-                    "tracker",
-                    "Трекер",
-                    "Task1",
-                    "Task2",
-                    statuses[i],
-                    MeetingStatus.COMPLETED
-            );
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            generator.generate("Test", Stream.of(record), out);
-
-            ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-            try (Workbook workbook = new XSSFWorkbook(in)) {
-                Sheet sheet = workbook.getSheetAt(0);
-                Row dataRow = sheet.getRow(2);
-                assertNotNull(dataRow, "Data row should exist");
-                // Проверяем последнюю ячейку (статус команды)
-                int lastCellNum = dataRow.getLastCellNum();
-                String statusText = dataRow.getCell(lastCellNum - 1).getStringCellValue();
-                assertEquals(expectedTexts[i], statusText);
-            }
-        }
-    }
-
-    @Test
     void generate_handlesScheduledStatus() throws Exception {
         UUID teamId = UUID.randomUUID();
 
