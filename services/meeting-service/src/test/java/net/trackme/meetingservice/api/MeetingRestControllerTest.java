@@ -450,7 +450,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .teamStatus(TeamStatus.OK)
                 .startDate(OffsetDateTime.now())
                 .build();
-        meetingRepository.save(meeting);
+        meetingRepository.save(meeting);  // Убрали присваивание
 
         UUID streamId = UUID.randomUUID();
 
@@ -460,7 +460,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                         .content("{\"filters\":[]}")
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].teamId").exists());
+                .andExpect(jsonPath("$.content[0].teamId").value(TEAM_CARD_ID.toString()));
     }
-
 }
