@@ -183,6 +183,11 @@ function TrackerListPage({ endpoint }) {
               className="Stream-search"
               value={searchQuery}
               onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearchQuery("");
+                }
+              }}
             />
           </div>
         </div>
