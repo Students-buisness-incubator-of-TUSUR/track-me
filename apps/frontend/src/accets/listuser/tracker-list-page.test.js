@@ -1666,27 +1666,6 @@ describe('safeAction validation - invalid username', () => {
       showTeamsWarning: false, attachedTeams: [], userToDelete: null,
       closeTeamsWarning: jest.fn(), cancelTeamsWarning: jest.fn(),
       showLockedOnly: false, toggleShowLocked: jest.fn(),
-
-  test('Escape очищает поисковый запрос (setSearchQuery called with empty string)', () => {
-    const setSearchQuery = jest.fn();
-    require('../hooks/useTrackerList').useTrackerList = () => ({
-      trackers: [],
-      error: null,
-      searchQuery: 'test',
-      setSearchQuery,
-      page: 0,
-      setPage: jest.fn(),
-      totalPages: 1,
-      handleNextPage: jest.fn(),
-      handlePrevPage: jest.fn(),
-      handlePageJump: jest.fn(),
-      hoveredTracker: null,
-      setHoveredTracker: jest.fn(),
-      hoveredButton: null,
-      setHoveredButton: jest.fn(),
-      trackersPerPage: 5,
-      confirmUser: jest.fn(),
-      deleteUser: jest.fn(),
     });
 
     const TrackerListPage = require('./TrackerListPage').default;
@@ -1724,11 +1703,48 @@ describe('safeAction validation - invalid username', () => {
     
     expect(isValidUsername).toHaveBeenCalledWith('invalid\nuser');
     expect(handleDeleteClick).not.toHaveBeenCalled();
-    
+  });
+
+  test('Escape очищает поисковый запрос (setSearchQuery called with empty string)', () => {
+    const setSearchQuery = jest.fn();
+    require('../hooks/useTrackerList').useTrackerList = () => ({
+      trackers: [],
+      error: null,
+      searchQuery: 'test',
+      setSearchQuery,
+      page: 0,
+      setPage: jest.fn(),
+      totalPages: 1,
+      handleNextPage: jest.fn(),
+      handlePrevPage: jest.fn(),
+      handlePageJump: jest.fn(),
+      hoveredTracker: null,
+      setHoveredTracker: jest.fn(),
+      hoveredButton: null,
+      setHoveredButton: jest.fn(),
+      trackersPerPage: 5,
+      confirmUser: jest.fn(),
+      toggleUserLock: jest.fn(),
+      handleDeleteClick: jest.fn(),
+      confirmDeleteUser: jest.fn(),
+      showDeleteConfirm: false,
+      setShowDeleteConfirm: jest.fn(),
+      showTeamsWarning: false,
+      attachedTeams: [],
+      userToDelete: null,
+      closeTeamsWarning: jest.fn(),
+      cancelTeamsWarning: jest.fn(),
+      showLockedOnly: false,
+      toggleShowLocked: jest.fn(),
+    });
+
+    const TrackerListPage = require('./TrackerListPage').default;
+    render(<BrowserRouter><TrackerListPage endpoint="/trackers" /></BrowserRouter>);
+
     const input = screen.getByPlaceholderText('Найти');
     expect(input).toBeInTheDocument();
     
     fireEvent.keyDown(input, { key: 'Escape' });
     expect(setSearchQuery).toHaveBeenCalledWith('');
   });
-});
+}); 

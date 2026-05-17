@@ -490,27 +490,28 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   };
 
   const hasUnsavedChanges = () => {
-    if (!isEditing || !originalData) return false;
+  if (!isEditing || !originalData) return false;
+  
+  const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
+  for (const field of fieldsToCheck) {
+    const original = originalData[field];
+    const current = editedData[field];
     
-    const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
-    for (const field of fieldsToCheck) {
-      const original = originalData[field];
-      const current = editedData[field];
-      
-      if (Array.isArray(original) && Array.isArray(current)) {
-        const compareFn = (a, b) => {
-          if (typeof a === 'number' && typeof b === 'number') return a - b;
-          return String(a).localeCompare(String(b));
-        };
-        const sortedOriginal = [...original].toSorted(compareFn);
-        const sortedCurrent = [...current].toSorted(compareFn);
-        if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
-      } else if (original !== current) {
-        return true;
-      }
+    if (Array.isArray(original) && Array.isArray(current)) {
+      const compareFn = (a, b) => {
+        if (typeof a === 'number' && typeof b === 'number') return a - b;
+        return String(a).localeCompare(String(b));
+      };
+      // Используем slice() для создания копии, затем sort() (мутирует копию)
+      const sortedOriginal = original.slice().sort(compareFn);
+      const sortedCurrent = current.slice().sort(compareFn);
+      if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
+    } else if (original !== current) {
+      return true;
     }
-    return false;
-  };
+  }
+  return false;
+};
 
   const handleMeetingClick = async (meeting) => {
     if (hasUnsavedChanges()) {

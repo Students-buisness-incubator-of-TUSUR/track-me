@@ -241,7 +241,7 @@ export function useTrackerList(endpoint) {
         });
         if (!response.ok) throw new Error(response.statusText);
       }
-      await fetchTrackers(page, size, searchQuery, showLockedOnly);
+      await fetchTrackers(page, 15, searchQuery, showLockedOnly);
     } catch (err) {
       setError(`Ошибка: ${err.message}`);
     }
@@ -304,7 +304,7 @@ export function useTrackerList(endpoint) {
       if (!response.ok) throw new Error(response.statusText);
       setShowDeleteConfirm(false);
       setUserToDelete(null);
-      await fetchTrackers(page, size, searchQuery, showLockedOnly);
+      await fetchTrackers(page, 15, searchQuery, showLockedOnly);
     } catch (err) {
       setError(`Ошибка при удалении: ${err.message}`);
       setShowDeleteConfirm(false);
@@ -364,7 +364,7 @@ export function useTrackerList(endpoint) {
     handleLastPage,
     handleNextPage,
     handlePrevPage,
-    handlePageJump,
+    handlePageJump, 
     fetchTrackers,
     showLockedOnly,
     toggleShowLocked,
