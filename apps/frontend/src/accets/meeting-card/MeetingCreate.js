@@ -282,21 +282,21 @@ const MeetingCreate = ({ onClose, teamId, userRole }) => {
                 )}
                 
                 <div className="date-selection">
-    <span className="date-label">Дата и время:</span>
-    <CustomDateTimePicker
-        value={meetingData.startDate.slice(0, 16)}
-        onChange={(newValue) => {
-            setMeetingData(prev => ({ 
-                ...prev, 
-                startDate: newValue 
-            }));
-            if (error) setError(null);
-        }}
-        min={getMinDate()}
-        max={getMaxDate()}
-        disabled={!isStreamActive || streamFinished || !streamEndDate}
-    />
-</div>
+                    <span className="date-label">Дата и время:</span>
+                    <CustomDateTimePicker
+                        value={meetingData.startDate.slice(0, 16)}
+                        onChange={(newValue) => {
+                            setMeetingData(prev => ({ 
+                                ...prev, 
+                                startDate: newValue 
+                            }));
+                            if (error) setError(null);
+                        }}
+                        min={getMinDate()}
+                        max={getMaxDate()}
+                        disabled={!isStreamActive || streamFinished || !streamEndDate}
+                    />
+                </div>
                 
                 <button 
                     onClick={handleCreate} 

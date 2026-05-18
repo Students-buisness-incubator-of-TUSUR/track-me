@@ -593,14 +593,18 @@
 
 /* для строки с датой — убираем лишний флекс-бейс и задаём маленький gap */
 .unique-date-row {
-    gap: 40px;              /* расстояние между «Дата:» и самой капсулой */
-  }
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 .unique-date-row .unique-label {
-    flex: 0 0 auto;         /* лейбл по контенту, без жёсткого 400px */
-  }
+    flex: 0 0 auto;
+}
 .unique-date-row .unique-meeting-date {
-    margin-left: 0;         /* убираем любой отступ, если был */
-  }
+    margin-left: 0;
+    white-space: nowrap;
+}
   
   @media (max-width: 1024px) {
     .unique-meeting-card {

@@ -1480,8 +1480,9 @@ select.team-input-widget option {
     padding: 28px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 16px;
     position: relative;
 }
 

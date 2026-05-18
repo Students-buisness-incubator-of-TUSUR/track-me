@@ -5,6 +5,7 @@ import './CustomDateTimePicker.css';
 const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled }) => {
     const [showPicker, setShowPicker] = useState(false);
     const [selectedDate, setSelectedDate] = useState(value ? value.split('T')[0] : '');
+    const [selectedTime, setSelectedTime] = useState(value ? (value.split('T')[1] || '12:00').slice(0, 5) : '12:00');
     const pickerRef = useRef(null);
 
     // Функция для правильного форматирования даты в YYYY-MM-DD
@@ -15,6 +16,12 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
         return `${year}-${month}-${day}`;
     };
 
+    const formatTimeToInput = (time) => {
+        if (!time) return '12:00';
+        const [hours = '12', minutes = '00'] = time.split(':');
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    };
+
     // Функция для получения даты без временной зоны
     const getLocalDateString = (date) => {
         return formatDateToInput(date);
@@ -22,8 +29,9 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
 
     useEffect(() => {
         if (value) {
-            const datePart = value.split('T')[0];
+            const [datePart, timePart = '12:00'] = value.split('T');
             setSelectedDate(datePart);
+            setSelectedTime(timePart.slice(0, 5));
         }
     }, [value]);
 
@@ -44,11 +52,11 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
         try {
             const [year, month, day] = selectedDate.split('-').map(Number);
             const date = new Date(year, month - 1, day);
-            return date.toLocaleDateString('ru-RU', {
+            return `${date.toLocaleDateString('ru-RU', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
-            });
+            })} ${selectedTime}`;
         } catch (e) {
             return selectedDate;
         }
@@ -56,8 +64,16 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
 
     const handleDayClick = (dateString) => {
         setSelectedDate(dateString);
-        onChange(`${dateString}T${value?.split('T')[1] || '12:00'}`);
+        onChange(`${dateString}T${selectedTime || '12:00'}`);
         setTimeout(() => setShowPicker(false), 300);
+    };
+
+    const handleTimeChange = (event) => {
+        const timeValue = formatTimeToInput(event.target.value);
+        setSelectedTime(timeValue);
+        if (selectedDate) {
+            onChange(`${selectedDate}T${timeValue}`);
+        }
     };
 
     // Генерация дней месяца для календаря
@@ -242,7 +258,35 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
                             })}
                         </div>
                     </div>
-                    
+
+                    <div className="time-selector">
+                        <span className="time-label">Выберите время</span>
+                        <div className="time-picker">
+                            <select
+                                aria-label="Час"
+                                value={selectedTime.split(':')[0]}
+                                onChange={(e) => handleTimeChange({ target: { value: `${e.target.value}:${selectedTime.split(':')[1]}` } })}
+                                className="time-select"
+                            >
+                                {Array.from({ length: 24 }, (_, hour) => {
+                                    const hourValue = String(hour).padStart(2, '0');
+                                    return <option key={hourValue} value={hourValue}>{hourValue}</option>;
+                                })}
+                            </select>
+                            <span className="time-separator">:</span>
+                            <select
+                                aria-label="Минуты"
+                                value={selectedTime.split(':')[1]}
+                                onChange={(e) => handleTimeChange({ target: { value: `${selectedTime.split(':')[0]}:${e.target.value}` } })}
+                                className="time-select"
+                            >
+                                {['00', '15', '30', '45'].map((minute) => (
+                                    <option key={minute} value={minute}>{minute}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
                     {/* Быстрый выбор дат */}
                     <div className="quick-actions">
                         <button 

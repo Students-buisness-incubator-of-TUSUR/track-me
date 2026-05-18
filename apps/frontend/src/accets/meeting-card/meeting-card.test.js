@@ -1236,7 +1236,7 @@ describe('MeetingCard Completion and Editing', () => {
       const errorDiv = document.querySelector('.error-message');
       expect(errorDiv).toBeInTheDocument();
       expect(errorDiv.textContent).toMatch(
-        /Завершение встречи возможно только после окончания даты встречи/i
+        /Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить/i
       );
     }, { timeout: 3000 });
 

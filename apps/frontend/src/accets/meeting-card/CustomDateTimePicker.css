@@ -166,25 +166,43 @@
     transition: all 0.3s ease;
 }
 
-.calendar-day:hover:not(.disabled):not(.selected) {
-    background: #F0E6FF;
-    transform: scale(1.1);
-}
+    .time-selector {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
 
-.calendar-day.today {
-    border: 2px solid #8338EB;
-}
+    .time-label {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
 
-.calendar-day.today .day-number {
-    color: #8338EB;
-    font-weight: 700;
-}
+    .time-picker {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-.calendar-day.selected {
-    background: #8338EB;
-    color: white;
-    transform: scale(1.1);
-}
+    .time-select {
+        flex: 1;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 14px;
+        color: #333;
+        background: white;
+        appearance: none;
+    }
+
+    .time-separator {
+        font-size: 16px;
+        font-weight: 700;
+        color: #333;
+    }
 
 .calendar-day.selected .day-number {
     color: white;
