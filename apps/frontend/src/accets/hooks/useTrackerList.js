@@ -75,7 +75,7 @@ export function useTrackerList(endpoint) {
     return endpoint;
   };
 
-  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, currentSearchQuery = "", showLocked = false) => {
+  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, currentShowLocked = false) => {
     try {
       // Validate endpoint
       const validEndpoint = validateTrackerEndpoint(endpoint);
@@ -83,20 +83,19 @@ export function useTrackerList(endpoint) {
       const filters = [];
       
       // Основной фильтр - всегда показываем активных пользователей
-      if (!showLocked) {
-        filters.push({
-          fieldName: "accountNonLocked",
-          type: "EQ",
-          value: true,
-        });
-      } else {
-        // Если нажата кнопка - показываем только заблокированных
-        filters.push({
-          fieldName: "accountNonLocked",
-          type: "EQ",
-          value: false,
-        });
-      }
+      if (!currentShowLocked) {
+  filters.push({
+    fieldName: "accountNonLocked",
+    type: "EQ",
+    value: true,
+  });
+} else {
+  filters.push({
+    fieldName: "accountNonLocked",
+    type: "EQ",
+    value: false,
+  });
+}
 
       // Добавляем сортировку по алфавиту на бэкенде
       const sortParams = "sort=fullName,asc";
@@ -167,18 +166,15 @@ export function useTrackerList(endpoint) {
   }, [allTrackers, searchQuery]);
 
   // Пагинация на клиенте (используем backend totalPages для серверной пагинации)
-  const clientPaginatedTrackers = filteredTrackers.slice(
-    page * trackersPerPage,
-    (page + 1) * trackersPerPage
-  );
+  
 
   useEffect(() => {
     setPage(0);
   }, [searchQuery, showLockedOnly]);
 
   useEffect(() => {
-    fetchTrackers(0, 15, showLockedOnly);
-  }, [fetchTrackers, showLockedOnly]);
+  fetchTrackers(0, trackersPerPage, showLockedOnly);
+}, [fetchTrackers, showLockedOnly, searchQuery]); // Добавили searchQuery
 
   // Функция для переключения отображения заблокированных пользователей
   const toggleShowLocked = () => {
@@ -241,7 +237,7 @@ export function useTrackerList(endpoint) {
         });
         if (!response.ok) throw new Error(response.statusText);
       }
-      await fetchTrackers(page, 15, searchQuery, showLockedOnly);
+      await fetchTrackers(page, trackersPerPage, showLockedOnly);
     } catch (err) {
       setError(`Ошибка: ${err.message}`);
     }
@@ -304,7 +300,7 @@ export function useTrackerList(endpoint) {
       if (!response.ok) throw new Error(response.statusText);
       setShowDeleteConfirm(false);
       setUserToDelete(null);
-      await fetchTrackers(page, 15, searchQuery, showLockedOnly);
+      await fetchTrackers(page, trackersPerPage, showLockedOnly);
     } catch (err) {
       setError(`Ошибка при удалении: ${err.message}`);
       setShowDeleteConfirm(false);
@@ -323,51 +319,47 @@ export function useTrackerList(endpoint) {
     setAttachedTeams([]);
   };
 
-  const handleFirstPage = () => setPage(0);
-  const handleLastPage = () => setPage(totalPages - 1);
-  const handleNextPage = () => {
-    if (page < totalPages - 1) setPage(p => p + 1);
-  };
-  const handlePrevPage = () => {
-    if (page > 0) setPage(p => p - 1);
-  };
-  const handlePageJump = (jump) => {
-    const newPage = page + jump;
-    if (newPage >= 0 && newPage < totalPages) setPage(newPage);
-  };
+  
+  const changePage = (newPage) => {
+  setPage(newPage);
+  fetchTrackers(newPage, trackersPerPage, showLockedOnly);
+};
+
 
   return {
-    trackers: clientPaginatedTrackers,
-    error,
-    searchQuery,
-    setSearchQuery,
-    hoveredTracker,
-    setHoveredTracker,
-    hoveredButton,
-    setHoveredButton,
-    confirmUser,
-    toggleUserLock,
-    handleDeleteClick,
-    confirmDeleteUser,
-    showDeleteConfirm,
-    setShowDeleteConfirm,
-    showTeamsWarning,
-    attachedTeams,
-    userToDelete,
-    closeTeamsWarning,
-    cancelTeamsWarning,
-    page,
-    totalPages,
-    totalElements,
-    setPage,
-    handleFirstPage,
-    handleLastPage,
-    handleNextPage,
-    handlePrevPage,
-    handlePageJump, 
-    fetchTrackers,
-    showLockedOnly,
-    toggleShowLocked,
-    trackersPerPage,
-  };
+  trackers: filteredTrackers,
+  error,
+  searchQuery,
+  setSearchQuery,
+  hoveredTracker,
+  setHoveredTracker,
+  hoveredButton,
+  setHoveredButton,
+  confirmUser,
+  toggleUserLock,
+  handleDeleteClick,
+  confirmDeleteUser,
+  showDeleteConfirm,
+  setShowDeleteConfirm,
+  showTeamsWarning,
+  attachedTeams,
+  userToDelete,
+  closeTeamsWarning,
+  cancelTeamsWarning,
+  page,
+  totalPages,
+  totalElements,
+  setPage,
+  fetchTrackers,
+  showLockedOnly,
+  toggleShowLocked,
+  trackersPerPage,
+  changePage, // Новая функция для смены страницы
+  // Используем changePage в обработчиках
+  handleFirstPage: () => changePage(0),
+  handleLastPage: () => changePage(totalPages - 1),
+  handleNextPage: () => changePage(page + 1),
+  handlePrevPage: () => changePage(page - 1),
+  handlePageJump: (jump) => changePage(page + jump),
+};
 }
