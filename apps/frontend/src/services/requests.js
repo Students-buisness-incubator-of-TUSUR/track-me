@@ -233,3 +233,18 @@ export async function updateUserPhoto({ newUserPhotoFile }) {
 
   return response;
 }
+
+export async function fetchUserTeams(username) {
+  const response = await fetch(
+    `${backendURLBackend}/api/v1/admin/team-cards/by-user?username=${username}`,
+    {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+        ...getCsrfConfigForFetch(),
+      },
+      credentials: "include",
+    }
+  );
+  return response;
+}

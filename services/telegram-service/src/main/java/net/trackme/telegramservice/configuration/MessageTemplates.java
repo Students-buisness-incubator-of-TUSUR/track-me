@@ -13,6 +13,7 @@ public class MessageTemplates {
      * Шаблон сообщения о пропущенной встрече.
      */
     public static String MEETING_NOT_HAPPENED_MESSAGE_TEMPLATE = """
+                                               Здравствуйте, {trackerFullName}.
                                                Назначенная встреча не состоялась!
             
                                                Ваша команда {teamCardName} с потока {streamName} пропустила назначенную встречу.

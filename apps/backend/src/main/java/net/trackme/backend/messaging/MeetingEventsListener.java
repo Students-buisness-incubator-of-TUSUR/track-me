@@ -50,6 +50,18 @@ public class MeetingEventsListener {
     }
 
     @KafkaListener(
+            topics = "meeting-deleted",
+            containerFactory = "meetingDeletedListenerContainerFactory")
+    public void onMeetingDeletedEvent(
+            ConsumerRecord<String, MeetingDeletedEvent> record) {
+        var meetingDeletedEvent = record.value();
+        log.info("Received meeting deleted event: {}", meetingDeletedEvent);
+        teamCardMeetingsService.handleMeetingDeleted(
+                meetingDeletedEvent.teamCardId(),
+                meetingDeletedEvent.meetingId());
+    }
+
+    @KafkaListener(
             topics = "meeting-summary",
             containerFactory = "meetingSummaryListenerContainerFactory")
     public void onMeetingSummaryEvent(

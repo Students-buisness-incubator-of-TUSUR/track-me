@@ -86,6 +86,7 @@ class TeamCardSyncFlowTest {
         var event = TeamCardUpdatedEvent.builder()
                 .teamCardId(teamId)
                 .newName("Name")
+                .trackerFullName("Иванов Иван Иванович")
                 .build();
 
         producer.sendTeamCardUpdatedEvent(event);
@@ -112,7 +113,8 @@ class TeamCardSyncFlowTest {
                 "team-card",
                 "stream",
                 "meeting-number",
-                "meeting-link"
+                "meeting-link",
+                "Иванов Иван Иванович" 
         ));
 
         producer.sendTeamCardSummaryEvent(events);
@@ -130,7 +132,8 @@ class TeamCardSyncFlowTest {
         var events = List.of(new TeamCardLowGradeSummaryEvent(
                 "team-card",
                 "stream-name",
-                BigDecimal.ONE
+                BigDecimal.ONE,
+                "Иванов Иван Иванович"
         ));
 
         producer.sendTeamCardLowGradeSummaryEvent(events);

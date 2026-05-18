@@ -165,21 +165,77 @@ describe('Stream Component', () => {
     expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
   });
 
-  it('should call fetchData with name filter when search query is set', async () => {
+  it('should clear search on Escape key and not trigger backend fetch (client-side search)', async () => {
+    render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    const searchInput = screen.getByPlaceholderText('Найти');
+    fireEvent.change(searchInput, { target: { value: 'test query' } });
+    axios.post.mockClear();
+
+    fireEvent.keyDown(searchInput, { key: 'Escape' });
+
+    expect(searchInput.value).toBe('');
+  });
+
+  it('should reset all filters and call fetchData with empty filters on reset button click', async () => {
+    render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    const filterToggleBtn = document.querySelector('.Stream-settings-pic');
+    fireEvent.click(filterToggleBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Сбросить')).toBeInTheDocument();
+    });
+
+    const resetBtn = screen.getByText('Сбросить');
+    fireEvent.click(resetBtn);
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining('streams'),
+        expect.objectContaining({ filters: [] }),
+        expect.anything()
+      );
+    });
+  });
+
+  it('should call handleApplyFilters on Enter key', async () => {
+    render(<MemoryRouter><Stream /></MemoryRouter>);
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled());
+    axios.post.mockClear();
+
+    const searchInput = screen.getByPlaceholderText('Найти');
+    fireEvent.change(searchInput, { target: { value: 'test' } });
+
+    fireEvent.keyDown(searchInput, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalled();
+    });
+  });
+
+  it('should filter streams on client (case-insensitive) when search query is entered', async () => {
     render(<MemoryRouter><Stream /></MemoryRouter>);
 
     await waitFor(() => expect(axios.post).toHaveBeenCalled());
     axios.post.mockClear();
 
     fireEvent.change(screen.getByPlaceholderText('Найти'), { target: { value: 'test query' } });
-    fireEvent.click(document.querySelector('.Stream-settings-pic2'));
 
+    // LIKE filter should NOT be sent to backend (search is now client-side)
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining('streams'),
+      expect(axios.post).not.toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({
           filters: expect.arrayContaining([
-            expect.objectContaining({ fieldName: 'name', type: 'LIKE', value: 'test query' }),
+            expect.objectContaining({ fieldName: 'name', type: 'LIKE' }),
           ]),
         }),
         expect.anything()

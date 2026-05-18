@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 public interface TeamCardsRepository extends
         JpaRepository<TeamCard, UUID>,
@@ -17,4 +18,6 @@ public interface TeamCardsRepository extends
   void deleteByIdAndUsername(UUID id, String username);
 
   Integer countByStreamsIdIn(Collection<UUID> streams);
+
+  List<TeamCard> findByUsername(String username);
 }

@@ -25,6 +25,12 @@ public record TeamCardCreateDto(
         )
         String description,
 
+        @Schema(
+        description = "ФИО трекера",
+        example = "Иванов Иван Иванович"
+        )
+        String trackerFullName,
+
         @NotBlank(message = "Ссылка на комнату для встреч не может быть пустой")
         @URL(message = "Ссылка должна быть корректным URL (например: https://webinar.tusur.ru/b/jm7-p47-8j8-3ib)")
         @Schema(

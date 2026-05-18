@@ -28,6 +28,11 @@ public class MeetingEventsProducer {
     private static final String MEETING_SUMMARY_TOPIC = "meeting-summary";
 
     /**
+     * Тема события удаления встречи.
+     */
+    private static final String MEETING_DELETED_TOPIC = "meeting-deleted";
+
+    /**
      * Шаблон Kafka.
      */
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -67,4 +72,17 @@ public class MeetingEventsProducer {
                 .build();
         kafkaTemplate.send(message);
     }
+
+    /**
+     * Отправить событие удаления встречи.
+     * @param event Событие
+     */
+    public void sendMeetingDeletedEvent(MeetingDeletedEvent event) {
+        var message = MessageBuilder.withPayload(event)
+                .setHeader(KafkaHeaders.TOPIC, MEETING_DELETED_TOPIC)
+                .setHeader(KafkaHeaders.KEY, event.meetingId().toString())
+                .build();
+        kafkaTemplate.send(message);
+    }
 }
+

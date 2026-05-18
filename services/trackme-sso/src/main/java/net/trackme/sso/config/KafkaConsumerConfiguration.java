@@ -18,20 +18,33 @@ import java.util.List;
 @EnableKafka
 @Configuration
 public class KafkaConsumerConfiguration {
-    @Bean
-    ConsumerFactory<String, MeetingNotHappenedEvent> meetingNotHappenedEventConsumerFactory(
-            KafkaProperties kafkaProperties) {
+    
+    private static final String TRUSTED_PACKAGES = "net.trackme.services.trackme-sso.messaging";
+
+    /**
+     * Generic factory для создания типобезопасных Kafka consumer'ов
+     */
+    private <T> ConsumerFactory<String, T> createConsumerFactory(
+            KafkaProperties kafkaProperties,
+            Class<T> valueType) {
         var props = kafkaProperties.buildConsumerProperties(null);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "net.trackme.services.trackme-sso.messaging");
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, MeetingNotHappenedEvent.class);
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, TRUSTED_PACKAGES);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, valueType.getName());
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        
         return new DefaultKafkaConsumerFactory<>(
                 props,
                 new StringDeserializer(),
-                new JsonDeserializer<>(MeetingNotHappenedEvent.class, false)
+                new JsonDeserializer<>(valueType, false)
         );
+    }
+
+    @Bean
+    ConsumerFactory<String, MeetingNotHappenedEvent> meetingNotHappenedEventConsumerFactory(
+            KafkaProperties kafkaProperties) {
+        return createConsumerFactory(kafkaProperties, MeetingNotHappenedEvent.class);
     }
 
     @Bean
@@ -46,17 +59,7 @@ public class KafkaConsumerConfiguration {
     @Bean
     ConsumerFactory<String, List<LinkedHashMap<String, String>>> teamCardSummaryEventConsumerFactory(
             KafkaProperties kafkaProperties) {
-        var props = kafkaProperties.buildConsumerProperties(null);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "net.trackme.services.trackme-sso.messaging");
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, List.class);
-        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        return new DefaultKafkaConsumerFactory<>(
-                props,
-                new StringDeserializer(),
-                new JsonDeserializer<>(List.class, false)
-        );
+        return createConsumerFactory(kafkaProperties, (Class) List.class);
     }
 
     @Bean
@@ -71,17 +74,7 @@ public class KafkaConsumerConfiguration {
     @Bean
     ConsumerFactory<String, List<LinkedHashMap<String, String>>> teamCardLowGradeSummaryEventConsumerFactory(
             KafkaProperties kafkaProperties) {
-        var props = kafkaProperties.buildConsumerProperties(null);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "net.trackme.services.trackme-sso.messaging");
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, List.class);
-        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        return new DefaultKafkaConsumerFactory<>(
-                props,
-                new StringDeserializer(),
-                new JsonDeserializer<>(List.class, false)
-        );
+        return createConsumerFactory(kafkaProperties, (Class) List.class);
     }
 
     @Bean

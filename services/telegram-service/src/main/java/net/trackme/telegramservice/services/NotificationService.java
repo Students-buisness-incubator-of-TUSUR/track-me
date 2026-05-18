@@ -7,9 +7,11 @@ public interface NotificationService {
      * @param teamCardName Название команды
      * @param streamName Название потока команды
      * @param meetingLink Ссылка на встречу
+     * @param trackerFullName ФИО трекера
      */
     void sendMeetingNotHappenedMessage(String teamCardUsername,
                                        String teamCardName,
                                        String streamName,
-                                       String meetingLink);
+                                       String meetingLink,
+                                       String trackerFullName);
 }

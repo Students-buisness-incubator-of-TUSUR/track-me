@@ -147,4 +147,59 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
         // Assert
         verify(kafkaTemplate).send(any(Message.class));
     }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void handleMeetingDeleted_shouldDecreaseCountAndRecalculateAverage() {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var meetingId1 = UUID.randomUUID();
+        var meetingId2 = UUID.randomUUID();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Test team card")
+                .ntiMarkets(List.of(ntiMarket))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
+                .build());
+
+        // Увеличиваем счётчик встреч через правильный метод
+        teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId1);
+        teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId2);
+
+        // Act
+        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), meetingId1);
+
+        // Assert
+        var updatedTeamCard = teamCardsService.getTeamCard(teamCard.getId());
+        Assertions.assertEquals(1, updatedTeamCard.getMeetingsCount());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void handleMeetingDeleted_nonExistentMeeting_shouldNotChangeCount() {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var meetingId1 = UUID.randomUUID();
+        var nonExistentMeetingId = UUID.randomUUID();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Test team card")
+                .ntiMarkets(List.of(ntiMarket))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
+                .build());
+
+        // Увеличиваем счётчик через правильный метод
+        teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId1);
+
+        // Act
+        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), nonExistentMeetingId);
+
+        // Assert
+        var updatedTeamCard = teamCardsService.getTeamCard(teamCard.getId());
+        Assertions.assertEquals(1, updatedTeamCard.getMeetingsCount());
+    }
 }

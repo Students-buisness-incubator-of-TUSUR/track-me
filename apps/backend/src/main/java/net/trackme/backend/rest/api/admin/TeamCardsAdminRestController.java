@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardUpdateDto;
@@ -17,12 +18,28 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Team Cards API",
      description = "API для работы с карточками команд для администратора")
 @RequestMapping("/api/v1/admin")
 @Validated
 public interface TeamCardsAdminRestController {
+  
+  /**
+   * DTO для запроса переназначения команд.
+   */
+  record ReassignTeamsRequest(
+      @NotBlank(message = "fromUsername не может быть пусто")
+      String fromUsername,
+      
+      @NotBlank(message = "toUsername не может быть пусто")
+      String toUsername,
+      
+      String toUserFullName
+  ) {}
+
   @PostMapping(value = "team-card",
                consumes = "application/json",
                produces = "application/json")
@@ -66,4 +83,15 @@ public interface TeamCardsAdminRestController {
                  example = "123e4567-e89b-12d3-a456-426614174000")
       @RequestParam UUID id,
       @RequestParam String username);
+
+  @GetMapping("team-cards/by-user")
+  @Operation(summary = "Получить список команд пользователя")
+  ResponseEntity<List<Map<String, String>>> getTeamsByUser(
+      @Parameter(description = "Имя пользователя")
+      @RequestParam String username);
+
+  @PostMapping("team-cards/reassign")
+  @Operation(summary = "Переназначить команды с одного пользователя на другого")
+  ResponseEntity<Void> reassignTeams(
+      @Valid @RequestBody ReassignTeamsRequest request);
 }

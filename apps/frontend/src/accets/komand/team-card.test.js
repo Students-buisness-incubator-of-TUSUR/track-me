@@ -1662,3 +1662,34 @@ describe("tracker dropdown keydown Space", () => {
     }
   });
 });
+
+describe('Visibility and popstate handlers', () => {
+  it('reloads data on visibilitychange when page becomes visible', async () => {
+    renderTeamCard({ role: 'TRACKER' });
+    await waitForLoad();
+    
+    // Симулируем что страница стала видимой
+    await act(async () => {
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    
+    // Данные должны перезагрузиться — проверяем что fetch вызывался снова
+    await waitFor(() => {
+      expect(screen.getByTestId('inputbox-name')).toHaveValue('Команда Икс');
+    });
+  });
+
+  it('reloads data on popstate', async () => {
+    renderTeamCard({ role: 'TRACKER' });
+    await waitForLoad();
+    
+    await act(async () => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('inputbox-name')).toHaveValue('Команда Икс');
+    });
+  });
+});

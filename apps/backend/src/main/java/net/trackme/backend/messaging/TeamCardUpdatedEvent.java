@@ -7,6 +7,7 @@ import java.util.UUID;
 public record TeamCardUpdatedEvent(
     UUID teamCardId,
     String newName,
-    String newUsername
+    String newUsername,
+    String trackerFullName
 ) {
 }

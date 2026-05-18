@@ -8,5 +8,6 @@ import java.math.BigDecimal;
 public record TeamCardLowGradeSummaryEvent(
         String teamCardName,
         String streamName,
-        BigDecimal averageGrade) {
-}
+        BigDecimal averageGrade,
+        String trackerFullName
+) {}

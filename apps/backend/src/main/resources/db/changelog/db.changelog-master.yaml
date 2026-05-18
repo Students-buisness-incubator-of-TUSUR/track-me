@@ -32,3 +32,7 @@ databaseChangeLog:
       file: db/changelog/team_card_average_grade_trigger.sql
   - include:
       file: db/changelog/team-card-add-meeting-link.yaml
+  - include:
+      file: db/changelog/team-card-add-tracker-full-name.yaml
+  - include:
+      file: db/changelog/fill-tracker-full-name-from-meetings.yaml

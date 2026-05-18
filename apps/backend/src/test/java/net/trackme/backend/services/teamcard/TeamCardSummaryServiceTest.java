@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class TeamCardSummaryServiceTest extends BaseApplicationTest {
@@ -89,5 +90,26 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
 
         // Assert
         verify(kafkaTemplate).send(any(Message.class));
+    }
+
+    @Test
+    void sendTeamCardsSummary_emptyList_shouldNotSend() {
+        teamCardSummaryService.sendTeamCardsSummary(List.of());
+        // Проверяем, что kafka-продюсер не вызывался
+        verify(kafkaTemplate, never()).send(any(Message.class));
+    }
+
+    @Test
+    void sendTeamCardsSummary_teamCardNotFound_shouldSkipAndContinue() {
+        var event = new LinkedHashMap<String, String>();
+        event.put("teamCardId", UUID.randomUUID().toString());
+        event.put("meetingNumber", "1");
+        event.put("meetingLink", "http://test.com");
+        
+        // Не падает — просто логирует предупреждение
+        teamCardSummaryService.sendTeamCardsSummary(List.of(event));
+        
+        // Проверяем, что kafka-продюсер не вызывался (нет валидной карточки)
+        verify(kafkaTemplate, never()).send(any(Message.class));
     }
 }

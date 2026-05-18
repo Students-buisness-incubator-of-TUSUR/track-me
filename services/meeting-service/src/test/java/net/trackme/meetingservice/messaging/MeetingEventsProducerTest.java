@@ -74,8 +74,9 @@ class MeetingEventsProducerTest {
         var events = List.of(new MeetingSummaryEvent(
                 UUID.randomUUID(),
                 "meeting-number",
-                "neeting-link")
-        );
+                "meeting-link",
+                "Иванов Иван Иванович"
+        ));
 
         producer.sendMeetingSummaryEvents(events);
 
