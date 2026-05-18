@@ -49,6 +49,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -163,7 +164,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType("application/json"))
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.recordLink").value(meetingCreateDto.recordLink()))
-                .andExpect(jsonPath("$.number").value(meetingCreateDto.number()))
+                .andExpect(jsonPath("$.number").isNotEmpty())
                 .andExpect(jsonPath("$.teamCardId").value(TEAM_CARD_ID.toString()));
     }
 

@@ -7,5 +7,6 @@ public record TeamCardSummaryEvent(
         String teamCardName,
         String streamName,
         String meetingNumber,
-        String meetingLink) {
-}
+        String meetingLink,
+        String trackerFullName
+) {}

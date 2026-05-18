@@ -1,4 +1,4 @@
-import { fetchReports, fetchTrackers, fetchStreams, fetchTeams, fetchUserInfo, fetchUserPhoto, updateUserInfo, updateUserPhoto, fetchMeetingReportExcel, fetchMeetingReport } from './requests';
+import { fetchReports, fetchTrackers, fetchStreams, fetchTeams, fetchUserInfo, fetchUserPhoto, updateUserInfo, updateUserPhoto, fetchMeetingReportExcel, fetchMeetingReport, fetchUserTeams, fetchReportExcel } from './requests';
 
 // Mock global fetch
 global.fetch = jest.fn();
@@ -294,3 +294,48 @@ describe('updateUserPhoto', () => {
   });
 });
 
+describe('fetchUserTeams', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call correct endpoint with username', async () => {
+    fetch.mockResolvedValue({ ok: true });
+
+    await fetchUserTeams('testuser');
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('admin/team-cards/by-user?username=testuser'),
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({
+          'Accept': 'application/json'
+        })
+      })
+    );
+  });
+});
+
+describe('fetchReportExcel', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should call correct endpoint for excel report', async () => {
+    fetch.mockResolvedValue({ ok: true });
+
+    await fetchReportExcel({ filters: [{ fieldName: 'status', type: 'EQ', value: 'OK' }] });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('team-cards/reports/excel'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        })
+      })
+    );
+  });
+});

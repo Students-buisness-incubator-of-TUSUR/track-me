@@ -8,5 +8,6 @@ import java.util.UUID;
 public record MeetingSummaryEvent(
         UUID teamCardId,
         String meetingNumber,
-        String meetingLink) {
-}
+        String meetingLink,
+        String trackerFullName
+) { }

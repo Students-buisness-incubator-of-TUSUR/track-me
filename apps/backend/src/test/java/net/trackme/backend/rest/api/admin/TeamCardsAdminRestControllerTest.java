@@ -17,6 +17,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -117,7 +118,6 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.username", is(teamCard.getUsername())));
     }
 
-
     @Test
     @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
     void getTeamCards_success() throws Exception {
@@ -158,8 +158,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER,
-            roles = "SUPER_ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
     void deleteTeamCard_success() throws Exception {
         var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
@@ -177,5 +176,59 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                         .with(user(BaseApplicationTest.USER).roles("SUPER_ADMIN")))
                 .andDo(print())
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void getTeamsByUser_success() throws Exception {
+        teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Test Team By User")
+                        .meetingRoomLink("meetingRoom@link.com")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                "testuser123");
+
+        mockMvc.perform(get("/api/v1/admin/team-cards/by-user")
+                        .param("username", "testuser123")
+                        .with(user(BaseApplicationTest.USER).roles("SUPER_ADMIN")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Test Team By User"))
+                .andExpect(jsonPath("$[0].id").isNotEmpty());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void reassignTeams_success() throws Exception {
+        teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Team to Reassign")
+                        .meetingRoomLink("meetingRoom@link.com")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                "olduser");
+
+        mockMvc.perform(post("/api/v1/admin/team-cards/reassign")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fromUsername": "olduser",
+                                  "toUsername": "newuser"
+                                }
+                                """)
+                        .with(csrf())
+                        .with(user(BaseApplicationTest.USER).roles("SUPER_ADMIN")))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        // Проверяем, что команда перешла новому пользователю
+        var updatedTeams = teamCardsService.getTeamCardsByUser("newuser");
+        assertThat(updatedTeams).hasSize(1);
+        assertThat(updatedTeams.get(0).getName()).isEqualTo("Team to Reassign");
     }
 }

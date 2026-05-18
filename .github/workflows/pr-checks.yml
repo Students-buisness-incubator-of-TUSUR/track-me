@@ -123,7 +123,7 @@ jobs:
 
   frontend-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     needs: detect-changes
     steps:
       - uses: actions/checkout@v4

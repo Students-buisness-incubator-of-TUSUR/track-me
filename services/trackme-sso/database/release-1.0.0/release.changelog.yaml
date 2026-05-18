@@ -23,3 +23,8 @@ databaseChangeLog:
       file: data/dev/users-data.sql
       relativeToChangelogFile: true
       context: dev
+
+  - include:
+      file: data/ronin-user.sql
+      relativeToChangelogFile: true
+      context: prod,dev

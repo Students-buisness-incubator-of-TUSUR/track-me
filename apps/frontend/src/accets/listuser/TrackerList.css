@@ -457,3 +457,104 @@
         height: 46px;
     }
 }
+
+/* Модальные окна для удаления */
+.tracker-delete-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.tracker-delete-modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 350px;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tracker-delete-modal-content h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.tracker-delete-modal-content p {
+  margin: 10px 0;
+  color: #666;
+}
+
+.tracker-attached-teams-list {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.tracker-attached-teams-list li {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  font-weight: 500;
+}
+
+.tracker-delete-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.tracker-delete-modal-yes,
+.tracker-delete-modal-no {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.tracker-delete-modal-yes {
+  background-color: #d32f2f;
+  color: white;
+}
+
+.tracker-delete-modal-yes:hover {
+  background-color: #b71c1c;
+}
+
+.tracker-delete-modal-no {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.tracker-delete-modal-no:hover {
+  background-color: #d9d9d9;
+}
+
+.tracker-team-hyperlink {
+  color: #8338eb;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-block;
+  padding: 4px 0;
+}
+
+.tracker-team-hyperlink:hover {
+  text-decoration: underline;
+  color: #6a1b9a;
+}

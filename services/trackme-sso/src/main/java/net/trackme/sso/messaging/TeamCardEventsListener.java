@@ -29,7 +29,8 @@ public class TeamCardEventsListener {
                 meetingNotHappenedEvent.teamCardUsername(),
                 meetingNotHappenedEvent.teamCardName(),
                 meetingNotHappenedEvent.streamName(),
-                meetingNotHappenedEvent.meetingLink());
+                meetingNotHappenedEvent.meetingLink(),
+                meetingNotHappenedEvent.trackerFullName());
     }
 
     @KafkaListener(
