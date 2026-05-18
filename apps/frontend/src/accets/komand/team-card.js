@@ -428,8 +428,8 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
           if (typeof a === 'number' && typeof b === 'number') return a - b;
           return String(a).localeCompare(String(b));
         };
-        const sortedOriginal = [...original].toSorted(compareFn);
-        const sortedCurrent = [...current].toSorted(compareFn);
+        const sortedOriginal = [...original].sort(compareFn);
+        const sortedCurrent = [...current].sort(compareFn);
         if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
       } else if (original !== current) {
         return true;
