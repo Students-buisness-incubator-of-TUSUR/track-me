@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: fill-tracker-full-name-20250105
+      author: developer
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            schemaName: meeting_service
+            tableName: meeting
+      changes:
+        - sql:
+            sql: >
+              UPDATE backend.team_card tc
+              SET tracker_full_name = sub.tracker_full_name
+              FROM (
+                SELECT DISTINCT ON (team_card_id)
+                  team_card_id,
+                  tracker_full_name
+                FROM meeting_service.meeting
+                WHERE tracker_full_name IS NOT NULL
+                ORDER BY team_card_id, start_date DESC
+              ) sub
+              WHERE tc.id = sub.team_card_id
+                AND tc.tracker_full_name IS NULL
+      rollback:
+        - sql:
+            sql: UPDATE backend.team_card SET tracker_full_name = NULL

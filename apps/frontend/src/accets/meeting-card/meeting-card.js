@@ -340,14 +340,24 @@ const MeetingCard = () => {
         }
 
         if (completed && !areAllFieldsFilled()) {
-            const missingFields = getMissingFields().join(", ");
-            setError(`Нельзя завершить встречу. Заполните все поля: ${missingFields}`);
+            setError("Нельзя завершить встречу как состоявшуюся. Заполните все поля.");
             setTimeout(() => setError(null), 5000);
             return;
         }
 
         try {
             const newStatus = completed ? "COMPLETED" : "COMPLETED_AS_NOT_HAPPENED";
+
+            const payload = {
+                status: newStatus,
+                recordLink: meetingData.recordLink || "",
+                number: meetingData.number || "",
+                teamStatus: newStatus === "COMPLETED" ? meetingData.teamStatus : null,
+                tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
+                tasksNextMeeting: meetingData.tasksNextMeeting || "",
+                startDate: meetingData.startDate || new Date().toISOString()
+            };
+
             setMeetingData(prev => ({ ...prev, status: newStatus }));
 
             const response = await fetch(`${backendHost}/api/v1/update-meeting/${meetingId}?teamCardId=${teamId}`, {
@@ -359,15 +369,7 @@ const MeetingCard = () => {
                 },
                 credentials: 'include',
                 mode: 'cors',
-                body: JSON.stringify({
-                    status: newStatus,
-                    recordLink: meetingData.recordLink || "",
-                    number: meetingData.number || "",
-                    teamStatus: meetingData.teamStatus,
-                    tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
-                    tasksNextMeeting: meetingData.tasksNextMeeting || "",
-                    startDate: meetingData.startDate || new Date().toISOString()
-                })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -398,7 +400,8 @@ const MeetingCard = () => {
                 const errorText = await response.text();
                 throw new Error(`Ошибка при удалении: ${response.status} ${errorText}`);
             }
-            navigate(`/teamcard/${teamId}?userId=${userId}`);
+            // Добавляем параметр refresh для принудительного обновления TeamCard
+            navigate(`/teamcard/${teamId}?userId=${userId}&refresh=${Date.now()}`);
         } catch (error) {
             console.error('Ошибка удаления встречи:', error);
             setError(error.message || 'Не удалось удалить встречу');
@@ -659,7 +662,6 @@ const MeetingCard = () => {
                             tabIndex={0}
                             role="button"
                             aria-label="Загрузить изображение"
-                            style={{ marginLeft: '30px' }}
                         >
                             <input type="file" accept="image/*" onChange={handleImageChange} className="unique-image-input" ref={fileInputRef} disabled={isMeetingCompleted} />
                             {imagePreview

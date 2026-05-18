@@ -7,7 +7,8 @@ public interface NotificationService {
     void sendMeetingNotHappenedNotification(String teamCardUsername,
                                             String teamCardName,
                                             String streamName,
-                                            String meetingLink);
+                                            String meetingLink,
+                                            String trackerFullName);
 
     void sendTeamCardSummary(List<LinkedHashMap<String, String>> teamCardSummaryEvents);
 

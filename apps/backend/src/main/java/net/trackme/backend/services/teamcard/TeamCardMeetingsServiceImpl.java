@@ -11,6 +11,8 @@ import net.trackme.backend.models.MeetingStatus;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.repos.MeetingGradeRepository;
 import net.trackme.backend.repos.TeamCardsRepository;
+import net.trackme.backend.services.exceptions.TeamCardNotFoundException;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -48,7 +50,7 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                         teamCard -> {
                             teamCard.increaseMeetingCount();
                             teamCard.addMeetingGrade(meetingId);
-                            teamCardsRepository.save(teamCard);
+                            teamCardsRepository.saveAndFlush(teamCard);
                             calculateAverageGrade(teamCard);
                             log.info(
                                     "Increased meeting count for team card {}. "
@@ -69,7 +71,11 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                                    BigDecimal teamGrade,
                                    String meetingLink) {
         meetingGradeRepository.findByMeetingIdAndTeamCardId(meetingId, teamCardId)
-                .ifPresent(meetingGrade -> meetingGrade.setGrade(teamGrade));
+                .ifPresent(meetingGrade -> {
+                    meetingGrade.setGrade(teamGrade);
+                    meetingGradeRepository.saveAndFlush(meetingGrade);
+                });
+
         teamCardsRepository.findById(teamCardId)
                 .ifPresentOrElse(
                         teamCard -> {
@@ -88,7 +94,7 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                             if (teamGrade != null) {
                                 calculateAverageGrade(teamCard);
                             }
-                            teamCardsRepository.save(teamCard);
+                            teamCardsRepository.saveAndFlush(teamCard);
                             log.info(
                                     "Updated team card {} info. "
                                             + "Current count: {}, status: {}, grade: {}",
@@ -99,6 +105,32 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                         },
                         () -> log.warn("Team card {} not found", teamCardId));
 
+    }
+
+    @Override
+    @Transactional
+    public void handleMeetingDeleted(UUID teamCardId, UUID meetingId) {
+        var teamCard = teamCardsRepository.findById(teamCardId)
+                .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
+
+        boolean removed = teamCard.getMeetingGrades().removeIf(grade ->
+            grade.getMeetingId().equals(meetingId)
+        );
+
+        if (removed) {
+            log.debug("Removed meeting grade for meeting {} from team card {}",
+                    meetingId, teamCardId);
+            teamCard.setMeetingsCount(Math.max(0, teamCard.getMeetingsCount() - 1));
+            calculateAverageGrade(teamCard);
+            teamCardsRepository.saveAndFlush(teamCard);
+            log.info("Team card {} updated after meeting {} deletion. "
+                    + "Remaining meetings: {}, New average grade: {}",
+                    teamCardId, meetingId, teamCard.getMeetingsCount(),
+                    teamCard.getAverageGrade());
+        } else {
+            log.warn("Meeting grade for meeting {} not found in team card {}",
+                    meetingId, teamCardId);
+        }
     }
 
     private void calculateAverageGrade(TeamCard teamCard) {

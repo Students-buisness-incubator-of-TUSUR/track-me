@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.domain.Stream;
 import net.trackme.backend.domain.TeamCard;
+import net.trackme.backend.services.exceptions.TeamCardNotFoundException;
 import net.trackme.backend.messaging.TeamCardLowGradeSummaryEvent;
 import net.trackme.backend.messaging.TeamCardSummaryEvent;
 import net.trackme.backend.repos.TeamCardsRepository;
@@ -12,12 +13,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
+/**
+ * Сервис для формирования сводок по карточкам команд.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TeamCardSummaryService {
+
     /**
      * Низкий рейтинг.
      */
@@ -42,7 +51,7 @@ public class TeamCardSummaryService {
      * Сообщить о командах с низким рейтингом.
      */
     @Transactional
-    @Scheduled(cron = "0 2 5 * * 1")
+    @Scheduled(cron = "0 0 9 * * 1", zone = "Asia/Tomsk")
     public void reportAboutTeamCardLowGrades() {
         log.info("Scheduled team card low grade summary started");
         sendTeamCardLowGradeSummary();
@@ -51,6 +60,7 @@ public class TeamCardSummaryService {
 
     /**
      * Отправить сводку о командах с пропущенными встречами.
+     *
      * @param meetingSummaryEvents Событие пропущенных встреч
      */
     public void sendTeamCardsSummary(
@@ -58,37 +68,50 @@ public class TeamCardSummaryService {
         List<TeamCardSummaryEvent> teamCardSummaryEvents = new ArrayList<>();
 
         for (var meetingSummaryEvent : meetingSummaryEvents) {
-            var teamCard = teamCardsService
-                    .getTeamCard(UUID.fromString(meetingSummaryEvent.get("teamCardId")));
+            var teamCardId = UUID.fromString(meetingSummaryEvent.get("teamCardId"));
 
-            getStreamByTeamCard(teamCard).ifPresentOrElse(stream -> {
-                TeamCardSummaryEvent teamCardSummaryEvent =
-                        TeamCardSummaryEvent.builder()
-                                .teamCardName(teamCard.getName())
-                                .streamName(stream.getName())
-                                .meetingNumber(meetingSummaryEvent.get("meetingNumber"))
-                                .meetingLink(meetingSummaryEvent.get("meetingLink"))
-                                .build();
+            try {
+                var teamCard = teamCardsService.getTeamCard(teamCardId);
+                getStreamByTeamCard(teamCard).ifPresentOrElse(stream -> {
+                    String trackerFullName = meetingSummaryEvent.getOrDefault(
+                            "trackerFullName", "Не назначен");
 
-                teamCardSummaryEvents.add(teamCardSummaryEvent);
-            }, () -> log.info("Team card {} has no active streams.", teamCard.getId()));
+                    TeamCardSummaryEvent teamCardSummaryEvent =
+                            TeamCardSummaryEvent.builder()
+                                    .teamCardName(teamCard.getName())
+                                    .streamName(stream.getName())
+                                    .meetingNumber(meetingSummaryEvent.get("meetingNumber"))
+                                    .meetingLink(meetingSummaryEvent.get("meetingLink"))
+                                    .trackerFullName(trackerFullName)
+                                    .build();
+
+                    teamCardSummaryEvents.add(teamCardSummaryEvent);
+                }, () -> log.info("Team card {} has no active streams.", teamCard.getId()));
+            } catch (TeamCardNotFoundException e) {
+                log.warn("Team card {} not found, skipping: {}", teamCardId, e.getMessage());
+            }
         }
 
         if (teamCardSummaryEvents.isEmpty()) {
+            log.info("No team card summary events to send");
             return;
         }
 
-         teamCardEventsProducer.sendTeamCardSummaryEvent(teamCardSummaryEvents);
+        teamCardEventsProducer.sendTeamCardSummaryEvent(teamCardSummaryEvents);
     }
 
+    /**
+     * Отправляет сводку о командах с низким рейтингом.
+     */
     private void sendTeamCardLowGradeSummary() {
-        List<TeamCardLowGradeSummaryEvent> teamCardLowGradeSummaryEvents =
-                new ArrayList<>();
+        List<TeamCardLowGradeSummaryEvent> teamCardLowGradeSummaryEvents = new ArrayList<>();
 
         var teamCards = teamCardsRepository.findAll().stream()
                 .filter(teamCard -> teamCard.getAverageGrade()
                         .compareTo(BigDecimal.valueOf(LOW_GRADE)) <= 0)
                 .toList();
+
+        log.info("Found {} team cards with low grade", teamCards.size());
 
         if (teamCards.isEmpty()) {
             log.info("No team cards with low grade");
@@ -96,24 +119,45 @@ public class TeamCardSummaryService {
         }
 
         for (var teamCard : teamCards) {
+            log.info("Processing teamCard: name={}, avgGrade={}, trackerFullName={}",
+                teamCard.getName(), teamCard.getAverageGrade(), teamCard.getTrackerFullName());
+
             getStreamByTeamCard(teamCard).ifPresentOrElse(stream -> {
+                String trackerFullName = teamCard.getTrackerFullName() != null
+                        ? teamCard.getTrackerFullName()
+                        : "Не назначен";
+
+                log.info("Adding to summary: stream={}, team={}, tracker={}, grade={}",
+                    stream.getName(), teamCard.getName(), trackerFullName,
+                    teamCard.getAverageGrade());
+
                 TeamCardLowGradeSummaryEvent event = TeamCardLowGradeSummaryEvent.builder()
                         .teamCardName(teamCard.getName())
                         .streamName(stream.getName())
                         .averageGrade(teamCard.getAverageGrade())
+                        .trackerFullName(trackerFullName)
                         .build();
 
                 teamCardLowGradeSummaryEvents.add(event);
             }, () -> log.info("Team card {} has no active streams.", teamCard.getId()));
         }
 
+        log.info("Total events to send: {}", teamCardLowGradeSummaryEvents.size());
+
         if (teamCardLowGradeSummaryEvents.isEmpty()) {
+            log.info("No events to send");
             return;
         }
 
         teamCardEventsProducer.sendTeamCardLowGradeSummaryEvent(teamCardLowGradeSummaryEvents);
     }
 
+    /**
+     * Получает активный поток для карточки команды.
+     *
+     * @param teamCard карточка команды
+     * @return Optional с активным потоком или пустой Optional
+     */
     private Optional<Stream> getStreamByTeamCard(TeamCard teamCard) {
         return teamCard.getStreams().stream().filter(Stream::isActive).findFirst();
     }

@@ -39,11 +39,13 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
         var teamCardName = "test team card";
         var streamName = "test stream";
         var meetingLink = "test link";
+        var trackerFullName = "Петров Петр Петрович";
         MeetingNotHappenedEvent event = new MeetingNotHappenedEvent(
                 teamCardUsername,
                 teamCardName,
                 streamName,
-                meetingLink
+                meetingLink,
+                trackerFullName
         );
         when(meetingNotHappenedRecord.value()).thenReturn(event);
 
@@ -55,7 +57,8 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
                 teamCardUsername,
                 teamCardName,
                 streamName,
-                meetingLink);
+                meetingLink,
+                trackerFullName);
     }
 
     @Test

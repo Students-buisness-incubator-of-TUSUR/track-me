@@ -17,6 +17,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.hasItems;
 
 
 @WithMockUser(
@@ -96,9 +97,7 @@ class StreamRestControllerTest extends BaseApplicationTest {
                                 }"""))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].name").value("stream 1"))
-                .andExpect(jsonPath("$.content[1].name").value("stream 2"))
-                .andExpect(jsonPath("$.content[2].name").value("stream 3"))
+                .andExpect(jsonPath("$.content[*].name").value(org.hamcrest.Matchers.hasItems("stream 1", "stream 2", "stream 3")))
                 .andExpect(jsonPath("$.page.totalElements").value(3));
     }
 

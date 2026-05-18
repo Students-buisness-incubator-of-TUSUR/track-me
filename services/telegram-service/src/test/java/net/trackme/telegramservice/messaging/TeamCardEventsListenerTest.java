@@ -4,23 +4,18 @@ import net.trackme.telegramservice.AbstractIntegrationTest;
 import net.trackme.telegramservice.services.NotificationService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
 class TeamCardEventsListenerTest extends AbstractIntegrationTest {
-    @Mock
-    private ConsumerRecord<String, MeetingNotHappenedEvent> record;
+
+    private ConsumerRecord<String, MeetingNotHappenedEvent> consumerRecord;
 
     @Autowired
     private TeamCardEventsListener teamCardEventsListener;
@@ -30,24 +25,23 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
     @Test
     void onMeetingNotHappenedEvent() {
-        // Arrange
         MeetingNotHappenedEvent event = new MeetingNotHappenedEvent(
                 "test username",
                 "test team card",
                 "test stream",
-                "test link"
+                "test link",
+                "Петров Петр Петрович"
         );
 
-        when(record.value()).thenReturn(event);
+        consumerRecord = new ConsumerRecord<>("meeting-not-happened", 0, 0L, "key", event);
 
-        // Act
-        teamCardEventsListener.onMeetingNotHappenedEvent(record);
+        teamCardEventsListener.onMeetingNotHappenedEvent(consumerRecord);
 
-        // Assert
         verify(notificationService).sendMeetingNotHappenedMessage(
                 "test username",
                 "test team card",
                 "test stream",
-                "test link");
+                "test link",
+                "Петров Петр Петрович");
     }
 }

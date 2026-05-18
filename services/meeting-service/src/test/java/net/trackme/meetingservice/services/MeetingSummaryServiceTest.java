@@ -32,9 +32,11 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
     @MockitoBean
     private KafkaTemplate<String, Object> kafkaTemplate;
 
+    @Captor
+    private ArgumentCaptor<Message<?>> messageCaptor;
+
     @Test
     void reportAboutNotHappenedMeetings_success() {
-        // Arrange
         UUID teamId = UUID.randomUUID();
         meetingRepository.deleteAll();
         
@@ -43,6 +45,7 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
         cancelledMeeting.setNumber("CANCELLED-1");
         cancelledMeeting.setStartDate(OffsetDateTime.now().minusDays(3));
         cancelledMeeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
+        cancelledMeeting.setTrackerFullName("Трекер Трекерович");
         meetingRepository.save(cancelledMeeting);
 
         Meeting overdueMeeting = new Meeting();
@@ -66,11 +69,7 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
         tooOldMeeting.setStatus(MeetingStatus.SCHEDULED);
         meetingRepository.save(tooOldMeeting);
 
-        // Act
         meetingSummaryService.reportAboutNotHappenedMeetings();
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Message<?>> messageCaptor = ArgumentCaptor.forClass((Class) Message.class);
 
         verify(kafkaTemplate).send(messageCaptor.capture());
         Message<?> capturedMessage = messageCaptor.getValue();
@@ -78,29 +77,16 @@ class MeetingSummaryServiceTest extends AbstractIntegrationTest {
         @SuppressWarnings("unchecked")
         List<MeetingSummaryEvent> sentEvents = (List<MeetingSummaryEvent>) capturedMessage.getPayload();
 
-        // Assert
         boolean hasCancelled = sentEvents
             .stream()
             .anyMatch(e -> "CANCELLED-1".equals(e.meetingNumber()));
-
         boolean hasOverdue = sentEvents
             .stream()
             .anyMatch(e -> "OVERDUE-2".equals(e.meetingNumber()));
 
-        assertEquals(
-            2,
-            sentEvents.size(),
-            "Должны быть найдены только отмененные и просроченные встречи в рамках 7 дней"
-        );
-
-        assertTrue(
-            hasCancelled,
-            "В отчете должна быть явно отмененная встреча"
-        );
-
-        assertTrue(
-            hasOverdue,
-            "В отчете должна быть забытая (просроченная) встреча"
-        );
+        assertEquals(2, sentEvents.size(),
+            "Должны быть найдены только отмененные и просроченные встречи в рамках 7 дней");
+        assertTrue(hasCancelled, "В отчете должна быть явно отмененная встреча");
+        assertTrue(hasOverdue, "В отчете должна быть забытая (просроченная) встреча");
     }
 }

@@ -9,6 +9,7 @@ import trueIcon2 from "./true2.png";
 import falseIcon2 from "./false2.png";
 import Header from "../header/header";
 import { useGetUserInfo } from "../../services/util";
+import { isValidUsername } from "../../utils/validation";
 
 function TrackerListPage({ endpoint }) {
   const {
@@ -21,7 +22,16 @@ function TrackerListPage({ endpoint }) {
     hoveredButton,
     setHoveredButton,
     confirmUser,
-    deleteUser,
+    toggleUserLock,
+    handleDeleteClick,
+    confirmDeleteUser,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    showTeamsWarning,
+    attachedTeams,
+    userToDelete,
+    closeTeamsWarning,
+    cancelTeamsWarning,
     page,
     totalPages,
     handleNextPage,
@@ -36,8 +46,8 @@ function TrackerListPage({ endpoint }) {
     
   const [activeMobileMenu, setActiveMobileMenu] = useState(null);
 
-  const lastTap = useRef(0); // Будет хранить время последнего касания
-  const tapTimeout = useRef(null); // Будет хранить таймер
+  const lastTap = useRef(0);
+  const tapTimeout = useRef(null);
 
 
   const user = useGetUserInfo();
@@ -45,65 +55,123 @@ function TrackerListPage({ endpoint }) {
     setUserRole(user.roles[0]);
   }, [user]);
 
+  // Safe action wrapper with username validation
+  const safeAction = (username, action) => {
+    if (!isValidUsername(username)) {
+      console.error("Invalid username for action", { username });
+      return;
+    }
+    action(username);
+  };
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
-    setPage(0); // Reset page to 0 on search
+    setPage(0);
   };
 
 
-  // Закрыть меню при клике вне элемента
-  // const closeMobileMenu = () => {
-  //   setActiveMobileMenu(null);
-  //   setHoveredTracker(null);
-  // };
-
   const handleDoubleTap = (username) => {
-  const now = Date.now(); // Текущее время в миллисекундах
-  const timeDiff = now - lastTap.current;
-
-  // Если прошло меньше 300 мс — это двойное касание
-  if (timeDiff < 300) {
-    // Сбрасываем таймер, если он был
-    if (tapTimeout.current) {
-      clearTimeout(tapTimeout.current);
+    // Validate username before using
+    if (!isValidUsername(username)) {
+      console.error("Invalid username for double tap", { username });
+      return;
     }
+    
+    const now = Date.now();
+    const timeDiff = now - lastTap.current;
 
-    /* istanbul ignore if */
-    if (activeMobileMenu === username) {
-      setActiveMobileMenu(null);
-      setHoveredTracker(null);
-    }
+    if (timeDiff < 300) {
+      if (tapTimeout.current) {
+        clearTimeout(tapTimeout.current);
+      }
 
-    // В любом случае — переходим в профиль
-    window.location.href = `/profile/${username}`;
-  } else {
-    // Это одиночное касание — ставим таймер
-    tapTimeout.current = setTimeout(() => {
-      // Через 300 мс проверяем: если не было второго касания — обрабатываем как одиночное
       /* istanbul ignore if */
       if (activeMobileMenu === username) {
-        // Уже открыто — закрываем
         setActiveMobileMenu(null);
         setHoveredTracker(null);
-      } else {
-        // Закрыто — открываем
-        setActiveMobileMenu(username);
-        setHoveredTracker(username);
       }
-    }, 300);
-  }
 
-  // Сохраняем время последнего касания
-  lastTap.current = now;
-};
+      window.location.href = `/profile/${encodeURIComponent(username)}`;
+    } else {
+      tapTimeout.current = setTimeout(() => {
+        /* istanbul ignore if */
+        if (activeMobileMenu === username) {
+          setActiveMobileMenu(null);
+          setHoveredTracker(null);
+        } else {
+          setActiveMobileMenu(username);
+          setHoveredTracker(username);
+        }
+      }, 300);
+    }
 
-  // Определяем, мобильное ли устройство
+    lastTap.current = now;
+  };
+
   const isMobile = () => {
     return window.innerWidth <= 768;
   };
   return (
     <div className="tracker-container">
+      {/* Модальное окно - предупреждение о командах */}
+      {showTeamsWarning && (
+        <div className="tracker-delete-modal">
+          <div className="tracker-delete-modal-content">
+            <h3>К данному пользователю привязаны следующие команды:</h3>
+            <ul className="tracker-attached-teams-list">
+              {attachedTeams.map((team, index) => (
+                <li key={team.id} style={{ textAlign: 'center' }}>
+                  <Link
+                    to={`/teamcard/${team.id}`}
+                    className="tracker-team-hyperlink"
+                  >
+                    {team.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p>Вы уверены, что хотите безвозвратно удалить пользователя?</p>
+            <div className="tracker-delete-modal-buttons">
+              <button
+                className="tracker-delete-modal-yes"
+                onClick={closeTeamsWarning}
+              >
+                Да, удалить
+              </button>
+              <button
+                className="tracker-delete-modal-no"
+                onClick={cancelTeamsWarning}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно - подтверждение удаления (без команд) */}
+      {showDeleteConfirm && (
+        <div className="tracker-delete-modal">
+          <div className="tracker-delete-modal-content">
+            <h3>Вы уверены, что хотите безвозвратно удалить пользователя @{userToDelete}?</h3>
+            <div className="tracker-delete-modal-buttons">
+              <button
+                className="tracker-delete-modal-yes"
+                onClick={confirmDeleteUser}
+              >
+                Да
+              </button>
+              <button
+                className="tracker-delete-modal-no"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Нет
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Header userRole={userRole}></Header>
       <div className="Users-header-bottom-cont">
         <div className="Stream-search-cont">
@@ -115,11 +183,15 @@ function TrackerListPage({ endpoint }) {
               className="Stream-search"
               value={searchQuery}
               onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setSearchQuery("");
+                }
+              }}
             />
           </div>
         </div>
 
-        {/* Добавляем кнопку переключения фильтра */}
         <div className="filter-toggle-container">
           <button
             className={`filter-toggle ${showLockedOnly ? 'active' : ''}`}
@@ -131,12 +203,10 @@ function TrackerListPage({ endpoint }) {
             <div className="filter-toggle-icon">
               {showLockedOnly ? (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                  {/* Иконка крестика (заблокированные) */}
                   <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM6.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-3.293 3.293a1 1 0 101.414 1.414L10 11.414l3.293 3.293a1 1 0 001.414-1.414L11.414 10l3.293-3.293a1 1 0 00-1.414-1.414L10 8.586 6.707 5.293z" />
                 </svg>
               ) : (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                  {/* Иконка пользователя (активные) */}
                   <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
                 </svg>
               )}
@@ -151,18 +221,6 @@ function TrackerListPage({ endpoint }) {
         </div>
      <main 
       className="tracker-list-content" 
-      // onClick={closeMobileMenu}
-      // onKeyDown={(e) => {
-      //   if (e.key === 'Enter' || e.key === ' ') {
-      //     e.preventDefault();
-      //     closeMobileMenu();
-      //   }
-      //   if (e.key === 'Escape') {
-      //     closeMobileMenu();
-      //   }
-      // }}
-      // tabIndex={-1}
-      // role="button"
       aria-label="Close mobile menu"
 >
   {error && <div className="error-message oval2">{error}</div>}
@@ -181,7 +239,7 @@ function TrackerListPage({ endpoint }) {
             onMouseEnter={() => !isMobile() && setHoveredTracker(tracker.username)}
             onMouseLeave={() => !isMobile() && setHoveredTracker(null)}
             onTouchStart={(e) => {
-              e.preventDefault(); // Важно: предотвращаем стандартное поведение
+              e.preventDefault();
               if (isMobile()) {
                 handleDoubleTap(tracker.username);
               }
@@ -189,9 +247,11 @@ function TrackerListPage({ endpoint }) {
             onClick={(e) => {
               /* istanbul ignore if */
               if (!isMobile()) {
-                // Разрешаем переход, только если клик НЕ по панели
                 if (!e.target.closest('.trackerlist-edit-panel12')) {
-                  window.location.href = `/profile/${tracker.username}`;
+                  // Validate username before navigation
+                  if (isValidUsername(tracker.username)) {
+                    window.location.href = `/profile/${encodeURIComponent(tracker.username)}`;
+                  }
                 }
               }
             }}
@@ -200,7 +260,10 @@ function TrackerListPage({ endpoint }) {
                 e.preventDefault();
                 if (!isMobile()) {
                   if (!e.target.closest('.trackerlist-edit-panel12')) {
-                    window.location.href = `/profile/${tracker.username}`;
+                    // Validate username before navigation
+                    if (isValidUsername(tracker.username)) {
+                      window.location.href = `/profile/${encodeURIComponent(tracker.username)}`;
+                    }
                   }
                 }
               }
@@ -208,18 +271,14 @@ function TrackerListPage({ endpoint }) {
             role="button"
             tabIndex={0}
           >
-            {/* ---------- КЛИКАБЕЛЬНАЯ ССЫЛКА НА ПРОФИЛЬ ---------- */}
             <Link
               to="#"
                 className="trackerlist-profile-link"
                 onClick={(e) => {
-                  e.preventDefault(); // Блокируем переход
-                  // e.stopPropagation();
+                  e.preventDefault();
                 }}
-                // onMouseEnter={(e) => e.stopPropagation()}
               >
               <div className="trackerlist-avatar" aria-hidden="true">
-                {/* Иконка статуса */}
                 {isEnabled ? (
                   <span className="green-checkmark" title="Включён">
                     <img src={trueIcon} alt="Подтверждён" />
@@ -230,7 +289,6 @@ function TrackerListPage({ endpoint }) {
                   </div>
                 )}
 
-                {/* Текст */}
                 <div className="trackerlist-text">
                   <div className="trackerlist-fio">{tracker.fullName}</div>
                   <div className="trackerlist-nick">@{tracker.username}</div>
@@ -238,7 +296,6 @@ function TrackerListPage({ endpoint }) {
               </div>
             </Link>
 
-            {/* ---------- ПАНЕЛЬ ДЕЙСТВИЙ ПРИ НАВЕДЕНИИ ИЛИ LONG PRESS ---------- */}
             {showMenu && (
               <div className="trackerlist-edit-panel12" 
                 onClick={(e) => e.stopPropagation()}
@@ -252,7 +309,6 @@ function TrackerListPage({ endpoint }) {
                 aria-hidden="true">
                 {isEnabled ? (
                   <>
-                    {/* Оставить (просто закрыть) */}
                     <button
                       className="confirm-button"
                       onClick={(e) => {
@@ -272,7 +328,6 @@ function TrackerListPage({ endpoint }) {
                       <span className="tooltip tooltip-red">Отключить</span>
                     )}
 
-                    {/* Удалить */}
                     <button
                       className="cancel-button"
                       onClick={(e) => {
@@ -280,7 +335,47 @@ function TrackerListPage({ endpoint }) {
                         if (!window.confirm("Вы точно хотите отключить этого пользователя?")) {
                           return;
                         }
-                        deleteUser(tracker.username);
+                        safeAction(tracker.username, toggleUserLock);
+                        setActiveMobileMenu(null);
+                      }}
+                      onMouseEnter={() => setHoveredButton("cancel")}
+                      onMouseLeave={() => setHoveredButton(null)}
+                    >
+                      <img
+                        src={hoveredButton === "confirm" ? falseIcon2 : falseIcon}
+                        alt="Отключить"
+                      />
+                    </button>
+                    {hoveredButton === "confirm" && (
+                      <span className="tooltip tooltip-green">Оставить</span>
+                    )}
+                  </>
+                ) : showLockedOnly ? (
+                  <>
+                    <button
+                      className="confirm-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        safeAction(tracker.username, toggleUserLock);
+                        setActiveMobileMenu(null);
+                      }}
+                      onMouseEnter={() => setHoveredButton("confirm")}
+                      onMouseLeave={() => setHoveredButton(null)}
+                    >
+                      <img
+                        src={hoveredButton === "cancel" ? trueIcon2 : trueIcon}
+                        alt="Разблокировать"
+                      />
+                    </button>
+                    {hoveredButton === "cancel" && (
+                      <span className="tooltip tooltip-red">Удалить</span>
+                    )}
+
+                    <button
+                      className="cancel-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        safeAction(tracker.username, handleDeleteClick);
                         setActiveMobileMenu(null);
                       }}
                       onMouseEnter={() => setHoveredButton("cancel")}
@@ -292,17 +387,16 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "confirm" && (
-                      <span className="tooltip tooltip-green">Оставить</span>
+                      <span className="tooltip tooltip-green">Разблокировать</span>
                     )}
                   </>
                 ) : (
                   <>
-                    {/* Подтвердить */}
                     <button
                       className="confirm-button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        confirmUser(tracker.username);
+                        safeAction(tracker.username, confirmUser);
                         setActiveMobileMenu(null);
                       }}
                       onMouseEnter={() => setHoveredButton("confirm")}
@@ -314,18 +408,17 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "cancel" && (
-                      <span className="tooltip tooltip-red">{showLockedOnly ? "Удалить" : "Заблокировать"}</span>
+                      <span className="tooltip tooltip-red">Заблокировать</span>
                     )}
 
-                    {/* Отклонить */}
                     <button
                       className="cancel-button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (!window.confirm(`Вы точно хотите ${showLockedOnly ? "удалить" : "заблокировать"} этого пользователя?`)) {
+                        if (!window.confirm("Вы точно хотите заблокировать этого пользователя?")) {
                           return;
                         }
-                        deleteUser(tracker.username);
+                        safeAction(tracker.username, toggleUserLock);
                         setActiveMobileMenu(null);
                       }}
                       onMouseEnter={() => setHoveredButton("cancel")}
@@ -337,7 +430,7 @@ function TrackerListPage({ endpoint }) {
                       />
                     </button>
                     {hoveredButton === "confirm" && (
-                      <span className="tooltip tooltip-green">{showLockedOnly ? "Разблокировать" : "Принять"}</span>
+                      <span className="tooltip tooltip-green">Принять</span>
                     )}
                   </>
                 )}

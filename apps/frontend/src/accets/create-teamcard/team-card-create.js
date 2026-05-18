@@ -236,7 +236,8 @@ if (isAdmin && !selectedTracker) {
                 meetingRoomLink: formData.meetingRoomLink,
                 description: formData.description || "Описание карточки команды",
                 ntiMarketIds: selectedMarkets.map(m => m.id),
-                readinessLevel: selectedTRL.label
+                readinessLevel: selectedTRL.label,
+                trackerFullName: formData.tracker || null
             };
 
             let url = `${backendHost}`;

@@ -26,7 +26,8 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendMeetingNotHappenedMessage(String teamCardUsername,
                                               String teamCardName,
                                               String streamName,
-                                              String meetingLink) {
+                                              String meetingLink,
+                                              String trackerFullName) {
         ChatEntity chat = chatRepository.findByUsername(teamCardUsername);
 
         if (chat == null) {
@@ -34,11 +35,25 @@ public class NotificationServiceImpl implements NotificationService {
             return;
         }
 
+        String shortName = getShortName(trackerFullName);
+
         var message = MessageTemplates.MEETING_NOT_HAPPENED_MESSAGE_TEMPLATE
+                .replace("{trackerFullName}", shortName)
                 .replace("{teamCardName}", teamCardName)
                 .replace("{streamName}", streamName)
                 .replace("{meetingLink}", meetingLink);
 
         notificationBot.sendMessage(chat.getChatId(), message);
+    }
+
+    private String getShortName(String fullName) {
+        if (fullName == null || fullName.isBlank()) {
+            return "Не назначен";
+        }
+        String[] parts = fullName.trim().split(" ");
+        if (parts.length >= 2) {
+            return parts[0] + " " + parts[1];
+        }
+        return fullName;
     }
 }

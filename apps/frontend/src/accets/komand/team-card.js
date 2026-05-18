@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./team-card.css";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
@@ -215,6 +215,73 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     fetchTeamCardsCount();
   }, [teamData]); // зависимость от teamData
 
+  const handleApiError = (error, context) => {
+    console.error(`Error in ${context}:`, error);
+    setApiError(`Ошибка при ${context}: ${error.message}`);
+  };
+  
+  const loadMeetings = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${backendHost2}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000`,
+        { credentials: 'include' }
+      );
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+
+      const sortedMeetings = (data.content || []).sort((a, b) => {
+        const numA = parseInt(a.number) || 0;
+        const numB = parseInt(b.number) || 0;
+        return numA - numB;
+      });
+
+      setMeetings(sortedMeetings);
+      setTotalPages(data.totalPages || 1);
+    } catch (error) {
+      handleApiError(error, "загрузке встреч");
+    }
+  }, [id, currentPage, backendHost2]);
+
+  const loadTeamCard = useCallback(async () => {
+    try {
+      const endpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
+        ? `${backendHost}/api/v1/admin/team-cards?page=0&size=1000`
+        : `${backendHost}/api/v1/team-cards?page=0&size=1000`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getCsrfConfigForFetch()
+        },
+        credentials: "include",
+        body: JSON.stringify({ filters: [] })
+      });
+
+      if (!response.ok) throw new Error("Ошибка при получении карточек");
+      
+      const data = await response.json();
+      const found = data.content?.find(card => String(card.id) === String(id));
+
+      if (found) {
+        setTeamData(found);
+        setEditedData(prev => ({
+          ...prev,
+          ...found,
+          ntiMarketIds: prev.ntiMarketIds || found.ntiMarkets?.map(m => m.id) || [],
+          readinessLevel: prev.readinessLevel || found.readinessLevel,
+          description: prev.description || found.description,
+          meetingRoomLink: prev.meetingRoomLink || found.meetingRoomLink || "",
+        }));
+      }
+    } catch (error) {
+      console.error("Ошибка при обновлении карточки команды:", error);
+    }
+  }, [id, role, backendHost]);
+
+  useEffect(() => {
+    loadMeetings();
+  }, [loadMeetings]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -226,38 +293,45 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleApiError = (error, context) => {
-    console.error(`Error in ${context}:`, error);
-    setApiError(`Ошибка при ${context}: ${error.message}`);
-  };
-
   useEffect(() => {
-    const loadMeetings = async () => {
-      try {
-        const response = await fetch(
-          `${backendHost2}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000`,
-          { credentials: 'include' }
-        );
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-
-        // Сортируем встречи как числа
-        const sortedMeetings = (data.content || []).sort((a, b) => {
-          const numA = parseInt(a.number) || 0;
-          const numB = parseInt(b.number) || 0;
-          return numA - numB; // по возрастанию
-        });
-
-        setMeetings(sortedMeetings);
-        setTotalPages(data.totalPages || 1);
-      } catch (error) {
-        handleApiError(error, "загрузке встреч");
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadMeetings();
+        loadTeamCard();
       }
     };
-    loadMeetings();
-  }, [id, currentPage]);
 
+    const handlePopState = () => {
+      loadMeetings();
+      loadTeamCard();
+    };
 
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [loadMeetings, loadTeamCard]);
+
+  useEffect(() => {
+    const refreshParam = query.get("refresh");
+    if (refreshParam) {
+      loadMeetings();
+      loadTeamCard();
+    }
+  }, [location.search, loadMeetings, loadTeamCard]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadMeetings();
+      loadTeamCard();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [loadMeetings, loadTeamCard]);
+  
   useEffect(() => {
     if (!username || !role || !id) return;
 
@@ -416,27 +490,28 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   };
 
   const hasUnsavedChanges = () => {
-    if (!isEditing || !originalData) return false;
+  if (!isEditing || !originalData) return false;
+  
+  const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
+  for (const field of fieldsToCheck) {
+    const original = originalData[field];
+    const current = editedData[field];
     
-    const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
-    for (const field of fieldsToCheck) {
-      const original = originalData[field];
-      const current = editedData[field];
-      
-      if (Array.isArray(original) && Array.isArray(current)) {
-        const compareFn = (a, b) => {
-          if (typeof a === 'number' && typeof b === 'number') return a - b;
-          return String(a).localeCompare(String(b));
-        };
-        const sortedOriginal = [...original].toSorted(compareFn);
-        const sortedCurrent = [...current].toSorted(compareFn);
-        if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
-      } else if (original !== current) {
-        return true;
-      }
+    if (Array.isArray(original) && Array.isArray(current)) {
+      const compareFn = (a, b) => {
+        if (typeof a === 'number' && typeof b === 'number') return a - b;
+        return String(a).localeCompare(String(b));
+      };
+      // Используем slice() для создания копии, затем sort() (мутирует копию)
+      const sortedOriginal = original.slice().sort(compareFn);
+      const sortedCurrent = current.slice().sort(compareFn);
+      if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
+    } else if (original !== current) {
+      return true;
     }
-    return false;
-  };
+  }
+  return false;
+};
 
   const handleMeetingClick = async (meeting) => {
     if (hasUnsavedChanges()) {
@@ -642,16 +717,24 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         throw new Error(`Ошибка при удалении: ${response.status} ${errorText}`);
       }
 
-      // Успешно удалено → обновляем список встреч
+      // Успешно удалено → оптимистичное обновление UI
       setMeetings(prev => prev.filter(m => m.id !== meetingToDelete));
       setEditingMeetingId(null);
       setShowDeleteModal(false);
       setMeetingToDelete(null);
+      
+      // ✅ Перезагружаем и встречи, и данные карточки (включая рейтинг)
+      await loadMeetings();
+      await loadTeamCard();
     } catch (error) {
       console.error("Ошибка удаления встречи:", error);
       setMeetingError("Не удалось удалить встречу. Попробуйте позже.");
       setTimeout(() => setMeetingError(""), 3000);
       setShowDeleteModal(false);
+      
+      // При ошибке перезагружаем данные для восстановления актуального состояния
+      await loadMeetings();
+      await loadTeamCard();
     }
   };
 

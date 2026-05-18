@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +27,7 @@ public class DefaultUserController implements UserController {
   public ResponseEntity<Void> enableUser(String username) {
     log.info("Enabling user: {}", username);
     userService.enableUser(username);
-    return null;
+    return ResponseEntity.ok().build();
   }
 
   @Override
@@ -32,7 +35,34 @@ public class DefaultUserController implements UserController {
   public ResponseEntity<Void> disableUser(String username) {
     log.info("Disabling user: {}", username);
     userService.disableUser(username);
-    return null;
+    return ResponseEntity.ok().build();
+  }
+
+  // НОВЫЙ МЕТОД: разблокировка
+  @Override
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Void> unlockUser(String username) {
+    log.info("Unlocking user: {}", username);
+    userService.unlockUser(username);
+    return ResponseEntity.ok().build();
+  }
+
+  // НОВЫЙ МЕТОД: полное удаление
+  @Override
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Void> deleteUser(String username) {
+    log.info("Deleting user permanently: {}", username);
+    userService.deleteUser(username);
+    return ResponseEntity.ok().build();
+  }
+
+  // НОВЫЙ МЕТОД: список команд пользователя
+  @Override
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<List<Map<String, String>>> getUserTeams(String username) {
+    log.info("Getting teams for user: {}", username);
+    List<Map<String, String>> teams = userService.getUserTeams(username);
+    return ResponseEntity.ok(teams);
   }
 
   @Override

@@ -101,4 +101,28 @@ public interface TeamCardsService {
      * @return Количество команд в потоке
      */
     Integer getTeamCardCount(UUID streamId);
+
+    /**
+     * Получить список названий команд пользователя.
+     * @param username Имя пользователя
+     * @return Список названий команд
+     */
+    List<String> getTeamCardNamesByUser(String username);
+
+    /**
+     * Получить все команды пользователя.
+     * @param username Имя пользователя
+     * @return Список команд
+     */
+    List<TeamCard> getTeamCardsByUser(String username);
+
+    /**
+     * Переназначить все команды с одного пользователя на другого.
+     * Обновляет как username, так и trackerFullName для консистентности данных.
+     *
+     * @param fromUsername исходный username трекера
+     * @param toUsername новый username трекера
+     * @param toUserFullName полное имя нового трекера (если известно, иначе используется username)
+     */
+    void reassignTeams(String fromUsername, String toUsername, String toUserFullName);
 }

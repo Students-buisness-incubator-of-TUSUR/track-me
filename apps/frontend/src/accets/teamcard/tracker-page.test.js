@@ -1288,6 +1288,64 @@ test('fetchCards добавляет фильтр по username для роли T
     });
   });
 
+  it('should clear search on Escape key and call applyFilters in TrackerPage', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/streams')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: '1', name: 'Stream', startDate: '2025-01-01', endDate: '2025-12-31' }] }) });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+
+    render(<MemoryRouter><TrackerPage /></MemoryRouter>);
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    global.fetch.mockClear();
+
+    const searchInput = screen.getByPlaceholderText('Найти');
+    fireEvent.change(searchInput, { target: { value: 'test' } });
+
+    fireEvent.keyDown(searchInput, { key: 'Escape' });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+  });
+
+  it('should call applyFilters on Enter key in TrackerPage', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/streams')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: '1', name: 'Stream', startDate: '2025-01-01', endDate: '2025-12-31' }] }) });
+      }
+      if (url.endsWith('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      if (url.includes('/team-cards')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+    });
+
+    render(<MemoryRouter><TrackerPage /></MemoryRouter>);
+
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    global.fetch.mockClear();
+
+    const searchInput = screen.getByPlaceholderText('Найти');
+    fireEvent.change(searchInput, { target: { value: 'test' } });
+
+    fireEvent.keyDown(searchInput, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalled();
+    });
+  });
+
   it('should apply correct class when dropdown is toggled 1', async () => {
     const longDescription = 'This is a very long description that exceeds 100 characters to ensure the "Подробнее" button is shown. We need to test the toggle functionality.';
     const mockCard = {
@@ -1465,5 +1523,53 @@ test('fetchCards добавляет фильтр по username для роли T
     fireEvent.click(marketWrapper.querySelector('.Teams-header-chosefrom-butt-cont'));
     expect(marketWrapper).toHaveClass('Stream-checkboxes_remove-below-border-radius');
   });
+
+  test('перезагружает карточки при visibilitychange когда страница становится видимой', async () => {
+  localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['TRACKER'] }));
+  localStorage.setItem('streamName', 'TestStream');
+
+  let fetchCardsCallCount = 0;
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/api/v1/streams')) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({
+          content: [{ id: '1', name: 'TestStream', startDate: '2025-01-01', endDate: '2025-12-31' }],
+        }),
+      });
+    }
+    if (url.endsWith('/streams/nti-markets')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+    }
+    if (url.includes('/team-cards')) {
+      fetchCardsCallCount++;
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+  });
+
+  await act(async () => {
+    render(<MemoryRouter><TrackerPage /></MemoryRouter>);
+  });
+
+  await waitFor(() => {
+    expect(fetchCardsCallCount).toBeGreaterThan(0);
+  });
+
+  const initialCalls = fetchCardsCallCount;
+
+  // Симулируем visibilitychange — страница становится видимой
+  await act(async () => {
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+
+  await waitFor(() => {
+    expect(fetchCardsCallCount).toBeGreaterThan(initialCalls);
+  });
+});
 
 });

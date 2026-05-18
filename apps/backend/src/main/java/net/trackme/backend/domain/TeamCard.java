@@ -28,6 +28,9 @@ public class TeamCard {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "tracker_full_name")
+    private String trackerFullName;
+
     @Column(columnDefinition = "text")
     private String description;
 

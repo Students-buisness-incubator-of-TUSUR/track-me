@@ -185,9 +185,10 @@ const [userRole, setUserRole] = useState('');
         setCheckedYears({});
         setCheckedMarkets({});
         setCheckedTRLs({});
-        setSelectedYears(new Set()); // Сбрасываем выбранные годы
-        setSelectedMarkets(new Set()); // Сбрасываем выбранные рынки
-        setSelectedTRLs(new Set()); // Сбрасываем выбранные TRL
+        setSelectedYears(new Set());
+        setSelectedMarkets(new Set());
+        setSelectedTRLs(new Set());
+        setSearchQuery("");
         setpage(0);
         fetchData();
     };
@@ -196,6 +197,11 @@ const [userRole, setUserRole] = useState('');
         const query = e.target.value;
         setSearchQuery(query);
     };
+
+    // Клиентская фильтрация по названию (регистронезависимая)
+    const filteredCards = cardd.filter(card =>
+        !searchQuery || card.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const handleYearCheckboxChange = (id, label) => {
         setCheckedYears(prev => {
@@ -249,13 +255,7 @@ const [userRole, setUserRole] = useState('');
         setpage(0);
         const newFilters = [];
 
-        if (searchQuery?.length > 0) {
-            newFilters.push({
-                fieldName: "name",
-                type: "LIKE",
-                value: searchQuery,
-            });
-        }
+        // Поиск по name теперь на клиенте, не отправляем на бэкенд
         if (selectedTRLs.size > 0) {
             newFilters.push({
                 fieldName: "teamCards.readinessLevel",
@@ -292,7 +292,7 @@ const [userRole, setUserRole] = useState('');
     }, [fetchData]);
 
 
-    const visibleCards = cardd.slice(visibleCardsStart, visibleCardsStart + 6);
+    const visibleCards = filteredCards.slice(visibleCardsStart, visibleCardsStart + 6);
 
     const checkboxesData = Array.from({length: numberOfCheckboxes}, (_, index) => ({
         id: `checkbox-${index + 1}`,
@@ -346,6 +346,8 @@ const [userRole, setUserRole] = useState('');
                             onKeyDown={(e) => {
                                 if (e.key === "Enter")
                                     handleApplyFilters();
+                                if (e.key === "Escape")
+                                    setSearchQuery("");
                             }}
                             value={searchQuery}
                             className="Stream-search"

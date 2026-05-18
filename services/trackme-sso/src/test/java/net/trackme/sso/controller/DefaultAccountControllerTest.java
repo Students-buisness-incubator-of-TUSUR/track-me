@@ -1,6 +1,9 @@
 package net.trackme.sso.controller;
 
 import net.trackme.sso.AbstractIntegrationTest;
+import net.trackme.sso.dao.repository.UserRepository;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithAnonymousUser;
@@ -17,6 +20,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DefaultAccountControllerTest extends AbstractIntegrationTest {
   @Autowired
   private MockMvc mockMvc;
+
+  @Autowired
+  private UserRepository userRepository;
+
+  @BeforeEach
+  void setUp() {
+    // Убедимся, что superadmin активен перед каждым тестом
+    userRepository.findByUsername("superadmin").ifPresent(admin -> {
+      if (!admin.getActive()) {
+        admin.setActive(true);
+        userRepository.save(admin);
+      }
+    });
+  }
 
   @Test
   @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
