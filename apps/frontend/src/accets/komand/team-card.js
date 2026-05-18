@@ -59,7 +59,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [showMeetingCreate, setShowMeetingCreate] = useState(false);
   const location = useLocation();
   const passedUsername = location.state?.username;
-  const query = new URLSearchParams(location.search);
+ const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const from = location.state?.from || "/team-cards";
 
   const [role, setRole] = useState(null);
@@ -240,7 +240,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     } catch (error) {
       handleApiError(error, "загрузке встреч");
     }
-  }, [id, currentPage, backendHost2]);
+  }, [id, currentPage]);
 
   const loadTeamCard = useCallback(async () => {
     try {
@@ -277,7 +277,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     } catch (error) {
       console.error("Ошибка при обновлении карточки команды:", error);
     }
-  }, [id, role, backendHost]);
+  }, [id, role]);
 
   useEffect(() => {
     loadMeetings();
@@ -321,7 +321,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       loadMeetings();
       loadTeamCard();
     }
-  }, [location.search, loadMeetings, loadTeamCard]);
+  }, [location.search, loadMeetings, loadTeamCard, query]);
 
   useEffect(() => {
     const interval = setInterval(() => {

@@ -158,16 +158,16 @@ const MeetingCard = () => {
         imagePreview
     );
 
-    const getMissingFields = () => {
-        const missing = [];
-        if (!meetingData.number) missing.push("Номер встречи");
-        if (!meetingData.recordLink) missing.push("Ссылка на запись");
-        if (!meetingData.tasksCurrentMeeting) missing.push("Задачи текущей встречи");
-        if (!meetingData.tasksNextMeeting) missing.push("Задачи следующей встречи");
-        if (!meetingData.teamStatus) missing.push("Статус команды");
-        if (!imagePreview) missing.push("Скриншот встречи");
-        return missing;
-    };
+    // const getMissingFields = () => {
+    //     const missing = [];
+    //     if (!meetingData.number) missing.push("Номер встречи");
+    //     if (!meetingData.recordLink) missing.push("Ссылка на запись");
+    //     if (!meetingData.tasksCurrentMeeting) missing.push("Задачи текущей встречи");
+    //     if (!meetingData.tasksNextMeeting) missing.push("Задачи следующей встречи");
+    //     if (!meetingData.teamStatus) missing.push("Статус команды");
+    //     if (!imagePreview) missing.push("Скриншот встречи");
+    //     return missing;
+    // };
 
     const isValidUrl = (value) => {
         if (!value) return false;
