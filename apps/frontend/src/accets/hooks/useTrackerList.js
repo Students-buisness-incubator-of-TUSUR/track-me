@@ -30,7 +30,7 @@ export function useTrackerList(endpoint) {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-  const trackersPerPage = 15;
+  const trackersPerPage = 16;
 
   // Новое состояние для фильтра заблокированных пользователей
   const [showLockedOnly, setShowLockedOnly] = useState(false);
@@ -75,7 +75,7 @@ export function useTrackerList(endpoint) {
     return endpoint;
   };
 
-  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 15, currentShowLocked = false) => {
+  const fetchTrackers = useCallback(async (currentPage = 0, currentSize = 16, currentShowLocked = false) => {
     try {
       // Validate endpoint
       const validEndpoint = validateTrackerEndpoint(endpoint);
