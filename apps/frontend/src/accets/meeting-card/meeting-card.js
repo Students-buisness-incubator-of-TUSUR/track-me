@@ -581,36 +581,36 @@ const MeetingCard = () => {
                 </div>
 
                 <div className="unique-meeting-info-row unique-date-row">
-                    <span className="unique-label">Дата и время:</span>
-                    {isEditing ? (
-                        <div className="unique-date-input-wrapper">
-                            <input
-                                type="date"
-                                name="startDate"
-                                value={meetingData.startDate ? new Date(meetingData.startDate).toISOString().split('T')[0] : ''}
-                                onChange={handleChange}
-                                className="unique-date-input"
-                                disabled={isMeetingLocked}
-                                min={new Date().toISOString().split('T')[0]}
-                            />
-                            <input
-                                type="time"
-                                name="startTime"
-                                value={meetingData.startDate ? new Date(meetingData.startDate).toISOString().slice(11, 16) : ''}
-                                onChange={handleChange}
-                                className="unique-time-input"
-                                disabled={isMeetingLocked}
-                            />
-                            <img src={pencilIcon} alt="Редактировать" style={{ marginTop: "-6px" }} className="edit-icon23" />
-                        </div>
-                    ) : (
-                        <span className="unique-meeting-date">
-                            {meetingData.startDate
-                                ? `${new Date(meetingData.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })} ${new Date(meetingData.startDate).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
-                                : 'Не указана'}
-                        </span>
-                    )}
-                </div>
+    <span className="unique-label">Дата и время:</span>
+    {isEditing ? (
+        <div className="unique-date-input-wrapper">
+            <input
+                type="date"
+                name="startDate"
+                value={meetingData.startDate ? new Date(meetingData.startDate).toLocaleDateString('en-CA') : ''}
+                onChange={handleChange}
+                className="unique-date-input"
+                disabled={isMeetingLocked}
+                min={new Date().toISOString().split('T')[0]}
+            />
+            <input
+                type="time"
+                name="startTime"
+                value={meetingData.startDate ? new Date(meetingData.startDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : ''}
+                onChange={handleChange}
+                className="unique-time-input"
+                disabled={isMeetingLocked}
+            />
+            <img src={pencilIcon} alt="Редактировать" style={{ marginTop: "-6px" }} className="edit-icon23" />
+        </div>
+    ) : (
+        <span className="unique-meeting-date">
+            {meetingData.startDate
+                ? `${new Date(meetingData.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })} ${new Date(meetingData.startDate).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
+                : 'Не указана'}
+        </span>
+    )}
+</div>
 
                 {renderTextareaSection("tasksCurrentMeeting", "Задачи к следующей встрече:", meetingData.tasksCurrentMeeting)}
                 {renderTextareaSection("tasksNextMeeting", "Выполнили задачи прошлой встречи или нет, общая информация по команде:", meetingData.tasksNextMeeting)}
