@@ -3,7 +3,6 @@ package net.trackme.meetingservice.services;
 import net.trackme.meetingservice.AbstractIntegrationTest;
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
 import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
-import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
@@ -25,13 +24,12 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @TestPropertySource(properties = {
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration",
         "spring.kafka.bootstrap-servers=",
-        "spring.kafka.producer.enabled=false",
-        "spring.kafka.consumer.enabled=false"
+        "kafka.enabled=false"
 })
 class MeetingServiceImplTest extends AbstractIntegrationTest {
 
@@ -84,7 +82,7 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(username = "tracker_user", roles = "TRACKER")
-    void createMeeting_forActiveTeam_tracker_allowed() {
+    void createMeetingForActiveTeamTrackerAllowed() {
         when(userBackendApiClient.getTeamCardById(activeTeamId)).thenReturn(activeTeamCard);
 
         var createDto = MeetingCreateDto.builder()
@@ -101,7 +99,7 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(username = "tracker_user", roles = "TRACKER")
-    void createMeeting_forPassiveTeam_tracker_throwsException() {
+    void createMeetingForPassiveTeamTrackerThrowsException() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
         var createDto = MeetingCreateDto.builder()
@@ -116,7 +114,7 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void createMeeting_forPassiveTeam_admin_allowed() {
+    void createMeetingForPassiveTeamAdminAllowed() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
         var createDto = MeetingCreateDto.builder()
@@ -131,17 +129,14 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(username = "tracker_user", roles = "TRACKER")
-    void updateMeeting_forPassiveTeam_tracker_throwsException() {
+    void updateMeetingForPassiveTeamTrackerThrowsException() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
-        // Создаём встречу через админа (тест с ролью TRACKER, но метод создания требует прав)
-        // Для теста создаём встречу напрямую через репозиторий
         var createDto = MeetingCreateDto.builder()
                 .number("1")
                 .startDate(OffsetDateTime.now().plusDays(1))
                 .build();
 
-        // Временно повышаем права для создания встречи (через репозиторий)
         var createdMeeting = meetingService.createMeeting(passiveTeamId, createDto);
 
         var updateDto = MeetingUpdateDto.builder()
@@ -155,7 +150,7 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
-    void updateMeeting_forPassiveTeam_admin_allowed() {
+    void updateMeetingForPassiveTeamAdminAllowed() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
         var createDto = MeetingCreateDto.builder()
