@@ -1122,6 +1122,45 @@ test('fetchCards добавляет фильтр по username для роли T
     expect(document.querySelector('.Stream-footer-button-4')).toBeInTheDocument(); // Проверка пагинации (totalPages > 1)
   });
 
+  describe('fetchAllCards (client-side full search)', () => {
+    
+    test('обрабатывает ошибку при загрузке страниц и показывает сообщение об ошибке', async () => {
+      localStorage.setItem('user', JSON.stringify({ username: 'testuser', roles: ['TRACKER'] }));
+      localStorage.setItem('streamName', 'TestStream');
+
+      global.fetch = jest.fn((url) => {
+        if (url.includes('/api/v1/streams')) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+        }
+        if (url.endsWith('/streams/nti-markets')) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+        }
+        if (url.includes('/team-cards')) {
+          // simulate server error on first page when doing full fetch
+          return Promise.resolve({ ok: false, status: 500 });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [], page: { totalPages: 1 } }) });
+      });
+
+      await act(async () => {
+        render(
+          <MemoryRouter>
+            <TrackerPage />
+          </MemoryRouter>
+        );
+      });
+
+      const searchInput = await screen.findByPlaceholderText('Найти');
+      fireEvent.change(searchInput, { target: { value: 'whatever' } });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Ошибка при загрузке карточек/)).toBeInTheDocument();
+      });
+    });
+
+    
+  });
+
   // Тест для строк 605-618, 701-708, 714-717: Рендеринг карточек с разными статусами и данными
   test('Рендеринг карточек с разными статусами, рынками НТИ и потоками (605-618, 701-708, 714-717)', async () => {
     const mockCards = [
