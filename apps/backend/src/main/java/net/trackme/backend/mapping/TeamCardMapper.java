@@ -24,6 +24,7 @@ public interface TeamCardMapper {
     @Mapping(target = "streams", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "meetingGrades", ignore = true)
     @Mapping(
             target = "readinessLevel",
             expression = "java( ReadinessLevel.fromValue(dto.readinessLevel()) )")
@@ -41,6 +42,7 @@ public interface TeamCardMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "passive", source = "passive")
+    @Mapping(target = "meetingGrades", ignore = true)
     @Mapping(
             target = "readinessLevel",
             expression = "java( dto.readinessLevel() == null ? null : ReadinessLevel.fromValue(dto.readinessLevel()) )")

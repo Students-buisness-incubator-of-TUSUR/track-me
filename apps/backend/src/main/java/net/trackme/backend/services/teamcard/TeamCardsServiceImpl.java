@@ -1,204 +1,236 @@
-    package net.trackme.backend.services.teamcard;
+package net.trackme.backend.services.teamcard;
 
-    import jakarta.transaction.Transactional;
-    import lombok.RequiredArgsConstructor;
-    import lombok.extern.slf4j.Slf4j;
-    import net.trackme.backend.domain.TeamCard;
-    import net.trackme.backend.messaging.internal.TeamCardChangedInternalEvent;
-    import net.trackme.backend.messaging.internal.TeamCardStreamAddedInternalEvent;
-    import net.trackme.backend.models.TeamCardStatus;
-    import net.trackme.backend.repos.TeamCardsRepository;
-    import net.trackme.backend.services.exceptions.TeamCardNotFoundException;
-    import net.trackme.backend.services.stream.StreamService;
-    import net.trackme.commons.acl.AclService;
-    import org.springframework.context.ApplicationEventPublisher;
-    import org.springframework.data.domain.Page;
-    import org.springframework.data.domain.Pageable;
-    import org.springframework.data.jpa.domain.Specification;
-    import org.springframework.security.access.prepost.PreAuthorize;
-    import org.springframework.security.core.context.SecurityContextHolder;
-    import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.trackme.backend.domain.TeamCard;
+import net.trackme.backend.messaging.internal.TeamCardChangedInternalEvent;
+import net.trackme.backend.messaging.internal.TeamCardStreamAddedInternalEvent;
+import net.trackme.backend.models.TeamCardStatus;
+import net.trackme.backend.repos.TeamCardsRepository;
+import net.trackme.backend.services.exceptions.TeamCardNotFoundException;
+import net.trackme.backend.services.stream.StreamService;
+import net.trackme.commons.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-    import java.util.Collections;
-    import java.util.UUID;
+import java.util.Collections;
+import java.util.UUID;
+import java.util.List;
 
-    @Slf4j
-    @Service
+@Slf4j
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class TeamCardsServiceImpl implements TeamCardsService {
+
+    private final TeamCardsRepository teamCardsRepository;
+    private final StreamService streamService;
+    private final AclService aclService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    @Override
+    public TeamCard createTeamCard(TeamCard createTeamCard) {
+        createTeamCard.setStatus(TeamCardStatus.OK);
+        if (createTeamCard.getTrackerFullName() == null) {
+            createTeamCard.setTrackerFullName(createTeamCard.getUsername());
+        }
+        createTeamCard = teamCardsRepository.save(createTeamCard);
+        var username = SecurityContextHolder.getContext().getAuthentication().getName();
+        aclService.createAclForUser(createTeamCard, username);
+        return createTeamCard;
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#teamCardId, 'net.trackme.backend.domain.TeamCard', 'WRITE')")
+    public TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCardDto) {
+        var teamCard = get(teamCardId);
+        updateTeamCard(teamCardDto, teamCard);
+        teamCard = teamCardsRepository.save(teamCard);
+
+        eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
+                teamCardId,
+                teamCard.getName(),
+                teamCard.getUsername(),
+                teamCard.getTrackerFullName()
+        ));
+
+        return teamCard;
+    }
+
+    @Override
+    public Page<TeamCard> getTeamCards(Specification<TeamCard> specification, Pageable pageable) {
+        return teamCardsRepository.findAll(specification, pageable);
+    }
+
+    @Override
+    public TeamCard getTeamCard(UUID id) {
+        return get(id);
+    }
+
+    @Override
+    @PreAuthorize("hasPermission(#id, 'net.trackme.backend.domain.TeamCard', 'DELETE')")
+    public void deleteTeamCard(UUID id) {
+        teamCardsRepository.deleteById(id);
+    }
+
+    @Override
     @Transactional
-    @RequiredArgsConstructor
-    public class TeamCardsServiceImpl implements TeamCardsService {
+    @PreAuthorize("hasRole('ADMIN')")
+    public TeamCard createTeamCard(TeamCard create, String username) {
+        create.setUsername(username);
+        create.setStatus(TeamCardStatus.OK);
+        if (create.getTrackerFullName() == null) {
+            create.setTrackerFullName(username);
+        }
+        create = teamCardsRepository.save(create);
+        aclService.createAclForUser(create, username, SecurityContextHolder.getContext().getAuthentication().getName());
+        return create;
+    }
 
-        /**
-         * Репозиторий карточек команд.
-         */
-        private final TeamCardsRepository teamCardsRepository;
-
-        /**
-         * Сервис потоков.
-         */
-        private final StreamService streamService;
-
-        /**
-         * Сервис ACL.
-         */
-        private final AclService aclService;
-
-        /**
-         * Публикатор внутренних системных ивентов.
-         */
-        private final ApplicationEventPublisher eventPublisher;
-
-        @Override
-        public TeamCard createTeamCard(TeamCard createTeamCard) {
-            createTeamCard.setStatus(TeamCardStatus.OK);
-            createTeamCard = teamCardsRepository.save(createTeamCard);
-            var username = SecurityContextHolder.getContext().getAuthentication().getName();
-            aclService.createAclForUser(createTeamCard, username);
-            return createTeamCard;
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCardDto, UUID streamId, String username) {
+        var teamCard = get(teamCardId);
+        updateTeamCard(teamCardDto, teamCard);
+        if (streamId != null) {
+            var stream = streamService.getById(streamId);
+            teamCard.addStream(stream);
+            eventPublisher.publishEvent(new TeamCardStreamAddedInternalEvent(teamCardId, streamId));
+        }
+        if (username != null) {
+            teamCard.setUsername(username);
+            aclService.updateAclOwner(teamCard, username);
         }
 
-        @Override
-        @PreAuthorize("hasPermission(#teamCardId, 'net.trackme.backend.domain.TeamCard', 'WRITE')")
-        public TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCardDto) {
-            var teamCard = get(teamCardId);
-            updateTeamCard(teamCardDto, teamCard);
-            teamCard = teamCardsRepository.save(teamCard);
-
-            eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
+        teamCard = teamCardsRepository.save(teamCard);
+        eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
                 teamCardId,
                 teamCard.getName(),
-                teamCard.getUsername()
-            ));
+                teamCard.getUsername(),
+                teamCard.getTrackerFullName()
+        ));
 
-            return teamCard;
+        return teamCard;
+    }
+
+    @Override
+    public Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable) {
+        return teamCardsRepository.findAll(specification, pageable);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public TeamCard getTeamCard(UUID id, String username) {
+        return get(id, username);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteTeamCard(UUID id, String username) {
+        var teamCard = get(id, username);
+        aclService.deleteAcl(teamCard);
+        teamCardsRepository.deleteByIdAndUsername(id, username);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
+        if (streamId != null) {
+            var stream = streamService.getById(streamId);
+            teamCard.addStream(stream);
         }
+        return createTeamCard(teamCard, username);
+    }
 
-        @Override
-        public Page<TeamCard> getTeamCards(Specification<TeamCard> specification,
-                                           Pageable pageable) {
-            return teamCardsRepository.findAll(specification, pageable);
-        }
+    @Override
+    public Integer getTeamCardCount(UUID streamId) {
+        return teamCardsRepository.countByStreamsIdIn(Collections.singletonList(streamId));
+    }
 
-        @Override
-        public TeamCard getTeamCard(UUID id) {
-            return get(id);
-        }
+    @Override
+    @Transactional
+    public List<String> getTeamCardNamesByUser(String username) {
+        List<TeamCard> teams = teamCardsRepository.findByUsername(username);
+        return teams.stream().map(TeamCard::getName).toList();
+    }
 
-        @Override
-        @PreAuthorize("hasPermission(#id, 'net.trackme.backend.domain.TeamCard', 'DELETE')")
-        public void deleteTeamCard(UUID id) {
-            teamCardsRepository.deleteById(id);
-        }
+    @Override
+    public List<TeamCard> getTeamCardsByUser(String username) {
+        return teamCardsRepository.findByUsername(username);
+    }
 
-        @Override
-        @Transactional
-        @PreAuthorize("hasRole('ADMIN')")
-        public TeamCard createTeamCard(TeamCard create, String username) {
-            create.setUsername(username);
-            create.setStatus(TeamCardStatus.OK);
-            create = teamCardsRepository.save(create);
-            aclService.createAclForUser(
-                    create, username, SecurityContextHolder.getContext().getAuthentication().getName());
-            return create;
-        }
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void reassignTeams(String fromUsername, String toUsername, String toUserFullName) {
+        List<TeamCard> teams = teamCardsRepository.findByUsername(fromUsername);
+        log.info("Reassigning {} teams from '{}' to '{}'", teams.size(), fromUsername, toUsername);
 
-        @Override
-        @PreAuthorize("hasRole('ADMIN')")
-        public TeamCard updateTeamCard(UUID teamCardId,
-                                       TeamCard teamCardDto,
-                                       UUID streamId,
-                                       String username) {
-            var teamCard = get(teamCardId);
-            updateTeamCard(teamCardDto, teamCard);
-            if (streamId != null) {
-                var stream = streamService.getById(streamId);
-                teamCard.addStream(stream);
-                eventPublisher.publishEvent(new TeamCardStreamAddedInternalEvent(
-                    teamCardId,
-                    streamId
-                ));
-            }
-            if (username != null) {
-                teamCard.setUsername(username);
-                aclService.updateAclOwner(teamCard, username);
-            }
+        String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank()) ? toUserFullName : toUsername;
 
-            teamCard = teamCardsRepository.save(teamCard);
+        for (TeamCard team : teams) {
+            String oldUsername = team.getUsername();
+            String oldFullName = team.getTrackerFullName();
+
+            team.setUsername(toUsername);
+            team.setTrackerFullName(newTrackerFullName);
+            aclService.updateAclOwner(team, toUsername);
             eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
-                teamCardId,
-                teamCard.getName(),
-                teamCard.getUsername()
+                    team.getId(),
+                    team.getName(),
+                    toUsername,
+                    newTrackerFullName
             ));
 
-            return teamCard;
+            log.debug("Reassigned team '{}': {} -> {}, fullName: '{}' -> '{}'",
+                    team.getId(), oldUsername, toUsername, oldFullName, newTrackerFullName);
         }
 
-        @Override
-        public Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable) {
-            return teamCardsRepository.findAll(specification, pageable);
-        }
+        teamCardsRepository.saveAll(teams);
+        log.info("Successfully reassigned {} teams", teams.size());
+    }
 
-        @Override
-        @PreAuthorize("hasRole('ADMIN')")
-        public TeamCard getTeamCard(UUID id, String username) {
-            return get(id, username);
-        }
+    private TeamCard get(UUID teamCardId) {
+        return teamCardsRepository.findById(teamCardId)
+                .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
+    }
 
-        @Override
-        @PreAuthorize("hasRole('ADMIN')")
-        public void deleteTeamCard(UUID id, String username) {
-            var teamCard = get(id, username);
-            aclService.deleteAcl(teamCard);
-            teamCardsRepository.deleteByIdAndUsername(id, username);
-        }
+    private TeamCard get(UUID teamCardId, String username) {
+        return teamCardsRepository.findByIdAndUsername(teamCardId, username)
+                .orElseThrow(() -> new TeamCardNotFoundException(teamCardId, username));
+    }
 
-        @Override
-        @Transactional
-        @PreAuthorize("hasRole('ADMIN')")
-        public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
-            if (streamId != null) {
-                var stream = streamService.getById(streamId);
-                teamCard.addStream(stream);
-            }
-            return createTeamCard(teamCard, username);
+    private void updateTeamCard(TeamCard source, TeamCard target) {
+        if (source.getName() != null) {
+            target.setName(source.getName());
         }
-
-        @Override
-        public Integer getTeamCardCount(UUID streamId) {
-            return teamCardsRepository.countByStreamsIdIn(Collections.singletonList(streamId));
+        if (source.getDescription() != null) {
+            target.setDescription(source.getDescription());
         }
-
-        private TeamCard get(UUID teamCardId) {
-            return teamCardsRepository.findById(teamCardId)
-                    .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
+        if (source.getTrackerFullName() != null) {
+            target.setTrackerFullName(source.getTrackerFullName());
         }
-
-        private TeamCard get(UUID teamCardId, String username) {
-            return teamCardsRepository.findByIdAndUsername(teamCardId, username)
-                    .orElseThrow(() -> new TeamCardNotFoundException(teamCardId, username));
+        if (source.getMeetingRoomLink() != null) {
+            target.setMeetingRoomLink(source.getMeetingRoomLink());
         }
-
-        private void updateTeamCard(TeamCard source, TeamCard target) {
-            if (source.getName() != null) {
-                target.setName(source.getName());
-            }
-            if (source.getDescription() != null) {
-                target.setDescription(source.getDescription());
-            }
-            if (source.getMeetingRoomLink() != null) {
-                target.setMeetingRoomLink(source.getMeetingRoomLink());
-            }
-            if (source.getStatus() != null) {
-                target.setStatus(source.getStatus());
-            }
-            if (!source.getNtiMarkets().isEmpty()) {
-                target.setNtiMarkets(source.getNtiMarkets());
-            }
-            if (source.getReadinessLevel() != null) {
-                target.setReadinessLevel(source.getReadinessLevel());
-            }
-            if (source.getPassive() != null) {
-                target.setPassive(source.getPassive());
-            }
+        if (source.getStatus() != null) {
+            target.setStatus(source.getStatus());
+        }
+        if (!source.getNtiMarkets().isEmpty()) {
+            target.setNtiMarkets(source.getNtiMarkets());
+        }
+        if (source.getReadinessLevel() != null) {
+            target.setReadinessLevel(source.getReadinessLevel());
+        }
+        if (source.getPassive() != null) {
+            target.setPassive(source.getPassive());
         }
     }
+}

@@ -8,6 +8,7 @@ public record TeamCardUpdatedEvent(
     UUID teamCardId,
     String newName,
     String newUsername,
-    Boolean newPassive
+    Boolean newPassive,
+    String trackerFullName
 ) {
 }
