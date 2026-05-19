@@ -43,7 +43,7 @@ const [userRole, setUserRole] = useState('');
             const sortParams = 'startDate,desc&sort=name,asc';
             const response = await axios.post(`${backendHost}/api/v1/admin/streams?page=${page}&size=6&sort=${sortParams}`,
                 filters,
-                {   
+                {
                     ...getCsrfConfig(),
                     headers: {
                         "Content-Type": "application/json",
@@ -126,8 +126,6 @@ const [userRole, setUserRole] = useState('');
         }
     }, [backendHost]);
 
-    
-
     const handleClick = () => {
         setIsVisible(!isVisible);
     };
@@ -185,10 +183,9 @@ const [userRole, setUserRole] = useState('');
         setCheckedYears({});
         setCheckedMarkets({});
         setCheckedTRLs({});
-        setSelectedYears(new Set());
-        setSelectedMarkets(new Set());
-        setSelectedTRLs(new Set());
-        setSearchQuery("");
+        setSelectedYears(new Set()); // Сбрасываем выбранные годы
+        setSelectedMarkets(new Set()); // Сбрасываем выбранные рынки
+        setSelectedTRLs(new Set()); // Сбрасываем выбранные TRL
         setpage(0);
         fetchData();
     };
@@ -197,11 +194,6 @@ const [userRole, setUserRole] = useState('');
         const query = e.target.value;
         setSearchQuery(query);
     };
-
-    // Клиентская фильтрация по названию (регистронезависимая)
-    const filteredCards = cardd.filter(card =>
-        !searchQuery || card.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
 
     const handleYearCheckboxChange = (id, label) => {
         setCheckedYears(prev => {
@@ -255,7 +247,13 @@ const [userRole, setUserRole] = useState('');
         setpage(0);
         const newFilters = [];
 
-        // Поиск по name теперь на клиенте, не отправляем на бэкенд
+        if (searchQuery?.length > 0) {
+            newFilters.push({
+                fieldName: "name",
+                type: "LIKE",
+                value: searchQuery,
+            });
+        }
         if (selectedTRLs.size > 0) {
             newFilters.push({
                 fieldName: "teamCards.readinessLevel",
@@ -292,7 +290,7 @@ const [userRole, setUserRole] = useState('');
     }, [fetchData]);
 
 
-    const visibleCards = filteredCards.slice(visibleCardsStart, visibleCardsStart + 6);
+    const visibleCards = cardd.slice(visibleCardsStart, visibleCardsStart + 6);
 
     const checkboxesData = Array.from({length: numberOfCheckboxes}, (_, index) => ({
         id: `checkbox-${index + 1}`,
@@ -346,8 +344,6 @@ const [userRole, setUserRole] = useState('');
                             onKeyDown={(e) => {
                                 if (e.key === "Enter")
                                     handleApplyFilters();
-                                if (e.key === "Escape")
-                                    setSearchQuery("");
                             }}
                             value={searchQuery}
                             className="Stream-search"
@@ -473,8 +469,8 @@ const [userRole, setUserRole] = useState('');
                     <Link to="/team-cards" key={card.id} onClick={() => perehod(card)}
                           className="Stream-card">
                         <div className="Stream-card-pic">
-                            <img 
-                                src={imageUrls[card.id] || StreamPlaceholder} 
+                            <img
+                                src={imageUrls[card.id] || StreamPlaceholder}
                                 alt=""
                                 onError={(e) => {
                                     // e.target.onerror = null;

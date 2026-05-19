@@ -5,9 +5,10 @@ import java.util.UUID;
 
 @Builder
 public record TeamCardUpdatedEvent(
-    UUID teamCardId,
-    String newName,
-    String newUsername,
-    String trackerFullName
+        UUID teamCardId,
+        String newName,
+        String newUsername,
+        Boolean newPassive,
+        String trackerFullName
 ) {
 }

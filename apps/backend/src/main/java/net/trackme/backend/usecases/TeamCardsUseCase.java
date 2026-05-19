@@ -27,7 +27,9 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.UUID;
 
-import static net.trackme.backend.domain.spec.TeamCardSpecification.*;
+import static net.trackme.backend.domain.spec.TeamCardSpecification.userEquals;
+import static net.trackme.backend.domain.spec.TeamCardSpecification.withFilters;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Component
 @RequiredArgsConstructor
@@ -71,6 +73,21 @@ public class TeamCardsUseCase {
 
     public TeamCardDto updateTeamCard(UUID teamCardId,
                                       TeamCardUpdateDto createOrUpdateDto) {
+        var existingTeamCard = teamCardsService.getTeamCard(teamCardId);
+
+        // ПРОВЕРКА: если команда пассивна, проверить роль пользователя
+        if (existingTeamCard.getPassive() != null && existingTeamCard.getPassive()) {
+            // Получаем роль текущего пользователя
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") ||
+                            a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+
+            if (!isAdmin) {
+                throw new IllegalStateException("Нельзя редактировать пассивную команду.");
+            }
+        }
+
         var ntiMarketIds = createOrUpdateDto.ntiMarketIds();
         var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
         var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
@@ -113,7 +130,10 @@ public class TeamCardsUseCase {
         try {
             teamCardsReportService.streamRecordsToExcel(filters, fetchPageSize, exportLimit, outputStream);
         } catch (IOException e) {
-            throw new ExcelExportException("Ошибка генерации Excel отчёта", e);
+            throw new ExcelExportException(
+                    "Ошибка генерации Excel отчёта", e
+            );
         }
     }
 }
+

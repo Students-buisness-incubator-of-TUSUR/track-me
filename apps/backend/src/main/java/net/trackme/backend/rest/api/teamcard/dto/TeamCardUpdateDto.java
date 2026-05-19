@@ -24,12 +24,6 @@ public record TeamCardUpdateDto(
         )
         String description,
 
-        @Schema(
-                description = "ФИО трекера",
-                example = "Иванов Иван Иванович"
-        )
-        String trackerFullName,  
-
         @URL(message = "Ссылка должна быть корректным URL (например: https://webinar.tusur.ru/b/jm7-p47-8j8-3ib)")
         @Schema(
                 description = "Ссылка на комнату для встреч",
@@ -48,6 +42,9 @@ public record TeamCardUpdateDto(
                 regexp = "0-2|3-5|6-8|9-10",
                 message = "Уровень готовности технологии должен быть одним из значений: 0-2, 3-5, 6-8, 9-10"
         )
-        String readinessLevel
+        String readinessLevel,
+
+        @Schema(description = "Пассивный статус команды")
+        Boolean passive
 ) {
 }

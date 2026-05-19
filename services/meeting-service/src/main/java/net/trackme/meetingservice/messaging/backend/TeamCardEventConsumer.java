@@ -10,58 +10,51 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Потребитель событий TeamCard из Kafka.
- * Обрабатывает обновления карточек команд и привязку к потокам.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TeamCardEventConsumer {
 
-    /**
-     * Репозиторий для операций с метаданными встреч.
-     */
     private final MeetingMetadataRepository metadataRepository;
-
-    /**
-     * Клиент для API SSO для получения информации о пользователях.
-     */
     private final SsoApiClient ssoApiClient;
 
     /**
-     * Обрабатывает обновление карточки команды.
-     * Обновляет название команды и информацию о трекере.
-     *
-     * @param event событие обновления карточки команды, содержащее новое название и данные трекера
+     * Обрабатывает изменение названия команды или смену трекера.
      */
     @Transactional
     @KafkaListener(topics = "team-card-updated")
     public void handleTeamCardUpdated(TeamCardUpdatedEvent event) {
-        log.info("[Kafka] Обновление метаданных для команды {}. Новое название: {}, новый трекер: {}, ФИО: {}",
-                event.teamCardId(), event.newName(), event.newUsername(), event.trackerFullName());
+        log.info("[Kafka] Обновление метаданных для команды {}. Новое название: {}, новый трекер: {}",
+                event.teamCardId(), event.newName(), event.newUsername());
 
         String newUsername = event.newUsername();
-        String fullName = event.trackerFullName();
+
+        String fullName = null;
         String trackerId = null;
 
         if (newUsername != null) {
             try {
+                log.debug("[Kafka] Получен новый username: '{}', поиск в SSO...", event.newUsername());
                 var trackerData = ssoApiClient.getTrackers().stream()
-                        .filter(u -> u.getUsername().equalsIgnoreCase(newUsername))
+                        .filter(u -> u.getUsername().equalsIgnoreCase(event.newUsername()))
                         .findFirst();
 
                 if (trackerData.isPresent()) {
+                    fullName = trackerData.get().getFullName();
                     trackerId = trackerData.get().getId();
-                    // Если fullName не пришёл в событии, берём из SSO
-                    if (fullName == null) {
-                        fullName = trackerData.get().getFullName();
-                    }
+                    log.debug("[Kafka] Трекер найден в SSO: '{}'. Установлены fullName: '{}' и trackerId: '{}'",
+                            event.newUsername(), fullName, trackerId);
+                } else {
+                    log.warn("[Kafka] Трекер {} не найден в SSO для синхронизации", event.newUsername());
                 }
             } catch (Exception e) {
-                log.error("[Kafka] Ошибка при получении данных из SSO: {}", e.getMessage());
+                log.error("[Kafka] Ошибка при получении данных из SSO во время синхронизации: {}", e.getMessage());
             }
+        } else {
+            log.debug("[Kafka] Username трекера не изменился или отсутствует, обновление данных SSO не требуется.");
         }
+
+        metadataRepository.updatePassiveFlag(event.teamCardId(), event.newPassive());
 
         metadataRepository.updateMetadata(
                 event.teamCardId(),
@@ -73,9 +66,7 @@ public class TeamCardEventConsumer {
     }
 
     /**
-     * Обрабатывает добавление привязки потока к карточке команды.
-     *
-     * @param event событие добавления потока, содержащее ID потока и ID карточки команды
+     * Обрабатывает добавление привязки команды к потоку.
      */
     @Transactional
     @KafkaListener(topics = "team-card-stream-added")
@@ -85,9 +76,7 @@ public class TeamCardEventConsumer {
     }
 
     /**
-     * Обрабатывает удаление привязки потока от карточки команды.
-     *
-     * @param event событие удаления потока, содержащее ID потока и ID карточки команды
+     * Обрабатывает удаление привязки команды к потоку.
      */
     @Transactional
     @KafkaListener(topics = "team-card-stream-removed")

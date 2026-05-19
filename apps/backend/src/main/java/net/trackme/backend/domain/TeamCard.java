@@ -38,6 +38,15 @@ public class TeamCard {
     @Builder.Default
     private Boolean enabled = true;
 
+    /**
+     * Пассивный статус команды.
+     * Если true - команда не доступна для редактирования трекером,
+     * её рейтинг фиксируется, а план встреч отображается как есть.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean passive = false;
+
     @Column(length = 32)
     @Enumerated(EnumType.STRING)
     private TeamCardStatus status;
@@ -99,19 +108,7 @@ public class TeamCard {
     public Integer getMeetingsCountPlan() {
         return streams.stream()
                 .findFirst()
-                .map(stream -> {
-                    java.time.LocalDate now = java.time.LocalDate.now();
-                    java.time.LocalDate start = stream.getTrackStartDate();
-
-                    if (start == null || now.isBefore(start)) {
-                        return 0;
-                    }
-
-                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(start, now);
-                    if (daysBetween <= 7) return 1;
-
-                    return (int) ((daysBetween - 1) / 7) + 1;
-                })
+                .map(Stream::getMeetingsCount)
                 .orElse(0);
     }
 

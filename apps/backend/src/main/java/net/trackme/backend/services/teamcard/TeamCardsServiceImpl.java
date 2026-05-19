@@ -1,6 +1,8 @@
 package net.trackme.backend.services.teamcard;
 
+import jakarta.persistence.Column;
 import jakarta.transaction.Transactional;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.domain.TeamCard;
@@ -21,7 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.UUID;
-import java.util.List;  
+import java.util.List;
 
 @Slf4j
 @Service
@@ -69,10 +71,10 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         teamCard = teamCardsRepository.save(teamCard);
 
         eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
-            teamCardId,
-            teamCard.getName(),
-            teamCard.getUsername(),
-            teamCard.getTrackerFullName()
+                teamCardId,
+                teamCard.getName(),
+                teamCard.getUsername(),
+                teamCard.getTrackerFullName()
         ));
 
         return teamCard;
@@ -122,8 +124,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
             var stream = streamService.getById(streamId);
             teamCard.addStream(stream);
             eventPublisher.publishEvent(new TeamCardStreamAddedInternalEvent(
-                teamCardId,
-                streamId
+                    teamCardId,
+                    streamId
             ));
         }
         if (username != null) {
@@ -133,10 +135,10 @@ public class TeamCardsServiceImpl implements TeamCardsService {
 
         teamCard = teamCardsRepository.save(teamCard);
         eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
-            teamCardId,
-            teamCard.getName(),
-            teamCard.getUsername(),
-            teamCard.getTrackerFullName()
+                teamCardId,
+                teamCard.getName(),
+                teamCard.getUsername(),
+                teamCard.getTrackerFullName()
         ));
 
         return teamCard;
@@ -209,6 +211,9 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         if (source.getReadinessLevel() != null) {
             target.setReadinessLevel(source.getReadinessLevel());
         }
+        if (source.getPassive() != null) {
+            target.setPassive(source.getPassive());
+        }
     }
 
     @Override
@@ -216,8 +221,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     public List<String> getTeamCardNamesByUser(String username) {
         List<TeamCard> teams = teamCardsRepository.findByUsername(username);
         return teams.stream()
-            .map(TeamCard::getName)
-            .toList();
+                .map(TeamCard::getName)
+                .toList();
     }
 
     @Override
@@ -239,36 +244,37 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     public void reassignTeams(String fromUsername, String toUsername, String toUserFullName) {
         List<TeamCard> teams = teamCardsRepository.findByUsername(fromUsername);
         log.info("Reassigning {} teams from '{}' to '{}'", teams.size(), fromUsername, toUsername);
-    
+
         // Используем полное имя нового трекера, если не предоставлено - используем username
-        String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank()) 
-            ? toUserFullName 
-            : toUsername;
-        
+        String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank())
+                ? toUserFullName
+                : toUsername;
+
         for (TeamCard team : teams) {
             String oldUsername = team.getUsername();
             String oldFullName = team.getTrackerFullName();
-            
+
             // Обновляем оба поля для консистентности
             team.setUsername(toUsername);
             team.setTrackerFullName(newTrackerFullName);
-            
+
             // Обновляем ACL владельца
             aclService.updateAclOwner(team, toUsername);
-            
+
             // Публикуем событие с обновленными данными
             eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
-                team.getId(),
-                team.getName(),
-                toUsername,
-                newTrackerFullName
+                    team.getId(),
+                    team.getName(),
+                    toUsername,
+                    newTrackerFullName
             ));
-            
-            log.debug("Reassigned team '{}': {} -> {}, fullName: '{}' -> '{}'", 
-                team.getId(), oldUsername, toUsername, oldFullName, newTrackerFullName);
+
+            log.debug("Reassigned team '{}': {} -> {}, fullName: '{}' -> '{}'",
+                    team.getId(), oldUsername, toUsername, oldFullName, newTrackerFullName);
         }
 
         teamCardsRepository.saveAll(teams);
         log.info("Successfully reassigned {} teams", teams.size());
     }
 }
+

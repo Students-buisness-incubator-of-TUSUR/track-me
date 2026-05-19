@@ -30,18 +30,15 @@ const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
 const [page, setPage] = useState(0);
 const pageSize = 18; // или 10, если хочешь другой размер
 const [totalPages, setTotalPages] = useState(1);
-const [allCards, setAllCards] = useState([]);
-const [allCardsLoaded, setAllCardsLoaded] = useState(false);
-const [currentFilters, setCurrentFilters] = useState([]);
     const formatDateToYMD = (dateString) => {
     if (!dateString) return "";
-  
+
     try {
         const date = new Date(dateString);
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
-        
+
         return `${year}.${month}.${day}`;
     } catch (e) {
         console.error("Error formatting date:", e);
@@ -84,7 +81,7 @@ const [currentFilters, setCurrentFilters] = useState([]);
                 : [...prev, trlValue] // Добавляем, если не выбран
         );
     };
-    
+
 
     const handleNtiMarketChange = (market) => {
         setSelectedNtiMarkets((prev) =>
@@ -108,15 +105,15 @@ const [currentFilters, setCurrentFilters] = useState([]);
                 : [...prev, year]
         );
     };
-    
+
     const user = useGetUserInfo();
     useEffect(() => {
         setUserRole(user.roles[0]);
         setusername(user.username);
     }, [user]);
 
-    
-    
+
+
 
     // Данные для чекбоксов "год"
     const checkboxesData = Array.from({length: numberOfCheckboxes1}, (_, index) => ({
@@ -124,57 +121,47 @@ const [currentFilters, setCurrentFilters] = useState([]);
         label: `${index + 2016}`,
     }));
 
-    const buildTeamCardFilters = useCallback((filters = [], searchParams) => {
-        const allFilters = [...filters];
+    // Функция для запроса карточек с заданными фильтрами
+   const fetchCards = useCallback((filters = [], searchParams) => {
+    if (!userRole || !username) return;
 
-        if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-            if (!showAllCards && streamName) {
-                allFilters.push({
-                    fieldName: "streams.name",
-                    type: "EQ",
-                    value: streamName,
-                });
-            }
+    const allFilters = [...filters];
 
-            const searchUsername = searchParams?.get("username");
-            if (searchUsername) {
-                allFilters.push({
-                    fieldName: "username",
-                    type: "EQ",
-                    value: searchUsername,
-                });
-            } else if (showMyTeamsOnly) {
-                allFilters.push({
-                    fieldName: "username",
-                    type: "EQ",
-                    value: username,
-                });
-            }
-        } else if (userRole === "TRACKER") {
+    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+        if (!showAllCards && streamName) {
+            allFilters.push({
+                fieldName: "streams.name",
+                type: "EQ",
+                value: streamName,
+            });
+        }
+        const seachUsername = searchParams?.get("username");
+        if (seachUsername) {
+            allFilters.push({
+                fieldName: "username",
+                type: "EQ",
+                value: seachUsername,
+            });
+        } else if (showMyTeamsOnly) {
             allFilters.push({
                 fieldName: "username",
                 type: "EQ",
                 value: username,
             });
         }
+    } else if (userRole === "TRACKER") {
+        allFilters.push({
+            fieldName: "username",
+            type: "EQ",
+            value: username,
+        });
+    }
 
-        return allFilters;
-    }, [userRole, username, streamName, showAllCards, showMyTeamsOnly]);
-
-    const getTeamCardsEndpoint = useCallback(() => {
-        return (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
-            ? `${backendHost}/api/v1/admin/team-cards`
-            : `${backendHost}/api/v1/team-cards`;
-    }, [userRole, backendHost]);
+    const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+        ? `${backendHost}/api/v1/admin/team-cards`
+        : `${backendHost}/api/v1/team-cards`;
 
     const sortParams = "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc&sort=name,asc";
-
-    // Функция для запроса карточек с заданными фильтрами
-   const fetchCards = useCallback((filters = [], searchParams) => {
-    if (!userRole || !username) return;
-
-    const allFilters = buildTeamCardFilters(filters, searchParams);
-    const endpoint = getTeamCardsEndpoint();
 
     fetch(`${endpoint}?page=${page}&size=${pageSize}&${sortParams}`, {
         method: "POST",
@@ -200,63 +187,7 @@ const [currentFilters, setCurrentFilters] = useState([]);
             console.error("Error fetching cards:", err);
             setError(`Ошибка при загрузке карточек: ${err.message}`);
         });
-}, [userRole, username, buildTeamCardFilters, getTeamCardsEndpoint, page]);
-
-const fetchAllCards = useCallback(async (filters = [], searchParams) => { //NOSONAR
-    if (!userRole || !username) return []; //NOSONAR
-
-    const allFilters = buildTeamCardFilters(filters, searchParams); //NOSONAR
-    const endpoint = getTeamCardsEndpoint(); //NOSONAR
-
-    let combinedCards = []; //NOSONAR
-    let currentPageIndex = 0; //NOSONAR
-    let totalPagesLocal = 1; //NOSONAR
-
-    setAllCardsLoaded(false); //NOSONAR
-
-    try { //NOSONAR
-        do { //NOSONAR
-            const response = await fetch(`${endpoint}?page=${currentPageIndex}&size=${pageSize}&${sortParams}`, { //NOSONAR
-                method: "POST", //NOSONAR
-                headers: { //NOSONAR
-                    "Content-Type": "application/json", //NOSONAR
-                    ...getCsrfConfigForFetch() //NOSONAR
-                }, //NOSONAR
-                credentials: "include", //NOSONAR
-                body: JSON.stringify({ filters: allFilters }), //NOSONAR
-            }); //NOSONAR
-
-            if (!response.ok) { //NOSONAR
-                throw new Error(`HTTP error! status: ${response.status}`); //NOSONAR
-            } //NOSONAR
-
-            const data = await response.json(); //NOSONAR
-            const cardsArray = Array.isArray(data.content) ? data.content : []; //NOSONAR
-
-            combinedCards = [ //NOSONAR
-                ...combinedCards, //NOSONAR
-                ...cardsArray.map(card => ({ ...card, _showFull: false })) //NOSONAR
-            ]; //NOSONAR
-
-            totalPagesLocal = data?.page?.totalPages || 1; //NOSONAR
-            currentPageIndex += 1; //NOSONAR
-        } while (currentPageIndex < totalPagesLocal); //NOSONAR
-
-        setAllCards(combinedCards); //NOSONAR
-        setAllCardsLoaded(true); //NOSONAR
-
-        return combinedCards; //NOSONAR
-    } catch (err) { //NOSONAR
-        console.error("Error fetching all cards:", err); //NOSONAR
-
-        setError(`Ошибка при загрузке карточек: ${err.message}`); //NOSONAR
-        setAllCards([]); //NOSONAR
-        setAllCardsLoaded(true); //NOSONAR
-
-        return []; //NOSONAR
-    } //NOSONAR
-}, [userRole, username, buildTeamCardFilters, getTeamCardsEndpoint]); //NOSONAR
-
+}, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly, page]);
  // ✅ streamName в зависимости
 
     const fetchStreamImage = useCallback(async (streamId) => {
@@ -264,11 +195,11 @@ const fetchAllCards = useCallback(async (filters = [], searchParams) => { //NOSO
     const response = await fetch(`${backendHost}/api/v1/streams/${streamId}/image`, {
       credentials: 'include'
     });
-    
+
     if (!response.ok) {
       throw new Error('Image not found');
     }
-    
+
     const blob = await response.blob();
     return URL.createObjectURL(blob);
   } catch (error) {
@@ -329,7 +260,7 @@ useEffect(() => {
       console.error("Ошибка при получении потоков:", error);
     });
 }, [backendHost, userRole, fetchStreamImage]);
-    
+
 useEffect(() => {
   return () => {
     // Очищаем URL объектов при размонтировании
@@ -343,7 +274,7 @@ useEffect(() => {
         const role = localStorage.getItem("userRole");
         console.log("Initial role check:", role);
 
-        
+
 
         fetch(`${backendHost}/api/v1/streams/nti-markets`, {
             method: "GET",
@@ -362,7 +293,7 @@ useEffect(() => {
                 console.error(error);
             });
     }, [backendHost]);
-    
+
 
 
     useEffect(() => {
@@ -425,46 +356,10 @@ const options = {
 }, [backendHost, userRole]);
 
 
-    const normalizedSearchQuery = searchQuery?.trim().toLowerCase();
-    const filteredCards = normalizedSearchQuery
-        ? (allCardsLoaded
-            ? allCards.filter((card) => {
-                const cardName = card.name?.toString().toLowerCase();
-                return cardName?.includes(normalizedSearchQuery);
-            })
-            : cards.filter((card) => {
-                const cardName = card.name?.toString().toLowerCase();
-                return cardName?.includes(normalizedSearchQuery);
-            })
-        )
-        : cards;
+    // Фильтрация карточек по поисковому запросу
+    const filteredCards = cards;
+    const visibleCards = filteredCards;
 
-    const totalPagesToUse = normalizedSearchQuery
-        ? Math.max(1, Math.ceil(filteredCards.length / pageSize))
-        : totalPages;
-
-    const visibleCards = normalizedSearchQuery
-        ? filteredCards.slice(page * pageSize, (page + 1) * pageSize)
-        : filteredCards;
-
-    useEffect(() => {
-        if (!normalizedSearchQuery) {
-            setAllCards([]);
-            setAllCardsLoaded(false);
-            return;
-        }
-
-        if (userRole && username) {
-            setPage(0);
-            fetchAllCards(currentFilters, searchParams);
-        }
-    }, [normalizedSearchQuery, currentFilters, userRole, username, searchParams, fetchAllCards]);
-
-    useEffect(() => {
-        if (normalizedSearchQuery && page >= totalPagesToUse) {
-            setPage(Math.max(0, totalPagesToUse - 1));
-        }
-    }, [normalizedSearchQuery, page, totalPagesToUse]);
 
     const handleShowMore = () => {
         setPage((prev) => prev + 1)
@@ -476,7 +371,6 @@ const options = {
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
-        setPage(0);
     };
 
     // Переключение отображения панели фильтров
@@ -488,7 +382,13 @@ const options = {
     const applyFilters = () => {
         const filters = [];
 
-        // Поиск по name теперь на клиенте, не отправляем на бэкенд
+        if (searchQuery?.length > 0) {
+            filters.push({
+                fieldName: "name",
+                type: "LIKE",
+                value: searchQuery,
+            });
+        }
 
         if (selectedTrl.length > 0) {
             filters.push({
@@ -520,13 +420,10 @@ const options = {
                 values: selectedYears,
             });
         }
-        
+
 
         console.log("Applying filters:", filters);
-        setCurrentFilters(filters);
         setCards([]);     // сброс перед новым поиском/фильтром
-        setAllCards([]);
-        setAllCardsLoaded(false);
         setPage(0);
         fetchCards(filters);
         setIsVisible(false);
@@ -534,14 +431,10 @@ const options = {
 
     // Обработчик сброса фильтров
     const resetFilters = () => {
-        setCurrentFilters([]);
-        setSelectedTrl([]);
+        setSelectedTrl("");
         setSelectedNtiMarkets([]);
         setSelectedStreams([]);
-        setSearchQuery("");
-        setAllCards([]);
-        setAllCardsLoaded(false);
-        setPage(0);
+        // Сбросить другие фильтры, если они будут добавлены
         fetchCards([]);
         setIsVisible(false);
         setSelectedYears([]);
@@ -553,19 +446,6 @@ const options = {
     }
 }, [userRole, username, streamName, fetchCards, searchParams]);
 
-    useEffect(() => {
-    const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible' && userRole && username && streamName) {
-            fetchCards([], searchParams);
-        }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-}, [userRole, username, streamName, fetchCards, searchParams]);
 
     return (
         <div className="tracker-container">
@@ -618,10 +498,6 @@ const options = {
                             onKeyDown={(e) => {
                                 if (e.key === "Enter")
                                     applyFilters();
-                                if (e.key === "Escape") {
-                                    setSearchQuery("");
-                                    applyFilters();
-                                }
                             }}
                         />
                     </div>
@@ -814,9 +690,9 @@ const options = {
                     <p className="error-message">{error}</p>
                 ) : filteredCards.length > 0 ? (
                     visibleCards.map((card) => (
-                        <div 
-  className="card" 
-  key={card.id} 
+                        <div
+  className="card"
+  key={card.id}
   onClick={() => navigate(`/teamcard/${card.id}`)}
   onKeyDown={(e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -837,7 +713,7 @@ const options = {
         {card.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </div>
     )}
-    <img 
+    <img
       src={card.streams?.[0]?.id && streamImages[card.streams[0].id] ? streamImages[card.streams[0].id] : StreamPlaceholder}
       alt=""
       onError={(e) => {
@@ -847,8 +723,8 @@ const options = {
       className="stream-image"
     />
   </div>
-                            <span className={`status ${!card.enabled ? "inactive" : ""}`}>
-                                {card.enabled ? "Активно" : "Завершено"}
+                            <span className={`status ${!card.enabled ? "inactive" : (card.passive ? "passive" : "")}`}>
+                                {!card.enabled ? "Завершено" : (card.passive ? "Пассивно" : "Активно")}
                             </span>
 
                             <div className="card-content">
@@ -957,7 +833,7 @@ const options = {
                     ></button>
                 )}
                 <button className="Stream-footer-button-3"></button>
-                {page + 1 < totalPagesToUse && (
+                {page + 1 < totalPages && (
                     <button
                         onClick={handleShowMore}
                         className="Stream-footer-button-4"
@@ -965,7 +841,7 @@ const options = {
                 )}
             </div>
             <div className="Stream-footer-p-butt-5">
-                {page + 1 < totalPagesToUse && (
+                {page + 1 < totalPages && (
                     <button
                         onClick={handleShowMore}
                         className="Stream-footer-button-5"
@@ -981,3 +857,4 @@ const options = {
 }
 
 export default TrackerPage;
+

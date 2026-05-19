@@ -5,7 +5,7 @@ import "./meeting-card.css";
 import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
-import { validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils"; 
+import { validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils";
 import VideoChat from "./video_chat.svg";
 import Header from "../header/header";
 
@@ -29,7 +29,6 @@ const MeetingCard = () => {
     const [showStatusDropdown, setShowStatusDropdown] = useState(false);
     const isNewMeeting = meetingId === "new";
     const [error, setError] = useState(null);
-    const [recordLinkError, setRecordLinkError] = useState(null);
     const [showDateTooltip, setShowDateTooltip] = useState(false);
     const [meetingData, setMeetingData] = useState({
         number: isNewMeeting ? "Новая встреча" : "",
@@ -158,62 +157,23 @@ const MeetingCard = () => {
         imagePreview
     );
 
-    // const getMissingFields = () => {
-    //     const missing = [];
-    //     if (!meetingData.number) missing.push("Номер встречи");
-    //     if (!meetingData.recordLink) missing.push("Ссылка на запись");
-    //     if (!meetingData.tasksCurrentMeeting) missing.push("Задачи текущей встречи");
-    //     if (!meetingData.tasksNextMeeting) missing.push("Задачи следующей встречи");
-    //     if (!meetingData.teamStatus) missing.push("Статус команды");
-    //     if (!imagePreview) missing.push("Скриншот встречи");
-    //     return missing;
-    // };
-
-    const isValidUrl = (value) => {
-        if (!value) return false;
-        try {
-            const url = new URL(value);
-            return url.protocol === 'http:' || url.protocol === 'https:';
-        } catch {
-            return false;
-        }
+    const getMissingFields = () => {
+        const missing = [];
+        if (!meetingData.number) missing.push("Номер встречи");
+        if (!meetingData.recordLink) missing.push("Ссылка на запись");
+        if (!meetingData.tasksCurrentMeeting) missing.push("Задачи текущей встречи");
+        if (!meetingData.tasksNextMeeting) missing.push("Задачи следующей встречи");
+        if (!meetingData.teamStatus) missing.push("Статус команды");
+        if (!imagePreview) missing.push("Скриншот встречи");
+        return missing;
     };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        let normalizedValue = value;
-        let fieldName = name;
-
-        if (name === 'startDate' || name === 'startTime') {
-            const currentDate = meetingData.startDate ? new Date(meetingData.startDate) : new Date();
-            const updatedDate = new Date(currentDate);
-
-            if (name === 'startDate') {
-                const [year, month, day] = value.split('-').map(Number);
-                updatedDate.setFullYear(year, month - 1, day);
-            } else {
-                const [hours, minutes] = value.split(':').map(Number);
-                updatedDate.setHours(hours, minutes, 0, 0);
-            }
-
-            normalizedValue = updatedDate.toISOString();
-            fieldName = 'startDate';
-        }
-
         setMeetingData(prev => ({
             ...prev,
-            [fieldName]: normalizedValue
+            [name]: name === 'startDate' ? new Date(value).toISOString() : value
         }));
-
-        if (name === 'recordLink') {
-            if (!normalizedValue) {
-                setRecordLinkError(null);
-            } else if (!isValidUrl(normalizedValue)) {
-                setRecordLinkError('Введите корректный URL, начиная с http:// или https://');
-            } else {
-                setRecordLinkError(null);
-            }
-        }
     };
 
     const handleImageChange = (e) => {
@@ -239,13 +199,6 @@ const MeetingCard = () => {
             const validation = isNew
                 ? validateMeetingWeekLimit(meetingsForValidation, meetingData.startDate, true)
                 : validateMeetingDateChange(meetingsForValidation, meetingId, meetingData.startDate);
-
-            if (meetingData.recordLink && !isValidUrl(meetingData.recordLink)) {
-                setError("Поле 'Запись встречи' должно содержать корректный URL");
-                setRecordLinkError('Введите корректный URL, начиная с http:// или https://');
-                setTimeout(() => setError(null), 5000);
-                return;
-            }
 
             if (!validation.isValid) {
                 setError(validation.errorMessage);
@@ -330,34 +283,22 @@ const MeetingCard = () => {
     };
 
     const handleCompleteMeeting = async (completed) => {
-        const completeNotReadyMessage = 'Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить';
-
         if (!isMeetingDatePassed()) {
-            setError(completeNotReadyMessage);
+            setError("Завершение встречи возможно только после окончания даты встречи");
             setShowDateTooltip(true);
             setTimeout(() => { setError(null); setShowDateTooltip(false); }, 5000);
             return;
         }
 
         if (completed && !areAllFieldsFilled()) {
-            setError("Нельзя завершить встречу как состоявшуюся. Заполните все поля.");
+            const missingFields = getMissingFields().join(", ");
+            setError(`Нельзя завершить встречу. Заполните все поля: ${missingFields}`);
             setTimeout(() => setError(null), 5000);
             return;
         }
 
         try {
             const newStatus = completed ? "COMPLETED" : "COMPLETED_AS_NOT_HAPPENED";
-
-            const payload = {
-                status: newStatus,
-                recordLink: meetingData.recordLink || "",
-                number: meetingData.number || "",
-                teamStatus: newStatus === "COMPLETED" ? meetingData.teamStatus : null,
-                tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
-                tasksNextMeeting: meetingData.tasksNextMeeting || "",
-                startDate: meetingData.startDate || new Date().toISOString()
-            };
-
             setMeetingData(prev => ({ ...prev, status: newStatus }));
 
             const response = await fetch(`${backendHost}/api/v1/update-meeting/${meetingId}?teamCardId=${teamId}`, {
@@ -369,7 +310,15 @@ const MeetingCard = () => {
                 },
                 credentials: 'include',
                 mode: 'cors',
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    status: newStatus,
+                    recordLink: meetingData.recordLink || "",
+                    number: meetingData.number || "",
+                    teamStatus: meetingData.teamStatus,
+                    tasksCurrentMeeting: meetingData.tasksCurrentMeeting || "",
+                    tasksNextMeeting: meetingData.tasksNextMeeting || "",
+                    startDate: meetingData.startDate || new Date().toISOString()
+                })
             });
 
             if (!response.ok) {
@@ -400,8 +349,7 @@ const MeetingCard = () => {
                 const errorText = await response.text();
                 throw new Error(`Ошибка при удалении: ${response.status} ${errorText}`);
             }
-            // Добавляем параметр refresh для принудительного обновления TeamCard
-            navigate(`/teamcard/${teamId}?userId=${userId}&refresh=${Date.now()}`);
+            navigate(`/teamcard/${teamId}?userId=${userId}`);
         } catch (error) {
             console.error('Ошибка удаления встречи:', error);
             setError(error.message || 'Не удалось удалить встречу');
@@ -484,12 +432,7 @@ const MeetingCard = () => {
 
                 {isEditing ? (
                     <div className="edit-actions-container">
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleSave(); }}
-                            className="unique-edit-button"
-                            disabled={Boolean(recordLinkError)}
-                            title={recordLinkError ? "Введите корректный URL в поле записи встречи" : "Сохранить"}
-                        >
+                        <button onClick={(e) => { e.stopPropagation(); handleSave(); }} className="unique-edit-button">
                             Сохранить
                         </button>
                         {(role === "ADMIN" || role === "SUPER_ADMIN") && (
@@ -554,7 +497,7 @@ const MeetingCard = () => {
                                     className={`unique-status-button unique-status-completed ${meetingData.status === "COMPLETED" ? "active-status" : ""}`}
                                     title={
                                         !areAllFieldsFilled() ? "Заполните все поля перед завершением встречи"
-                                            : !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить"
+                                            : !isMeetingDatePassed() ? "Завершение встречи возможно только после окончания даты встречи"
                                                 : ""
                                     }
                                 >
@@ -566,14 +509,14 @@ const MeetingCard = () => {
                                     onClick={() => { setPendingCompletion(false); setShowConfirmModal(true); }}
                                     disabled={meetingData.status === "COMPLETED_AS_NOT_HAPPENED" || !isMeetingDatePassed()}
                                     className={`unique-status-button unique-status-not-happened ${meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : ""}`}
-                                    title={!isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить" : ""}
+                                    title={!isMeetingDatePassed() ? "Завершение встречи возможно только после окончания даты встречи" : ""}
                                 >
                                     Не состоялась
                                 </button>
                             )}
                             {showDateTooltip && (
                                 <div className="date-tooltip">
-                                    Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить
+                                    Завершение встречи возможно только после окончания даты встречи
                                 </div>
                             )}
                         </div>
@@ -581,7 +524,7 @@ const MeetingCard = () => {
                 </div>
 
                 <div className="unique-meeting-info-row unique-date-row">
-                    <span className="unique-label">Дата и время:</span>
+                    <span className="unique-label">Дата:</span>
                     {isEditing ? (
                         <div className="unique-date-input-wrapper">
                             <input
@@ -593,20 +536,12 @@ const MeetingCard = () => {
                                 disabled={isMeetingLocked}
                                 min={new Date().toISOString().split('T')[0]}
                             />
-                            <input
-                                type="time"
-                                name="startTime"
-                                value={meetingData.startDate ? new Date(meetingData.startDate).toISOString().slice(11, 16) : ''}
-                                onChange={handleChange}
-                                className="unique-time-input"
-                                disabled={isMeetingLocked}
-                            />
                             <img src={pencilIcon} alt="Редактировать" style={{ marginTop: "-6px" }} className="edit-icon23" />
                         </div>
                     ) : (
                         <span className="unique-meeting-date">
                             {meetingData.startDate
-                                ? `${new Date(meetingData.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })} ${new Date(meetingData.startDate).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`
+                                ? new Date(meetingData.startDate).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
                                 : 'Не указана'}
                         </span>
                     )}
@@ -618,32 +553,20 @@ const MeetingCard = () => {
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Текущий статус команды:</span>
                     {isEditing ? (
-                        <div className="status-dropdown-wrapper">
-                            <div
-                                className="status-selected"
-                                onClick={() => !isMeetingCompleted && setShowStatusDropdown(prev => !prev)}
-                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isMeetingCompleted) setShowStatusDropdown(prev => !prev); }}
-                                tabIndex={0}
-                                role="button"
-                                aria-expanded={showStatusDropdown}
-                                aria-haspopup="listbox"
-                            >
-                                {meetingData.teamStatus === "OK" && "Всё ок"}
-                                {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
-                                {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
-                                {!meetingData.teamStatus && "Не указано"}
-                                <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
-                            </div>
-                            {showStatusDropdown && (
-                                <div className="status-options">
-                                    <button className="status-option ok" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "OK" })); setShowStatusDropdown(false); }}>Всё ок</button>
-                                    <button className="status-option problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "WITH_ISSUES" })); setShowStatusDropdown(false); }}>Есть проблемы</button>
-                                    <button className="status-option major-problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "MANY_ISSUES" })); setShowStatusDropdown(false); }}>Есть большие проблемы</button>
-                                </div>
-                            )}
-                        </div>
+                        <select
+                            name="teamStatus"
+                            value={meetingData.teamStatus || ""}
+                            onChange={handleChange}
+                            className="unique-dropdown"
+                            disabled={isMeetingLocked}
+                        >
+                            <option value="" disabled>Выберите статус</option>
+                            <option value="OK">Всё ок</option>
+                            <option value="WITH_ISSUES">Есть проблемы</option>
+                            <option value="MANY_ISSUES">Есть большие проблемы</option>
+                        </select>
                     ) : (
-                        <div className={`unique-status ${meetingData.teamStatus?.toLowerCase() || ''}`}>
+                        <div className={`unique-status ${meetingData.teamStatus?.toLowerCase() || ""}`}>
                             {meetingData.teamStatus === "OK" && "Всё ок"}
                             {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
                             {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
@@ -662,6 +585,7 @@ const MeetingCard = () => {
                             tabIndex={0}
                             role="button"
                             aria-label="Загрузить изображение"
+                            style={{ marginLeft: '30px' }}
                         >
                             <input type="file" accept="image/*" onChange={handleImageChange} className="unique-image-input" ref={fileInputRef} disabled={isMeetingCompleted} />
                             {imagePreview
@@ -680,30 +604,13 @@ const MeetingCard = () => {
                     <span className="unique-label">Запись встречи:</span>
                     {isEditing ? (
                         <>
-                            <input
-                                type="url"
-                                name="recordLink"
-                                value={meetingData.recordLink || ''}
-                                onChange={handleChange}
-                                className="unique-input"
-                                disabled={isMeetingCompleted}
-                                placeholder="https://example.com/record"
-                                pattern="https?://.+"
-                            />
+                            <input type="text" name="recordLink" value={meetingData.recordLink || ''} onChange={handleChange} className="unique-input" disabled={isMeetingCompleted} />
                             <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
                         </>
                     ) : meetingData.recordLink ? (
                         <a href={meetingData.recordLink} target="_blank" rel="noopener noreferrer" className="unique-link">{meetingData.recordLink}</a>
                     ) : (
                         <div className="unique-link">Ссылка не указана</div>
-                    )}
-                    {isEditing && recordLinkError && (
-                        <div className="error-message" style={{
-                            backgroundColor: '#ffebee', color: '#d32f2f', padding: '6px 10px',
-                            borderRadius: '4px', marginTop: '8px', maxWidth: '100%'
-                        }}>
-                            {recordLinkError}
-                        </div>
                     )}
                 </div>
 
