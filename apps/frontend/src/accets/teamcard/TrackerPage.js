@@ -30,6 +30,9 @@ const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
 const [page, setPage] = useState(0);
 const pageSize = 18; // или 10, если хочешь другой размер
 const [totalPages, setTotalPages] = useState(1);
+const [allCards, setAllCards] = useState([]);
+const [allCardsLoaded, setAllCardsLoaded] = useState(false);
+const [currentFilters, setCurrentFilters] = useState([]);
     const formatDateToYMD = (dateString) => {
     if (!dateString) return "";
   
@@ -188,6 +191,88 @@ const [totalPages, setTotalPages] = useState(1);
             setError(`Ошибка при загрузке карточек: ${err.message}`);
         });
 }, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly, page]);
+
+const fetchAllCards = useCallback(async (filters = [], searchParams) => {
+    if (!userRole || !username) return [];
+
+    const allFilters = [...filters];
+
+    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+        if (!showAllCards && streamName) {
+            allFilters.push({
+                fieldName: "streams.name",
+                type: "EQ",
+                value: streamName,
+            });
+        }
+        const seachUsername = searchParams?.get("username");
+        if (seachUsername) {
+            allFilters.push({
+                fieldName: "username",
+                type: "EQ",
+                value: seachUsername,
+            });
+        } else if (showMyTeamsOnly) {
+            allFilters.push({
+                fieldName: "username",
+                type: "EQ",
+                value: username,
+            });
+        }
+    } else if (userRole === "TRACKER") {
+        allFilters.push({
+            fieldName: "username",
+            type: "EQ",
+            value: username,
+        });
+    }
+
+    const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+        ? `${backendHost}/api/v1/admin/team-cards`
+        : `${backendHost}/api/v1/team-cards`;
+
+    const sortParams = "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc&sort=name,asc";
+
+    let combinedCards = [];
+    let currentPageIndex = 0;
+    let totalPagesLocal = 1;
+    setAllCardsLoaded(false);
+
+    try {
+        do {
+            const response = await fetch(`${endpoint}?page=${currentPageIndex}&size=${pageSize}&${sortParams}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getCsrfConfigForFetch()
+                },
+                credentials: "include",
+                body: JSON.stringify({ filters: allFilters }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const cardsArray = Array.isArray(data.content) ? data.content : [];
+            combinedCards = [...combinedCards, ...cardsArray.map(card => ({ ...card, _showFull: false }))];
+            totalPagesLocal = data?.page?.totalPages || 1;
+            currentPageIndex += 1;
+        } while (currentPageIndex < totalPagesLocal);
+
+        setAllCards(combinedCards);
+        setAllCardsLoaded(true);
+        return combinedCards;
+    } catch (err) {
+        console.error("Error fetching all cards:", err);
+        setError(`Ошибка при загрузке карточек: ${err.message}`);
+        setAllCards([]);
+        setAllCardsLoaded(true);
+        return [];
+    }
+}, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly]);
+
  // ✅ streamName в зависимости
 
     const fetchStreamImage = useCallback(async (streamId) => {
@@ -356,12 +441,46 @@ const options = {
 }, [backendHost, userRole]);
 
 
-    // Фильтрация карточек по поисковому запросу (на клиенте, регистронезависимо)
-    const filteredCards = searchQuery
-        ? cards.filter(card => card.name?.toLowerCase().includes(searchQuery.toLowerCase()))
+    const normalizedSearchQuery = searchQuery?.trim().toLowerCase();
+    const filteredCards = normalizedSearchQuery
+        ? (allCardsLoaded
+            ? allCards.filter((card) => {
+                const cardName = card.name?.toString().toLowerCase();
+                return cardName?.includes(normalizedSearchQuery);
+            })
+            : cards.filter((card) => {
+                const cardName = card.name?.toString().toLowerCase();
+                return cardName?.includes(normalizedSearchQuery);
+            })
+        )
         : cards;
-    const visibleCards = filteredCards;
 
+    const totalPagesToUse = normalizedSearchQuery
+        ? Math.max(1, Math.ceil(filteredCards.length / pageSize))
+        : totalPages;
+
+    const visibleCards = normalizedSearchQuery
+        ? filteredCards.slice(page * pageSize, (page + 1) * pageSize)
+        : filteredCards;
+
+    useEffect(() => {
+        if (!normalizedSearchQuery) {
+            setAllCards([]);
+            setAllCardsLoaded(false);
+            return;
+        }
+
+        if (userRole && username) {
+            setPage(0);
+            fetchAllCards(currentFilters, searchParams);
+        }
+    }, [normalizedSearchQuery, currentFilters, userRole, username, searchParams, fetchAllCards]);
+
+    useEffect(() => {
+        if (normalizedSearchQuery && page >= totalPagesToUse) {
+            setPage(Math.max(0, totalPagesToUse - 1));
+        }
+    }, [normalizedSearchQuery, page, totalPagesToUse]);
 
     const handleShowMore = () => {
         setPage((prev) => prev + 1)
@@ -373,6 +492,7 @@ const options = {
 
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
+        setPage(0);
     };
 
     // Переключение отображения панели фильтров
@@ -419,7 +539,10 @@ const options = {
         
 
         console.log("Applying filters:", filters);
+        setCurrentFilters(filters);
         setCards([]);     // сброс перед новым поиском/фильтром
+        setAllCards([]);
+        setAllCardsLoaded(false);
         setPage(0);
         fetchCards(filters);
         setIsVisible(false);
@@ -427,10 +550,14 @@ const options = {
 
     // Обработчик сброса фильтров
     const resetFilters = () => {
-        setSelectedTrl("");
+        setCurrentFilters([]);
+        setSelectedTrl([]);
         setSelectedNtiMarkets([]);
         setSelectedStreams([]);
         setSearchQuery("");
+        setAllCards([]);
+        setAllCardsLoaded(false);
+        setPage(0);
         fetchCards([]);
         setIsVisible(false);
         setSelectedYears([]);
@@ -846,7 +973,7 @@ const options = {
                     ></button>
                 )}
                 <button className="Stream-footer-button-3"></button>
-                {page + 1 < totalPages && (
+                {page + 1 < totalPagesToUse && (
                     <button
                         onClick={handleShowMore}
                         className="Stream-footer-button-4"
@@ -854,7 +981,7 @@ const options = {
                 )}
             </div>
             <div className="Stream-footer-p-butt-5">
-                {page + 1 < totalPages && (
+                {page + 1 < totalPagesToUse && (
                     <button
                         onClick={handleShowMore}
                         className="Stream-footer-button-5"
