@@ -124,47 +124,57 @@ const [currentFilters, setCurrentFilters] = useState([]);
         label: `${index + 2016}`,
     }));
 
-    // Функция для запроса карточек с заданными фильтрами
-   const fetchCards = useCallback((filters = [], searchParams) => {
-    if (!userRole || !username) return;
+    const buildTeamCardFilters = useCallback((filters = [], searchParams) => {
+        const allFilters = [...filters];
 
-    const allFilters = [...filters];
+        if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
+            if (!showAllCards && streamName) {
+                allFilters.push({
+                    fieldName: "streams.name",
+                    type: "EQ",
+                    value: streamName,
+                });
+            }
 
-    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
-        if (!showAllCards && streamName) {
-            allFilters.push({
-                fieldName: "streams.name",
-                type: "EQ",
-                value: streamName,
-            });
-        }
-        const seachUsername = searchParams?.get("username");
-        if (seachUsername) {
-            allFilters.push({
-                fieldName: "username",
-                type: "EQ",
-                value: seachUsername,
-            });
-        } else if (showMyTeamsOnly) {
+            const searchUsername = searchParams?.get("username");
+            if (searchUsername) {
+                allFilters.push({
+                    fieldName: "username",
+                    type: "EQ",
+                    value: searchUsername,
+                });
+            } else if (showMyTeamsOnly) {
+                allFilters.push({
+                    fieldName: "username",
+                    type: "EQ",
+                    value: username,
+                });
+            }
+        } else if (userRole === "TRACKER") {
             allFilters.push({
                 fieldName: "username",
                 type: "EQ",
                 value: username,
             });
         }
-    } else if (userRole === "TRACKER") {
-        allFilters.push({
-            fieldName: "username",
-            type: "EQ",
-            value: username,
-        });
-    }
 
-    const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
-        ? `${backendHost}/api/v1/admin/team-cards`
-        : `${backendHost}/api/v1/team-cards`;
+        return allFilters;
+    }, [userRole, username, streamName, showAllCards, showMyTeamsOnly]);
+
+    const getTeamCardsEndpoint = useCallback(() => {
+        return (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
+            ? `${backendHost}/api/v1/admin/team-cards`
+            : `${backendHost}/api/v1/team-cards`;
+    }, [userRole, backendHost]);
 
     const sortParams = "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc&sort=name,asc";
+
+    // Функция для запроса карточек с заданными фильтрами
+   const fetchCards = useCallback((filters = [], searchParams) => {
+    if (!userRole || !username) return;
+
+    const allFilters = buildTeamCardFilters(filters, searchParams);
+    const endpoint = getTeamCardsEndpoint();
 
     fetch(`${endpoint}?page=${page}&size=${pageSize}&${sortParams}`, {
         method: "POST",
@@ -190,50 +200,13 @@ const [currentFilters, setCurrentFilters] = useState([]);
             console.error("Error fetching cards:", err);
             setError(`Ошибка при загрузке карточек: ${err.message}`);
         });
-}, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly, page]);
+}, [userRole, username, buildTeamCardFilters, getTeamCardsEndpoint, page]);
 
 const fetchAllCards = useCallback(async (filters = [], searchParams) => { //NOSONAR
     if (!userRole || !username) return []; //NOSONAR
 
-    const allFilters = [...filters]; //NOSONAR
-
-    if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") { //NOSONAR
-        if (!showAllCards && streamName) { //NOSONAR
-            allFilters.push({ //NOSONAR
-                fieldName: "streams.name", //NOSONAR
-                type: "EQ", //NOSONAR
-                value: streamName, //NOSONAR
-            }); //NOSONAR
-        } //NOSONAR
-
-        const seachUsername = searchParams?.get("username"); //NOSONAR
-
-        if (seachUsername) { //NOSONAR
-            allFilters.push({ //NOSONAR
-                fieldName: "username", //NOSONAR
-                type: "EQ", //NOSONAR
-                value: seachUsername, //NOSONAR
-            }); //NOSONAR
-        } else if (showMyTeamsOnly) { //NOSONAR
-            allFilters.push({ //NOSONAR
-                fieldName: "username", //NOSONAR
-                type: "EQ", //NOSONAR
-                value: username, //NOSONAR
-            }); //NOSONAR
-        } //NOSONAR
-    } else if (userRole === "TRACKER") { //NOSONAR
-        allFilters.push({ //NOSONAR
-            fieldName: "username", //NOSONAR
-            type: "EQ", //NOSONAR
-            value: username, //NOSONAR
-        }); //NOSONAR
-    } //NOSONAR
-
-    const endpoint = (userRole === "ADMIN" || userRole === "SUPER_ADMIN") //NOSONAR
-        ? `${backendHost}/api/v1/admin/team-cards` //NOSONAR
-        : `${backendHost}/api/v1/team-cards`; //NOSONAR
-
-    const sortParams = "sort=enabled,desc&sort=streams.startDate,desc&sort=averageGrade,desc&sort=name,asc"; //NOSONAR
+    const allFilters = buildTeamCardFilters(filters, searchParams); //NOSONAR
+    const endpoint = getTeamCardsEndpoint(); //NOSONAR
 
     let combinedCards = []; //NOSONAR
     let currentPageIndex = 0; //NOSONAR
@@ -282,7 +255,7 @@ const fetchAllCards = useCallback(async (filters = [], searchParams) => { //NOSO
 
         return []; //NOSONAR
     } //NOSONAR
-}, [userRole, username, streamName, backendHost, showAllCards, showMyTeamsOnly]); //NOSONAR
+}, [userRole, username, buildTeamCardFilters, getTeamCardsEndpoint]); //NOSONAR
 
  // ✅ streamName в зависимости
 
