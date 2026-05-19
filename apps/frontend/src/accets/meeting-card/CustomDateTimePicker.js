@@ -2,6 +2,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './CustomDateTimePicker.css';
 
+export const formatTimeToInput = (time) => {
+    if (!time) return '12:00';
+    const [hours = '12', minutes = '00'] = time.split(':');
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
 const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled }) => {
     const [showPicker, setShowPicker] = useState(false);
     const [selectedDate, setSelectedDate] = useState(value ? value.split('T')[0] : '');
@@ -14,12 +20,6 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
-    };
-
-    const formatTimeToInput = (time) => {
-        if (!time) return '12:00';
-        const [hours = '12', minutes = '00'] = time.split(':');
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     };
 
     // Функция для получения даты без временной зоны

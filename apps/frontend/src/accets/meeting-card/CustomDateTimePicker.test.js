@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import CustomDateTimePicker from './CustomDateTimePicker';
+import CustomDateTimePicker, { formatTimeToInput } from './CustomDateTimePicker';
 
 // Mock для Date, чтобы тесты были стабильными
 const mockToday = new Date('2024-01-15T12:00:00');
@@ -615,6 +615,56 @@ describe('Выбор даты', () => {
       });
       
       expect(screen.getByLabelText('Закрыть')).toBeInTheDocument();
+    });
+
+    test('formatTimeToInput возвращает 12:00 при пустом значении', () => {
+      expect(formatTimeToInput()).toBe('12:00');
+      expect(formatTimeToInput(undefined)).toBe('12:00');
+      expect(formatTimeToInput(null)).toBe('12:00');
+    });
+
+    test('formatTimeToInput дополняет ведущие нули при частичном времени', () => {
+      expect(formatTimeToInput('1:5')).toBe('01:05');
+      expect(formatTimeToInput(':5')).toBe('00:05');
+      expect(formatTimeToInput('2')).toBe('02:00');
+    });
+
+    test('не вызывает onChange при смене времени без выбранной даты', async () => {
+      const mockOnChange = jest.fn();
+      render(<CustomDateTimePicker onChange={mockOnChange} />);
+
+      const displayElement = screen.getByRole('button');
+      await act(async () => {
+        fireEvent.click(displayElement);
+      });
+
+      const hourSelect = screen.getByLabelText('Час');
+      await act(async () => {
+        fireEvent.change(hourSelect, { target: { value: '2' } });
+      });
+
+      expect(mockOnChange).not.toHaveBeenCalled();
+    });
+
+    test('кнопка «Завтра» вызывает onChange с завтрашней датой', async () => {
+      const mockOnChange = jest.fn();
+      render(<CustomDateTimePicker onChange={mockOnChange} />);
+
+      const displayElement = screen.getByRole('button');
+      await act(async () => {
+        fireEvent.click(displayElement);
+      });
+
+      const tomorrowButton = screen.getByText('Завтра');
+      await act(async () => {
+        fireEvent.click(tomorrowButton);
+      });
+
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const expectedTomorrowString = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+      expect(mockOnChange).toHaveBeenCalledWith(`${expectedTomorrowString}T12:00`);
     });
   });
 });
