@@ -35,7 +35,8 @@ class TeamCardEventConsumerTest {
         // Arrange
         UUID teamId = UUID.randomUUID();
         String username = "new_tracker";
-        var event = new TeamCardUpdatedEvent(teamId, "New Name", username, "Ivan Ivanov");
+        Boolean newPassive = false;
+        var event = new TeamCardUpdatedEvent(teamId, "New Name", username, newPassive, "Ivan Ivanov");
 
         var tracker = UserDto.builder()
                 .id(UUID.randomUUID().toString())
@@ -59,7 +60,8 @@ class TeamCardEventConsumerTest {
         // Arrange
         UUID teamId = UUID.randomUUID();
         String username = "unknown_user";
-        var event = new TeamCardUpdatedEvent(teamId, "Name", username, null);
+        Boolean newPassive = false;
+        var event = new TeamCardUpdatedEvent(teamId, "Name", username, newPassive, null);
 
         when(ssoApiClient.getTrackers()).thenReturn(List.of());
 
@@ -74,7 +76,8 @@ class TeamCardEventConsumerTest {
     void handleTeamCardUpdated_ssoApiThrowsException_gracefulHandling() {
         // Arrange
         UUID teamId = UUID.randomUUID();
-        var event = new TeamCardUpdatedEvent(teamId, "Name", "error_user", null);
+        Boolean newPassive = true;
+        var event = new TeamCardUpdatedEvent(teamId, "Name", "error_user", newPassive, null);
 
         when(ssoApiClient.getTrackers()).thenThrow(new RuntimeException("SSO Down"));
 
@@ -89,7 +92,8 @@ class TeamCardEventConsumerTest {
     void handleTeamCardUpdated_usernameIsNull_skipsSsoCall() {
         // Arrange
         UUID teamId = UUID.randomUUID();
-        var event = new TeamCardUpdatedEvent(teamId, "New Name", null, null);
+        Boolean newPassive = false;
+        var event = new TeamCardUpdatedEvent(teamId, "New Name", null, newPassive, null);
 
         // Act
         teamCardEventConsumer.handleTeamCardUpdated(event);
