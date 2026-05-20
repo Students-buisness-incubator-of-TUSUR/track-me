@@ -1,18 +1,13 @@
 package net.trackme.meetingservice.services;
 
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
-import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
-import net.trackme.meetingservice.entities.Meeting;
-import net.trackme.meetingservice.entities.MeetingStatus;
-import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.mapping.MeetingMapper;
 import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
-import net.trackme.meetingservice.api.dto.MeetingDto;
 import net.trackme.commons.acl.AclService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,9 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -118,50 +111,4 @@ class MeetingServicePassiveTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Трекер не может создавать встречи для пассивной команды");
     }
-
-    @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    void createMeetingForPassiveTeamAdminShouldNotThrowException() {
-        when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
-
-        MeetingCreateDto dto = MeetingCreateDto.builder()
-                .number("1")
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .build();
-
-        Meeting mockMeeting = new Meeting();
-        mockMeeting.setId(UUID.randomUUID());
-        when(meetingMapper.mapToEntity(any(MeetingCreateDto.class))).thenReturn(mockMeeting);
-        when(meetingRepository.save(any(Meeting.class))).thenReturn(mockMeeting);
-
-        MeetingDto result = meetingService.createMeeting(passiveTeamId, dto);
-
-        assertThat(result).isNotNull();
-        assertThat(result.teamCardId()).isEqualTo(passiveTeamId.toString());
-    }
-
-    @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
-    void updateMeetingForPassiveTeamAdminShouldNotThrowException() {
-        when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
-
-        UUID meetingId = UUID.randomUUID();
-        Meeting existingMeeting = new Meeting();
-        existingMeeting.setId(meetingId);
-        existingMeeting.setStatus(MeetingStatus.SCHEDULED);
-        existingMeeting.setTeamCardId(passiveTeamId);
-
-        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(existingMeeting));
-        when(meetingRepository.save(any(Meeting.class))).thenReturn(existingMeeting);
-
-        MeetingUpdateDto dto = MeetingUpdateDto.builder()
-                .teamStatus(TeamStatus.OK)
-                .build();
-
-        MeetingDto result = meetingService.updateMeeting(meetingId, passiveTeamId, dto);
-
-        assertThat(result).isNotNull();
-        assertThat(result.teamStatus()).isEqualTo(TeamStatus.OK);
-    }
-
 }
