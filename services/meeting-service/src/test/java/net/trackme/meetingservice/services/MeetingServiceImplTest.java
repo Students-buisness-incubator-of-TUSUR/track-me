@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.OffsetDateTime;
@@ -61,13 +62,12 @@ class MeetingServiceImplTest {
     private UUID passiveTeamId;
     private TeamCardDto activeTeamCard;
     private TeamCardDto passiveTeamCard;
-    private UUID streamId;
 
     @BeforeEach
     void setUp() {
         activeTeamId = UUID.randomUUID();
         passiveTeamId = UUID.randomUUID();
-        streamId = UUID.randomUUID();
+        UUID streamId = UUID.randomUUID();
 
         activeTeamCard = TeamCardDto.builder()
                 .id(activeTeamId)
@@ -103,19 +103,18 @@ class MeetingServiceImplTest {
 
         Meeting mockMeeting = new Meeting();
         mockMeeting.setId(UUID.randomUUID());
-        mockMeeting.setStatus(MeetingStatus.SCHEDULED);
 
         when(meetingMapper.mapToEntity(any(MeetingCreateDto.class))).thenReturn(mockMeeting);
         when(meetingRepository.save(any(Meeting.class))).thenReturn(mockMeeting);
 
-        MeetingCreateDto createDto = MeetingCreateDto.builder()
+        MeetingCreateDto dto = MeetingCreateDto.builder()
                 .number("1")
                 .startDate(OffsetDateTime.now().plusDays(1))
-                .tasksCurrentMeeting("Test task")
-                .tasksNextMeeting("Next task")
+                .tasksCurrentMeeting("Task")
+                .tasksNextMeeting("Next")
                 .build();
 
-        var result = meetingService.createMeeting(activeTeamId, createDto);
+        var result = meetingService.createMeeting(activeTeamId, dto);
         assertThat(result).isNotNull();
         assertThat(result.teamCardId()).isEqualTo(activeTeamId.toString());
     }
@@ -125,12 +124,12 @@ class MeetingServiceImplTest {
     void createMeetingForPassiveTeamTrackerThrowsException() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
-        MeetingCreateDto createDto = MeetingCreateDto.builder()
+        MeetingCreateDto dto = MeetingCreateDto.builder()
                 .number("1")
                 .startDate(OffsetDateTime.now().plusDays(1))
                 .build();
 
-        assertThatThrownBy(() -> meetingService.createMeeting(passiveTeamId, createDto))
+        assertThatThrownBy(() -> meetingService.createMeeting(passiveTeamId, dto))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Трекер не может создавать встречи для пассивной команды");
     }
@@ -142,17 +141,16 @@ class MeetingServiceImplTest {
 
         Meeting mockMeeting = new Meeting();
         mockMeeting.setId(UUID.randomUUID());
-        mockMeeting.setStatus(MeetingStatus.SCHEDULED);
 
         when(meetingMapper.mapToEntity(any(MeetingCreateDto.class))).thenReturn(mockMeeting);
         when(meetingRepository.save(any(Meeting.class))).thenReturn(mockMeeting);
 
-        MeetingCreateDto createDto = MeetingCreateDto.builder()
+        MeetingCreateDto dto = MeetingCreateDto.builder()
                 .number("1")
                 .startDate(OffsetDateTime.now().plusDays(1))
                 .build();
 
-        var result = meetingService.createMeeting(passiveTeamId, createDto);
+        var result = meetingService.createMeeting(passiveTeamId, dto);
         assertThat(result).isNotNull();
         assertThat(result.teamCardId()).isEqualTo(passiveTeamId.toString());
     }
@@ -163,11 +161,11 @@ class MeetingServiceImplTest {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
         UUID meetingId = UUID.randomUUID();
-        MeetingUpdateDto updateDto = MeetingUpdateDto.builder()
+        MeetingUpdateDto dto = MeetingUpdateDto.builder()
                 .teamStatus(TeamStatus.OK)
                 .build();
 
-        assertThatThrownBy(() -> meetingService.updateMeeting(meetingId, passiveTeamId, updateDto))
+        assertThatThrownBy(() -> meetingService.updateMeeting(meetingId, passiveTeamId, dto))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Трекер не может редактировать встречи пассивной команды");
     }
@@ -178,20 +176,19 @@ class MeetingServiceImplTest {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
         UUID meetingId = UUID.randomUUID();
-        Meeting mockMeeting = new Meeting();
-        mockMeeting.setId(meetingId);
-        mockMeeting.setStatus(MeetingStatus.SCHEDULED);
+        Meeting existingMeeting = new Meeting();
+        existingMeeting.setId(meetingId);
+        existingMeeting.setStatus(MeetingStatus.SCHEDULED);
 
-        // Используем Specification для findOne
-        when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(mockMeeting));
-        when(meetingRepository.save(any(Meeting.class))).thenReturn(mockMeeting);
+        when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(existingMeeting));
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(existingMeeting);
 
-        MeetingUpdateDto updateDto = MeetingUpdateDto.builder()
+        MeetingUpdateDto dto = MeetingUpdateDto.builder()
                 .teamStatus(TeamStatus.OK)
                 .recordLink("https://updated.com")
                 .build();
 
-        var result = meetingService.updateMeeting(meetingId, passiveTeamId, updateDto);
+        var result = meetingService.updateMeeting(meetingId, passiveTeamId, dto);
         assertThat(result).isNotNull();
         assertThat(result.teamStatus()).isEqualTo(TeamStatus.OK);
     }
