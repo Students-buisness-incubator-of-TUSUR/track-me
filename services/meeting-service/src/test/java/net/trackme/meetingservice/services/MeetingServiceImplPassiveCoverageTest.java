@@ -129,9 +129,10 @@ class MeetingServiceImplPassiveCoverageTest {
         Meeting existingMeeting = new Meeting();
         existingMeeting.setId(meetingId);
         existingMeeting.setStatus(MeetingStatus.SCHEDULED);
+        existingMeeting.setTeamCardId(passiveTeamId);
 
-        when(meetingRepository.findById(any()))
-                .thenReturn(Optional.of(existingMeeting));
+        // Исправленный мок — используем findById, а не findOne
+        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(existingMeeting));
 
         MeetingUpdateDto dto = MeetingUpdateDto.builder()
                 .teamStatus(TeamStatus.OK)
