@@ -36,7 +36,8 @@ class TeamCardEventConsumerTest {
         UUID teamId = UUID.randomUUID();
         String username = "new_tracker";
         Boolean newPassive = false;
-        var event = new TeamCardUpdatedEvent(teamId, "New Name", username, newPassive, "Ivan Ivanov");
+        var event = new TeamCardUpdatedEvent(teamId, "New Name", username,
+                newPassive, "Ivan Ivanov");
 
         var tracker = UserDto.builder()
                 .id(UUID.randomUUID().toString())

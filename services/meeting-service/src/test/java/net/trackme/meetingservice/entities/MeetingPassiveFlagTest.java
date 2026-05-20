@@ -18,7 +18,7 @@ class MeetingPassiveFlagTest {
     }
 
     @Test
-    void updateTeamStatusValue_shouldSkipWhenTeamCardPassiveTrue() {
+    void updateTeamStatusValueShouldSkipWhenTeamCardPassiveTrue() {
         Meeting meeting = Meeting.builder()
                 .teamCardPassive(true)
                 .status(MeetingStatus.COMPLETED)
@@ -31,7 +31,7 @@ class MeetingPassiveFlagTest {
     }
 
     @Test
-    void updateTeamStatusValue_shouldCalculateWhenTeamCardPassiveFalse() {
+    void updateTeamStatusValueShouldCalculateWhenTeamCardPassiveFalse() {
         Meeting meeting = Meeting.builder()
                 .teamCardPassive(false)
                 .status(MeetingStatus.COMPLETED)

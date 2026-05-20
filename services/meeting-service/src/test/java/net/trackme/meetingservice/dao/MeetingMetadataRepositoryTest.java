@@ -7,11 +7,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.UUID;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+/**
+ * Тесты для MeetingMetadataRepository.
+ */
 @ExtendWith(MockitoExtension.class)
 class MeetingMetadataRepositoryTest {
 
+    /**
+     * Репозиторий метаданных встреч.
+     */
     @Mock
     private MeetingMetadataRepository metadataRepository;
 
