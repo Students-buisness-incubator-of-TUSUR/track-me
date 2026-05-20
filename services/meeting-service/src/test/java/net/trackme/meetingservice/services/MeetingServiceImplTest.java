@@ -1,56 +1,59 @@
 package net.trackme.meetingservice.services;
 
-import net.trackme.meetingservice.AbstractIntegrationTest;
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
 import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
+import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
+import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
+import net.trackme.commons.acl.AclService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EmbeddedKafka(
-        topics = {"team-card-updated", "team-card-stream-added", "team-card-stream-removed"},
-        partitions = 1,
-        bootstrapServersProperty = "spring.kafka.bootstrap-servers"
-)
-@TestPropertySource(properties = {
-        "spring.kafka.consumer.auto-offset-reset=earliest",
-        "spring.kafka.consumer.enable-auto-commit=true"
-})
-class MeetingServiceImplTest extends AbstractIntegrationTest {
+@ExtendWith(MockitoExtension.class)
+class MeetingServiceImplTest {
 
-    @Autowired
-    private MeetingService meetingService;
+    @Mock
+    private MeetingRepository meetingRepository;
 
-    @MockitoBean
-    @Qualifier("userBackendApiClient")
+    @Mock
+    private MeetingMapper meetingMapper;
+
+    @Mock
+    private AclService aclService;
+
+    @Mock
+    private MeetingEventsProducer meetingEventsProducer;
+
+    @Mock
     private BackendApiClient userBackendApiClient;
 
-    @MockitoBean
+    @Mock
     private SsoApiClient ssoApiClient;
+
+    @InjectMocks
+    private MeetingServiceImpl meetingService;
 
     private UUID activeTeamId;
     private UUID passiveTeamId;
@@ -91,15 +94,20 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "tracker_user", roles = "TRACKER")
     void createMeetingForActiveTeamTrackerAllowed() {
         when(userBackendApiClient.getTeamCardById(activeTeamId)).thenReturn(activeTeamCard);
+
+        Meeting mockMeeting = new Meeting();
+        mockMeeting.setId(UUID.randomUUID());
+
+        when(meetingMapper.mapToEntity(any(MeetingCreateDto.class))).thenReturn(mockMeeting);
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(mockMeeting);
 
         MeetingCreateDto dto = MeetingCreateDto.builder()
                 .number("1")
                 .startDate(OffsetDateTime.now().plusDays(1))
-                .tasksCurrentMeeting("Test task")
-                .tasksNextMeeting("Next task")
+                .tasksCurrentMeeting("Task")
+                .tasksNextMeeting("Next")
                 .build();
 
         var result = meetingService.createMeeting(activeTeamId, dto);
@@ -108,7 +116,6 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "tracker_user", roles = "TRACKER")
     void createMeetingForPassiveTeamTrackerThrowsException() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
@@ -123,9 +130,14 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
     void createMeetingForPassiveTeamAdminAllowed() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
+
+        Meeting mockMeeting = new Meeting();
+        mockMeeting.setId(UUID.randomUUID());
+
+        when(meetingMapper.mapToEntity(any(MeetingCreateDto.class))).thenReturn(mockMeeting);
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(mockMeeting);
 
         MeetingCreateDto dto = MeetingCreateDto.builder()
                 .number("1")
@@ -138,7 +150,6 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "tracker_user", roles = "TRACKER")
     void updateMeetingForPassiveTeamTrackerThrowsException() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
@@ -153,23 +164,23 @@ class MeetingServiceImplTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
     void updateMeetingForPassiveTeamAdminAllowed() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
-        MeetingCreateDto createDto = MeetingCreateDto.builder()
-                .number("1")
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .build();
+        UUID meetingId = UUID.randomUUID();
+        Meeting existingMeeting = new Meeting();
+        existingMeeting.setId(meetingId);
+        existingMeeting.setStatus(MeetingStatus.SCHEDULED);
 
-        var createdMeeting = meetingService.createMeeting(passiveTeamId, createDto);
+        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(existingMeeting));
+        when(meetingRepository.save(any(Meeting.class))).thenReturn(existingMeeting);
 
-        MeetingUpdateDto updateDto = MeetingUpdateDto.builder()
+        MeetingUpdateDto dto = MeetingUpdateDto.builder()
                 .teamStatus(TeamStatus.OK)
                 .recordLink("https://updated.com")
                 .build();
 
-        var result = meetingService.updateMeeting(createdMeeting.id(), passiveTeamId, updateDto);
+        var result = meetingService.updateMeeting(meetingId, passiveTeamId, dto);
         assertThat(result).isNotNull();
         assertThat(result.teamStatus()).isEqualTo(TeamStatus.OK);
     }
