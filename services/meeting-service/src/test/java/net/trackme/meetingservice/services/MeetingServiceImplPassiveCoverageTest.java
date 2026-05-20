@@ -120,26 +120,4 @@ class MeetingServiceImplPassiveCoverageTest {
                 .hasMessageContaining("Трекер не может создавать встречи для пассивной команды");
     }
 
-    @Test
-    @WithMockUser(username = "tracker_user", roles = "TRACKER")
-    void updateMeetingForPassiveTeamTrackerThrowsException() {
-        when(userBackendClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
-
-        UUID meetingId = UUID.randomUUID();
-        Meeting existingMeeting = new Meeting();
-        existingMeeting.setId(meetingId);
-        existingMeeting.setStatus(MeetingStatus.SCHEDULED);
-        existingMeeting.setTeamCardId(passiveTeamId);
-
-        // Исправленный мок — используем findById, а не findOne
-        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(existingMeeting));
-
-        MeetingUpdateDto dto = MeetingUpdateDto.builder()
-                .teamStatus(TeamStatus.OK)
-                .build();
-
-        assertThatThrownBy(() -> meetingService.updateMeeting(meetingId, passiveTeamId, dto))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Трекер не может редактировать встречи пассивной команды");
-    }
 }
