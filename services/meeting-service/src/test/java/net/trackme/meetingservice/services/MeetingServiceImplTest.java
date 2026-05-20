@@ -184,4 +184,5 @@ class MeetingServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.teamStatus()).isEqualTo(TeamStatus.OK);
     }
+
 }
