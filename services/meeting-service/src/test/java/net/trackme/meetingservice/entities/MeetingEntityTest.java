@@ -1,15 +1,12 @@
 package net.trackme.meetingservice.entities;
 
 import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
 class MeetingEntityTest {
 
     @Test
-    void updateTeamStatusValue_skipWhenTeamCardPassiveIsTrue() {
+    void updateTeamStatusValueSkipWhenTeamCardPassiveIsTrue() {
         var meeting = Meeting.builder()
                 .teamCardPassive(true)
                 .status(MeetingStatus.COMPLETED)
@@ -23,7 +20,7 @@ class MeetingEntityTest {
     }
 
     @Test
-    void updateTeamStatusValue_calculatesWhenTeamCardPassiveIsFalse() {
+    void updateTeamStatusValueCalculatesWhenTeamCardPassiveIsFalse() {
         var meeting = Meeting.builder()
                 .teamCardPassive(false)
                 .status(MeetingStatus.COMPLETED)

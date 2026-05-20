@@ -1,5 +1,4 @@
 package net.trackme.meetingservice.messaging.backend;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -10,12 +9,23 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Потребитель событий TeamCard из Kafka.
+ * Обрабатывает обновления карточек команд и привязку к потокам.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TeamCardEventConsumer {
 
+    /**
+     * Репозиторий для операций с метаданными встреч.
+     */
     private final MeetingMetadataRepository metadataRepository;
+
+    /**
+     * Клиент для API SSO для получения информации о пользователях.
+     */
     private final SsoApiClient ssoApiClient;
 
     /**
@@ -48,10 +58,12 @@ public class TeamCardEventConsumer {
                     log.warn("[Kafka] Трекер {} не найден в SSO для синхронизации", event.newUsername());
                 }
             } catch (Exception e) {
-                log.error("[Kafka] Ошибка при получении данных из SSO во время синхронизации: {}", e.getMessage());
+                log.error("[Kafka] Ошибка при получении данных из SSO во время синхронизации: {}",
+                        e.getMessage());
             }
         } else {
-            log.debug("[Kafka] Username трекера не изменился или отсутствует, обновление данных SSO не требуется.");
+            log.debug("[Kafka] Username трекера не изменился или отсутствует, " +
+                    "обновление данных SSO не требуется.");
         }
 
         metadataRepository.updatePassiveFlag(event.teamCardId(), event.newPassive());

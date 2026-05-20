@@ -8,24 +8,39 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.UUID;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+/**
+ * Тесты для проверки обработки события обновления карточки команды
+ * с акцентом на вызов метода updatePassiveFlag.
+ */
 @ExtendWith(MockitoExtension.class)
 class TeamCardEventConsumerPassiveTest {
 
+    /**
+     * Репозиторий метаданных встреч.
+     */
     @Mock
     private MeetingMetadataRepository metadataRepository;
 
+    /**
+     * Клиент для взаимодействия с SSO сервисом.
+     */
     @Mock
     private SsoApiClient ssoApiClient;
 
+    /**
+     * Тестируемый потребитель событий.
+     */
     @InjectMocks
     private TeamCardEventConsumer teamCardEventConsumer;
 
     @Test
-    void handleTeamCardUpdated_shouldCallUpdatePassiveFlag() {
+    void handleTeamCardUpdatedShouldCallUpdatePassiveFlag() {
         UUID teamId = UUID.randomUUID();
         Boolean newPassive = true;
 
@@ -33,7 +48,7 @@ class TeamCardEventConsumerPassiveTest {
                 teamId, "Name", "user", newPassive, "FullName"
         );
 
-        when(ssoApiClient.getTrackers()).thenReturn(java.util.Collections.emptyList());
+        when(ssoApiClient.getTrackers()).thenReturn(Collections.emptyList());
 
         teamCardEventConsumer.handleTeamCardUpdated(event);
 
@@ -41,7 +56,7 @@ class TeamCardEventConsumerPassiveTest {
     }
 
     @Test
-    void handleTeamCardUpdated_withNewPassiveFalse_shouldCallUpdatePassiveFlag() {
+    void handleTeamCardUpdatedWithNewPassiveFalseShouldCallUpdatePassiveFlag() {
         UUID teamId = UUID.randomUUID();
         Boolean newPassive = false;
 
@@ -49,7 +64,7 @@ class TeamCardEventConsumerPassiveTest {
                 teamId, "Name", "user", newPassive, null
         );
 
-        when(ssoApiClient.getTrackers()).thenReturn(java.util.Collections.emptyList());
+        when(ssoApiClient.getTrackers()).thenReturn(Collections.emptyList());
 
         teamCardEventConsumer.handleTeamCardUpdated(event);
 

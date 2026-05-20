@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TeamCardDtoPassiveTest {
 
     @Test
-    void teamCardDto_passiveFieldShouldBePresent() {
+    void TeamCardDtoPassiveFieldShouldBePresent() {
         UUID id = UUID.randomUUID();
         Boolean passive = true;
 
@@ -25,7 +25,7 @@ class TeamCardDtoPassiveTest {
     }
 
     @Test
-    void teamCardDto_passiveCanBeFalse() {
+    void TeamCardDtoPassiveCanBeFalse() {
         TeamCardDto dto = TeamCardDto.builder()
                 .passive(false)
                 .build();
@@ -34,7 +34,7 @@ class TeamCardDtoPassiveTest {
     }
 
     @Test
-    void teamCardDto_passiveDefaultIsNull() {
+    void TeamCardDtoPassiveDefaultIsNull() {
         TeamCardDto dto = TeamCardDto.builder().build();
         assertThat(dto.getPassive()).isNull();
     }
