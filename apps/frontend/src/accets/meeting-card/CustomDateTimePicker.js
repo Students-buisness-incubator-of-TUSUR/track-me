@@ -280,7 +280,7 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
                                 onChange={(e) => handleTimeChange({ target: { value: `${selectedTime.split(':')[0]}:${e.target.value}` } })}
                                 className="time-select"
                             >
-                                {['00', '15', '30', '45'].map((minute) => (
+                                {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((minute) => (
                                     <option key={minute} value={minute}>{minute}</option>
                                 ))}
                             </select>
