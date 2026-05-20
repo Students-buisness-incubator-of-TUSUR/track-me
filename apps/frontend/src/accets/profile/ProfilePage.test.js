@@ -57,7 +57,7 @@ const mockUserDataAdmin = {
 
 const mockTeamsResponse = {
   totalElements: 5,
-  content: Array(5).fill({ id: 1, name: 'Team' })
+  content: Array(5).fill({ id: 1, name: 'Team', enabled: true })
 };
 
 beforeEach(() => {
@@ -180,7 +180,7 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       const teamButton = screen.getByRole('button', { 
-        name: 'Карточки команд (0)'
+        name: 'Карточки команд 0 (0)'
       });
       expect(teamButton).toBeInTheDocument();
     });
@@ -203,7 +203,7 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       const teamButton = screen.getByRole('button', { 
-        name: 'Карточки команд (5)'
+        name: 'Карточки команд 5 (5)'
       });
       expect(teamButton).toBeInTheDocument();
     });
@@ -220,7 +220,7 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       const teamButton = screen.getByRole('button', {
-        name: 'Карточки команд (5)'
+        name: 'Карточки команд 5 (5)'
       });
       expect(teamButton).toBeInTheDocument();
     });
@@ -245,7 +245,7 @@ describe('ProfilePage', () => {
         expect.any(Error),
       );
       const teamButton = screen.getByRole('button', { 
-        name: 'Карточки команд (0)'
+        name: 'Карточки команд 0 (0)'
       });
       expect(teamButton).toBeInTheDocument();
     });

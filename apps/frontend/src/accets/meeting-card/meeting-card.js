@@ -30,7 +30,6 @@ const MeetingCard = () => {
     const isNewMeeting = meetingId === "new";
     const [error, setError] = useState(null);
     const [recordLinkError, setRecordLinkError] = useState(null);
-    const [showDateTooltip, setShowDateTooltip] = useState(false);
     const [meetingData, setMeetingData] = useState({
         number: isNewMeeting ? "Новая встреча" : "",
         startDate: new Date().toISOString(),
@@ -330,12 +329,11 @@ const MeetingCard = () => {
     };
 
     const handleCompleteMeeting = async (completed) => {
-        const completeNotReadyMessage = 'Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить';
+        const completeNotReadyMessage = 'Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить';
 
         if (!isMeetingDatePassed()) {
             setError(completeNotReadyMessage);
-            setShowDateTooltip(true);
-            setTimeout(() => { setError(null); setShowDateTooltip(false); }, 5000);
+            setTimeout(() => setError(null), 5000);
             return;
         }
 
@@ -554,7 +552,7 @@ const MeetingCard = () => {
                                     className={`unique-status-button unique-status-completed ${meetingData.status === "COMPLETED" ? "active-status" : ""}`}
                                     title={
                                         !areAllFieldsFilled() ? "Заполните все поля перед завершением встречи"
-                                            : !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить"
+                                            : !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить"
                                                 : ""
                                     }
                                 >
@@ -566,15 +564,12 @@ const MeetingCard = () => {
                                     onClick={() => { setPendingCompletion(false); setShowConfirmModal(true); }}
                                     disabled={meetingData.status === "COMPLETED_AS_NOT_HAPPENED" || !isMeetingDatePassed()}
                                     className={`unique-status-button unique-status-not-happened ${meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : ""}`}
-                                    title={!isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить" : ""}
+                                    title={
+                                        !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить" : ""
+                                    }
                                 >
                                     Не состоялась
                                 </button>
-                            )}
-                            {showDateTooltip && (
-                                <div className="date-tooltip">
-                                    Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить
-                                </div>
                             )}
                         </div>
                     )}
