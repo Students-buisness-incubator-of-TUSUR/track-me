@@ -70,4 +70,18 @@ class TeamCardEventConsumerPassiveTest {
 
         verify(metadataRepository).updatePassiveFlag(teamId, newPassive);
     }
+
+    @Test
+    void handleTeamCardUpdatedWithNewPassiveNullShouldStillCallUpdatePassiveFlag() {
+        UUID teamId = UUID.randomUUID();
+        TeamCardUpdatedEvent event = new TeamCardUpdatedEvent(
+                teamId, "Name", "user", null, null
+        );
+
+        when(ssoApiClient.getTrackers()).thenReturn(Collections.emptyList());
+
+        teamCardEventConsumer.handleTeamCardUpdated(event);
+
+        verify(metadataRepository).updatePassiveFlag(teamId, null);
+    }
 }

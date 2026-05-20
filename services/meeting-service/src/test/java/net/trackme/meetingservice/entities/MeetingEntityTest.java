@@ -31,4 +31,16 @@ class MeetingEntityTest {
 
         assertThat(meeting.getTeamStatusValue()).isEqualByComparingTo(BigDecimal.ONE);
     }
+
+    @Test
+    void teamCardPassiveDefaultValueIsFalse() {
+        Meeting meeting = Meeting.builder().build();
+        assertThat(meeting.getTeamCardPassive()).isFalse();
+    }
+
+    @Test
+    void teamCardPassiveCanBeSetToTrue() {
+        Meeting meeting = Meeting.builder().teamCardPassive(true).build();
+        assertThat(meeting.getTeamCardPassive()).isTrue();
+    }
 }
