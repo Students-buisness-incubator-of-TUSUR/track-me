@@ -20,13 +20,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -97,7 +93,6 @@ class MeetingServiceImplTest {
     }
 
     @Test
-    @WithMockUser(username = "tracker_user", roles = "TRACKER")
     void createMeetingForActiveTeamTrackerAllowed() {
         when(userBackendApiClient.getTeamCardById(activeTeamId)).thenReturn(activeTeamCard);
 
@@ -120,7 +115,6 @@ class MeetingServiceImplTest {
     }
 
     @Test
-    @WithMockUser(username = "tracker_user", roles = "TRACKER")
     void createMeetingForPassiveTeamTrackerThrowsException() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
@@ -135,7 +129,6 @@ class MeetingServiceImplTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
     void createMeetingForPassiveTeamAdminAllowed() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
@@ -156,7 +149,6 @@ class MeetingServiceImplTest {
     }
 
     @Test
-    @WithMockUser(username = "tracker_user", roles = "TRACKER")
     void updateMeetingForPassiveTeamTrackerThrowsException() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
@@ -171,7 +163,6 @@ class MeetingServiceImplTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
     void updateMeetingForPassiveTeamAdminAllowed() {
         when(userBackendApiClient.getTeamCardById(passiveTeamId)).thenReturn(passiveTeamCard);
 
@@ -180,7 +171,8 @@ class MeetingServiceImplTest {
         existingMeeting.setId(meetingId);
         existingMeeting.setStatus(MeetingStatus.SCHEDULED);
 
-        when(meetingRepository.findOne(any(Specification.class))).thenReturn(Optional.of(existingMeeting));
+        // Мокаем findById, а не findOne
+        when(meetingRepository.findById(meetingId)).thenReturn(java.util.Optional.of(existingMeeting));
         when(meetingRepository.save(any(Meeting.class))).thenReturn(existingMeeting);
 
         MeetingUpdateDto dto = MeetingUpdateDto.builder()
