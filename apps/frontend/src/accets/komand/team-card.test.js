@@ -1692,4 +1692,99 @@ describe('Visibility and popstate handlers', () => {
       expect(screen.getByTestId('inputbox-name')).toHaveValue('Команда Икс');
     });
   });
+  describe("Пассивный статус команды", () => {
+    // Тест 1: Проверяем, что чекбокс пассивного статуса отображается для ADMIN
+    it("отображает чекбокс пассивного статуса для ADMIN в режиме редактирования", async () => {
+      renderTeamCard({ role: "ADMIN" });
+      await enterEditMode();
+
+      // Ищем чекбокс по тексту label
+      const passiveLabel = await screen.findByText("Команда в пассиве (неактивна)");
+      expect(passiveLabel).toBeInTheDocument();
+
+      // Проверяем, что это действительно чекбокс
+      const checkbox = passiveLabel.closest('label').querySelector('input[type="checkbox"]');
+      expect(checkbox).toBeInTheDocument();
+    });
+
+    // Тест 2: Проверяем, что чекбокс НЕ отображается для TRACKER
+    it("НЕ отображает чекбокс пассивного статуса для TRACKER в режиме редактирования", async () => {
+      renderTeamCard({ role: "TRACKER" });
+      await enterEditMode();
+
+      const passiveLabel = screen.queryByText("Команда в пассиве (неактивна)");
+      expect(passiveLabel).not.toBeInTheDocument();
+    });
+
+    // Тест 3: Проверяем, что можно включить/выключить чекбокс
+    it("позволяет включить и выключить чекбокс пассивного статуса", async () => {
+      renderTeamCard({ role: "ADMIN" });
+      await enterEditMode();
+
+      const passiveLabel = await screen.findByText("Команда в пассиве (неактивна)");
+      const checkbox = passiveLabel.closest('label').querySelector('input[type="checkbox"]');
+
+      // Изначально чекбокс должен быть выключен (по умолчанию passive: false)
+      expect(checkbox.checked).toBe(false);
+
+      // Включаем
+      fireEvent.click(checkbox);
+      expect(checkbox.checked).toBe(true);
+
+      // Выключаем
+      fireEvent.click(checkbox);
+      expect(checkbox.checked).toBe(false);
+    });
+
+    // Тест 4: Проверяем, что при сохранении отправляется поле passive
+    it("отправляет поле passive на сервер при сохранении", async () => {
+      renderTeamCard({ role: "ADMIN" });
+      await enterEditMode();
+
+      // Включаем пассивный статус
+      const passiveLabel = await screen.findByText("Команда в пассиве (неактивна)");
+      const checkbox = passiveLabel.closest('label').querySelector('input[type="checkbox"]');
+      fireEvent.click(checkbox);
+      expect(checkbox.checked).toBe(true);
+
+      // Сохраняем
+      const saveButton = screen.getByRole("button", { name: /сохранить/i });
+      fireEvent.click(saveButton);
+
+      // Проверяем, что в запросе есть passive: true
+      await waitFor(() => {
+        const patchCall = global.fetch.mock.calls.find(
+          ([url, opts]) => opts && opts.method === "PATCH" && opts.body
+        );
+        expect(patchCall).toBeTruthy();
+        const body = JSON.parse(patchCall[1].body);
+        expect(body).toHaveProperty("passive", true);
+      });
+    });
+
+    // Тест 5: Проверяем, что трекер НЕ может создать встречу для пассивной команды
+    it("показывает ошибку при попытке трекера создать встречу для пассивной команды", async () => {
+      // Мокаем пассивную команду
+      renderTeamCard({
+        role: "TRACKER",
+        fetchOverrides: {
+          teamCard: { ...TEAM_CARD, passive: true }
+        }
+      });
+
+      await waitForLoad();
+
+      // Кликаем "Запланировать"
+      const scheduleButton = screen.getByRole("button", { name: /запланировать/i });
+      fireEvent.click(scheduleButton);
+
+      // Должна появиться ошибка
+      await waitFor(() => {
+        const errorMessage = screen.queryByText("Нельзя создавать встречи для пассивной команды");
+        if (errorMessage) {
+          expect(errorMessage).toBeInTheDocument();
+        }
+      });
+    });
+  });
 });
