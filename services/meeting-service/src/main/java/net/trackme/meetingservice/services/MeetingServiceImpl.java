@@ -319,7 +319,4 @@ public class MeetingServiceImpl implements MeetingService {
                 .findFirst()
                 .orElse(null);
     }
-    String getCurrentUserRoleForTest() {
-        return getCurrentUserRole();
-    }
 }

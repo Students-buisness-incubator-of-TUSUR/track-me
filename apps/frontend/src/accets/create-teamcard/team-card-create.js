@@ -126,7 +126,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
     // Загрузка рынков НТИ
     useEffect(() => {
-fetch(`${backendHost}/api/v1/streams/nti-markets`, {
+        fetch(`${backendHost}/api/v1/streams/nti-markets`, {
             method: "GET",
             credentials: "include",
         })
@@ -143,7 +143,7 @@ useEffect(() => {
   if (currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN"))
  {
     console.log("Запрашиваем трекеров...");
-    fetch(`${backendHost1}/api/v1/users/trackers?page=0&size=100000`, {
+    fetch(`${backendHost1}/api/v1/users/trackers?page=0&size=100000&sort=fullName,asc`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -168,20 +168,23 @@ useEffect(() => {
   }
 }, [currentUser]);
 
+
+
     const handleChange = (e) => {
         const {name, value} = e.target;
         setFormData(prev => ({...prev, [name]: value}));
     };
 
     const handleMarketSelect = (market) => {
-        setSelectedMarkets(prev => {
-            if (prev.some(m => m.id === market.id)) {
-                return prev.filter(m => m.id !== market.id); // снять выбор
-            } else {
-                return [...prev, market]; // добавить в выбор
-            }
-        });
-    };
+    setSelectedMarkets(prev => {
+        if (prev.some(m => m.id === market.id)) {
+            return prev.filter(m => m.id !== market.id); // снять выбор
+        } else {
+            return [...prev, market]; // добавить в выбор
+        }
+    });
+};
+
 
     const handleTRLSelect = (trl) => {
         setSelectedTRL(trl);
@@ -193,17 +196,17 @@ useEffect(() => {
         setShowStreams(false);
     };
 
-    const handleTrackerSelect = (tracker) => {
-        setSelectedTracker(tracker);
-        setFormData(prev => ({
-            ...prev,
-            tracker: tracker.fullName,
-            trackerId: tracker.id,
-  trackerUsername: tracker.username // Добавляем ID трекера в formData
+  //   const handleTrackerSelect = (tracker) => {
+  //       setSelectedTracker(tracker);
+  //       setFormData(prev => ({
+  //           ...prev,
+  //           tracker: tracker.fullName,
+  //           trackerId: tracker.id,
+  // trackerUsername: tracker.username // Добавляем ID трекера в formData
 
-        }));
-        setShowTrackers(false);
-    };
+  //       }));
+  //       setShowTrackers(false);
+  //   };
 
     const validateForm = () => {
         const errors = [];
@@ -233,13 +236,14 @@ if (isAdmin && !selectedTracker) {
                 meetingRoomLink: formData.meetingRoomLink,
                 description: formData.description || "Описание карточки команды",
                 ntiMarketIds: selectedMarkets.map(m => m.id),
-                readinessLevel: selectedTRL.label
+                readinessLevel: selectedTRL.label,
+                trackerFullName: formData.tracker || null
             };
 
             let url = `${backendHost}`;
 
             // Добавляем username в URL если выбран трекер
-if (currentUser && (currentUser.roles?.includes("ADMIN") || currentUser.roles?.includes("SUPER_ADMIN"))) {
+            if (currentUser && (currentUser.roles?.includes("ADMIN") || currentUser.roles?.includes("SUPER_ADMIN"))) {
                 url += `/api/v1/admin/team-card?streamId=${formData.streamId}&username=${formData.trackerUsername}`;
             } else {
                 url += `/api/v1/team-card?streamId=${formData.streamId}`;
@@ -285,7 +289,7 @@ if (currentUser && (currentUser.roles?.includes("ADMIN") || currentUser.roles?.i
         <div className="create-input-wrapper">
             {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) ? (
                 <div className="tracker-select-container">
-                    <div 
+                    <div
   className="tracker-select-trigger"
   onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
   onKeyDown={(e) => {
@@ -303,7 +307,7 @@ if (currentUser && (currentUser.roles?.includes("ADMIN") || currentUser.roles?.i
                             {selectedTracker ? selectedTracker.fullName : "Выберите трекера"}
                         </div>
                     </div>
-                    
+
                     {isTrackerDropdownOpen && (
                         <div className="tracker-select-dropdown">
                             <div className="tracker-select-search">
@@ -385,10 +389,10 @@ if (currentUser && (currentUser.roles?.includes("ADMIN") || currentUser.roles?.i
                         <div className="create-input-wrapper">
                             <input
                                 className="create-input"
-name="meetingRoomLink"
+                                name="meetingRoomLink"
                                 value={formData.meetingRoomLink}
                                 onChange={handleChange}
-                                placeholder="https://webinar.tusur.ru/b/abc-qwe-zxc-vbn&quot"
+                                placeholder="https://webinar.tusur.ru/b/abc-qwe-zxc-vbn"
                             />
                         </div>
                         <img src={penIcon} alt="edit" className="create-edit-icon"/>
@@ -418,6 +422,8 @@ name="meetingRoomLink"
   )}
 </div>
 
+
+
                 <div className={`create-dropdown-block${showNTI ? " open" : ""}`}>
   <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
   {selectedMarkets.length > 0
@@ -425,6 +431,7 @@ name="meetingRoomLink"
         (selectedMarkets.length > 2 ? ` +${selectedMarkets.length - 2}` : "")
     : "Рынки НТИ"}
 </div>
+
 
   {showNTI && (
     <div className="create-checkbox-list">
@@ -443,6 +450,7 @@ name="meetingRoomLink"
     </div>
   )}
 </div>
+
 
                 <div className={`create-dropdown-block${showTRL ? " open" : ""}`}>
                     <div className="create-dropdown-toggle" onClick={() => setShowTRL(!showTRL)}>
@@ -497,7 +505,7 @@ name="meetingRoomLink"
                         </div>
                     </div> */}
                     <button
-className="create-meeting-add"
+    className="create-meeting-add"
     onClick={() => {
         setError("Сначала создайте карточку команды");
     }}
