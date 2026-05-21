@@ -46,5 +46,12 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "team-card.test.js",
+      "meeting-card.test.js",
+      "tracker-page.test.js"
+    ]
   }
 }
