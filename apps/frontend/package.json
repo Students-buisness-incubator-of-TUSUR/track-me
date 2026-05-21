@@ -48,10 +48,21 @@
     ]
   },
   "jest": {
-    "testPathIgnorePatterns": [
-      "team-card.test.js",
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}",
+      "!src/accets/meeting-card/**",
+      "!src/accets/teamcard/tracker-page.test.js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
       "meeting-card.test.js",
       "tracker-page.test.js"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.{js,jsx}",
+      "**/?(*.)+(spec|test).{js,jsx}",
+      "!**/meeting-card.test.js",
+      "!**/tracker-page.test.js"
     ]
   }
 }
