@@ -1360,16 +1360,51 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .build());
     }
 
-    // ==================== ТЕСТЫ ДЛЯ ПАССИВНОГО СТАТУСА ====================
+    // ==================== ТЕСТЫ ДЛЯ ПАССИВНОГО СТАТУСА (SERVICE) ====================
 
     @Test
     @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
-    void getTeamCard_shouldReturnPassiveField() throws Exception {
+    void updateTeamCard_shouldUpdatePassiveField() throws Exception {
         var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
+        // Создаем команду с passive = false
         var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
                 .status(TeamCardStatus.OK)
-                .name("Passive Team")
+                .name("Test Passive Update")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .passive(false)
+                .ntiMarkets(List.of(ntiMarket))
+                .build());
+
+        // Обновляем passive на true
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "passive": true,
+                                  "readinessLevel": "3-5"
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive", is(true)));
+    }
+
+    // ==================== ТЕСТЫ ДЛЯ ПАССИВНОГО СТАТУСА (USECASE) ====================
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void updatePassiveTeam_shouldReturnErrorForTracker() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        // Создаем пассивную команду
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Passive Team For Tracker")
                 .username(BaseApplicationTest.USER)
                 .meetingRoomLink("https://test.link")
                 .readinessLevel(ReadinessLevel.LEVEL_1)
@@ -1377,12 +1412,83 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .ntiMarkets(List.of(ntiMarket))
                 .build());
 
-        mockMvc.perform(get("/api/v1/team-card")
-                        .param("id", teamCard.getId().toString()))
+        // Пытаемся обновить как TRACKER (не админ)
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Try to update",
+                                  "readinessLevel": "3-5"
+                                }
+                                """))
                 .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.passive", is(true)));
+                .andExpect(status().isInternalServerError());
     }
 
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void updatePassiveTeam_shouldAllowForAdmin() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
 
+        // Создаем пассивную команду
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Passive Team For Admin")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .passive(true)
+                .ntiMarkets(List.of(ntiMarket))
+                .build());
+
+        // Админ может обновить пассивную команду
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Admin Updated",
+                                  "readinessLevel": "6-8"
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("Admin Updated")));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void updateActiveTeam_shouldAllowForTracker() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        // Создаем активную команду (passive = false)
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Active Team For Tracker")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .passive(false)
+                .ntiMarkets(List.of(ntiMarket))
+                .build());
+
+        // Трекер может обновить активную команду
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Tracker Updated",
+                                  "readinessLevel": "3-5"
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("Tracker Updated")));
+    }
 }
+
