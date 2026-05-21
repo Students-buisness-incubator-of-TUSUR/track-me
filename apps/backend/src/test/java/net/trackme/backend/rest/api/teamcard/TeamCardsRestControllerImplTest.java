@@ -1359,4 +1359,104 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .streams(Set.of(stream))
                 .build());
     }
+
+    // ==================== ТЕСТЫ ДЛЯ ПАССИВНОГО СТАТУСА ====================
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void updateTeamCard_shouldSetPassiveStatus() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team for passive test")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .ntiMarkets(List.of(ntiMarket))
+                .build());
+
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "Updated Team",
+                                  "passive": true,
+                                  "readinessLevel": "3-5"
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive", is(true)));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCard_shouldReturnPassiveField() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Passive Team")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .passive(true)
+                .ntiMarkets(List.of(ntiMarket))
+                .build());
+
+        mockMvc.perform(get("/api/v1/team-card")
+                        .param("id", teamCard.getId().toString()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive", is(true)));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void updateTeamCard_shouldTogglePassiveStatus() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Toggle Team")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .passive(false)
+                .ntiMarkets(List.of(ntiMarket))
+                .build());
+
+        // Включаем passive
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "passive": true,
+                                  "readinessLevel": "3-5"
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive", is(true)));
+
+        // Выключаем passive
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "passive": false,
+                                  "readinessLevel": "3-5"
+                                }
+                                """))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive", is(false)));
+    }
 }
