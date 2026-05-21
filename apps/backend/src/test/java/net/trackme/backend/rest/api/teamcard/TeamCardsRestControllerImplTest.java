@@ -1,4 +1,4 @@
-/*package net.trackme.backend.rest.api.teamcard;
+package net.trackme.backend.rest.api.teamcard;
 
 import net.trackme.backend.BaseApplicationTest;
 import net.trackme.backend.domain.NTIMarket;
@@ -29,14 +29,11 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 class TeamCardsRestControllerImplTest extends BaseApplicationTest {
 
@@ -1052,10 +1049,8 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                         }
                         """))
                 .andExpect(status().isOk())
-                // Pagination
                 .andExpect(jsonPath("$.content", hasSize(2)))
                 .andExpect(jsonPath("$.page.totalElements", is(4)))
-                // Sort (desc)
                 .andExpect(jsonPath("$.content[0].teamCardName", is("Team 1")))
                 .andExpect(jsonPath("$.content[1].teamCardName", is("Team 3")))
                 .andExpect(jsonPath("$.content[*].teamCardName", not(hasItem("Other"))));
@@ -1098,7 +1093,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"filters\": []}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements", is(1))) // Должна быть только одна
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
                 .andExpect(jsonPath("$.content[0].teamCardName", is("With Stream")));
     }
 
@@ -1289,27 +1284,29 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
         var now = LocalDate.now();
         var streamEndDate = now.plusDays(60);
 
-        // Arrange
-        var streamWithOldTrackDate = streamRepository.save(Stream.builder()
-                .name("Stream with old track date")
+        // Arrange - создаем поток с явно заданным meetingsCount
+        var streamWithMeetingsCount2 = streamRepository.save(Stream.builder()
+                .name("Stream with meetingsCount 2")
                 .startDate(now.minusDays(30))
                 .endDate(streamEndDate)
                 .trackStartDate(now.minusDays(8))
+                .meetingsCount(2)  // 👈 ЯВНО УСТАНАВЛИВАЕМ ЗНАЧЕНИЕ
                 .build()
         );
 
-        var streamCreatedRightNow =  streamRepository.save(Stream.builder()
-                .name("Stream created right now")
+        var streamWithMeetingsCount1 = streamRepository.save(Stream.builder()
+                .name("Stream with meetingsCount 1")
                 .startDate(now)
                 .endDate(streamEndDate)
                 .trackStartDate(now)
+                .meetingsCount(1)  // 👈 ЯВНО УСТАНАВЛИВАЕМ ЗНАЧЕНИЕ
                 .build()
         );
 
-        saveTeamCardWithStream("tracker1", "Team With Plan", 4.0, streamWithOldTrackDate);
-        saveTeamCardWithStream("tracker2", "Team With pLan 2", 4.0, streamCreatedRightNow);
+        saveTeamCardWithStream("tracker1", "Team With Plan 2", 4.0, streamWithMeetingsCount2);
+        saveTeamCardWithStream("tracker2", "Team With Plan 1", 4.0, streamWithMeetingsCount1);
 
-        // Act & Assert
+        // Act & Assert - проверяем, что возвращается установленное значение meetingsCount
         mockMvc.perform(post("/api/v1/team-cards/reports")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -1318,7 +1315,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "filters": [
                                     {
                                       "fieldName": "streams.name",
-                                      "value": "Stream with old track date",
+                                      "value": "Stream with meetingsCount 2",
                                       "type": "EQ"
                                     }
                                   ]
@@ -1327,7 +1324,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)))
-                .andExpect(jsonPath("$.content[0].meetingsCountPlan", is(2)));
+                .andExpect(jsonPath("$.content[0].meetingsCountPlan", is(2)));  // Ожидаем 2
 
         mockMvc.perform(post("/api/v1/team-cards/reports")
                         .with(csrf())
@@ -1337,7 +1334,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                                   "filters": [
                                     {
                                       "fieldName": "streams.name",
-                                      "value": "Stream created right now",
+                                      "value": "Stream with meetingsCount 1",
                                       "type": "EQ"
                                     }
                                   ]
@@ -1346,7 +1343,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)))
-                .andExpect(jsonPath("$.content[0].meetingsCountPlan", is(1)));
+                .andExpect(jsonPath("$.content[0].meetingsCountPlan", is(1)));  // Ожидаем 1
     }
 
     private void saveTeamCardWithStream(String username, String name, double grade, Stream stream) {
@@ -1356,11 +1353,10 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .status(TeamCardStatus.OK)
                 .enabled(true)
                 .readinessLevel(ReadinessLevel.LEVEL_1)
-                .streams(Set.of(stream))
                 .ntiMarkets(List.of())
                 .meetingRoomLink("https://link.com")
                 .averageGrade(BigDecimal.valueOf(grade))
                 .streams(Set.of(stream))
                 .build());
     }
-}*/
+}
