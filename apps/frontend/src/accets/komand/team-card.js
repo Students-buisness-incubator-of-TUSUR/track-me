@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import "./team-card.css";
 import MeetingCreate from "../meeting-card/MeetingCreate.js";
@@ -54,16 +54,13 @@ export const getCommandCountText = (count) => {
 const TeamCard = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  console.log("=== team-card.js диагностика ===");
-    console.log("id из useParams():", id);
-    console.log("Полный URL:", window.location.href);
 
   const [trackerSearchTerm, setTrackerSearchTerm] = useState("");
   const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [showMeetingCreate, setShowMeetingCreate] = useState(false);
   const location = useLocation();
   const passedUsername = location.state?.username;
-  const query = new URLSearchParams(location.search);
+  const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const from = location.state?.from || "/team-cards";
 
   const [role, setRole] = useState(null);
@@ -82,7 +79,7 @@ const TeamCard = () => {
   const [streams, setStreams] = useState([]);
   const [ntiMarkets, setNtiMarkets] = useState([]);
   const [trackers, setTrackers] = useState([]);
-  const [trackerFullName, setTrackerFullName] = useState("");  // 👈 ДОБАВИТЬ ЭТУ СТРОЧКУ
+  const [trackerFullName, setTrackerFullName] = useState("");
   const forceEdit = query.get("edit") === "true";
   const [isEditing, setIsEditing] = useState(forceEdit);
   const [selectedMarket, setSelectedMarket] = useState(null);
@@ -104,10 +101,9 @@ const TeamCard = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState(null);
   const canEdit = isEditing && (
-      (role === "TRACKER" && !teamData.passive) ||  // Трекер не может редактировать пассивную команду
-      (role !== "TRACKER")                          // Админ может всегда
-  );
-
+          (role === "TRACKER" && !teamData.passive) ||  // Трекер не может редактировать пассивную команду
+          (role !== "TRACKER")                          // Админ может всегда
+      );
   const filteredTrackers = useMemo(() => {
     if (!trackerSearchTerm.trim()) return trackers;
     return trackers.filter(tracker =>
@@ -147,33 +143,34 @@ const TeamCard = () => {
   useEffect(() => {
     if (!role) return;
 
-      const fetchFullName = async () => {
-        try {
-          if (role === "ADMIN" || role === "SUPER_ADMIN") {
-            const usernameToFetch = passedUsername || teamData.username;
-            if (!usernameToFetch) return;
+     const fetchFullName = async () => {
+          try {
+             if (role === "ADMIN" || role === "SUPER_ADMIN") {
+               const usernameToFetch = passedUsername || teamData.username;
+               if (!usernameToFetch) return;
 
-            const res = await fetch(`${backendHost1}/api/v1/users/${usernameToFetch}/info`, {
-              credentials: "include"
-            });
-            if (!res.ok) throw new Error("Ошибка получения данных пользователя");
-            const data = await res.json();
-            setTrackerFullName(data.fullName || data.username || "");  // 👈 ДОБАВИТЬ
-          } else if (role === "TRACKER") {
-            const res = await fetch(`${backendHost1}/api/v1/account/info`, {
-              credentials: "include"
-            });
-            if (!res.ok) throw new Error("Ошибка получения данных текущего пользователя");
-            const data = await res.json();
-            setTrackerFullName(data.fullName || data.username || "");  // 👈 ДОБАВИТЬ
+               const res = await fetch(`${backendHost1}/api/v1/users/${usernameToFetch}/info`, {
+                 credentials: "include"
+               });
+               if (!res.ok) throw new Error("Ошибка получения данных пользователя");
+               const data = await res.json();
+               setTrackerFullName(data.fullName || data.username || "");
+             } else if (role === "TRACKER") {
+               const res = await fetch(`${backendHost1}/api/v1/account/info`, {
+                 credentials: "include"
+               });
+               if (!res.ok) throw new Error("Ошибка получения данных текущего пользователя");
+               const data = await res.json();
+               setTrackerFullName(data.fullName || data.username || "");  // 👈 ДОБАВИТЬ
           }
         } catch (err) {
-          handleApiError(err, "загрузке ФИО трекера");
-        }
-      };
+                handleApiError(err, "загрузке ФИО трекера");
+              }
+            };
 
     fetchFullName();
   }, [role, passedUsername, teamData.username]);
+
   useEffect(() => {
     if (streamInfo?.meetingsCount) {
       setMaxMeetingsCount(streamInfo.meetingsCount);
@@ -224,6 +221,75 @@ const TeamCard = () => {
     fetchTeamCardsCount();
   }, [teamData]); // зависимость от teamData
 
+  const handleApiError = (error, context) => {
+      console.error(`Error in ${context}:`, error);
+      setApiError(`Ошибка при ${context}: ${error.message}`);
+    };
+
+    const loadMeetings = useCallback(async () => {
+      try {
+        const response = await fetch(
+          `${backendHost2}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000`,
+          { credentials: 'include' }
+        );
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+
+        const sortedMeetings = (data.content || []).sort((a, b) => {
+          const numA = parseInt(a.number) || 0;
+          const numB = parseInt(b.number) || 0;
+          return numA - numB;
+        });
+
+        setMeetings(sortedMeetings);
+        setTotalPages(data.totalPages || 1);
+      } catch (error) {
+        handleApiError(error, "загрузке встреч");
+      }
+    }, [id, currentPage]);
+
+    const loadTeamCard = useCallback(async () => {
+      try {
+        const endpoint = (role === "ADMIN" || role === "SUPER_ADMIN")
+          ? `${backendHost}/api/v1/admin/team-cards?page=0&size=1000`
+          : `${backendHost}/api/v1/team-cards?page=0&size=1000`;
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getCsrfConfigForFetch()
+          },
+          credentials: "include",
+          body: JSON.stringify({ filters: [] })
+        });
+
+        if (!response.ok) throw new Error("Ошибка при получении карточек");
+
+        const data = await response.json();
+        const found = data.content?.find(card => String(card.id) === String(id));
+
+        if (found) {
+          setTeamData(found);
+          setEditedData(prev => ({
+            ...prev,
+            ...found,
+            ntiMarketIds: prev.ntiMarketIds || found.ntiMarkets?.map(m => m.id) || [],
+            readinessLevel: prev.readinessLevel || found.readinessLevel,
+            description: prev.description || found.description,
+            meetingRoomLink: prev.meetingRoomLink || found.meetingRoomLink || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Ошибка при обновлении карточки команды:", error);
+      }
+    }, [id, role]);
+
+    useEffect(() => {
+      loadMeetings();
+    }, [loadMeetings]);
+
+
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -235,37 +301,46 @@ const TeamCard = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleApiError = (error, context) => {
+  useEffect(() => {
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          loadMeetings();
+          loadTeamCard();
+        }
+      };
+
+  /*const handleApiError = (error, context) => {
     console.error(`Error in ${context}:`, error);
     setApiError(`Ошибка при ${context}: ${error.message}`);
-  };
+  };*/
+  const handlePopState = () => {
+        loadMeetings();
+        loadTeamCard();
+      };
 
-  useEffect(() => {
-    const loadMeetings = async () => {
-      try {
-        const response = await fetch(
-          `${backendHost2}/api/v1/meetings?teamCardId=${id}&page=${currentPage}&size=1000`,
-          { credentials: 'include' }
-        );
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('popstate', handlePopState);
+  return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('popstate', handlePopState);
+  }, [loadMeetings, loadTeamCard]);
 
-        // Сортируем встречи как числа
-        const sortedMeetings = (data.content || []).sort((a, b) => {
-          const numA = parseInt(a.number) || 0;
-          const numB = parseInt(b.number) || 0;
-          return numA - numB; // по возрастанию
-        });
-
-        setMeetings(sortedMeetings);
-        setTotalPages(data.totalPages || 1);
-      } catch (error) {
-        handleApiError(error, "загрузке встреч");
+   useEffect(() => {
+      const refreshParam = query.get("refresh");
+      if (refreshParam) {
+        loadMeetings();
+        loadTeamCard();
       }
-    };
-    loadMeetings();
-  }, [id, currentPage]);
+    }, [location.search, loadMeetings, loadTeamCard, query]);
 
+    useEffect(() => {
+      const interval = setInterval(() => {
+        loadMeetings();
+        loadTeamCard();
+      }, 30000);
+
+      return () => clearInterval(interval);
+    }, [loadMeetings, loadTeamCard]);
 
   useEffect(() => {
     if (!username || !role || !id) return;
@@ -658,11 +733,17 @@ const TeamCard = () => {
       setEditingMeetingId(null);
       setShowDeleteModal(false);
       setMeetingToDelete(null);
+      // ✅ Перезагружаем и встречи, и данные карточки (включая рейтинг)
+            await loadMeetings();
+            await loadTeamCard();
     } catch (error) {
       console.error("Ошибка удаления встречи:", error);
       setMeetingError("Не удалось удалить встречу. Попробуйте позже.");
       setTimeout(() => setMeetingError(""), 3000);
       setShowDeleteModal(false);
+      // При ошибке перезагружаем данные для восстановления актуального состояния
+            await loadMeetings();
+            await loadTeamCard();
     }
   };
 
@@ -765,7 +846,12 @@ const TeamCard = () => {
         <div className="team-card_container">
           <div className="team-card_header">
             {teamData.averageGrade !== undefined && teamData.averageGrade !== null && (
-              <div className="team-card_team-rating">
+              <div
+                              className={`team-card_team-rating ${teamData.averageGrade >= 0.51 ? 'team-card_rating-green' :
+                                  teamData.averageGrade >= 0.26 ? 'team-card_rating-yellow' :
+                                    'team-card_rating-red'
+                                }`}
+                            >
                 {teamData.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             )}
