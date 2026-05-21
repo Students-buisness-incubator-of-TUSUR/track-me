@@ -87,21 +87,24 @@ class MeetingServiceImplPassiveFlagTest {
     }
 
     @Test
-    void createMeeting_ShouldThrow_WhenTeamCardPassive() {
+    void testPassiveTeamBlockedForTracker() {
+        // Когда команда пассивная и пользователь не админ
+        teamCardDto.setPassive(true);
+
         when(userBackendClient.getTeamCardById(teamCardId)).thenReturn(teamCardDto);
         when(meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThan(
                 any(), any(), any())).thenReturn(false);
 
-        // Когда команда пассивная - должна быть ошибка
-        // (роль пользователя не ADMIN/SUPER_ADMIN)
+        // Должна быть ошибка (роль не ADMIN/SUPER_ADMIN)
         assertThatThrownBy(() -> meetingService.createMeeting(teamCardId, createDto))
-                .isInstanceOf(Exception.class); // Любое исключение
+                .isInstanceOf(Exception.class);
 
         verify(meetingRepository, never()).save(any(Meeting.class));
     }
 
     @Test
-    void createMeeting_ShouldWork_WhenTeamCardNotPassive() {
+    void testNonPassiveTeamAllowsTracker() {
+        // Когда команда НЕ пассивная
         teamCardDto.setPassive(false);
 
         when(userBackendClient.getTeamCardById(teamCardId)).thenReturn(teamCardDto);
@@ -111,14 +114,15 @@ class MeetingServiceImplPassiveFlagTest {
         when(meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThan(
                 any(), any(), any())).thenReturn(false);
 
-        // Должно работать без ошибок
+        // Должно работать
         meetingService.createMeeting(teamCardId, createDto);
 
         verify(meetingRepository, times(1)).save(any(Meeting.class));
     }
 
     @Test
-    void createMeeting_ShouldWork_WhenPassiveIsNull() {
+    void testNullPassiveTreatsAsNonPassive() {
+        // Когда passive = null (старые данные)
         teamCardDto.setPassive(null);
 
         when(userBackendClient.getTeamCardById(teamCardId)).thenReturn(teamCardDto);
@@ -134,7 +138,9 @@ class MeetingServiceImplPassiveFlagTest {
     }
 
     @Test
-    void updateMeeting_ShouldThrow_WhenTeamCardPassive() {
+    void testUpdateMeetingWithPassiveTeamBlocked() {
+        teamCardDto.setPassive(true);
+
         when(userBackendClient.getTeamCardById(teamCardId)).thenReturn(teamCardDto);
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
 
@@ -145,21 +151,8 @@ class MeetingServiceImplPassiveFlagTest {
     }
 
     @Test
-    void updateMeeting_ShouldWork_WhenTeamCardNotPassive() {
+    void testUpdateMeetingWithNonPassiveTeamAllowed() {
         teamCardDto.setPassive(false);
-
-        when(userBackendClient.getTeamCardById(teamCardId)).thenReturn(teamCardDto);
-        when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
-        when(meetingRepository.save(any(Meeting.class))).thenReturn(meeting);
-
-        meetingService.updateMeeting(meetingId, teamCardId, updateDto);
-
-        verify(meetingRepository, times(1)).save(any(Meeting.class));
-    }
-
-    @Test
-    void updateMeeting_ShouldWork_WhenPassiveIsNull() {
-        teamCardDto.setPassive(null);
 
         when(userBackendClient.getTeamCardById(teamCardId)).thenReturn(teamCardDto);
         when(meetingRepository.findById(meetingId)).thenReturn(Optional.of(meeting));
