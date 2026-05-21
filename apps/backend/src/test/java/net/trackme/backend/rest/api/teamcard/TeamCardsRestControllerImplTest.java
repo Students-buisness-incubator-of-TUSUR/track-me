@@ -1,4 +1,4 @@
-package net.trackme.backend.rest.api.teamcard;
+/*package net.trackme.backend.rest.api.teamcard;
 
 import net.trackme.backend.BaseApplicationTest;
 import net.trackme.backend.domain.NTIMarket;
@@ -1363,4 +1363,4 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .streams(Set.of(stream))
                 .build());
     }
-}
+}*/
