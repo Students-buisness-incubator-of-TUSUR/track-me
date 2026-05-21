@@ -130,9 +130,7 @@ public class TeamCardsUseCase {
         try {
             teamCardsReportService.streamRecordsToExcel(filters, fetchPageSize, exportLimit, outputStream);
         } catch (IOException e) {
-            throw new ExcelExportException(
-                    "Ошибка генерации Excel отчёта", e
-            );
+            throw new ExcelExportException("Ошибка генерации Excel отчёта", e);
         }
     }
 }
