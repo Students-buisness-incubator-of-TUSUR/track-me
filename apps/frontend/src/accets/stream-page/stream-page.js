@@ -23,6 +23,9 @@ export default function Stream() {
     const [checkedMarkets, setCheckedMarkets] = useState({});
     const [checkedTRLs, setCheckedTRLs] = useState({});
     const [searchQuery, setSearchQuery] = useState('');
+    const [allCards, setAllCards] = useState([]);
+    const [allCardsLoaded, setAllCardsLoaded] = useState(false);
+    const [currentFilters, setCurrentFilters] = useState([]);
     // eslint-disable-next-line
     const [filters, setFilters] = useState([]); // Состояние для фильтров
     const [page, setpage] = useState(0);
@@ -59,6 +62,64 @@ const [userRole, setUserRole] = useState('');
             setLoading(false);
         }
     }, [backendHost, page]);
+
+    const fetchAllStreams = useCallback(async (filters = { filters: [] }) => {
+        if (!userRole) return [];
+
+        const sortParams = 'startDate,desc&sort=name,asc';
+        let combinedCards = [];
+        let currentPageIndex = 0;
+        let totalPagesLocal = 1;
+
+        setAllCardsLoaded(false);
+
+        try {
+            do {
+                const response = await axios.post(
+                    `${backendHost}/api/v1/admin/streams?page=${currentPageIndex}&size=6&sort=${sortParams}`,
+                    filters,
+                    {
+                        ...getCsrfConfig(),
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...getCsrfConfig().headers
+                        },
+                        withCredentials: true
+                    }
+                );
+
+                const responseData = response.data;
+                const cardsArray = Array.isArray(responseData.content) ? responseData.content : [];
+
+                combinedCards = [
+                    ...combinedCards,
+                    ...cardsArray.map((item) => ({
+                        id: item.id,
+                        title: item.name,
+                        content: item.description,
+                        startDate: item.startDate,
+                        endDate: item.endDate,
+                        readinessLevel: item.readinessLevel,
+                    }))
+                ];
+
+                totalPagesLocal = responseData?.page?.totalPages || 1;
+                currentPageIndex += 1;
+            } while (currentPageIndex < totalPagesLocal);
+
+            setAllCards(combinedCards);
+            setAllCardsLoaded(true);
+
+            return combinedCards;
+        } catch (err) {
+            console.error("Error fetching all streams:", err);
+            setError(err.message);
+            setAllCards([]);
+            setAllCardsLoaded(true);
+
+            return [];
+        }
+    }, [backendHost, userRole]);
 
     const cardd = data.content.map((item, index) => ({
         id: item.id,
@@ -139,8 +200,8 @@ const [userRole, setUserRole] = useState('');
     };
 
     const handleShowLast = () => {
-        console.log(data.page.totalPages);
-        setpage(data.page.totalPages - 1);
+        console.log(totalPagesToUse);
+        setpage(totalPagesToUse - 1);
 
     };
     const handleShowMore = () => {
@@ -188,7 +249,10 @@ const [userRole, setUserRole] = useState('');
         setSelectedYears(new Set());
         setSelectedMarkets(new Set());
         setSelectedTRLs(new Set());
+        setCurrentFilters([]);
         setSearchQuery("");
+        setAllCards([]);
+        setAllCardsLoaded(false);
         setpage(0);
         fetchData();
     };
@@ -196,12 +260,26 @@ const [userRole, setUserRole] = useState('');
     const handleSearch = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
+        setpage(0);
     };
 
-    // Клиентская фильтрация по названию (регистронезависимая)
-    const filteredCards = cardd.filter(card =>
-        !searchQuery || card.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const normalizedSearchQuery = searchQuery?.trim().toLowerCase();
+    const filteredCards = normalizedSearchQuery
+        ? (allCardsLoaded
+            ? allCards.filter((card) => {
+                const cardTitle = card.title?.toString().toLowerCase();
+                return cardTitle?.includes(normalizedSearchQuery);
+            })
+            : cardd.filter((card) => {
+                const cardTitle = card.title?.toString().toLowerCase();
+                return cardTitle?.includes(normalizedSearchQuery);
+            })
+        )
+        : cardd;
+
+    const totalPagesToUse = normalizedSearchQuery
+        ? Math.max(1, Math.ceil(filteredCards.length / 6))
+        : (data.page?.totalPages || 1);
 
     const handleYearCheckboxChange = (id, label) => {
         setCheckedYears(prev => {
@@ -278,6 +356,7 @@ const [userRole, setUserRole] = useState('');
             });
         }
 
+        setCurrentFilters(newFilters);
         setFilters({
             filters: newFilters,
         }); // Обновляем состояние фильтров
@@ -292,7 +371,28 @@ const [userRole, setUserRole] = useState('');
     }, [fetchData]);
 
 
-    const visibleCards = filteredCards.slice(visibleCardsStart, visibleCardsStart + 6);
+    const visibleCards = normalizedSearchQuery
+        ? filteredCards.slice(page * 6, (page + 1) * 6)
+        : filteredCards.slice(visibleCardsStart, visibleCardsStart + 6);
+
+    useEffect(() => {
+        if (!normalizedSearchQuery) {
+            setAllCards([]);
+            setAllCardsLoaded(false);
+            return;
+        }
+
+        if (userRole) {
+            setpage(0);
+            fetchAllStreams({ filters: currentFilters });
+        }
+    }, [normalizedSearchQuery, currentFilters, userRole, fetchAllStreams]);
+
+    useEffect(() => {
+        if (normalizedSearchQuery && page >= totalPagesToUse) {
+            setpage(Math.max(0, totalPagesToUse - 1));
+        }
+    }, [normalizedSearchQuery, page, totalPagesToUse]);
 
     const checkboxesData = Array.from({length: numberOfCheckboxes}, (_, index) => ({
         id: `checkbox-${index + 1}`,
@@ -508,17 +608,17 @@ const [userRole, setUserRole] = useState('');
                                     className="Stream-footer-button-2"></button>
                         )}
                         <button className="Stream-footer-button-3"></button>
-                        {data.page.totalPages > (page + 1) && (
+                        {totalPagesToUse > (page + 1) && (
                             <button onClick={handleShowMore}
                                     className="Stream-footer-button-4"></button>
                         )}
-                        {data.page.totalPages > (page + 2) && (
+                        {totalPagesToUse > (page + 2) && (
                             <button onClick={handleShowEvenMore}
                                     className="Stream-footer-button-4"></button>
                         )}
                     </div>
                     <div className="Stream-footer-p-butt-5">
-                        {data.page.totalPages > (page + 1) && (
+                        {totalPagesToUse > (page + 1) && (
                             <button onClick={handleShowLast}
                                     className="Stream-footer-button-5"></button>
                         )}

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -5,7 +6,7 @@ import "./meeting-card.css";
 import closeIcon from "./free-icon-font-cross-3917759 (1) 1.png";
 import pencilIcon from "./pen.png";
 import { getCsrfConfigForFetch } from "../../utils/csrf-utils";
-import { validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils";
+import { validateMeetingWeekLimit, validateMeetingDateChange } from "../../utils/date-utils"; 
 import VideoChat from "./video_chat.svg";
 import Header from "../header/header";
 
@@ -30,7 +31,6 @@ const MeetingCard = () => {
     const isNewMeeting = meetingId === "new";
     const [error, setError] = useState(null);
     const [recordLinkError, setRecordLinkError] = useState(null);
-    const [showDateTooltip, setShowDateTooltip] = useState(false);
     const [meetingData, setMeetingData] = useState({
         number: isNewMeeting ? "Новая встреча" : "",
         startDate: new Date().toISOString(),
@@ -330,12 +330,11 @@ const MeetingCard = () => {
     };
 
     const handleCompleteMeeting = async (completed) => {
-        const completeNotReadyMessage = 'Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить';
+        const completeNotReadyMessage = 'Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить';
 
         if (!isMeetingDatePassed()) {
             setError(completeNotReadyMessage);
-            setShowDateTooltip(true);
-            setTimeout(() => { setError(null); setShowDateTooltip(false); }, 5000);
+            setTimeout(() => setError(null), 5000);
             return;
         }
 
@@ -554,7 +553,7 @@ const MeetingCard = () => {
                                     className={`unique-status-button unique-status-completed ${meetingData.status === "COMPLETED" ? "active-status" : ""}`}
                                     title={
                                         !areAllFieldsFilled() ? "Заполните все поля перед завершением встречи"
-                                            : !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить"
+                                            : !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить"
                                                 : ""
                                     }
                                 >
@@ -566,15 +565,12 @@ const MeetingCard = () => {
                                     onClick={() => { setPendingCompletion(false); setShowConfirmModal(true); }}
                                     disabled={meetingData.status === "COMPLETED_AS_NOT_HAPPENED" || !isMeetingDatePassed()}
                                     className={`unique-status-button unique-status-not-happened ${meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : ""}`}
-                                    title={!isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её не возможно завершить" : ""}
+                                    title={
+                                        !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить" : ""
+                                    }
                                 >
                                     Не состоялась
                                 </button>
-                            )}
-                            {showDateTooltip && (
-                                <div className="date-tooltip">
-                                    Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить
-                                </div>
                             )}
                         </div>
                     )}
@@ -616,40 +612,41 @@ const MeetingCard = () => {
                 {renderTextareaSection("tasksNextMeeting", "Выполнили задачи прошлой встречи или нет, общая информация по команде:", meetingData.tasksNextMeeting)}
 
                 <div className="unique-meeting-info-row">
-                                    <span className="unique-label">Текущий статус команды:</span>
-                                    {isEditing ? (
-                                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                                            <button
-                                                type="button"
-                                                style={{ background: '#0DB862', color: 'white', padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer' }}
-                                                onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "OK" })); }}
-                                            >
-                                                Всё ок
-                                            </button>
-                                            <button
-                                                type="button"
-                                                style={{ background: '#DBD76C', color: 'white', padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer' }}
-                                                onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "WITH_ISSUES" })); }}
-                                            >
-                                                Есть проблемы
-                                            </button>
-                                            <button
-                                                type="button"
-                                                style={{ background: '#D34F4F', color: 'white', padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer' }}
-                                                onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "MANY_ISSUES" })); }}
-                                            >
-                                                Есть большие проблемы
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className={`unique-status ${meetingData.teamStatus?.toLowerCase() || ''}`}>
-                                            {meetingData.teamStatus === "OK" && "Всё ок"}
-                                            {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
-                                            {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
-                                            {!meetingData.teamStatus && "Не указано"}
-                                        </div>
-                                    )}
+                    <span className="unique-label">Текущий статус команды:</span>
+                    {isEditing ? (
+                        <div className="status-dropdown-wrapper">
+                            <div
+                                className="status-selected"
+                                onClick={() => !isMeetingCompleted && setShowStatusDropdown(prev => !prev)}
+                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isMeetingCompleted) setShowStatusDropdown(prev => !prev); }}
+                                tabIndex={0}
+                                role="button"
+                                aria-expanded={showStatusDropdown}
+                                aria-haspopup="listbox"
+                            >
+                                {meetingData.teamStatus === "OK" && "Всё ок"}
+                                {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
+                                {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
+                                {!meetingData.teamStatus && "Не указано"}
+                                <span className="dropdown-arrow">{showStatusDropdown ? "▲" : "▼"}</span>
+                            </div>
+                            {showStatusDropdown && (
+                                <div className="status-options">
+                                    <button className="status-option ok" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "OK" })); setShowStatusDropdown(false); }}>Всё ок</button>
+                                    <button className="status-option problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "WITH_ISSUES" })); setShowStatusDropdown(false); }}>Есть проблемы</button>
+                                    <button className="status-option major-problems" onClick={() => { setMeetingData(prev => ({ ...prev, teamStatus: "MANY_ISSUES" })); setShowStatusDropdown(false); }}>Есть большие проблемы</button>
                                 </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className={`unique-status ${meetingData.teamStatus?.toLowerCase() || ''}`}>
+                            {meetingData.teamStatus === "OK" && "Всё ок"}
+                            {meetingData.teamStatus === "WITH_ISSUES" && "Есть проблемы"}
+                            {meetingData.teamStatus === "MANY_ISSUES" && "Есть большие проблемы"}
+                            {!meetingData.teamStatus && "Не указано"}
+                        </div>
+                    )}
+                </div>
 
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Скриншот встречи:</span>
