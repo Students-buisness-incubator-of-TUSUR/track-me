@@ -260,11 +260,17 @@
 }
 
 /* Адаптивные стили */
+@media (max-width: 768px) {
+    .custom-datetime-picker {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
 @media (max-width: 480px) {
     .custom-datetime-picker {
         width: 280px;
-        left: 50%;
-        transform: translateX(-50%);
+        padding: 16px;
     }
     
     .calendar-day {
@@ -277,6 +283,49 @@
     
     .month-name {
         font-size: 16px;
+    }
+
+    .time-select {
+        font-size: 13px;
+        padding: 6px 8px;
+    }
+
+    .quick-button {
+        font-size: 13px;
+        padding: 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    .custom-datetime-picker {
+        width: calc(100vw - 32px);
+        min-width: 240px;
+        padding: 12px;
+    }
+
+    .calendar-day {
+        font-size: 12px;
+    }
+
+    .weekday {
+        font-size: 11px;
+    }
+
+    .month-name {
+        font-size: 14px;
+    }
+
+    .picker-header {
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+    }
+
+    .calendar-grid {
+        margin-bottom: 12px;
+    }
+
+    .time-selector {
+        margin-bottom: 12px;
     }
 }
 

@@ -20,6 +20,7 @@ function ProfilePage() {
     const [isOwnProfile, setIsOwnProfile] = useState(false);
     const [editedData, setEditedData] = useState({});
     const [teamCount, setTeamCount] = useState(0);
+    const [totalTeamCount, setTotalTeamCount] = useState(0);
 
     const photoImgRef = useRef(null);
     const setUserPhoto = useCallback((blobOrUrl) => {
@@ -138,34 +139,30 @@ function ProfilePage() {
         if (!userData) return;
         if (!(isOwnProfile || ((currentUser?.roles?.includes("SUPER_ADMIN") || currentUser?.roles?.includes("ADMIN")) && !isOwnProfile))) return;
 
-        fetchTeams({
+        const common = {
             page: 0, size: 10000,
             filters: [
-                {
-                    fieldName: "username",
-                    type: "EQ",
-                    value: userData.username
-                },
-                {
-                    fieldName: "enabled",
-                    type: "EQ",
-                    value: true
-                }
+                { fieldName: "username", type: "EQ", value: userData.username }
             ],
             admin: currentUser?.roles?.includes("SUPER_ADMIN") || currentUser?.roles?.includes("ADMIN"),
-        })
+        };
+
+        fetchTeams(common)
             .then(res => {
-                if (!res.ok) {
-                    throw new Error("Ошибка при загрузке карточек команд");
-                }
+                if (!res.ok) throw new Error("Ошибка при загрузке карточек команд");
                 return res.json();
             })
             .then(data => {
-                setTeamCount(data.totalElements || (Array.isArray(data?.content) ? data.content.length : 0));
+                const cards = Array.isArray(data?.content) ? data.content : [];
+                const total = data.totalElements || cards.length;
+                const active = cards.filter(c => c.enabled).length;
+                setTeamCount(active);
+                setTotalTeamCount(total);
             })
             .catch(err => {
                 console.error("Ошибка при загрузке карточек:", err);
                 setTeamCount(0);
+                setTotalTeamCount(0);
             });
     }, [userData, isOwnProfile, currentUser]);
 
@@ -494,12 +491,17 @@ function ProfilePage() {
                     </div>
                     <div className="profile-page_row">
                         {!isEditing && (
-                            <button
-                                className="profile-page_btn"
-                                onClick={handleTeamCardsClick}
-                            >
-                                {`Карточки команд (${teamCount})`}
-                            </button>
+                            <span className="profile-page_btn-wrapper">
+                                <button
+                                    className="profile-page_btn"
+                                    onClick={handleTeamCardsClick}
+                                >
+                                    {`Карточки команд ${teamCount} (${totalTeamCount})`}
+                                </button>
+                                <span className="profile-page_tooltip">
+                                    {`Активных карточек команд: ${teamCount}\nВсего карточек команд: ${totalTeamCount}`}
+                                </span>
+                            </span>
                         )}
                         {isEditing && isOwnProfile && (
                             <button
