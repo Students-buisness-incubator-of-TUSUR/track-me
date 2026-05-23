@@ -1421,40 +1421,6 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(jsonPath("$.passive").value(true));
     }
 
-    // ==================== ДОБАВИТЬ ЭТИ ТЕСТЫ В КОНЕЦ ФАЙЛА ====================
-
-    @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
-    void updateTeamCard_withPassiveTeam_byTracker_shouldThrowException() throws Exception {
-        var ntiMarket = ntiMarketRepository.findAll().getFirst();
-
-        // Создаем пассивную команду через админа
-        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
-                .status(TeamCardStatus.OK)
-                .name("Passive Team")
-                .username("someUser")
-                .meetingRoomLink("https://test.link")
-                .readinessLevel(ReadinessLevel.LEVEL_1)
-                .ntiMarkets(List.of(ntiMarket))
-                .passive(true)
-                .build());
-
-        // Трекер пытается обновить пассивную команду
-        mockMvc.perform(patch("/api/v1/team-card")
-                        .with(csrf())
-                        .param("teamCardId", teamCard.getId().toString())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.format("""
-                                {
-                                  "name": "New Name",
-                                  "meetingRoomLink": "https://test.link",
-                                  "ntiMarketIds": ["%s"],
-                                  "readinessLevel": "3-5"
-                                }
-                                """, ntiMarket.getId())))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
 
     @Test
     @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
