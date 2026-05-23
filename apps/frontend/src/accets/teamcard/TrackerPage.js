@@ -35,13 +35,13 @@ const [allCardsLoaded, setAllCardsLoaded] = useState(false);
 const [currentFilters, setCurrentFilters] = useState([]);
     const formatDateToYMD = (dateString) => {
     if (!dateString) return "";
-  
+
     try {
         const date = new Date(dateString);
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
-        
+
         return `${year}.${month}.${day}`;
     } catch (e) {
         console.error("Error formatting date:", e);
@@ -84,7 +84,7 @@ const [currentFilters, setCurrentFilters] = useState([]);
                 : [...prev, trlValue] // Добавляем, если не выбран
         );
     };
-    
+
 
     const handleNtiMarketChange = (market) => {
         setSelectedNtiMarkets((prev) =>
@@ -108,15 +108,15 @@ const [currentFilters, setCurrentFilters] = useState([]);
                 : [...prev, year]
         );
     };
-    
+
     const user = useGetUserInfo();
     useEffect(() => {
         setUserRole(user.roles[0]);
         setusername(user.username);
     }, [user]);
 
-    
-    
+
+
 
     // Данные для чекбоксов "год"
     const checkboxesData = Array.from({length: numberOfCheckboxes1}, (_, index) => ({
@@ -264,11 +264,11 @@ const fetchAllCards = useCallback(async (filters = [], searchParams) => { //NOSO
     const response = await fetch(`${backendHost}/api/v1/streams/${streamId}/image`, {
       credentials: 'include'
     });
-    
+
     if (!response.ok) {
       throw new Error('Image not found');
     }
-    
+
     const blob = await response.blob();
     return URL.createObjectURL(blob);
   } catch (error) {
@@ -329,7 +329,7 @@ useEffect(() => {
       console.error("Ошибка при получении потоков:", error);
     });
 }, [backendHost, userRole, fetchStreamImage]);
-    
+
 useEffect(() => {
   return () => {
     // Очищаем URL объектов при размонтировании
@@ -343,7 +343,7 @@ useEffect(() => {
         const role = localStorage.getItem("userRole");
         console.log("Initial role check:", role);
 
-        
+
 
         fetch(`${backendHost}/api/v1/streams/nti-markets`, {
             method: "GET",
@@ -362,7 +362,7 @@ useEffect(() => {
                 console.error(error);
             });
     }, [backendHost]);
-    
+
 
 
     useEffect(() => {
@@ -520,7 +520,7 @@ const options = {
                 values: selectedYears,
             });
         }
-        
+
 
         console.log("Applying filters:", filters);
         setCurrentFilters(filters);
@@ -561,7 +561,7 @@ const options = {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -814,9 +814,9 @@ const options = {
                     <p className="error-message">{error}</p>
                 ) : filteredCards.length > 0 ? (
                     visibleCards.map((card) => (
-                        <div 
-  className="card" 
-  key={card.id} 
+                        <div
+  className="card"
+  key={card.id}
   onClick={() => navigate(`/teamcard/${card.id}`)}
   onKeyDown={(e) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -837,7 +837,7 @@ const options = {
         {card.averageGrade.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </div>
     )}
-    <img 
+    <img
       src={card.streams?.[0]?.id && streamImages[card.streams[0].id] ? streamImages[card.streams[0].id] : StreamPlaceholder}
       alt=""
       onError={(e) => {
@@ -847,8 +847,8 @@ const options = {
       className="stream-image"
     />
   </div>
-                            <span className={`status ${!card.enabled ? "inactive" : ""}`}>
-                                {card.enabled ? "Активно" : "Завершено"}
+                            <span className={`status ${!card.enabled ? "inactive" : (card.passive ? "passive" : "")}`}>
+                                {!card.enabled ? "Завершено" : (card.passive ? "Пассивно" : "Активно")}
                             </span>
 
                             <div className="card-content">

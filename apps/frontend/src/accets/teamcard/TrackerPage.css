@@ -25,7 +25,7 @@
 .Teams-header-afterclick-left-up {
     display: flex;
     flex-direction: row;
-} 
+}
 
 .Teams-header-chose-butt {
     width: 223px;
@@ -227,6 +227,10 @@
 
   .status.inactive {
     background-color: #999999;
+  }
+
+  .status.passive {
+      background-color: #ff9800; /* Оранжевый */
   }
 
 .card-image-rating {

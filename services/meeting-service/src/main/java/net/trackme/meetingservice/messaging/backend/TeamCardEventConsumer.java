@@ -1,5 +1,4 @@
 package net.trackme.meetingservice.messaging.backend;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,6 +61,8 @@ public class TeamCardEventConsumer {
                 log.error("[Kafka] Ошибка при получении данных из SSO: {}", e.getMessage());
             }
         }
+
+        metadataRepository.updatePassiveFlag(event.teamCardId(), event.newPassive());
 
         metadataRepository.updateMetadata(
                 event.teamCardId(),

@@ -106,6 +106,15 @@ public class MeetingServiceImpl implements MeetingService {
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
 
+        // 👇 НОВАЯ ПРОВЕРКА ДЛЯ ПАССИВНОГО СТАТУСА
+        var teamDataForCheck = userBackendClient.getTeamCardById(teamCardId);
+        var currentRole = getCurrentUserRole();
+        boolean isAdmin = "ADMIN".equals(currentRole) || "SUPER_ADMIN".equals(currentRole);
+
+        if (teamDataForCheck.getPassive() != null && teamDataForCheck.getPassive() && !isAdmin) {
+            throw new IllegalStateException("Трекер не может создавать встречи для пассивной команды");
+        }
+
         var meeting = meetingMapper.mapToEntity(createDto);
         var teamData = userBackendClient.getTeamCardById(teamCardId);
         var trackerUsername = teamData.getUsername();
@@ -130,7 +139,7 @@ public class MeetingServiceImpl implements MeetingService {
                 meeting.setTrackerFullName(user.getFullName());
             } else {
                 meeting.setTrackerFullName(trackerUsername);
-                log.warn("Tracker with username {} not found in SSO during meeting creation", 
+                log.warn("Tracker with username {} not found in SSO during meeting creation",
                         trackerUsername);
             }
         }
@@ -165,6 +174,14 @@ public class MeetingServiceImpl implements MeetingService {
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
 
+        var teamData = userBackendClient.getTeamCardById(teamCardId);
+        var currentRole = getCurrentUserRole();
+        boolean isAdmin = "ADMIN".equals(currentRole) || "SUPER_ADMIN".equals(currentRole);
+
+        if (teamData.getPassive() != null && teamData.getPassive() && !isAdmin) {
+            throw new IllegalStateException("Трекер не может редактировать встречи пассивной команды");
+        }
+
         if (MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
         }
@@ -185,7 +202,7 @@ public class MeetingServiceImpl implements MeetingService {
             renumberMeetingsAfterDateChange(teamCardId);
             meetingRepository.flush();
             savedMeeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+                    .orElseThrow(() -> new MeetingNotFoundException(meetingId));
         }
 
         if (oldStatus != meeting.getStatus()) {
@@ -317,9 +334,9 @@ public class MeetingServiceImpl implements MeetingService {
 
         boolean existsOnSameDay = excludeId == null
                 ? meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThan(
-                    teamCardId, from, to)
+                teamCardId, from, to)
                 : meetingRepository.existsByTeamCardIdAndStartDateGreaterThanEqualAndStartDateLessThanAndIdNot(
-                    teamCardId, from, to, excludeId);
+                teamCardId, from, to, excludeId);
 
         if (existsOnSameDay) {
             throw new MeetingAlreadyExistsInSameDayException(
@@ -420,5 +437,14 @@ public class MeetingServiceImpl implements MeetingService {
                 dto.tasksCurrentMeeting(),
                 dto.tasksNextMeeting()
         );
+    }
+    private String getCurrentUserRole() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) return null;
+
+        return authentication.getAuthorities().stream()
+                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .findFirst()
+                .orElse(null);
     }
 }

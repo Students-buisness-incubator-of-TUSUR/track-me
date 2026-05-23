@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.UUID;
-import java.util.List;  
+import java.util.List;
 
 @Slf4j
 @Service
@@ -209,6 +209,9 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         if (source.getReadinessLevel() != null) {
             target.setReadinessLevel(source.getReadinessLevel());
         }
+        if (source.getPassive() != null) {
+            target.setPassive(source.getPassive());
+        }
     }
 
     @Override
@@ -239,23 +242,20 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     public void reassignTeams(String fromUsername, String toUsername, String toUserFullName) {
         List<TeamCard> teams = teamCardsRepository.findByUsername(fromUsername);
         log.info("Reassigning {} teams from '{}' to '{}'", teams.size(), fromUsername, toUsername);
-    
+
         // Используем полное имя нового трекера, если не предоставлено - используем username
-        String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank()) 
-            ? toUserFullName 
+        String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank())
+            ? toUserFullName
             : toUsername;
-        
+
         for (TeamCard team : teams) {
             String oldUsername = team.getUsername();
             String oldFullName = team.getTrackerFullName();
-            
             // Обновляем оба поля для консистентности
             team.setUsername(toUsername);
             team.setTrackerFullName(newTrackerFullName);
-            
             // Обновляем ACL владельца
             aclService.updateAclOwner(team, toUsername);
-            
             // Публикуем событие с обновленными данными
             eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
                 team.getId(),
@@ -263,8 +263,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
                 toUsername,
                 newTrackerFullName
             ));
-            
-            log.debug("Reassigned team '{}': {} -> {}, fullName: '{}' -> '{}'", 
+
+            log.debug("Reassigned team '{}': {} -> {}, fullName: '{}' -> '{}'",
                 team.getId(), oldUsername, toUsername, oldFullName, newTrackerFullName);
         }
 
@@ -272,3 +272,4 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         log.info("Successfully reassigned {} teams", teams.size());
     }
 }
+

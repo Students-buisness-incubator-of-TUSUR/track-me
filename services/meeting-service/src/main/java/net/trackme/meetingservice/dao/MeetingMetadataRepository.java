@@ -122,4 +122,15 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Meeting m SET m.trackerFullName = :fullName WHERE m.trackerUsername = :username")
     void updateTrackerFullNameByUsername(@Param("username") String username, @Param("fullName") String fullName);
+
+    /**
+     * Обновляет флаг пассивного статуса для всех встреч указанной команды.
+     * Используется при изменении статуса пассивности карточки команды.
+     *
+     * @param teamId идентификатор карточки команды
+     * @param passive новое значение пассивного статуса (true/false)
+     */
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Meeting m SET m.teamCardPassive = :passive WHERE m.teamCardId = :teamId")
+    void updatePassiveFlag(@Param("teamId") UUID teamId, @Param("passive") Boolean passive);
 }

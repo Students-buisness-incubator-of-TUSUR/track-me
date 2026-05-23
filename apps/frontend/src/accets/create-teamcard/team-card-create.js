@@ -77,11 +77,11 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                 setCurrentUser(userData);
                 const isAdmin = userData.roles?.includes("ADMIN") || userData.roles?.includes("SUPER_ADMIN");
 
-                
+
                 // Если пользователь не админ, устанавливаем его имя в поле трекера
                 if (!isAdmin) {
                     setFormData(prev => ({...prev, tracker: userData.fullName
-                        
+
                     }));
                 }
             })
@@ -103,7 +103,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json", 
+            "Content-Type": "application/json",
             ...getCsrfConfigForFetch()
         },
         body: JSON.stringify({filters: []}),
@@ -112,8 +112,8 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         .then((res) => res.ok ? res.json() : Promise.reject(new Error("Ошибка при загрузке потоков")))
         .then((data) => {
             if (data?.content) {
-                const filteredStreams = data.content.filter(stream => 
-                    stream.active === true 
+                const filteredStreams = data.content.filter(stream =>
+                    stream.active === true
                 );
                 setStreams(filteredStreams);
             }
@@ -203,7 +203,7 @@ useEffect(() => {
   //           tracker: tracker.fullName,
   //           trackerId: tracker.id,
   // trackerUsername: tracker.username // Добавляем ID трекера в formData
-            
+
   //       }));
   //       setShowTrackers(false);
   //   };
@@ -264,7 +264,7 @@ if (isAdmin && !selectedTracker) {
             }
 
             const data = await response.json();
-            console.log("Created team card data:", data); 
+            console.log("Created team card data:", data);
             // После успешного создания переходим на страницу карточки
             navigate(`/teamcard/${data.id}`, {
   state: {
@@ -289,7 +289,7 @@ if (isAdmin && !selectedTracker) {
         <div className="create-input-wrapper">
             {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) ? (
                 <div className="tracker-select-container">
-                    <div 
+                    <div
   className="tracker-select-trigger"
   onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
   onKeyDown={(e) => {
@@ -307,7 +307,7 @@ if (isAdmin && !selectedTracker) {
                             {selectedTracker ? selectedTracker.fullName : "Выберите трекера"}
                         </div>
                     </div>
-                    
+
                     {isTrackerDropdownOpen && (
                         <div className="tracker-select-dropdown">
                             <div className="tracker-select-search">
@@ -474,13 +474,13 @@ if (isAdmin && !selectedTracker) {
 
                 </div>
 
-                
+
 
                 <div className="create-team-description">
                     <span className="create-team-description-label">Описание:
-                        <img src={penIcon} alt="edit" className="create-edit-icon"/>    
+                        <img src={penIcon} alt="edit" className="create-edit-icon"/>
                     </span>
-                    
+
                     <div className="create-team-description-wrapper">
                         <textarea
   className="create-description-input"
@@ -499,9 +499,9 @@ if (isAdmin && !selectedTracker) {
                     {/* <div className="create-meetings-exist">
                         <div className="create-meeting">
                             <span class="meeting-date">25.04</span>
-                            <span class="meeting-title">Встреча 1</span> 
+                            <span class="meeting-title">Встреча 1</span>
                         </div>
-                        <div className="create-meeting">   
+                        <div className="create-meeting">
                         </div>
                     </div> */}
                     <button
@@ -517,7 +517,7 @@ if (isAdmin && !selectedTracker) {
                 </div>
             </div>
 
-            
+
 
             {error && (
                 <button
@@ -533,10 +533,10 @@ if (isAdmin && !selectedTracker) {
                 <button
                     className="create-button"
                     onClick={handleCreate}
-                    
+
                     disabled={isLoading}
                 >
-                    
+
                     {isLoading ? "Создание..." : "Создать"}
                 </button>
             </div>

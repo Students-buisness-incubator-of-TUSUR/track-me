@@ -35,19 +35,19 @@ export const getCommandCountText = (count) => {
     if (count === 0) return "0 команд";
     const lastDigit = count % 10;
     const lastTwoDigits = count % 100;
-    
+
     if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
         return `${count} команд`;
     }
-    
+
     if (lastDigit === 1) {
         return `${count} команда`;
     }
-    
+
     if (lastDigit >= 2 && lastDigit <= 4) {
         return `${count} команды`;
     }
-    
+
     return `${count} команд`;
 };
 const TeamCard = () => {
@@ -99,9 +99,13 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [streamInfo, setStreamInfo] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState(null);
+  const canEdit = isEditing && (
+      (role === "TRACKER" && !teamData.passive) ||  // Трекер не может редактировать пассивную команду
+      (role !== "TRACKER")                          // Админ может всегда
+  );
   const filteredTrackers = useMemo(() => {
   if (!trackerSearchTerm.trim()) return trackers;
-  return trackers.filter(tracker => 
+  return trackers.filter(tracker =>
     tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
     tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
   );
@@ -219,7 +223,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     console.error(`Error in ${context}:`, error);
     setApiError(`Ошибка при ${context}: ${error.message}`);
   };
-  
+
   const loadMeetings = useCallback(async () => {
     try {
       const response = await fetch(
@@ -259,7 +263,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       });
 
       if (!response.ok) throw new Error("Ошибка при получении карточек");
-      
+
       const data = await response.json();
       const found = data.content?.find(card => String(card.id) === String(id));
 
@@ -272,6 +276,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
           readinessLevel: prev.readinessLevel || found.readinessLevel,
           description: prev.description || found.description,
           meetingRoomLink: prev.meetingRoomLink || found.meetingRoomLink || "",
+          passive: teamData.passive || false,
         }));
       }
     } catch (error) {
@@ -331,7 +336,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
     return () => clearInterval(interval);
   }, [loadMeetings, loadTeamCard]);
-  
+
   useEffect(() => {
     if (!username || !role || !id) return;
 
@@ -457,6 +462,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       readinessLevel: teamData.readinessLevel || prev.readinessLevel,
       description: teamData.description || prev.description,
       meetingRoomLink: teamData.meetingRoomLink || prev.meetingRoomLink || "",
+      passive: teamData.passive || false,
     }));
   }, [teamData]);
 
@@ -491,12 +497,12 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
   const hasUnsavedChanges = () => {
   if (!isEditing || !originalData) return false;
-  
+
   const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
   for (const field of fieldsToCheck) {
     const original = originalData[field];
     const current = editedData[field];
-    
+
     if (Array.isArray(original) && Array.isArray(current)) {
       const compareFn = (a, b) => {
         if (typeof a === 'number' && typeof b === 'number') return a - b;
@@ -576,6 +582,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         description: editedData.description.trim(),
         ntiMarketIds: editedData.ntiMarketIds,
         readinessLevel: editedData.readinessLevel,
+        passive: editedData.passive,
       };
 
       // 5. Отправка PATCH
@@ -722,7 +729,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       setEditingMeetingId(null);
       setShowDeleteModal(false);
       setMeetingToDelete(null);
-      
+
       // ✅ Перезагружаем и встречи, и данные карточки (включая рейтинг)
       await loadMeetings();
       await loadTeamCard();
@@ -731,7 +738,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       setMeetingError("Не удалось удалить встречу. Попробуйте позже.");
       setTimeout(() => setMeetingError(""), 3000);
       setShowDeleteModal(false);
-      
+
       // При ошибке перезагружаем данные для восстановления актуального состояния
       await loadMeetings();
       await loadTeamCard();
@@ -865,7 +872,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   <p>Трекер:</p>
   {isEditing && role !== "TRACKER" ? (
     <div className="check-box_container team-card_field-nti-checkbox">
-      <div 
+      <div
   className={`check-box_container team-card_field-nti-checkbox ${!editedData.username ? 'placeholder' : ''}`}
   onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
   onKeyDown={(e) => {
@@ -879,22 +886,22 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   aria-expanded={isTrackerDropdownOpen}
   aria-haspopup="listbox"
 >
-        <div 
-    className="check-box_button" 
-    style={{ 
+        <div
+    className="check-box_button"
+    style={{
         color: 'rgba(0, 0, 0, 1)',
         backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'right 8px center',
-        
+
     }}
 >
-    {editedData.username 
+    {editedData.username
         ? trackers.find(t => t.username === editedData.username)?.fullName || editedData.username
         : "Выберите трекера"}
 </div>
       </div>
-      
+
       {isTrackerDropdownOpen && (
         <div className="team-card_field-select-dropdown">
           {/* Строка поиска внутри выпадающего списка */}
@@ -909,7 +916,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
               autoFocus
             />
           </div>
-          
+
           <div className="team-card_field-select-options">
             {filteredTrackers.length === 0 ? (
               <div className="team-card_field-select-empty">Трекеры не найдены</div>
@@ -970,7 +977,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                   name="name"
                   value={editedData.name || ""}
                   onChange={handleChange}
-                  readOnly={!isEditing}
+                  readOnly={!canEdit}
                 />
               </div>
               <div className="team-card_field">
@@ -1054,9 +1061,22 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                     name="meetingRoomLink"
                     value={editedData.meetingRoomLink || ""}
                     onChange={handleChange}
-                    readOnly={!isEditing}
+                    readOnly={!canEdit}
                   />
                 </div>
+              )}
+              {[adminRoleName, superadminRoleName].includes(role) && isEditing && (
+                  <div className="team-card_field">
+                      <p>Пассивный статус:</p>
+                      <label className="team-card_checkbox-label">
+                          <input
+                              type="checkbox"
+                              checked={editedData.passive === true}
+                              onChange={(e) => setEditedData(prev => ({ ...prev, passive: e.target.checked }))}
+                          />
+                          Команда в пассиве (неактивна)
+                      </label>
+                  </div>
               )}
               {[adminRoleName, superadminRoleName].includes(role) && isEditing && (
                 <div className="team-card_field" data-testid="stream-field">
@@ -1099,7 +1119,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                   name="description"
                   value={editedData.description || ""}
                   onChange={handleChange}
-                  readOnly={!isEditing}
+                  readOnly={!canEdit}
                   placeholder="Описание карточки"
                 />
               </div>
@@ -1171,8 +1191,14 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
               <button
                 className="team-card_meetings-button"
                 onClick={() => {
+                  // Админ может создавать встречи для пассивной команды
+                  if (teamData.passive && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+                      setMeetingError("Нельзя создавать встречи для пассивной команды");
+                      setTimeout(() => setMeetingError(""), 3000);
+                      return;
+                  }
                   if (checkMeetingCreation()) {
-                    setShowMeetingCreate(true);
+                      setShowMeetingCreate(true);
                   }
                 }}
               >

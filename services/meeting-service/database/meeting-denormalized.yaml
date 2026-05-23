@@ -111,3 +111,18 @@
             indexName: idx_meeting_tracker_full_name
             columns:
               - column: { name: tracker_full_name }
+
+  - changeSet:
+      id: meeting-add-passive-flag
+      author: trackme-backend
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: meeting
+            columns:
+              - column:
+                  name: team_card_passive
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

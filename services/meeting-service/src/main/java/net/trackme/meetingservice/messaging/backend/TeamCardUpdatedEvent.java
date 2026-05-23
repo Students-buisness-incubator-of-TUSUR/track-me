@@ -9,6 +9,7 @@ import java.util.UUID;
  * @param teamCardId идентификатор карточки команды
  * @param newName новое название команды
  * @param newUsername новое имя пользователя трекера
+ * @param newPassive новый пассивный статус команды
  * @param trackerFullName полное имя трекера
  */
 @Builder
@@ -16,5 +17,6 @@ public record TeamCardUpdatedEvent(
         UUID teamCardId,
         String newName,
         String newUsername,
+        Boolean newPassive,
         String trackerFullName
 ) { }
