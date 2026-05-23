@@ -1420,6 +1420,198 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.passive").value(true));
     }
+
+    // ==================== ДОБАВИТЬ ЭТИ ТЕСТЫ В КОНЕЦ ФАЙЛА ====================
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void updateTeamCard_withPassiveTeam_byTracker_shouldThrowException() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        // Создаем пассивную команду через админа
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Passive Team")
+                .username("someUser")
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .ntiMarkets(List.of(ntiMarket))
+                .passive(true)
+                .build());
+
+        // Трекер пытается обновить пассивную команду
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "name": "New Name",
+                                  "meetingRoomLink": "https://test.link",
+                                  "ntiMarketIds": ["%s"],
+                                  "readinessLevel": "3-5"
+                                }
+                                """, ntiMarket.getId())))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void updateTeamCard_withPassiveTeam_byAdmin_shouldSucceed() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        // Создаем пассивную команду
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Passive Team")
+                .username("someUser")
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .ntiMarkets(List.of(ntiMarket))
+                .passive(true)
+                .build());
+
+        // Админ обновляет пассивную команду
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "name": "Updated By Admin",
+                                  "meetingRoomLink": "https://test.link",
+                                  "ntiMarketIds": ["%s"],
+                                  "readinessLevel": "3-5"
+                                }
+                                """, ntiMarket.getId())))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated By Admin"));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCard_shouldReturnPassiveFlag() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team With Passive")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .ntiMarkets(List.of(ntiMarket))
+                .passive(true)
+                .build());
+
+        mockMvc.perform(get("/api/v1/team-card")
+                        .param("id", teamCard.getId().toString()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive").value(true));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void updateTeamCard_setPassiveFromTrueToFalse() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team To Deactivate")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .ntiMarkets(List.of(ntiMarket))
+                .passive(true)
+                .build());
+
+        // Меняем passive с true на false
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "name": "%s",
+                                  "meetingRoomLink": "https://test.link",
+                                  "ntiMarketIds": ["%s"],
+                                  "readinessLevel": "3-5",
+                                  "passive": false
+                                }
+                                """, teamCard.getName(), ntiMarket.getId())))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive").value(false));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void updateTeamCard_setPassiveFromFalseToTrue() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Team To Activate")
+                .username(BaseApplicationTest.USER)
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .ntiMarkets(List.of(ntiMarket))
+                .passive(false)
+                .build());
+
+        // Меняем passive с false на true
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "name": "%s",
+                                  "meetingRoomLink": "https://test.link",
+                                  "ntiMarketIds": ["%s"],
+                                  "readinessLevel": "3-5",
+                                  "passive": true
+                                }
+                                """, teamCard.getName(), ntiMarket.getId())))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive").value(true));
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void updateTeamCard_withPassiveTeam_bySuperAdmin_shouldSucceed() throws Exception {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Passive Team")
+                .username("someUser")
+                .meetingRoomLink("https://test.link")
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .ntiMarkets(List.of(ntiMarket))
+                .passive(true)
+                .build());
+
+        mockMvc.perform(patch("/api/v1/team-card")
+                        .with(csrf())
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                  "name": "Updated By SuperAdmin",
+                                  "meetingRoomLink": "https://test.link",
+                                  "ntiMarketIds": ["%s"],
+                                  "readinessLevel": "3-5"
+                                }
+                                """, ntiMarket.getId())))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated By SuperAdmin"));
+    }
+
 }
 
 
