@@ -32,12 +32,10 @@ class TeamCardEventConsumerTest {
 
     @Test
     void handleTeamCardUpdated_withNewTracker_trackerFoundInSso() {
-        // Arrange
         UUID teamId = UUID.randomUUID();
         String username = "new_tracker";
-        Boolean newPassive = false;
-        var event = new TeamCardUpdatedEvent(teamId, "New Name", username,
-                newPassive, "Ivan Ivanov");
+        Boolean newPassive = true; // 👈 Добавили проверку на true/false
+        var event = new TeamCardUpdatedEvent(teamId, "New Name", username, newPassive, "Ivan Ivanov");
 
         var tracker = UserDto.builder()
                 .id(UUID.randomUUID().toString())
@@ -47,10 +45,11 @@ class TeamCardEventConsumerTest {
 
         when(ssoApiClient.getTrackers()).thenReturn(List.of(tracker));
 
-        // Act
         teamCardEventConsumer.handleTeamCardUpdated(event);
 
-        // Assert
+        // 👇 ДОБАВИТЬ ЭТУ СТРОКУ
+        verify(metadataRepository).updatePassiveFlag(teamId, newPassive);
+
         verify(metadataRepository).updateMetadata(
                 teamId, "New Name", username, tracker.getId(), tracker.getFullName()
         );
