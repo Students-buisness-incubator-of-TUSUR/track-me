@@ -226,6 +226,38 @@ const MeetingCard = () => {
         }
     };
 
+    const isMeetingCompleted = meetingData.status === "COMPLETED" ||
+        meetingData.status === "COMPLETED_AS_NOT_HAPPENED";
+
+    const isMeetingLocked = meetingData.status === "COMPLETED" ||
+        meetingData.status === "COMPLETED_AS_NOT_HAPPENED";
+
+    useEffect(() => {
+        const handlePasteImage = (event) => {
+            if (!isEditing || isMeetingLocked) return;
+            const clipboardData = event.clipboardData;
+            if (!clipboardData) return;
+
+            const imageItem = Array.from(clipboardData.items || []).find(
+                (item) => item.kind === 'file' && item.type.startsWith('image/')
+            );
+
+            if (!imageItem) return;
+
+            const file = imageItem.getAsFile();
+            if (!file) return;
+
+            event.preventDefault();
+            setImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setImagePreview(reader.result);
+            reader.readAsDataURL(file);
+        };
+
+        document.addEventListener('paste', handlePasteImage);
+        return () => document.removeEventListener('paste', handlePasteImage);
+    }, [isEditing, isMeetingLocked]);
+
     const handleSave = async () => {
         try {
             if (!teamId) throw new Error("Отсутствует идентификатор команды");
@@ -441,12 +473,6 @@ const MeetingCard = () => {
         );
     };
 
-    const isMeetingCompleted = meetingData.status === "COMPLETED" ||
-        meetingData.status === "COMPLETED_AS_NOT_HAPPENED";
-
-    const isMeetingLocked = meetingData.status === "COMPLETED" ||
-        meetingData.status === "COMPLETED_AS_NOT_HAPPENED";
-
     useEffect(() => {
         if (!teamId) return;
         const fetchAllMeetings = async () => {
@@ -655,21 +681,24 @@ const MeetingCard = () => {
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Скриншот встречи:</span>
                     {isEditing ? (
-                        <div
-                            className="unique-image-upload"
-                            onClick={() => !isMeetingCompleted && fileInputRef.current.click()}
-                            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isMeetingCompleted) fileInputRef.current.click(); }}
-                            tabIndex={0}
-                            role="button"
-                            aria-label="Загрузить изображение"
-                        >
-                            <input type="file" accept="image/*" onChange={handleImageChange} className="unique-image-input" ref={fileInputRef} disabled={isMeetingCompleted} />
-                            {imagePreview
-                                ? <img src={imagePreview} alt="Превью" className="unique-meeting-image" />
-                                : <div className="unique-screenshot-placeholder"><span>Выберите изображение</span></div>
-                            }
-                            <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
-                        </div>
+                        <>
+                            <div
+                                className="unique-image-upload"
+                                onClick={() => !isMeetingCompleted && fileInputRef.current.click()}
+                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isMeetingCompleted) fileInputRef.current.click(); }}
+                                tabIndex={0}
+                                role="button"
+                                aria-label="Загрузить изображение"
+                            >
+                                <input type="file" accept="image/*" onChange={handleImageChange} className="unique-image-input" ref={fileInputRef} disabled={isMeetingCompleted} />
+                                {imagePreview
+                                    ? <img src={imagePreview} alt="Превью" className="unique-meeting-image" />
+                                    : <div className="unique-screenshot-placeholder"><span>Выберите изображение</span></div>
+                                }
+                                <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
+                            </div>
+                            
+                        </>
                     ) : imagePreview
                         ? <img src={imagePreview} alt="Скриншот встречи" className="unique-meeting-image" />
                         : <div className="unique-screenshot-placeholder"><span>Изображение не загружено</span></div>
