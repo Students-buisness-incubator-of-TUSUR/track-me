@@ -6,7 +6,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import net.trackme.commons.filters.Filter;
 import net.trackme.commons.filters.FilterFieldNotAllowedException;
-import net.trackme.commons.filters.OperationType;
 import net.trackme.sso.dao.entity.UserEntity;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -16,6 +15,8 @@ public class UserSpecification implements Specification<UserEntity> {
 
     private static final List<String> ALLOWED_FIELDS =
             List.of("fullName", "username", "accountNonLocked");
+
+    private static final String FULL_NAME_FIELD = "fullName";
 
     private final transient List<Filter> filters;
 
@@ -44,20 +45,17 @@ public class UserSpecification implements Specification<UserEntity> {
                         throw new FilterFieldNotAllowedException(filter.fieldName());
                     }
 
-                    //  ДЛЯ ПОЛЯ fullName частичное совпадение
-                    if ("fullName".equals(filter.fieldName())) {
+                    if (FULL_NAME_FIELD.equals(filter.fieldName())) {
                         String searchValue = filter.singleValue();
                         if (searchValue != null && !searchValue.isEmpty()) {
-                            // Поиск по вхождению подстроки в любом месте (без учета регистра)
                             String pattern = "%" + searchValue.toLowerCase() + "%";
                             return criteriaBuilder.like(
-                                    criteriaBuilder.lower(root.get("fullName")),
+                                    criteriaBuilder.lower(root.get(FULL_NAME_FIELD)),
                                     pattern
                             );
                         }
                     }
 
-                    // Для всех остальных полей (username, accountNonLocked) - стандартная обработка
                     return filter.toPredicate(root, criteriaBuilder);
                 })
                 .toList();

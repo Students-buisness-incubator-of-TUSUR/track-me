@@ -335,7 +335,7 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-    void findAllTrackers_withFullNameLikeFilter_success() throws Exception {
+    void findAllTrackersWithFullNameLikeFilterSuccess() throws Exception {
         mockMvc.perform(post("/api/v1/users/trackers")
                         .contentType("application/json")
                         .content("""
@@ -344,13 +344,14 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.content[*].fullName").value(hasItem(containsString("Трекер"))))
+                .andExpect(jsonPath("$.content[*].fullName")
+                        .value(hasItem(containsString("Трекер"))))
                 .andExpect(jsonPath("$.content[*].username").value(hasItem(TRACKER)));
     }
 
     @Test
     @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-    void findAllTrackers_withFullNameLikeFilter_partialMatch_success() throws Exception {
+    void findAllTrackersWithFullNameLikeFilterPartialMatchSuccess() throws Exception {
         // Поиск по части ФИО (например, "Трек" должно найти "Трекеров")
         mockMvc.perform(post("/api/v1/users/trackers")
                         .contentType("application/json")
@@ -360,12 +361,13 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.content[*].fullName").value(hasItem(containsString("Трекер"))));
+                .andExpect(jsonPath("$.content[*].fullName")
+                        .value(hasItem(containsString("Трекер"))));
     }
 
     @Test
     @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-    void findAllTrackers_withFullNameLikeFilter_caseInsensitive_success() throws Exception {
+    void findAllTrackersWithFullNameLikeFilterCaseInsensitiveSuccess() throws Exception {
         // Поиск в любом регистре
         mockMvc.perform(post("/api/v1/users/trackers")
                         .contentType("application/json")
@@ -375,16 +377,18 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.content[*].fullName").value(hasItem(containsString("Трекер"))));
+                .andExpect(jsonPath("$.content[*].fullName")
+                        .value(hasItem(containsString("Трекер"))));
     }
 
     @Test
     @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-    void findAllTrackers_withFullNameLikeFilter_noMatch_returnsEmpty() throws Exception {
+    void findAllTrackersWithFullNameLikeFilterNoMatchReturnsEmpty() throws Exception {
         mockMvc.perform(post("/api/v1/users/trackers")
                         .contentType("application/json")
                         .content("""
-                {"filters": [{"fieldName": "fullName", "type": "LIKE", "value": "НесуществующееИмя"}]}
+                {"filters": [{"fieldName": "fullName", "type": "LIKE",
+                              "value": "НесуществующееИмя"}]}
                 """)
                         .with(csrf()))
                 .andExpect(status().isOk())
@@ -394,7 +398,7 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-    void findAllTrackers_withUsernameLikeFilter_success() throws Exception {
+    void findAllTrackersWithUsernameLikeFilterSuccess() throws Exception {
         mockMvc.perform(post("/api/v1/users/trackers")
                         .contentType("application/json")
                         .content("""
