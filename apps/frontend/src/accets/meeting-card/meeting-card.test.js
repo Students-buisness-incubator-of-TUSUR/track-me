@@ -3038,7 +3038,362 @@ test('covers handleEditClick when meeting is locked (error message)', async () =
   }, { timeout: 5000 });
 });
 */
+describe('handlePasteImage functionality', () => {
+  beforeEach(() => {
+    // Сбрасываем все моки перед каждым тестом
+    jest.clearAllMocks();
+    
+    // Мокаем необходимые зависимости
+    global.FileReader = class {
+      constructor() {
+        this.onloadend = null;
+        this.result = 'data:image/png;base64,MOCK_IMAGE_DATA';
+      }
+      readAsDataURL() {
+        if (typeof this.onloadend === 'function') {
+          this.onloadend({ target: this });
+        }
+      }
+    };
+  });
 
+  test('should handle image paste when editing is enabled and meeting is not locked', async () => {
+    // Настраиваем мок для существующей встречи в режиме редактирования
+    mockUseParams.mockReturnValue({ meetingId: '123' });
+    const meetingData = {
+      id: '123',
+      status: 'SCHEDULED', // Не завершена, можно редактировать
+      number: '1',
+      startDate: new Date().toISOString(),
+      tasksCurrentMeeting: 'Tasks',
+      tasksNextMeeting: 'Next',
+      teamStatus: 'OK',
+      recordLink: 'http://example.com',
+      roomLink: ''
+    };
+    
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: [meetingData] }) })
+      .mockRejectedValueOnce(new Error('no image'));
+
+    const { container } = render(
+      <Provider store={getTestStore('ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=team123&userId=user123']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    // Ждем загрузки и включаем режим редактирования
+    await waitFor(() => expect(screen.getByText(/Встреча 1/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Редактировать'));
+    await waitFor(() => expect(screen.getByText('Сохранить')).toBeInTheDocument());
+
+    // Создаем мок для clipboardData
+    const mockFile = new File(['test-image-content'], 'pasted-image.png', { type: 'image/png' });
+    const mockClipboardData = {
+      items: [
+        {
+          kind: 'file',
+          type: 'image/png',
+          getAsFile: () => mockFile
+        }
+      ]
+    };
+
+    // Создаем и диспатчим событие paste
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: mockClipboardData,
+      writable: false
+    });
+
+    // Шпионим за setImage и setImagePreview через useEffect
+    // Проверяем, что preventDefault был вызван
+    const preventDefaultSpy = jest.spyOn(pasteEvent, 'preventDefault');
+    
+    document.dispatchEvent(pasteEvent);
+
+    // Проверяем, что preventDefault был вызван
+    expect(preventDefaultSpy).toHaveBeenCalled();
+    
+    // Ждем появления превью изображения
+    await waitFor(() => {
+      const previewImage = screen.getByAltText('Превью');
+      expect(previewImage).toBeInTheDocument();
+    }, { timeout: 3000 });
+  });
+
+  test('should not handle image paste when editing is disabled', async () => {
+    // Настраиваем существующую встречу (не в режиме редактирования)
+    mockUseParams.mockReturnValue({ meetingId: '123' });
+    const meetingData = {
+      id: '123',
+      status: 'SCHEDULED',
+      number: '1',
+      startDate: new Date().toISOString(),
+      tasksCurrentMeeting: 'Tasks',
+      tasksNextMeeting: 'Next',
+      teamStatus: 'OK',
+      recordLink: 'http://example.com',
+      roomLink: ''
+    };
+    
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: [meetingData] }) })
+      .mockRejectedValueOnce(new Error('no image'));
+
+    render(
+      <Provider store={getTestStore('ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/123?teamId=team123&userId=user123']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    // Ждем загрузки, но НЕ включаем режим редактирования
+    await waitFor(() => expect(screen.getByText(/Встреча 1/i)).toBeInTheDocument());
+
+    // Создаем мок для clipboardData
+    const mockFile = new File(['test-image-content'], 'pasted-image.png', { type: 'image/png' });
+    const mockClipboardData = {
+      items: [
+        {
+          kind: 'file',
+          type: 'image/png',
+          getAsFile: () => mockFile
+        }
+      ]
+    };
+
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: mockClipboardData,
+      writable: false
+    });
+
+    const preventDefaultSpy = jest.spyOn(pasteEvent, 'preventDefault');
+    document.dispatchEvent(pasteEvent);
+
+    // preventDefault НЕ должен быть вызван, так как isEditing === false
+    expect(preventDefaultSpy).not.toHaveBeenCalled();
+    
+    // Превью изображения не должно появиться
+    expect(screen.queryByAltText('Превью')).not.toBeInTheDocument();
+  });
+
+  test('should not handle image paste when meeting is locked (completed status)', async () => {
+    // Настраиваем завершенную встречу (locked)
+    mockUseParams.mockReturnValue({ meetingId: '456' });
+    const completedMeeting = {
+      id: '456',
+      status: 'COMPLETED', // Завершена - locked
+      number: '2',
+      startDate: new Date(Date.now() - 86400000).toISOString(),
+      tasksCurrentMeeting: 'Tasks',
+      tasksNextMeeting: 'Next',
+      teamStatus: 'OK',
+      recordLink: 'http://example.com',
+      roomLink: ''
+    };
+    
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: [completedMeeting] }) })
+      .mockRejectedValueOnce(new Error('no image'));
+
+    render(
+      <Provider store={getTestStore('ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/456?teamId=team123&userId=user123']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => expect(screen.getByText(/Встреча 2/i)).toBeInTheDocument());
+
+    // Пытаемся включить редактирование (кнопка должна быть disabled)
+    const editButton = screen.getByText('Редактировать');
+    expect(editButton).toBeDisabled();
+
+    // Создаем мок для clipboardData
+    const mockFile = new File(['test-image-content'], 'pasted-image.png', { type: 'image/png' });
+    const mockClipboardData = {
+      items: [
+        {
+          kind: 'file',
+          type: 'image/png',
+          getAsFile: () => mockFile
+        }
+      ]
+    };
+
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: mockClipboardData,
+      writable: false
+    });
+
+    const preventDefaultSpy = jest.spyOn(pasteEvent, 'preventDefault');
+    document.dispatchEvent(pasteEvent);
+
+    // preventDefault НЕ должен быть вызван, так как isMeetingLocked === true
+    expect(preventDefaultSpy).not.toHaveBeenCalled();
+  });
+
+  test('should not handle paste when clipboardData is null', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: [] }) });
+
+    render(
+      <Provider store={getTestStore('ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=team123&userId=user123']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => expect(screen.getByText('Новая встреча')).toBeInTheDocument());
+
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: null,
+      writable: false
+    });
+
+    const preventDefaultSpy = jest.spyOn(pasteEvent, 'preventDefault');
+    document.dispatchEvent(pasteEvent);
+
+    // preventDefault не должен быть вызван, так как clipboardData === null
+    expect(preventDefaultSpy).not.toHaveBeenCalled();
+  });
+
+  test('should not handle paste when no image in clipboard', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: [] }) });
+
+    render(
+      <Provider store={getTestStore('ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=team123&userId=user123']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => expect(screen.getByText('Новая встреча')).toBeInTheDocument());
+
+    // Мокаем clipboardData с текстом вместо изображения
+    const mockClipboardData = {
+      items: [
+        {
+          kind: 'string',
+          type: 'text/plain',
+          getAsString: () => {}
+        }
+      ]
+    };
+
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: mockClipboardData,
+      writable: false
+    });
+
+    const preventDefaultSpy = jest.spyOn(pasteEvent, 'preventDefault');
+    document.dispatchEvent(pasteEvent);
+
+    // preventDefault не должен быть вызван, так как изображение не найдено
+    expect(preventDefaultSpy).not.toHaveBeenCalled();
+  });
+
+  test('should handle paste when clipboard items array is empty', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: [] }) });
+
+    render(
+      <Provider store={getTestStore('ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=team123&userId=user123']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => expect(screen.getByText('Новая встреча')).toBeInTheDocument());
+
+    const mockClipboardData = {
+      items: []
+    };
+
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: mockClipboardData,
+      writable: false
+    });
+
+    const preventDefaultSpy = jest.spyOn(pasteEvent, 'preventDefault');
+    document.dispatchEvent(pasteEvent);
+
+    // preventDefault не должен быть вызван
+    expect(preventDefaultSpy).not.toHaveBeenCalled();
+  });
+
+  test('should handle image paste in new meeting mode', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'new' });
+    global.fetch.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: [] }) });
+
+    const { container } = render(
+      <Provider store={getTestStore('ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/new?teamId=team123&userId=user123']}>
+          <Routes>
+            <Route path="/meeting/:meetingId" element={<MeetingCard />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+
+    await waitFor(() => expect(screen.getByText('Новая встреча')).toBeInTheDocument());
+    // В новой встрече isEditing === true по умолчанию
+
+    const mockFile = new File(['test-image-content'], 'pasted-image.png', { type: 'image/png' });
+    const mockClipboardData = {
+      items: [
+        {
+          kind: 'file',
+          type: 'image/png',
+          getAsFile: () => mockFile
+        }
+      ]
+    };
+
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: mockClipboardData,
+      writable: false
+    });
+
+    const preventDefaultSpy = jest.spyOn(pasteEvent, 'preventDefault');
+    document.dispatchEvent(pasteEvent);
+
+    expect(preventDefaultSpy).toHaveBeenCalled();
+
+    // Проверяем, что превью появилось
+    await waitFor(() => {
+      const previewImage = screen.getByAltText('Превью');
+      expect(previewImage).toBeInTheDocument();
+    }, { timeout: 3000 });
+  });
+});
 });
 
 
