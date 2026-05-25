@@ -71,10 +71,7 @@ const MeetingCard = () => {
 
     const isMeetingLocked = !canEdit();
 
-    // Визуальный статус (только для отображения)
-    const isMeetingCompleted = meetingData.status === "COMPLETED" ||
-        meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ||
-        meetingData.status === "FINALLY_COMPLETED";
+    
 
     const renderTextareaSection = (name, label, value) => (
         <div className="unique-meeting-info-row">
@@ -239,12 +236,7 @@ const MeetingCard = () => {
             reader.readAsDataURL(file);
         }
     };
-
-    const isMeetingCompleted = meetingData.status === "COMPLETED" ||
-        meetingData.status === "COMPLETED_AS_NOT_HAPPENED";
-
-    const isMeetingLocked = meetingData.status === "COMPLETED" ||
-        meetingData.status === "COMPLETED_AS_NOT_HAPPENED";
+    
 
     useEffect(() => {
         const handlePasteImage = (event) => {
@@ -271,6 +263,7 @@ const MeetingCard = () => {
         document.addEventListener('paste', handlePasteImage);
         return () => document.removeEventListener('paste', handlePasteImage);
     }, [isEditing, isMeetingLocked]);
+
 
     const handleSave = async () => {
         try {
@@ -686,24 +679,21 @@ const MeetingCard = () => {
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Скриншот встречи:</span>
                     {isEditing ? (
-                        <>
-                            <div
-                                className="unique-image-upload"
-                                onClick={() => !isMeetingCompleted && fileInputRef.current.click()}
-                                onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isMeetingCompleted) fileInputRef.current.click(); }}
-                                tabIndex={0}
-                                role="button"
-                                aria-label="Загрузить изображение"
-                            >
-                                <input type="file" accept="image/*" onChange={handleImageChange} className="unique-image-input" ref={fileInputRef} disabled={isMeetingCompleted} />
-                                {imagePreview
-                                    ? <img src={imagePreview} alt="Превью" className="unique-meeting-image" />
-                                    : <div className="unique-screenshot-placeholder"><span>Выберите изображение</span></div>
-                                }
-                                <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
-                            </div>
-                            
-                        </>
+                        <div
+                            className="unique-image-upload"
+                            onClick={() => !isMeetingLocked && fileInputRef.current.click()}
+                            onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !isMeetingLocked) fileInputRef.current.click(); }}
+                            tabIndex={0}
+                            role="button"
+                            aria-label="Загрузить изображение"
+                        >
+                            <input type="file" accept="image/*" onChange={handleImageChange} className="unique-image-input" ref={fileInputRef} disabled={isMeetingLocked} />
+                            {imagePreview
+                                ? <img src={imagePreview} alt="Превью" className="unique-meeting-image" />
+                                : <div className="unique-screenshot-placeholder"><span>Выберите изображение</span></div>
+                            }
+                            <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
+                        </div>
                     ) : imagePreview
                         ? <img src={imagePreview} alt="Скриншот встречи" className="unique-meeting-image" />
                         : <div className="unique-screenshot-placeholder"><span>Изображение не загружено</span></div>
