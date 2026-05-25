@@ -330,4 +330,97 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
               .with(csrf()))
           .andExpect(status().isForbidden());
   }
+
+    // ========== ТЕСТЫ ДЛЯ ПОИСКА ПО ЧАСТИЧНОМУ СОВПАДЕНИЮ В ФИО ==========
+
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackers_withFullNameLikeFilter_success() throws Exception {
+        mockMvc.perform(post("/api/v1/users/trackers")
+                        .contentType("application/json")
+                        .content("""
+                {"filters": [{"fieldName": "fullName", "type": "LIKE", "value": "Трекер"}]}
+                """)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content[*].fullName").value(hasItem(containsString("Трекер"))))
+                .andExpect(jsonPath("$.content[*].username").value(hasItem(TRACKER)));
+    }
+
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackers_withFullNameLikeFilter_partialMatch_success() throws Exception {
+        // Поиск по части ФИО (например, "Трек" должно найти "Трекеров")
+        mockMvc.perform(post("/api/v1/users/trackers")
+                        .contentType("application/json")
+                        .content("""
+                {"filters": [{"fieldName": "fullName", "type": "LIKE", "value": "Трек"}]}
+                """)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content[*].fullName").value(hasItem(containsString("Трекер"))));
+    }
+
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackers_withFullNameLikeFilter_caseInsensitive_success() throws Exception {
+        // Поиск в любом регистре
+        mockMvc.perform(post("/api/v1/users/trackers")
+                        .contentType("application/json")
+                        .content("""
+                {"filters": [{"fieldName": "fullName", "type": "LIKE", "value": "трекер"}]}
+                """)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content[*].fullName").value(hasItem(containsString("Трекер"))));
+    }
+
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackers_withFullNameLikeFilter_noMatch_returnsEmpty() throws Exception {
+        mockMvc.perform(post("/api/v1/users/trackers")
+                        .contentType("application/json")
+                        .content("""
+                {"filters": [{"fieldName": "fullName", "type": "LIKE", "value": "НесуществующееИмя"}]}
+                """)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content.length()").value(0));
+    }
+
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackers_withUsernameLikeFilter_success() throws Exception {
+        mockMvc.perform(post("/api/v1/users/trackers")
+                        .contentType("application/json")
+                        .content("""
+                {"filters": [{"fieldName": "username", "type": "LIKE", "value": "track"}]}
+                """)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content[*].username").value(hasItem(TRACKER)));
+    }
+
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackers_withFullNameOrUsernameLikeFilter_success() throws Exception {
+        // Поиск по ФИО ИЛИ по username
+        mockMvc.perform(post("/api/v1/users/trackers")
+                        .contentType("application/json")
+                        .content("""
+                {"filters": [
+                    {"fieldName": "fullName", "type": "LIKE", "value": "Трекер"},
+                    {"fieldName": "username", "type": "LIKE", "value": "track"}
+                ]}
+                """)
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/json"))
+                .andExpect(jsonPath("$.content.length()").value(2));
+    }
 }

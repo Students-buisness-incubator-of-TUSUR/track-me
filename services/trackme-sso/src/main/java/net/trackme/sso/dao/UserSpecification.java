@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import net.trackme.commons.filters.Filter;
 import net.trackme.commons.filters.FilterFieldNotAllowedException;
+import net.trackme.commons.filters.OperationType;
 import net.trackme.sso.dao.entity.UserEntity;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -13,38 +14,53 @@ import java.util.List;
 
 public class UserSpecification implements Specification<UserEntity> {
 
-  private static final List<String> ALLOWED_FIELDS =
-      List.of("fullName", "username", "accountNonLocked");
+    private static final List<String> ALLOWED_FIELDS =
+            List.of("fullName", "username", "accountNonLocked");
 
-  private final transient List<Filter> filters;
+    private final transient List<Filter> filters;
 
-  public UserSpecification(List<Filter> filters) {
-    this.filters = filters;
-  }
+    public UserSpecification(List<Filter> filters) {
+        this.filters = filters;
+    }
 
-  public static Specification<UserEntity> byRole(String role) {
-    return (root, query, criteriaBuilder) -> {
-      var roleJoin = root.join("roles");
-      return criteriaBuilder.equal(roleJoin.get("code"), role);
-    };
-  }
+    public static Specification<UserEntity> byRole(String role) {
+        return (root, query, criteriaBuilder) -> {
+            var roleJoin = root.join("roles");
+            return criteriaBuilder.equal(roleJoin.get("code"), role);
+        };
+    }
 
-  public static Specification<UserEntity> withFilters(List<Filter> filters) {
-    return new UserSpecification(filters);
-  }
+    public static Specification<UserEntity> withFilters(List<Filter> filters) {
+        return new UserSpecification(filters);
+    }
 
-  @Override
-  public Predicate toPredicate(Root<UserEntity> root,
-                               CriteriaQuery<?> query,
-                               CriteriaBuilder criteriaBuilder) {
-    List<Predicate> predicates = filters.stream()
-        .map(filter -> {
-          if (!ALLOWED_FIELDS.contains(filter.fieldName())) {
-            throw new FilterFieldNotAllowedException(filter.fieldName());
-          }
-          return filter.toPredicate(root, criteriaBuilder);
-        })
-        .toList();
-    return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-  }
+    @Override
+    public Predicate toPredicate(Root<UserEntity> root,
+                                 CriteriaQuery<?> query,
+                                 CriteriaBuilder criteriaBuilder) {
+        List<Predicate> predicates = filters.stream()
+                .map(filter -> {
+                    if (!ALLOWED_FIELDS.contains(filter.fieldName())) {
+                        throw new FilterFieldNotAllowedException(filter.fieldName());
+                    }
+
+                    //  ДЛЯ ПОЛЯ fullName частичное совпадение
+                    if ("fullName".equals(filter.fieldName())) {
+                        String searchValue = filter.singleValue();
+                        if (searchValue != null && !searchValue.isEmpty()) {
+                            // Поиск по вхождению подстроки в любом месте (без учета регистра)
+                            String pattern = "%" + searchValue.toLowerCase() + "%";
+                            return criteriaBuilder.like(
+                                    criteriaBuilder.lower(root.get("fullName")),
+                                    pattern
+                            );
+                        }
+                    }
+
+                    // Для всех остальных полей (username, accountNonLocked) - стандартная обработка
+                    return filter.toPredicate(root, criteriaBuilder);
+                })
+                .toList();
+        return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+    }
 }
