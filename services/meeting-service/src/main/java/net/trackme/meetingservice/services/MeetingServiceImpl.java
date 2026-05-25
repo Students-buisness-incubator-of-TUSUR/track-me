@@ -50,6 +50,8 @@ import static java.util.stream.Collectors.toSet;
 import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
 import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardIdEquals;
 
+import org.springframework.security.access.AccessDeniedException;
+
 /**
  * Реализация сервиса для управления встречами.
  */
@@ -161,13 +163,26 @@ public class MeetingServiceImpl implements MeetingService {
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') "
                     + "or hasRole('ADMIN')")
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
+        log.info("updateMeeting called by user: {}",
+         SecurityContextHolder.getContext().getAuthentication().getName());
+        log.info("Authorities: {}",
+         SecurityContextHolder.getContext().getAuthentication().getAuthorities());
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
 
-        if (MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
+        // Получаем текущего пользователя и проверяем роль
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isSuperAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_SUPER_ADMIN")
+                              || auth.getAuthority().equals("SUPER_ADMIN"));
+
+        // Если НЕ суперадмин и статус завершённый – запрещаем (старая логика)
+        if (!isSuperAdmin && MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
         }
+
+        // Суперадмин может редактировать любые встречи – дополнительных ограничений не требуется
 
         OffsetDateTime oldStartDate = meeting.getStartDate();
         boolean dateChanged = updateDto.startDate() != null
@@ -420,5 +435,54 @@ public class MeetingServiceImpl implements MeetingService {
                 dto.tasksCurrentMeeting(),
                 dto.tasksNextMeeting()
         );
+    }
+
+    // ==================== НОВЫЙ МЕТОД ДЛЯ СУПЕРАДМИНИСТРАТОРА ====================
+
+    @Override
+    @Transactional
+    public MeetingDto updateBySuperAdmin(UUID meetingId, MeetingUpdateDto updateDto) {
+        
+        // 1. Проверка роли суперадмина
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new AccessDeniedException("Пользователь не аутентифицирован");
+        }
+        
+        boolean isSuperAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_SUPER_ADMIN")
+                        || authority.getAuthority().equals("SUPER_ADMIN"));
+        
+        if (!isSuperAdmin) {
+            throw new AccessDeniedException(
+                "Только суперадминистратор может редактировать встречи со статусами " +
+                "'Окончательно завершена' или 'Завершена как не состоявшаяся'"
+            );
+        }
+        
+        // 2. Находим встречу
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+        
+        // 3. Проверяем статус (разрешены FINALLY_COMPLETED и COMPLETED_AS_NOT_HAPPENED)
+        if (!meeting.getStatus().isEditableBySuperAdmin()) {
+            throw new IllegalStateException(
+                String.format(
+                    "Невозможно редактировать встречу со статусом '%s'. Разрешены только: '%s' и '%s'.",
+                    meeting.getStatus().getDescription(),
+                    MeetingStatus.FINALLY_COMPLETED.getDescription(),
+                    MeetingStatus.COMPLETED_AS_NOT_HAPPENED.getDescription())
+            );
+        }
+        
+        // 4. Обновляем поля с помощью существующего маппера
+        meetingMapper.updateEntityFromDto(updateDto, meeting);
+        
+        // 5. Сохраняем
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        
+        log.info("Super admin {} updated meeting {}", authentication.getName(), meetingId);
+        
+        return meetingMapper.mapToDto(savedMeeting);
     }
 }

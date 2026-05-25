@@ -3,6 +3,7 @@ package net.trackme.meetingservice.services;
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
 import net.trackme.meetingservice.api.dto.MeetingDto;
 import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
+//import net.trackme.meetingservice.api.dto.SuperAdminMeetingUpdateDto; // новый импорт
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,4 +26,6 @@ public interface MeetingService {
 
     Resource getMeetingImage(UUID meetingId);
 
+    // НОВЫЙ МЕТОД
+    MeetingDto updateBySuperAdmin(UUID meetingId, MeetingUpdateDto updateDto);
 }

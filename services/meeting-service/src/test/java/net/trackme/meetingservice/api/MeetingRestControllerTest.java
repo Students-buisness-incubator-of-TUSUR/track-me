@@ -38,7 +38,6 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -49,7 +48,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -98,7 +96,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @BeforeEach
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
     void setUp() {
-
         meetingRepository.save(Meeting.builder()
                 .teamCardId(TEAM_CARD_ID)
                 .recordLink("https://example.com/meeting")
@@ -137,7 +134,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
 
         when(userBackendApiClient.getTeamCardById(TEAM_CARD_ID)).thenReturn(mockTeamCard);
         when(ssoApiClient.getTrackers()).thenReturn(List.of(mockTracker));
-
     }
 
     @AfterEach
@@ -176,7 +172,8 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$.content").isArray());
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].teamCardId").value(TEAM_CARD_ID.toString()));
     }
 
     @Test
@@ -261,7 +258,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
+    @WithMockUser(roles = "ADMIN")
     void updateMeeting_completedMeeting_failure() throws Exception {
         var meeting = meetingRepository.findAll().getFirst();
         meeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
@@ -486,5 +483,88 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION))
                 .andExpect(content().contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .andExpect(content().bytes("fake-excel-content".getBytes()));
+    }
+
+    // ========== НОВЫЕ ТЕСТЫ ДЛЯ ПОКРЫТИЯ РЕДАКТИРОВАНИЯ СУПЕРАДМИНОМ ==========
+
+    @Test
+    @WithMockUser(roles = "SUPER_ADMIN")
+    void updateMeeting_superAdmin_updatesFinallyCompletedMeeting() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.FINALLY_COMPLETED)
+                .recordLink("https://example.com/old")
+                .number("999")
+                .startDate(OffsetDateTime.now().minusDays(1))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .recordLink("https://example.com/new")
+                .number("1000")
+                .teamStatus(TeamStatus.OK)
+                .build();
+
+        mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.recordLink").value("https://example.com/new"));
+    }
+
+    @Test
+    @WithMockUser(roles = "SUPER_ADMIN")
+    void updateMeeting_superAdmin_updatesCompletedAsNotHappenedMeeting() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.COMPLETED_AS_NOT_HAPPENED)
+                .recordLink("https://example.com/old2")
+                .number("998")
+                .startDate(OffsetDateTime.now().minusDays(2))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .recordLink("https://example.com/new2")
+                .number("1001")
+                .teamStatus(TeamStatus.OK)
+                .build();
+
+        mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.recordLink").value("https://example.com/new2"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateMeeting_regularAdmin_cannotUpdateFinallyCompletedMeeting() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.FINALLY_COMPLETED)
+                .recordLink("https://example.com/forbidden")
+                .number("997")
+                .startDate(OffsetDateTime.now().minusDays(3))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .recordLink("https://example.com/hacked")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
     }
 }
