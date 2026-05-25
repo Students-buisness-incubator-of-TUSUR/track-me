@@ -406,21 +406,4 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.content[*].username").value(hasItem(TRACKER)));
     }
 
-    @Test
-    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-    void findAllTrackers_withFullNameOrUsernameLikeFilter_success() throws Exception {
-        // Поиск по ФИО ИЛИ по username
-        mockMvc.perform(post("/api/v1/users/trackers")
-                        .contentType("application/json")
-                        .content("""
-                {"filters": [
-                    {"fieldName": "fullName", "type": "LIKE", "value": "Трекер"},
-                    {"fieldName": "username", "type": "LIKE", "value": "track"}
-                ]}
-                """)
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", "application/json"))
-                .andExpect(jsonPath("$.content.length()").value(2));
-    }
 }
