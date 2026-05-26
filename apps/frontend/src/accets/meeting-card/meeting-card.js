@@ -71,10 +71,7 @@ const MeetingCard = () => {
 
     const isMeetingLocked = !canEdit();
 
-    // Визуальный статус (только для отображения)
-    const isMeetingCompleted = meetingData.status === "COMPLETED" ||
-        meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ||
-        meetingData.status === "FINALLY_COMPLETED";
+    
 
     const renderTextareaSection = (name, label, value) => (
         <div className="unique-meeting-info-row">
@@ -239,6 +236,34 @@ const MeetingCard = () => {
             reader.readAsDataURL(file);
         }
     };
+    
+
+    useEffect(() => {
+        const handlePasteImage = (event) => {
+            if (!isEditing || isMeetingLocked) return;
+            const clipboardData = event.clipboardData;
+            if (!clipboardData) return;
+
+            const imageItem = Array.from(clipboardData.items || []).find(
+                (item) => item.kind === 'file' && item.type.startsWith('image/')
+            );
+
+            if (!imageItem) return;
+
+            const file = imageItem.getAsFile();
+            if (!file) return;
+
+            event.preventDefault();
+            setImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setImagePreview(reader.result);
+            reader.readAsDataURL(file);
+        };
+
+        document.addEventListener('paste', handlePasteImage);
+        return () => document.removeEventListener('paste', handlePasteImage);
+    }, [isEditing, isMeetingLocked]);
+
 
     const handleSave = async () => {
         try {

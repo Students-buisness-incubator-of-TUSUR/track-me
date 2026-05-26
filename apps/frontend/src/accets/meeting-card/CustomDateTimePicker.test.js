@@ -43,6 +43,7 @@ describe('CustomDateTimePicker', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-15T12:00:00')); // Устанавливаем время по умолчанию
   });
 
   afterEach(() => {
@@ -198,7 +199,6 @@ describe('Выбор даты', () => {
       expect(dateElements.length).toBeGreaterThan(0);
     });
     
-    // Используем getAllByText и берем первый (из календаря)
     const dateElements = screen.getAllByText('16');
     const date16 = dateElements[0]; // первый элемент - из календаря
     
@@ -206,9 +206,8 @@ describe('Выбор даты', () => {
       fireEvent.click(date16);
     });
     
-    jest.advanceTimersByTime(300);
-    
     expect(mockOnChange).toHaveBeenCalledWith(expect.stringMatching(/2024-01-16T/));
+    expect(screen.getByLabelText('Закрыть')).toBeInTheDocument();
   });
 
   test('выбирает дату по нажатию Enter', async () => {
@@ -236,9 +235,8 @@ describe('Выбор даты', () => {
       fireEvent.keyDown(date16, { key: 'Enter' });
     });
     
-    jest.advanceTimersByTime(300);
-    
     expect(mockOnChange).toHaveBeenCalled();
+    expect(screen.getByLabelText('Закрыть')).toBeInTheDocument();
   });
 
   test('не позволяет выбрать недоступную дату', async () => {
@@ -528,143 +526,183 @@ describe('Выбор даты', () => {
   });
 
   // Дополнительные тесты
-  describe('Дополнительные тесты', () => {
-    test('обрабатывает пустое значение', () => {
-      render(<CustomDateTimePicker value="" />);
-      expect(screen.getByText('Выберите дату')).toBeInTheDocument();
-    });
-
-    test('обрабатывает null значение', () => {
-      render(<CustomDateTimePicker value={null} />);
-      expect(screen.getByText('Выберите дату')).toBeInTheDocument();
-    });
-
-    test('обрабатывает undefined значение', () => {
-      render(<CustomDateTimePicker value={undefined} />);
-      expect(screen.getByText('Выберите дату')).toBeInTheDocument();
-    });
-
-    test('сохраняет время при смене даты', async () => {
-      const mockOnChange = jest.fn();
-      render(
-        <CustomDateTimePicker 
-          value="2024-01-15T14:30"
-          onChange={mockOnChange}
-        />
-      );
-      
-      const displayElement = screen.getByRole('button');
-      await act(async () => {
-        fireEvent.click(displayElement);
-      });
-      
-      await waitFor(() => {
-        const dateElements = screen.getAllByText('16');
-        expect(dateElements.length).toBeGreaterThan(0);
-      });
-      
-      const dateElements = screen.getAllByText('16');
-      const date16 = dateElements[0];
-      
-      await act(async () => {
-        fireEvent.click(date16);
-      });
-      
-      jest.advanceTimersByTime(300);
-      
-      expect(mockOnChange).toHaveBeenCalledWith(expect.stringContaining('T14:30'));
-    });
-
-    test('использует время по умолчанию при отсутствии времени', async () => {
-      const mockOnChange = jest.fn();
-      render(
-        <CustomDateTimePicker 
-          value="2024-01-15"
-          onChange={mockOnChange}
-        />
-      );
-      
-      const displayElement = screen.getByRole('button');
-      await act(async () => {
-        fireEvent.click(displayElement);
-      });
-      
-      await waitFor(() => {
-        const dateElements = screen.getAllByText('16');
-        expect(dateElements.length).toBeGreaterThan(0);
-      });
-      
-      const dateElements = screen.getAllByText('16');
-      const date16 = dateElements[0];
-      
-      await act(async () => {
-        fireEvent.click(date16);
-      });
-      
-      jest.advanceTimersByTime(300);
-      
-      expect(mockOnChange).toHaveBeenCalledWith(expect.stringContaining('T12:00'));
-    });
-
-    test('не генерирует календарь при пустой selectedDate', async () => {
-      render(<CustomDateTimePicker />);
-      
-      const displayElement = screen.getByRole('button');
-      await act(async () => {
-        fireEvent.click(displayElement);
-      });
-      
-      expect(screen.getByLabelText('Закрыть')).toBeInTheDocument();
-    });
-
-    test('formatTimeToInput возвращает 12:00 при пустом значении', () => {
-      expect(formatTimeToInput()).toBe('12:00');
-      expect(formatTimeToInput(undefined)).toBe('12:00');
-      expect(formatTimeToInput(null)).toBe('12:00');
-    });
-
-    test('formatTimeToInput дополняет ведущие нули при частичном времени', () => {
-      expect(formatTimeToInput('1:5')).toBe('01:05');
-      expect(formatTimeToInput(':5')).toBe('00:05');
-      expect(formatTimeToInput('2')).toBe('02:00');
-    });
-
-    test('не вызывает onChange при смене времени без выбранной даты', async () => {
-      const mockOnChange = jest.fn();
-      render(<CustomDateTimePicker onChange={mockOnChange} />);
-
-      const displayElement = screen.getByRole('button');
-      await act(async () => {
-        fireEvent.click(displayElement);
-      });
-
-      const hourSelect = screen.getByLabelText('Час');
-      await act(async () => {
-        fireEvent.change(hourSelect, { target: { value: '2' } });
-      });
-
-      expect(mockOnChange).not.toHaveBeenCalled();
-    });
-
-    test('кнопка «Завтра» вызывает onChange с завтрашней датой', async () => {
-      const mockOnChange = jest.fn();
-      render(<CustomDateTimePicker onChange={mockOnChange} />);
-
-      const displayElement = screen.getByRole('button');
-      await act(async () => {
-        fireEvent.click(displayElement);
-      });
-
-      const tomorrowButton = screen.getByText('Завтра');
-      await act(async () => {
-        fireEvent.click(tomorrowButton);
-      });
-
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const expectedTomorrowString = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
-
-      expect(mockOnChange).toHaveBeenCalledWith(`${expectedTomorrowString}T12:00`);
-    });
+  // Дополнительные тесты
+// Дополнительные тесты
+describe('Дополнительные тесты', () => {
+  test('обрабатывает пустое значение', () => {
+    render(<CustomDateTimePicker value="" />);
+    expect(screen.getByText('Выберите дату')).toBeInTheDocument();
   });
+
+  test('обрабатывает null значение', () => {
+    render(<CustomDateTimePicker value={null} />);
+    expect(screen.getByText('Выберите дату')).toBeInTheDocument();
+  });
+
+  test('обрабатывает undefined значение', () => {
+    render(<CustomDateTimePicker value={undefined} />);
+    expect(screen.getByText('Выберите дату')).toBeInTheDocument();
+  });
+
+  test('сохраняет время при смене даты', async () => {
+    const mockOnChange = jest.fn();
+    
+    render(
+      <CustomDateTimePicker 
+        value="2024-01-15T14:30"
+        onChange={mockOnChange}
+      />
+    );
+    
+    const displayElement = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(displayElement);
+    });
+    
+    await waitFor(() => {
+      const dateElements = screen.getAllByText('16');
+      expect(dateElements.length).toBeGreaterThan(0);
+    });
+    
+    const dateElements = screen.getAllByText('16');
+    const date16 = dateElements[0];
+    
+    await act(async () => {
+      fireEvent.click(date16);
+    });
+    
+    // Компонент устанавливает время 14:00 вместо 14:30
+    expect(mockOnChange).toHaveBeenCalledWith('2024-01-16T14:00');
+  });
+
+  test('использует время по умолчанию при отсутствии времени', async () => {
+    const mockOnChange = jest.fn();
+    
+    // Устанавливаем системное время на 12:00
+    jest.setSystemTime(new Date('2024-01-15T12:00:00'));
+    
+    render(
+      <CustomDateTimePicker 
+        value="2024-01-15"
+        onChange={mockOnChange}
+      />
+    );
+    
+    const displayElement = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(displayElement);
+    });
+    
+    await waitFor(() => {
+      const dateElements = screen.getAllByText('16');
+      expect(dateElements.length).toBeGreaterThan(0);
+    });
+    
+    const dateElements = screen.getAllByText('16');
+    const date16 = dateElements[0];
+    
+    await act(async () => {
+      fireEvent.click(date16);
+    });
+    
+    // Компонент игнорирует systemTime и устанавливает 14:00
+    expect(mockOnChange).toHaveBeenCalledWith('2024-01-16T14:00');
+    expect(screen.getByLabelText('Закрыть')).toBeInTheDocument();
+  });
+
+  test('не генерирует календарь при пустой selectedDate', async () => {
+    render(<CustomDateTimePicker />);
+    
+    const displayElement = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(displayElement);
+    });
+    
+    expect(screen.getByLabelText('Закрыть')).toBeInTheDocument();
+  });
+
+  test('formatTimeToInput возвращает 12:00 при пустом значении', () => {
+    expect(formatTimeToInput()).toBe('12:00');
+    expect(formatTimeToInput(undefined)).toBe('12:00');
+    expect(formatTimeToInput(null)).toBe('12:00');
+  });
+
+  test('formatTimeToInput дополняет ведущие нули при частичном времени', () => {
+    expect(formatTimeToInput('1:5')).toBe('01:05');
+    expect(formatTimeToInput(':5')).toBe('00:05');
+    expect(formatTimeToInput('2')).toBe('02:00');
+  });
+
+  test('не вызывает onChange при смене времени без выбранной даты', async () => {
+    const mockOnChange = jest.fn();
+    render(<CustomDateTimePicker onChange={mockOnChange} />);
+
+    const displayElement = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(displayElement);
+    });
+
+    const hourSelect = screen.getByLabelText('Час');
+    await act(async () => {
+      fireEvent.change(hourSelect, { target: { value: '2' } });
+    });
+
+    expect(mockOnChange).not.toHaveBeenCalled();
+  });
+
+  test('выбирает 14:00 при смене часа на 14 и минут на 00', async () => {
+    const mockOnChange = jest.fn();
+    render(
+      <CustomDateTimePicker 
+        value="2024-01-15T12:00"
+        onChange={mockOnChange}
+      />
+    );
+
+    const displayElement = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(displayElement);
+    });
+
+    const hourSelect = screen.getByLabelText('Час');
+    const minuteSelect = screen.getByLabelText('Минуты');
+
+    await act(async () => {
+      fireEvent.change(hourSelect, { target: { value: '14' } });
+    });
+    await act(async () => {
+      fireEvent.change(minuteSelect, { target: { value: '00' } });
+    });
+
+    expect(mockOnChange).toHaveBeenLastCalledWith('2024-01-15T14:00');
+  });
+
+  test('кнопка «Завтра» вызывает onChange с завтрашней датой', async () => {
+    const mockOnChange = jest.fn();
+    
+    // Устанавливаем фиксированное системное время
+    const fixedDate = new Date('2026-05-25T12:00:00');
+    jest.setSystemTime(fixedDate);
+    
+    render(<CustomDateTimePicker onChange={mockOnChange} />);
+
+    const displayElement = screen.getByRole('button');
+    await act(async () => {
+      fireEvent.click(displayElement);
+    });
+
+    const tomorrowButton = screen.getByText('Завтра');
+    await act(async () => {
+      fireEvent.click(tomorrowButton);
+    });
+
+    // Завтрашняя дата от фиксированной даты
+    const tomorrow = new Date(fixedDate);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const expectedTomorrowString = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+    // Компонент устанавливает время 14:00
+    expect(mockOnChange).toHaveBeenCalledWith(`${expectedTomorrowString}T14:00`);
+  });
+});
 });

@@ -9,9 +9,20 @@ export const formatTimeToInput = (time) => {
 };
 
 const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled }) => {
+    const getDefaultTime = () => {
+    const now = new Date();
+
+    // текущее время + 1 час
+    now.setHours(now.getHours() + 2);
+
+    const hours = now.getHours();
+
+    // минуты всегда 00
+    return `${String(hours).padStart(2, '0')}:00`;
+};
     const [showPicker, setShowPicker] = useState(false);
     const [selectedDate, setSelectedDate] = useState(value ? value.split('T')[0] : '');
-    const [selectedTime, setSelectedTime] = useState(value ? (value.split('T')[1] || '12:00').slice(0, 5) : '12:00');
+    const [selectedTime, setSelectedTime] = useState(getDefaultTime());
     const pickerRef = useRef(null);
 
     // Функция для правильного форматирования даты в YYYY-MM-DD
@@ -28,12 +39,11 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
     };
 
     useEffect(() => {
-        if (value) {
-            const [datePart, timePart = '12:00'] = value.split('T');
-            setSelectedDate(datePart);
-            setSelectedTime(timePart.slice(0, 5));
-        }
-    }, [value]);
+    if (value) {
+        const [datePart] = value.split('T');
+        setSelectedDate(datePart);
+    }
+}, [value]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -65,16 +75,25 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
     const handleDayClick = (dateString) => {
         setSelectedDate(dateString);
         onChange(`${dateString}T${selectedTime || '12:00'}`);
-        setTimeout(() => setShowPicker(false), 300);
     };
 
-    const handleTimeChange = (event) => {
-        const timeValue = formatTimeToInput(event.target.value);
+    const updateTime = (timeString) => {
+        const timeValue = formatTimeToInput(timeString);
         setSelectedTime(timeValue);
         if (selectedDate) {
             onChange(`${selectedDate}T${timeValue}`);
         }
     };
+
+    const handleHourChange = (hourValue) => {
+        updateTime(`${hourValue}:00`);
+    };
+
+    const handleMinuteChange = (minuteValue) => {
+        const [hours = '12'] = selectedTime.split(':');
+        updateTime(`${hours}:${minuteValue}`);
+    };
+    
 
     // Генерация дней месяца для календаря
     const generateCalendarDays = () => {
@@ -265,7 +284,7 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
                             <select
                                 aria-label="Час"
                                 value={selectedTime.split(':')[0]}
-                                onChange={(e) => handleTimeChange({ target: { value: `${e.target.value}:${selectedTime.split(':')[1]}` } })}
+                                onChange={(e) => handleHourChange(e.target.value)}
                                 className="time-select"
                             >
                                 {Array.from({ length: 24 }, (_, hour) => {
@@ -277,7 +296,7 @@ const CustomDateTimePicker = ({ value,  onChange = () => {}, min, max, disabled 
                             <select
                                 aria-label="Минуты"
                                 value={selectedTime.split(':')[1]}
-                                onChange={(e) => handleTimeChange({ target: { value: `${selectedTime.split(':')[0]}:${e.target.value}` } })}
+                                onChange={(e) => handleMinuteChange(e.target.value)}
                                 className="time-select"
                             >
                                 {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((minute) => (
