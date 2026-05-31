@@ -21,6 +21,10 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
 
+/**
+ * Конфигурация безопасности для SSO-сервиса.
+ * Настраивает цепочку фильтров безопасности, роли и права доступа.
+ */
 @Slf4j
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -28,8 +32,10 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
 
+    /** Страница входа в систему. */
     public static final String LOGIN_PAGE = "/client/login";
 
+    /** Шаблоны URL, доступные без аутентификации. */
     static final String[] PERMIT_ALL_PATTERNS = {
             LOGIN_PAGE,
             "/registration-success",
@@ -43,17 +49,34 @@ public class SecurityConfiguration {
             "/.well-known/**"
     };
 
+    /** Сервис для загрузки данных пользователя. */
     private final UserDetailsService userDetailService;
 
+    /** Кодировщик паролей. */
     private final PasswordEncoder passwordEncoder;
 
+    /**
+     * Создаёт обработчик выражений безопасности с учётом иерархии ролей.
+     *
+     * @param roleHierarchy иерархия ролей
+     * @return настроенный обработчик выражений
+     */
     @Bean
-    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
-        DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+    static MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+            RoleHierarchy roleHierarchy) {
+        DefaultMethodSecurityExpressionHandler handler =
+                new DefaultMethodSecurityExpressionHandler();
         handler.setRoleHierarchy(roleHierarchy);
         return handler;
     }
 
+    /**
+     * Настраивает цепочку фильтров безопасности.
+     *
+     * @param http конфигурация HTTP-безопасности
+     * @return настроенная цепочка фильтров
+     * @throws Exception если произошла ошибка конфигурации
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
@@ -72,7 +95,8 @@ public class SecurityConfiguration {
 
         http.exceptionHandling(configurer ->
                 configurer.authenticationEntryPoint(
-                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+                        new HttpStatusEntryPoint(
+                                HttpStatus.UNAUTHORIZED)));
 
         return http.formLogin(formLogin ->
                         formLogin

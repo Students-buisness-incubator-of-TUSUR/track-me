@@ -17,66 +17,109 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Интеграционные тесты для контроллера управления аккаунтом.
+ * Проверяет получение информации о пользователе и смену пароля.
+ */
 class DefaultAccountControllerTest extends AbstractIntegrationTest {
-  @Autowired
-  private MockMvc mockMvc;
 
-  @Autowired
-  private UserRepository userRepository;
+    /** MockMvc для выполнения HTTP-запросов в тестах. */
+    @Autowired
+    private MockMvc mockMvc;
 
-  @BeforeEach
-  void setUp() {
-    // Убедимся, что superadmin активен перед каждым тестом
-    userRepository.findByUsername("superadmin").ifPresent(admin -> {
-      if (!admin.getActive()) {
-        admin.setActive(true);
-        userRepository.save(admin);
-      }
-    });
-  }
+    /** Репозиторий пользователей для подготовки тестовых данных. */
+    @Autowired
+    private UserRepository userRepository;
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void getUserInfo_success() throws Exception {
-    mockMvc.perform(get("/api/v1/account/info"))
-        .andDo(print())
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.username").value("superadmin"))
-        .andExpect(jsonPath("$.email").value(""));
-  }
+    /**
+     * Подготовка тестовых данных перед каждым тестом.
+     * Активирует пользователя superadmin, если он неактивен.
+     */
+    @BeforeEach
+    void setUp() {
+        userRepository.findByUsername("superadmin").ifPresent(admin -> {
+            if (!admin.getActive()) {
+                admin.setActive(true);
+                userRepository.save(admin);
+            }
+        });
+    }
 
-  @Test
-  @WithAnonymousUser
-  void getUserInfo_unauthorized() throws Exception {
-    mockMvc.perform(get("/api/v1/account/info"))
-        .andDo(print())
-        .andExpect(status().isUnauthorized());
-  }
+    /**
+     * Тест успешного получения информации о пользователе.
+     * Ожидается статус 200 и корректные данные в ответе.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void getUserInfo_success() throws Exception {
+        mockMvc.perform(get("/api/v1/account/info"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("superadmin"))
+                .andExpect(jsonPath("$.email").value(""));
+    }
 
-  @Test
-  @WithMockUser(username = "user", roles = "TRACKER")
-  void getUserInfo_notFound() throws Exception {
-    mockMvc.perform(get("/api/v1/account/info"))
-        .andDo(print())
-        .andExpect(status().isNotFound());
-  }
+    /**
+     * Тест получения информации без аутентификации.
+     * Ожидается статус 401 Unauthorized.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithAnonymousUser
+    void getUserInfo_unauthorized() throws Exception {
+        mockMvc.perform(get("/api/v1/account/info"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void changePassword_success() throws Exception {
-    mockMvc.perform(post(
-            "/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=superadmin")
-            .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isOk());
-  }
+    /**
+     * Тест получения информации для несуществующего пользователя.
+     * Ожидается статус 404 Not Found.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "user", roles = "TRACKER")
+    void getUserInfo_notFound() throws Exception {
+        mockMvc.perform(get("/api/v1/account/info"))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void changePassword_invalidOldPassword() throws Exception {
-    mockMvc.perform(post("/api/v1/account/changePassword?newPassword=<PASSWORD>&oldPassword=wrong")
-            .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isBadRequest());
-  }
+    /**
+     * Тест успешной смены пароля.
+     * Ожидается статус 200 OK.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void changePassword_success() throws Exception {
+        mockMvc.perform(post(
+                "/api/v1/account/changePassword"
+                        + "?newPassword=<PASSWORD>&oldPassword=superadmin")
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Тест смены пароля с неверным старым паролем.
+     * Ожидается статус 400 Bad Request.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void changePassword_invalidOldPassword() throws Exception {
+        mockMvc.perform(post(
+                "/api/v1/account/changePassword"
+                        + "?newPassword=<PASSWORD>&oldPassword=wrong")
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
 }

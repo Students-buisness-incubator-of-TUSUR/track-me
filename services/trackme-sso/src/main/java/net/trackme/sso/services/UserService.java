@@ -10,45 +10,141 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Сервис для управления пользователями системы.
+ * Предоставляет методы для создания, обновления, блокировки
+ * и получения информации о пользователях.
+ */
 public interface UserService {
 
-  /**
-   * Создание пользователя на основе регистрационных данных. Пользователь будет не активирован.
-   *
-   * @param userDto данные указанные при регистрации
-   */
-  UserEntity saveUser(RegistrationRequestDto userDto);
+    /**
+     * Создаёт пользователя на основе регистрационных данных.
+     * Пользователь будет не активирован.
+     *
+     * @param userDto данные, указанные при регистрации
+     * @return созданная сущность пользователя
+     */
+    UserEntity saveUser(RegistrationRequestDto userDto);
 
-  void save(UserEntity userEntity);
+    /**
+     * Сохраняет сущность пользователя в базе данных.
+     *
+     * @param userEntity сущность пользователя для сохранения
+     */
+    void save(UserEntity userEntity);
 
-  void changePassword(String username, String newPassword, String oldPassword);
+    /**
+     * Изменяет пароль пользователя.
+     *
+     * @param username имя пользователя
+     * @param newPassword новый пароль
+     * @param oldPassword старый пароль
+     */
+    void changePassword(String username, String newPassword,
+            String oldPassword);
 
-  void resetPassword(String email, String password);
+    /**
+     * Сбрасывает пароль пользователя по email.
+     *
+     * @param email адрес электронной почты пользователя
+     * @param password новый пароль
+     */
+    void resetPassword(String email, String password);
 
-  UserEntity findByUsername(String name);
+    /**
+     * Находит пользователя по имени.
+     *
+     * @param name имя пользователя
+     * @return найденная сущность пользователя
+     */
+    UserEntity findByUsername(String name);
 
-  UserEntity findByEmail(String email);
+    /**
+     * Находит пользователя по email.
+     *
+     * @param email адрес электронной почты
+     * @return найденная сущность пользователя
+     */
+    UserEntity findByEmail(String email);
 
-  void enableUser(String username);
+    /**
+     * Включает учётную запись пользователя.
+     *
+     * @param username имя пользователя
+     */
+    void enableUser(String username);
 
-  void disableUser(String username);
+    /**
+     * Отключает учётную запись пользователя.
+     *
+     * @param username имя пользователя
+     */
+    void disableUser(String username);
 
-  // НОВЫЙ МЕТОД: разблокировка пользователя
-  void unlockUser(String username);
+    /**
+     * Разблокирует учётную запись пользователя.
+     *
+     * @param username имя пользователя
+     */
+    void unlockUser(String username);
 
-  // НОВЫЙ МЕТОД: полное удаление пользователя с переназначением команд
-  void deleteUser(String username);
+    /**
+     * Полностью удаляет пользователя из системы.
+     *
+     * @param username имя пользователя
+     */
+    void deleteUser(String username);
 
-  // НОВЫЙ МЕТОД: получение списка команд пользователя
-  List<Map<String, String>> getUserTeams(String username);
+    /**
+     * Получает список команд, в которых состоит пользователь.
+     *
+     * @param username имя пользователя
+     * @return список команд пользователя
+     */
+    List<Map<String, String>> getUserTeams(String username);
 
-  UserDto getUserInfo(String username);
+    /**
+     * Получает подробную информацию о пользователе.
+     *
+     * @param username имя пользователя
+     * @return DTO с информацией о пользователе
+     */
+    UserDto getUserInfo(String username);
 
-  Page<UserDto> getTrackers(FilterRequest filterRequest, Pageable pageable);
+    /**
+     * Получает список трекеров с фильтрацией и пагинацией.
+     *
+     * @param filterRequest параметры фильтрации
+     * @param pageable параметры пагинации
+     * @return страница с трекерами
+     */
+    Page<UserDto> getTrackers(FilterRequest filterRequest,
+            Pageable pageable);
 
-  Page<UserDto> getAdmins(FilterRequest filterRequest, Pageable pageable);
+    /**
+     * Получает список администраторов с фильтрацией и пагинацией.
+     *
+     * @param filterRequest параметры фильтрации
+     * @param pageable параметры пагинации
+     * @return страница с администраторами
+     */
+    Page<UserDto> getAdmins(FilterRequest filterRequest,
+            Pageable pageable);
 
-  boolean existsByEmailOrUsername(String email, String username);
+    /**
+     * Проверяет существование пользователя по email или имени.
+     *
+     * @param email адрес электронной почты
+     * @param username имя пользователя
+     * @return true, если пользователь с таким email или именем существует
+     */
+    boolean existsByEmailOrUsername(String email, String username);
 
-  boolean existsByEmail(String email);
+    /**
+     * Проверяет существование пользователя по email.
+     *
+     * @param email адрес электронной почты
+     * @return true, если пользователь с таким email существует
+     */
+    boolean existsByEmail(String email);
 }

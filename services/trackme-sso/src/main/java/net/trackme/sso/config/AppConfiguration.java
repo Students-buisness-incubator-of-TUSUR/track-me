@@ -15,18 +15,33 @@ import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
+/**
+ * Главный класс конфигурации для сервиса TrackMe SSO.
+ * Настраивает документацию Swagger/OpenAPI, репозитории JPA
+ * и REST-клиент для взаимодействия с бэкендом.
+ */
 @Configuration
 @RequiredArgsConstructor
 @EnableConfigurationProperties({AppProperties.class})
 @EnableJpaRepositories(basePackages = "net.trackme.sso.dao.repository")
 public class AppConfiguration {
 
+    /** Название заголовка для токена CSRF-защиты. */
     public static final String XSRF_TOKEN = "X-CSRF-TOKEN";
+
+    /** Свойства приложения. */
     private final AppProperties appProperties;
 
+    /** Информация о сборке приложения. */
     private final BuildProperties buildProperties;
 
-
+    /**
+     * Создаёт и настраивает спецификацию OpenAPI для SSO-сервиса.
+     * Настраивает схему безопасности с использованием CSRF-токена,
+     * URL API-сервера и информацию о приложении из свойств сборки.
+     *
+     * @return настроенный экземпляр {@link OpenAPI}
+     */
     @Bean
     OpenAPI openApi() {
         return new OpenAPI()
@@ -47,6 +62,12 @@ public class AppConfiguration {
                 );
     }
 
+    /**
+     * Создаёт REST-клиент для взаимодействия с бэкенд-сервисом.
+     * Клиент настраивается с URL бэкенда из свойств приложения.
+     *
+     * @return настроенный экземпляр {@link RestClient} для взаимодействия с бэкендом
+     */
     @Bean
     public RestClient backendRestClient() {
         return RestClient.create(appProperties.getServices().getBackend().getUrl());

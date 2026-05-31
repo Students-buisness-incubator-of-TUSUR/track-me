@@ -17,358 +17,518 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.hasItem;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Интеграционные тесты для контроллера управления пользователями.
+ * Проверяет операции включения, отключения, удаления пользователей
+ * и получения информации о них.
+ */
 class DefaultUserControllerTest extends AbstractIntegrationTest {
 
-  private static final String TRACKER = "tracker";
-  private static final String RONIN = "ronin";
+    /** Имя пользователя-трекера для тестов. */
+    private static final String TRACKER = "tracker";
 
-  @Autowired
-  private MockMvc mockMvc;
+    /** Имя пользователя Ronin для тестов. */
+    private static final String RONIN = "ronin";
 
-  @Autowired
-  private UserDetailsService userDetailsService;
+    /** HTTP-статус 409 Conflict. */
+    private static final int HTTP_CONFLICT = 409;
 
-  @Autowired
-  private UserService userService;
+    /** MockMvc для выполнения HTTP-запросов в тестах. */
+    @Autowired
+    private MockMvc mockMvc;
 
-  @MockitoBean
-  private BackendClient backendClient;
+    /** Сервис загрузки данных пользователя. */
+    @Autowired
+    private UserDetailsService userDetailsService;
 
-  @BeforeEach
-  void setUp() {
-    reset(backendClient);
-    when(backendClient.getUserTeams(anyString(), anyString()))
-        .thenReturn(java.util.Collections.emptyList());
-    doNothing().when(backendClient).reassignTeamsToRonin(any(), anyString());
+    /** Сервис для работы с пользователями. */
+    @Autowired
+    private UserService userService;
 
-    try {
-      UserEntity tracker = userService.findByUsername(TRACKER);
-      if (tracker != null) {
-        userService.disableUser(TRACKER);
-        if (!tracker.getAccountNonLocked()) {
-          userService.unlockUser(TRACKER);
+    /** Заглушка для BackendClient. */
+    @MockitoBean
+    private BackendClient backendClient;
+
+    /**
+     * Подготовка тестовых данных перед каждым тестом.
+     * Настраивает заглушку BackendClient и создаёт/сбрасывает
+     * тестовых пользователей.
+     */
+    @BeforeEach
+    void setUp() {
+        reset(backendClient);
+        when(backendClient.getUserTeams(anyString(), anyString()))
+                .thenReturn(java.util.Collections.emptyList());
+        doNothing().when(backendClient)
+                .reassignTeamsToRonin(any(), anyString());
+
+        try {
+            UserEntity tracker = userService.findByUsername(TRACKER);
+            if (tracker != null) {
+                userService.disableUser(TRACKER);
+                if (!tracker.getAccountNonLocked()) {
+                    userService.unlockUser(TRACKER);
+                }
+            }
+        } catch (UsernameNotFoundException e) {
+            // Пользователь tracker не найден в тестовой БД — OK
         }
-      }
-    } catch (UsernameNotFoundException e) {
-      // Пользователь tracker не найден в тестовой БД — OK
+
+        try {
+            userService.findByUsername(RONIN);
+        } catch (UsernameNotFoundException e) {
+            var dto = RegistrationRequestDto.builder()
+                    .username(RONIN)
+                    .password("RoninPass@123")
+                    .phoneNumber("+1234567890")
+                    .fullName("Ronin User")
+                    .email("ronin@tracker.com")
+                    .role("TRACKER")
+                    .build();
+            userService.saveUser(dto);
+        }
     }
 
-    try {
-      userService.findByUsername(RONIN);
-    } catch (UsernameNotFoundException e) {
-      var dto = RegistrationRequestDto.builder()
-          .username(RONIN)
-          .password("RoninPass@123")
-          .phoneNumber("+1234567890")
-          .fullName("Ronin User")
-          .email("ronin@tracker.com")
-          .role("TRACKER")
-          .build();
-      userService.saveUser(dto);
+    /**
+     * Тест успешного включения пользователя.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void enableUserSuccess() throws Exception {
+        mockMvc.perform(post("/api/v1/users/enable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
+
+        assertThat(userDetailsService.loadUserByUsername(TRACKER)
+                .isEnabled()).isTrue();
+
+        mockMvc.perform(post("/api/v1/users/disable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
     }
-  }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void enableUser_success() throws Exception {
+    /**
+     * Тест успешного отключения пользователя.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void disableUserSuccess() throws Exception {
+        mockMvc.perform(post("/api/v1/users/enable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
 
-    mockMvc.perform(post("/api/v1/users/enable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isOk());
+        assertThat(userDetailsService.loadUserByUsername(TRACKER)
+                .isEnabled()).isTrue();
 
-    assertThat(userDetailsService.loadUserByUsername(TRACKER).isEnabled()).isTrue();
+        mockMvc.perform(post("/api/v1/users/disable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
 
-    mockMvc.perform(post("/api/v1/users/disable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isOk());
-  }
+        assertThat(userDetailsService.loadUserByUsername(TRACKER)
+                .isEnabled()).isFalse();
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void disableUser_success() throws Exception {
+        mockMvc.perform(post("/api/v1/users/disable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
 
-    mockMvc.perform(post("/api/v1/users/enable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isOk());
+        assertThat(userService.findByUsername(TRACKER)
+                .getAccountNonLocked()).isFalse();
 
-    assertThat(userDetailsService.loadUserByUsername(TRACKER).isEnabled()).isTrue();
+        mockMvc.perform(post("/api/v1/users/enable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
+    }
 
-    mockMvc.perform(post("/api/v1/users/disable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isOk());
+    /**
+     * Тест включения несуществующего пользователя.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void enableUserNotFound() throws Exception {
+        mockMvc.perform(post("/api/v1/users/enable")
+                .param("username", "notfound")
+                .with(csrf()))
+                .andExpect(status().isNotFound());
+    }
 
-    assertThat(userDetailsService.loadUserByUsername(TRACKER).isEnabled()).isFalse();
+    /**
+     * Тест включения пользователя без прав SUPER_ADMIN.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = TRACKER, roles = "TRACKER")
+    void enableUserNotSuperAdmin() throws Exception {
+        mockMvc.perform(post("/api/v1/users/enable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
 
-    mockMvc.perform(post("/api/v1/users/disable")
-           .param("username", TRACKER)
-           .with(csrf()))
-        .andExpect(status().isOk());
+    /**
+     * Тест отключения пользователя без прав SUPER_ADMIN.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = TRACKER, roles = "TRACKER")
+    void disableUserNotSuperAdmin() throws Exception {
+        mockMvc.perform(post("/api/v1/users/disable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
 
-    assertThat(userService.findByUsername(TRACKER).getAccountNonLocked()).isFalse();
+    /**
+     * Тест успешного получения информации о пользователе.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void getUserInfoSuccess() throws Exception {
+        mockMvc.perform(get("/api/v1/users/{username}/info", TRACKER))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type",
+                        "application/json"))
+                .andExpect(jsonPath("$.username").value(TRACKER));
+    }
 
-    mockMvc.perform(post("/api/v1/users/enable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isOk());
-  }
+    /**
+     * Тест получения информации без прав SUPER_ADMIN.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = TRACKER, roles = "TRACKER")
+    void getUserInfoNotSuperAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/users/{username}/info", TRACKER))
+                .andExpect(status().isForbidden());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void enableUser_notFound() throws Exception {
-    mockMvc.perform(post("/api/v1/users/enable")
-            .param("username", "notfound")
-            .with(csrf()))
-        .andExpect(status().isNotFound());
-  }
+    /**
+     * Тест успешного получения списка трекеров.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackersSuccess() throws Exception {
+        mockMvc.perform(post("/api/v1/users/trackers")
+                .contentType("application/json")
+                .content("""
+                    {"filters": []}
+                    """)
+                .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type",
+                        "application/json"))
+                .andExpect(jsonPath("$.content[*].username")
+                        .value(hasItem(TRACKER)))
+                .andExpect(jsonPath("$.content[*].username")
+                        .value(hasItem(RONIN)))
+                .andExpect(jsonPath("$.page.totalElements").value(2));
+    }
 
-  @Test
-  @WithMockUser(username = TRACKER, roles = "TRACKER")
-  void enableUser_notSuperAdmin() throws Exception {
-    mockMvc.perform(post("/api/v1/users/enable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isForbidden());
-  }
+    /**
+     * Тест получения списка трекеров с фильтрацией.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackersWithFiltersSuccess() throws Exception {
+        mockMvc.perform(post("/api/v1/users/trackers")
+                .contentType("application/json")
+                .content("""
+                    {"filters": [{"fieldName": "username",
+                        "type": "EQ", "value": "tracker"}]}
+                    """)
+                .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type",
+                        "application/json"))
+                .andExpect(jsonPath("$.content[0].username")
+                        .value(TRACKER));
+    }
 
-  @Test
-  @WithMockUser(username = TRACKER, roles = "TRACKER")
-  void disableUser_notSuperAdmin() throws Exception {
-    mockMvc.perform(post("/api/v1/users/disable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isForbidden());
-  }
+    /**
+     * Тест получения списка трекеров с некорректными фильтрами.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllTrackersWithFiltersBadRequest() throws Exception {
+        mockMvc.perform(post("/api/v1/users/trackers")
+                .contentType("application/json")
+                .content("""
+                    {"filters": [{"fieldName": "username123",
+                        "type": "EQ", "value": "notfound"}]}
+                    """)
+                .with(csrf()))
+                .andExpect(status().isBadRequest());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void getUserInfo_success() throws Exception {
-    mockMvc.perform(get("/api/v1/users/{username}/info", TRACKER))
-        .andExpect(status().isOk())
-        .andExpect(header().string("Content-Type", "application/json"))
-        .andExpect(jsonPath("$.username").value(TRACKER));
-  }
+    /**
+     * Тест получения списка трекеров без прав SUPER_ADMIN.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = TRACKER, roles = "TRACKER")
+    void findAllTrackersNotSuperAdmin() throws Exception {
+        mockMvc.perform(post("/api/v1/users/trackers")
+                .contentType("application/json")
+                .content("""
+                    {"filters": []}
+                    """)
+                .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
 
-  @Test
-  @WithMockUser(username = TRACKER, roles = "TRACKER")
-  void getUserInfo_notSuperAdmin() throws Exception {
-    mockMvc.perform(get("/api/v1/users/{username}/info", TRACKER))
-        .andExpect(status().isForbidden());
-  }
+    /**
+     * Тест успешного получения списка администраторов.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void findAllAdminsSuccess() throws Exception {
+        mockMvc.perform(post("/api/v1/users/administrators")
+                .contentType("application/json")
+                .content("""
+                    {"filters": []}
+                    """)
+                .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type",
+                        "application/json"))
+                .andExpect(jsonPath("$.content[0].username")
+                        .value("admin"));
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void findAllTrackers_success() throws Exception {
-    mockMvc.perform(post("/api/v1/users/trackers")
-            .contentType("application/json")
-            .content("""
-                {"filters": []}
-                """)
-            .with(csrf()))
-        .andExpect(status().isOk())
-        .andExpect(header().string("Content-Type", "application/json"))
-        .andExpect(jsonPath("$.content[*].username").value(hasItem(TRACKER)))
-        .andExpect(jsonPath("$.content[*].username").value(hasItem(RONIN)))
-        .andExpect(jsonPath("$.page.totalElements").value(2));
-  }
+    /**
+     * Тест успешной разблокировки пользователя.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void unlockUserSuccess() throws Exception {
+        mockMvc.perform(post("/api/v1/users/disable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/users/disable")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void findAllTrackers_withFilters_success() throws Exception {
-    mockMvc.perform(post("/api/v1/users/trackers")
-            .contentType("application/json")
-            .content("""
-                {"filters": [{"fieldName": "username", "type": "EQ", "value": "tracker"}]}
-                """)
-            .with(csrf()))
-        .andExpect(status().isOk())
-        .andExpect(header().string("Content-Type", "application/json"))
-        .andExpect(jsonPath("$.content[0].username").value(TRACKER));
-  }
+        mockMvc.perform(post("/api/v1/users/unlock")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isOk());
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void findAllTrackers_withFilters_badRequest() throws Exception {
-    mockMvc.perform(post("/api/v1/users/trackers")
-            .contentType("application/json")
-            .content("""
-                {"filters": [{"fieldName": "username123", "type": "EQ", "value": "notfound"}]}
-                """)
-            .with(csrf()))
-        .andExpect(status().isBadRequest());
-  }
+        assertThat(userService.findByUsername(TRACKER)
+                .getAccountNonLocked()).isTrue();
+    }
 
-  @Test
-  @WithMockUser(username = TRACKER, roles = "TRACKER")
-  void findAllTrackers_notSuperAdmin() throws Exception {
-    mockMvc.perform(post("/api/v1/users/trackers")
-            .contentType("application/json")
-            .content("""
-                {"filters": []}
-                """)
-            .with(csrf()))
-        .andExpect(status().isForbidden());
-  }
+    /**
+     * Тест разблокировки пользователя без прав SUPER_ADMIN.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = TRACKER, roles = "TRACKER")
+    void unlockUserNotSuperAdmin() throws Exception {
+        mockMvc.perform(post("/api/v1/users/unlock")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void findAllAdmins_success() throws Exception {
-    mockMvc.perform(post("/api/v1/users/administrators")
-            .contentType("application/json")
-            .content("""
-                {"filters": []}
-                """)
-            .with(csrf()))
-        .andExpect(status().isOk())
-        .andExpect(header().string("Content-Type", "application/json"))
-        .andExpect(jsonPath("$.content[0].username").value("admin"));
-  }
+    /**
+     * Тест успешного получения команд пользователя.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void getUserTeamsSuccess() throws Exception {
+        mockMvc.perform(get("/api/v1/users/{username}/teams", TRACKER))
+                .andExpect(status().isOk());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void unlockUser_success() throws Exception {
-    mockMvc.perform(post("/api/v1/users/disable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isOk());
-    mockMvc.perform(post("/api/v1/users/disable")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isOk());
+    /**
+     * Тест получения команд без прав SUPER_ADMIN.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = TRACKER, roles = "TRACKER")
+    void getUserTeamsNotSuperAdmin() throws Exception {
+        mockMvc.perform(get("/api/v1/users/{username}/teams", TRACKER))
+                .andExpect(status().isForbidden());
+    }
 
-    mockMvc.perform(post("/api/v1/users/unlock")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isOk());
+    /**
+     * Тест удаления несуществующего пользователя.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void deleteUserNotFound() throws Exception {
+        mockMvc.perform(delete("/api/v1/users")
+                .param("username", "nonexistentuser")
+                .with(csrf()))
+                .andExpect(status().isNotFound());
+    }
 
-    assertThat(userService.findByUsername(TRACKER).getAccountNonLocked()).isTrue();
-  }
+    /**
+     * Тест удаления пользователя без прав SUPER_ADMIN.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = TRACKER, roles = "TRACKER")
+    void deleteUserNotSuperAdmin() throws Exception {
+        mockMvc.perform(delete("/api/v1/users")
+                .param("username", TRACKER)
+                .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
 
-  @Test
-  @WithMockUser(username = TRACKER, roles = "TRACKER")
-  void unlockUser_notSuperAdmin() throws Exception {
-    mockMvc.perform(post("/api/v1/users/unlock")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isForbidden());
-  }
-
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void getUserTeams_success() throws Exception {
-    mockMvc.perform(get("/api/v1/users/{username}/teams", TRACKER))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  @WithMockUser(username = TRACKER, roles = "TRACKER")
-  void getUserTeams_notSuperAdmin() throws Exception {
-    mockMvc.perform(get("/api/v1/users/{username}/teams", TRACKER))
-        .andExpect(status().isForbidden());
-  }
-
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void deleteUser_notFound() throws Exception {
-    mockMvc.perform(delete("/api/v1/users")
-            .param("username", "nonexistentuser")
-            .with(csrf()))
-        .andExpect(status().isNotFound());
-  }
-
-  @Test
-  @WithMockUser(username = TRACKER, roles = "TRACKER")
-  void deleteUser_notSuperAdmin() throws Exception {
-    mockMvc.perform(delete("/api/v1/users")
-            .param("username", TRACKER)
-            .with(csrf()))
-        .andExpect(status().isForbidden());
-  }
-
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void deleteUser_success() throws Exception {
+    /**
+     * Тест успешного удаления пользователя.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void deleteUserSuccess() throws Exception {
         var dto = RegistrationRequestDto.builder()
-            .username("todeletectrl")
-            .password("Password@123")
-            .phoneNumber("+1234567890")
-            .fullName("To Delete Ctrl")
-            .email("todeletectrl@test.com")
-            .role("ADMIN")
-            .build();
+                .username("todeletectrl")
+                .password("Password@123")
+                .phoneNumber("+1234567890")
+                .fullName("To Delete Ctrl")
+                .email("todeletectrl@test.com")
+                .role("ADMIN")
+                .build();
         userService.saveUser(dto);
-        
-        assertThat(userService.findByUsername("todeletectrl")).isNotNull();
-        
+
+        assertThat(userService.findByUsername("todeletectrl"))
+                .isNotNull();
+
         mockMvc.perform(delete("/api/v1/users")
                 .param("username", "todeletectrl")
                 .with(csrf()))
-            .andExpect(status().isOk());
-        
-        assertThatThrownBy(() -> userService.findByUsername("todeletectrl"))
-            .isInstanceOf(UsernameNotFoundException.class);
-  }
+                .andExpect(status().isOk());
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void unlockUser_notFound() throws Exception {
-      mockMvc.perform(post("/api/v1/users/unlock")
-              .param("username", "nonexistentuser")
-              .with(csrf()))
-          .andExpect(status().isNotFound());
-  }
+        assertThatThrownBy(() ->
+                userService.findByUsername("todeletectrl"))
+                .isInstanceOf(UsernameNotFoundException.class);
+    }
 
-  @Test
-  @WithMockUser(username = "admin", roles = "ADMIN")
-  void getAdmins_notSuperAdmin() throws Exception {
-      mockMvc.perform(post("/api/v1/users/administrators")
-              .contentType("application/json")
-              .content("""
-                  {"filters": []}
-                  """)
-              .with(csrf()))
-          .andExpect(status().isForbidden());
-  }
+    /**
+     * Тест разблокировки несуществующего пользователя.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void unlockUserNotFound() throws Exception {
+        mockMvc.perform(post("/api/v1/users/unlock")
+                .param("username", "nonexistentuser")
+                .with(csrf()))
+                .andExpect(status().isNotFound());
+    }
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void handleTeamReassignmentException_returns409() throws Exception {
-    when(backendClient.getUserTeams(eq(RONIN), anyString()))
-        .thenReturn(java.util.List.of(java.util.Map.of("id", "1")));
+    /**
+     * Тест получения администраторов без прав SUPER_ADMIN.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void getAdminsNotSuperAdmin() throws Exception {
+        mockMvc.perform(post("/api/v1/users/administrators")
+                .contentType("application/json")
+                .content("""
+                    {"filters": []}
+                    """)
+                .with(csrf()))
+                .andExpect(status().isForbidden());
+    }
 
-    mockMvc.perform(post("/api/v1/users/enable")
-            .param("username", RONIN)
-            .with(csrf()))
-        .andExpect(status().isOk());
+    /**
+     * Тест обработки исключения при переназначении команды.
+     * Ожидается статус 409 Conflict.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void handleTeamReassignmentExceptionReturns409() throws Exception {
+        when(backendClient.getUserTeams(eq(RONIN), anyString()))
+                .thenReturn(java.util.List.of(
+                        java.util.Map.of("id", "1")));
 
-    mockMvc.perform(post("/api/v1/users/disable")
-            .param("username", RONIN)
-            .with(csrf()))
-        .andDo(print())
-        .andExpect(status().is(409))
-        .andExpect(jsonPath("$.error").value("TEAM_OPERATION_FAILED"))
-        .andExpect(jsonPath("$.status").value(409));
-  }
+        mockMvc.perform(post("/api/v1/users/enable")
+                .param("username", RONIN)
+                .with(csrf()))
+                .andExpect(status().isOk());
 
-  @Test
-  @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
-  void deleteUser_ronin_success() throws Exception {
-    mockMvc.perform(delete("/api/v1/users")
-            .param("username", RONIN)
-            .with(csrf()))
-        .andDo(print())
-        .andExpect(status().isOk());
-  }
+        mockMvc.perform(post("/api/v1/users/disable")
+                .param("username", RONIN)
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().is(HTTP_CONFLICT))
+                .andExpect(jsonPath("$.error")
+                        .value("TEAM_OPERATION_FAILED"))
+                .andExpect(jsonPath("$.status").value(HTTP_CONFLICT));
+    }
+
+    /**
+     * Тест успешного удаления пользователя Ronin.
+     *
+     * @throws Exception если произошла ошибка при выполнении запроса
+     */
+    @Test
+    @WithMockUser(username = "superadmin", roles = "SUPER_ADMIN")
+    void deleteUserRoninSuccess() throws Exception {
+        mockMvc.perform(delete("/api/v1/users")
+                .param("username", RONIN)
+                .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
 }

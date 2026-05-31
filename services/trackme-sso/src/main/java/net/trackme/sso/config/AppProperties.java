@@ -8,74 +8,115 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
+/**
+ * Свойства приложения, загружаемые из конфигурации с префиксом "app".
+ * Содержит настройки Swagger, почты и внешних сервисов.
+ */
 @Data
 @Validated
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
 
-  @NestedConfigurationProperty
-  private final SwaggerProperties swagger = new SwaggerProperties();
+    /** Настройки Swagger для документирования API. */
+    @NestedConfigurationProperty
+    private final SwaggerProperties swagger = new SwaggerProperties();
 
-  @NotBlank(message = "URL cannot be blank")
-  private String apiUrl;
+    /** Базовый URL API-сервиса. */
+    @NotBlank(message = "URL cannot be blank")
+    private String apiUrl;
 
-  @NotBlank(message = "Telegram URL cannot be blank")
-  private String telegramUrl;
+    /** URL для взаимодействия с Telegram. */
+    @NotBlank(message = "Telegram URL cannot be blank")
+    private String telegramUrl;
 
-  @NotBlank(message = "Bot username cannot be blank")
-  private String botUsername;
+    /** Имя пользователя бота в Telegram. */
+    @NotBlank(message = "Bot username cannot be blank")
+    private String botUsername;
 
-  private MailProperties mail = new MailProperties();
+    /** Настройки для отправки почтовых сообщений. */
+    private MailProperties mail = new MailProperties();
 
-  @NestedConfigurationProperty
-  private ServicesProperties services = new ServicesProperties();
+    /** Настройки для подключения к внешним сервисам. */
+    @NestedConfigurationProperty
+    private ServicesProperties services = new ServicesProperties();
 
-  @Data
-  public static class SwaggerProperties {
-    private AuthTypesConfig authTypes = new AuthTypesConfig();
-
-    private AuthOauthConfig authOauth = new AuthOauthConfig();
-
+    /**
+     * Свойства конфигурации Swagger/OpenAPI.
+     */
     @Data
-    public static class AuthTypesConfig {
-      private Boolean authHeaderEnabled = Boolean.FALSE;
+    public static class SwaggerProperties {
+        /** Настройки типов аутентификации. */
+        private AuthTypesConfig authTypes = new AuthTypesConfig();
 
-      private Boolean clientCredentialsEnabled = Boolean.FALSE;
+        /** Настройки OAuth-аутентификации. */
+        private AuthOauthConfig authOauth = new AuthOauthConfig();
 
-      private Boolean authorizationCodeEnabled = Boolean.FALSE;
+        /**
+         * Конфигурация доступных типов аутентификации в Swagger.
+         */
+        @Data
+        public static class AuthTypesConfig {
+            /** Включение аутентификации через заголовок. */
+            private Boolean authHeaderEnabled = Boolean.FALSE;
+
+            /** Включение аутентификации через Client Credentials. */
+            private Boolean clientCredentialsEnabled = Boolean.FALSE;
+
+            /** Включение аутентификации через Authorization Code. */
+            private Boolean authorizationCodeEnabled = Boolean.FALSE;
+        }
+
+        /**
+         * Конфигурация OAuth-провайдера для Swagger.
+         */
+        @Data
+        public static class AuthOauthConfig {
+            /** URL для получения токена доступа. */
+            @NotBlank(message = "Token URL cannot be null")
+            private String tokenUrl;
+
+            /** URL для авторизации пользователя. */
+            @NotBlank(message = "Authorization URL cannot be null")
+            private String authorizationUrl;
+
+            /** URL для обновления токена. */
+            @NotBlank(message = "User Info URL cannot be null")
+            private String refreshUrl;
+        }
     }
 
+    /**
+     * Свойства для настройки отправки электронной почты.
+     */
     @Data
-    public static class AuthOauthConfig {
-      @NotBlank(message = "Token URL cannot be null")
-      private String tokenUrl;
+    public static class MailProperties {
+        /** Адрес отправителя письма. */
+        @NotBlank(message = "Mail from cannot be blank")
+        private String from;
 
-      @NotBlank(message = "Authorization URL cannot be null")
-      private String authorizationUrl;
+        /** Тема письма. */
+        @NotBlank(message = "Mail subject cannot be blank")
+        private String subject;
 
-      @NotBlank(message = "User Info URL cannot be null")
-      private String refreshUrl;
+        /** Список ролей, которым отправляется сводка. */
+        private List<String> summarySendRoles;
     }
-  }
 
-  @Data
-  public static class MailProperties {
-    @NotBlank(message = "Mail from cannot be blank")
-    private String from;
-
-    @NotBlank(message = "Mail subject cannot be blank")
-    private String subject;
-
-    private List<String> summarySendRoles;
-  }
-
-  @Data
-  public static class ServicesProperties {
-    private BackendProperties backend = new BackendProperties();
-
+    /**
+     * Свойства для настройки подключения к внешним сервисам.
+     */
     @Data
-    public static class BackendProperties {
-      private String url;
+    public static class ServicesProperties {
+        /** Настройки подключения к бэкенд-сервису. */
+        private BackendProperties backend = new BackendProperties();
+
+        /**
+         * Свойства бэкенд-сервиса.
+         */
+        @Data
+        public static class BackendProperties {
+            /** URL бэкенд-сервиса. */
+            private String url;
+        }
     }
-  }
 }
