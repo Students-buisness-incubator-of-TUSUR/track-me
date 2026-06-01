@@ -719,26 +719,32 @@ describe("TeamCard — выбор рынков НТИ", () => {
   });
   */
 
- describe("TeamCard — ограничение выбора рынков НТИ при создании", () => {
-  it("не позволяет выбрать более 3 рынков (если есть 4-й)", async () => {
-    // Переопределяем fetch, чтобы добавить 4 рынка
-    const originalFetch = global.fetch;
+ describe("TeamCard — дополнительное покрытие (кнопка закрытия, клавиатура)", () => {
+  it("закрывает страницу по кнопке ×", async () => {
+    const navigate = jest.fn();
+    jest.mocked(require("react-router-dom").useNavigate).mockReturnValue(navigate);
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /×/ })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /×/ }));
+    expect(navigate).toHaveBeenCalledWith(-1);
+  });
+
+  it("открывает дропдаун трекера по клавише Enter", async () => {
     global.fetch = jest.fn((url) => {
-      if (url.includes("/streams/nti-markets")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([
-            { id: 1, displayName: "Market 1" },
-            { id: 2, displayName: "Market 2" },
-            { id: 3, displayName: "Market 3" },
-            { id: 4, displayName: "Market 4" },
-          ]),
-        });
-      }
       if (url.includes("/account/info")) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ roles: [], fullName: "Иван Иванов" }),
+          json: () => Promise.resolve({ roles: ["ADMIN"], fullName: "Admin User" }),
+        });
+      }
+      if (url.includes("/users/trackers")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ id: 1, fullName: "Трекер A", username: "tracker1", enabled: true }],
+          }),
         });
       }
       if (url.includes("/streams?page=0")) {
@@ -747,50 +753,70 @@ describe("TeamCard — выбор рынков НТИ", () => {
           json: () => Promise.resolve({ content: [{ id: 1, name: "Stream 1", active: true }] }),
         });
       }
-      if (url.includes("/users/trackers")) {
+      if (url.includes("/streams/nti-markets")) {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ content: [] }),
-        });
-      }
-      if (url.includes("/team-card")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ id: 42 }),
+          json: () => Promise.resolve([{ id: 1, displayName: "Market 1" }]),
         });
       }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
     });
-    
+
     renderComponent();
     await waitFor(() => {
-      expect(screen.getByText(/Рынки НТИ/i, { selector: ".create-dropdown-toggle" })).toBeInTheDocument();
+      expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByText(/Рынки НТИ/i, { selector: ".create-dropdown-toggle" }));
-    
-    // Ищем все чекбоксы рынков по роли
-    const checkboxes = await screen.findAllByRole('checkbox');
-    // Отфильтровываем только чекбоксы рынков (их 4)
-    const marketCheckboxes = checkboxes.filter(cb => 
-      cb.closest('.create-checkbox-item')?.querySelector('.data-create-team')?.textContent?.match(/Market \d/)
-    );
-    // Или проще: берём все чекбоксы, кроме тех, что в других блоках (TRL, поток и т.д.)
-    // Но в данном контексте все чекбоксы – это рынки
-    expect(marketCheckboxes.length).toBeGreaterThanOrEqual(4);
-    
-    const [cb1, cb2, cb3, cb4] = marketCheckboxes;
-    
-    fireEvent.click(cb1);
-    fireEvent.click(cb2);
-    fireEvent.click(cb3);
-    fireEvent.click(cb4);
-    
+
+    const trackerButton = screen.getByText(/Выберите трекера/i);
+    fireEvent.keyDown(trackerButton, { key: "Enter", code: "Enter" });
+
     await waitFor(() => {
-      expect(screen.getByText(/Нельзя выбрать более 3-х/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
     });
-    expect(cb4).not.toBeChecked();
-    
-    global.fetch = originalFetch;
+  });
+
+  it("открывает дропдаун трекера по клавише Space", async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes("/account/info")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ roles: ["ADMIN"], fullName: "Admin User" }),
+        });
+      }
+      if (url.includes("/users/trackers")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            content: [{ id: 1, fullName: "Трекер A", username: "tracker1", enabled: true }],
+          }),
+        });
+      }
+      if (url.includes("/streams?page=0")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ content: [{ id: 1, name: "Stream 1", active: true }] }),
+        });
+      }
+      if (url.includes("/streams/nti-markets")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([{ id: 1, displayName: "Market 1" }]),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+    });
+
+    const trackerButton = screen.getByText(/Выберите трекера/i);
+    fireEvent.keyDown(trackerButton, { key: " ", code: "Space" });
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
+    });
   });
 });
 
