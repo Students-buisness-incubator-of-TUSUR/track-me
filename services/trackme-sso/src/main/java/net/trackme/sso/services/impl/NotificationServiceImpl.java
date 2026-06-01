@@ -1,7 +1,11 @@
 package net.trackme.sso.services.impl;
 
 import java.text.Collator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -78,7 +82,8 @@ public class NotificationServiceImpl implements NotificationService {
             for (var event : streamEvents) {
                 String trackerInfo = getShortName(event.getOrDefault(FIELD_TRACKER_FULL_NAME, NOT_ASSIGNED));
                 
-                var info = String.format("Поток: %s - Команда: %s - Трекер: %s - Встреча: %d<br>Ссылка на встречу: %s",
+                var info = String.format("%d. Поток: %s - Команда: %s - Трекер: %s - Встреча: %d<br>Ссылка на встречу: %s",
+                        meetingNumber,
                         streamName,
                         event.get(FIELD_TEAM_CARD_NAME),
                         trackerInfo,
@@ -104,11 +109,12 @@ public class NotificationServiceImpl implements NotificationService {
         Map<String, List<LinkedHashMap<String, String>>> groupedByStream = groupAndSortByStream(teamCardLowGradeSummaryEvents);
         
         List<String> infos = new ArrayList<>();
-        int count = 1;
         
         for (var entry : groupedByStream.entrySet()) {
             String streamName = entry.getKey();
             List<LinkedHashMap<String, String>> streamEvents = entry.getValue();
+
+            int count = 1;
             
             for (var event : streamEvents) {
                 String trackerInfo = getShortName(event.getOrDefault(FIELD_TRACKER_FULL_NAME, NOT_ASSIGNED));

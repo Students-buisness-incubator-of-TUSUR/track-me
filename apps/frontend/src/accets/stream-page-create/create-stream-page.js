@@ -196,6 +196,7 @@ export default function CreateStream() {
                 placeholder="Текст названия"
                 value={name}
                 onChange={handleNameChange}
+                maxLength={50}
               />
             </div>
             <div className='create-stream_input-cont'>

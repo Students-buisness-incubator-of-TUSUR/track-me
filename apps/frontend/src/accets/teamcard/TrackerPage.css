@@ -229,6 +229,10 @@
     background-color: #999999;
   }
 
+ .status.passive {
+       background-color: #ff9800; /* Оранжевый */
+   }
+
 .card-image-rating {
     position: absolute;
     top: 15px;

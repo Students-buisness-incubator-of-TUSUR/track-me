@@ -9,14 +9,12 @@ import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
-import net.trackme.backend.domain.NTIMarket;
 import net.trackme.backend.domain.Stream;
-import net.trackme.backend.domain.TeamCard;
 import static net.trackme.backend.domain.spec.SpecificationUtils.getReadinessLevelFilter;
+import static net.trackme.backend.domain.spec.SpecificationUtils.collectFilterValues;
+import static net.trackme.backend.domain.spec.SpecificationUtils.createStreamExistsPredicate;
 import net.trackme.commons.filters.Filter;
 import net.trackme.commons.filters.FilterFieldNotAllowedException;
 
@@ -99,94 +97,16 @@ public class StreamSpecification implements Specification<Stream> {
 
         // Обработка фильтра по рынкам НТИ (OR логика)
         if (!marketFilters.isEmpty()) {
-            predicates.add(createMarketsOrPredicate(root, query, criteriaBuilder, marketFilters));
+            predicates.add(createStreamExistsPredicate(root, query, criteriaBuilder,
+                    collectFilterValues(marketFilters), "ntiMarkets", "name"));
         }
 
         // Обработка фильтра по TRL (OR логика)
         if (!readinessFilters.isEmpty()) {
-            predicates.add(createReadinessOrPredicate(root, query, criteriaBuilder, readinessFilters));
+            predicates.add(createStreamExistsPredicate(root, query, criteriaBuilder,
+                    collectFilterValues(readinessFilters), "teamCards", "readinessLevel"));
         }
 
         return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
-    }
-
-    /**
-     * OR логика для рынков: поток должен содержать ЛЮБОЙ из выбранных рынков
-     */
-    private Predicate createMarketsOrPredicate(
-            Root<Stream> root,
-            CriteriaQuery<?> query,
-            CriteriaBuilder cb,
-            List<Filter> marketFilters) {
-
-        // Собираем все значения из фильтров по рынкам
-        List<String> marketNames = new ArrayList<>();
-        for (Filter filter : marketFilters) {
-            List<String> filterValues = getFilterValues(filter);
-            marketNames.addAll(filterValues);
-        }
-
-        if (marketNames.isEmpty()) {
-            return cb.conjunction();
-        }
-
-        // Создаем подзапрос для OR логики
-        Subquery<Stream> subquery = query.subquery(Stream.class);
-        Root<Stream> subStream = subquery.from(Stream.class);
-        Join<Stream, NTIMarket> subMarkets = subStream.join("ntiMarkets");
-
-        subquery.select(subStream)
-                .where(
-                        cb.equal(subStream.get("id"), root.get("id")),
-                        subMarkets.get("name").in(marketNames)  // ЛЮБОЙ из списка
-                );
-
-        return cb.exists(subquery);
-    }
-
-    /**
-     * OR логика для TRL: поток должен содержать ЛЮБОЙ из выбранных уровней TRL
-     */
-    private Predicate createReadinessOrPredicate(
-            Root<Stream> root,
-            CriteriaQuery<?> query,
-            CriteriaBuilder cb,
-            List<Filter> readinessFilters) {
-
-        // Собираем все значения из фильтров по TRL
-        List<String> readinessLevels = new ArrayList<>();
-        for (Filter filter : readinessFilters) {
-            List<String> filterValues = getFilterValues(filter);
-            readinessLevels.addAll(filterValues);
-        }
-
-        if (readinessLevels.isEmpty()) {
-            return cb.conjunction();
-        }
-
-        // Создаем подзапрос для OR логики
-        Subquery<Stream> subquery = query.subquery(Stream.class);
-        Root<Stream> subStream = subquery.from(Stream.class);
-        Join<Stream, TeamCard> subTeamCards = subStream.join("teamCards");
-
-        subquery.select(subStream)
-                .where(
-                        cb.equal(subStream.get("id"), root.get("id")),
-                        subTeamCards.get("readinessLevel").in(readinessLevels)  // ЛЮБОЙ из списка
-                );
-
-        return cb.exists(subquery);
-    }
-
-    /**
-     * Извлекает значения из фильтра (из values или singleValue)
-     */
-    private List<String> getFilterValues(Filter filter) {
-        if (filter.values() != null && !filter.values().isEmpty()) {
-            return filter.values();
-        } else if (filter.singleValue() != null && !filter.singleValue().isBlank()) {
-            return List.of(filter.singleValue());
-        }
-        return List.of();
     }
 }

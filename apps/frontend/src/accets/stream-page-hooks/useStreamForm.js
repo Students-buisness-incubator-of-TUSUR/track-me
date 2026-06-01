@@ -156,7 +156,7 @@ useEffect(() => {
     }
   };
 
-  const handleNameChange = (e) => setName(e.target.value);
+  const handleNameChange = (e) => setName(e.target.value.slice(0, 50));
 
   const handleStartDateChange = (e) => {
     let value = formatDate(e.target.value);

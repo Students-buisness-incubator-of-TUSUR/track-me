@@ -113,16 +113,29 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
         var teamCard = teamCardsRepository.findById(teamCardId)
                 .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
 
-        boolean removed = teamCard.getMeetingGrades().removeIf(grade ->
-            grade.getMeetingId().equals(meetingId)
-        );
-
-        if (removed) {
-            log.debug("Removed meeting grade for meeting {} from team card {}",
+        // Ищем MeetingGrade через репозиторий
+        var meetingGradeOpt = meetingGradeRepository.findByMeetingIdAndTeamCardId(meetingId, teamCardId);
+        
+        if (meetingGradeOpt.isPresent()) {
+            var meetingGrade = meetingGradeOpt.get();
+            
+            // Удаляем из коллекции TeamCard
+            teamCard.getMeetingGrades().remove(meetingGrade);
+            
+            meetingGradeRepository.delete(meetingGrade);
+            
+            log.debug("Deleted meeting grade for meeting {} from team card {}",
                     meetingId, teamCardId);
+            
+            // Обновляем счетчики
             teamCard.setMeetingsCount(Math.max(0, teamCard.getMeetingsCount() - 1));
+            
+            // Пересчитываем среднюю оценку
             calculateAverageGrade(teamCard);
+            
+            // Сохраняем изменения в TeamCard
             teamCardsRepository.saveAndFlush(teamCard);
+            
             log.info("Team card {} updated after meeting {} deletion. "
                     + "Remaining meetings: {}, New average grade: {}",
                     teamCardId, meetingId, teamCard.getMeetingsCount(),

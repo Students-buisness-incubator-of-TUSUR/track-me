@@ -6,6 +6,7 @@ import net.trackme.meetingservice.configuration.AppProperties;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
+import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.messaging.own.MeetingUpdatedEvent;
 import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
 import org.springframework.data.domain.PageRequest;
@@ -102,9 +103,9 @@ public class MeetingStatusUpdateService {
             for (Meeting meeting : notHappenedMeetings) {
                 if (hasUnfilledFields(meeting)) {
                     meeting.setStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
+                    meeting.setTeamStatus(null);
                     log.debug(
-                            "Meeting {} set to COMPLETED_AS_NOT_HAPPENED after {} days. "
-                                    + "Team status set to MANY_ISSUES",
+                            "Meeting {} set to COMPLETED_AS_NOT_HAPPENED after {} days",
                             meeting.getId(),
                             NOT_HAPPENED_MEETING_PERIOD);
                 }
@@ -135,14 +136,14 @@ public class MeetingStatusUpdateService {
                 .oldStatus(oldStatus)
                 .teamStatus(meeting.getTeamStatus())
                 .teamCardId(meeting.getTeamCardId())
-                .teamGrade(
-                        meeting.getTeamStatus() == null
-                                ? 0
-                                : meeting.getTeamStatus().getValue()
-                )
+                .teamGrade(computeTeamGrade(meeting.getTeamStatus()))
                 .meetingLink(getMeetingLink(meeting))
                 .build();
         meetingEventsProducer.sendMeetingUpdatedEvent(event);
+    }
+
+    private double computeTeamGrade(TeamStatus teamStatus) {
+        return teamStatus != null ? teamStatus.getValue() : 0.0;
     }
 
     private String getMeetingLink(Meeting meeting) {

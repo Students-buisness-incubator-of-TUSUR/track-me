@@ -99,6 +99,10 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [streamInfo, setStreamInfo] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState(null);
+  const canEdit = isEditing && (
+        (role === "TRACKER" && !teamData.passive) ||  // Трекер не может редактировать пассивную команду
+        (role !== "TRACKER")                          // Админ может всегда
+    );
   const filteredTrackers = useMemo(() => {
   if (!trackerSearchTerm.trim()) return trackers;
   return trackers.filter(tracker => 
@@ -272,6 +276,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
           readinessLevel: prev.readinessLevel || found.readinessLevel,
           description: prev.description || found.description,
           meetingRoomLink: prev.meetingRoomLink || found.meetingRoomLink || "",
+          passive: teamData.passive || false,
         }));
       }
     } catch (error) {
@@ -457,6 +462,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       readinessLevel: teamData.readinessLevel || prev.readinessLevel,
       description: teamData.description || prev.description,
       meetingRoomLink: teamData.meetingRoomLink || prev.meetingRoomLink || "",
+      passive: teamData.passive || false,
     }));
   }, [teamData]);
 
@@ -576,6 +582,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         description: editedData.description.trim(),
         ntiMarketIds: editedData.ntiMarketIds,
         readinessLevel: editedData.readinessLevel,
+        passive: editedData.passive,
       };
 
       // 5. Отправка PATCH
@@ -970,7 +977,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                   name="name"
                   value={editedData.name || ""}
                   onChange={handleChange}
-                  readOnly={!isEditing}
+                  readOnly={!canEdit}
                 />
               </div>
               <div className="team-card_field">
@@ -1054,9 +1061,22 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                     name="meetingRoomLink"
                     value={editedData.meetingRoomLink || ""}
                     onChange={handleChange}
-                    readOnly={!isEditing}
+                    readOnly={!canEdit}
                   />
                 </div>
+              )}
+              {[adminRoleName, superadminRoleName].includes(role) && isEditing && (
+                                <div className="team-card_field">
+                                    <p>Пассивный статус:</p>
+                                    <label className="team-card_checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            checked={editedData.passive === true}
+                                            onChange={(e) => setEditedData(prev => ({ ...prev, passive: e.target.checked }))}
+                                        />
+                                        Команда в пассиве (неактивна)
+                                    </label>
+                                </div>
               )}
               {[adminRoleName, superadminRoleName].includes(role) && isEditing && (
                 <div className="team-card_field" data-testid="stream-field">
@@ -1099,7 +1119,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                   name="description"
                   value={editedData.description || ""}
                   onChange={handleChange}
-                  readOnly={!isEditing}
+                  readOnly={!canEdit}
                   placeholder="Описание карточки"
                 />
               </div>
@@ -1171,6 +1191,12 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
               <button
                 className="team-card_meetings-button"
                 onClick={() => {
+                // Админ может создавать встречи для пассивной команды
+                if (teamData.passive && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+                    setMeetingError("Нельзя создавать встречи для пассивной команды");
+                    setTimeout(() => setMeetingError(""), 3000);
+                    return;
+                }
                   if (checkMeetingCreation()) {
                     setShowMeetingCreate(true);
                   }

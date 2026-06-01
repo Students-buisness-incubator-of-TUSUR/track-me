@@ -1,0 +1,17 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  kafka:
+    consumer:
+      auto-startup: false
+    producer:
+      enabled: false
+
+app:
+  services:
+    backend:
+      url: http://localhost:9999
+
+logging:
+  level:
+    net.trackme.sso: DEBUG
