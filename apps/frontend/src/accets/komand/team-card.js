@@ -55,11 +55,11 @@ const TeamCard = () => {
   const { id } = useParams();
 
   const [trackerSearchTerm, setTrackerSearchTerm] = useState("");
-const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
+  const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [showMeetingCreate, setShowMeetingCreate] = useState(false);
   const location = useLocation();
   const passedUsername = location.state?.username;
- const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const query = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const from = location.state?.from || "/team-cards";
 
   const [role, setRole] = useState(null);
@@ -104,12 +104,41 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         (role !== "TRACKER")                          // Админ может всегда
     );
   const filteredTrackers = useMemo(() => {
-  if (!trackerSearchTerm.trim()) return trackers;
-  return trackers.filter(tracker => 
-    tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
-    tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
-  );
-}, [trackers, trackerSearchTerm]);
+    if (!trackerSearchTerm.trim()) return trackers;
+    return trackers.filter(tracker => 
+      tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
+      tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
+    );
+  }, [trackers, trackerSearchTerm]);
+
+  // ============== НОВЫЕ ФУНКЦИИ ДЛЯ ПРОВЕРКИ РЫНКОВ НТИ ==============
+  const checkNtiMarketsLimit = (currentLength, isAdding) => {
+    if (isAdding && currentLength >= 3) {
+      setMeetingError("Нельзя выбрать более 3-х рынков НТИ");
+      setTimeout(() => setMeetingError(""), 5000);
+      return false;
+    }
+    setMeetingError("");
+    return true;
+  };
+
+  const checkNtiMarketsMatchWithStream = (streamId, marketIds) => {
+    if (!streamId || !marketIds.length) return true;
+    const stream = streams.find(s => s.id === streamId);
+    if (!stream) return true;
+    const streamMarketIds = stream.ntiMarkets?.map(m => m.id) || [];
+    const hasMatch = marketIds.some(id => streamMarketIds.includes(id));
+    if (!hasMatch) {
+      setMeetingError("Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.");
+      setTimeout(() => setMeetingError(""), 5000);
+    } else {
+      if (meetingError === "Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.") {
+        setMeetingError("");
+      }
+    }
+    return hasMatch;
+  };
+  // ==================================================================
 
   useEffect(() => {
     if (teamData.streams && teamData.streams.length > 0) {
@@ -177,10 +206,10 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const checkMeetingCreation = () => {
     if (meetings.length >= maxMeetingsCount) {
       setMeetingError(`Невозможно создать новую встречу. Максимальное количество встреч в потоке: ${maxMeetingsCount}`);
-      setTimeout(() => setMeetingError(""), 3000); // Автоскрытие через 3 секунды
+      setTimeout(() => setMeetingError(""), 3000);
       return false;
     }
-    setMeetingError(""); // Сбрасываем ошибку если все ок
+    setMeetingError("");
     return true;
   };
 
@@ -217,7 +246,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     };
 
     fetchTeamCardsCount();
-  }, [teamData]); // зависимость от teamData
+  }, [teamData]);
 
   const handleApiError = (error, context) => {
     console.error(`Error in ${context}:`, error);
@@ -368,7 +397,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
         if (found) {
           setTeamData(found);
-          setEditedData(found); // если нужно редактирование
+          setEditedData(found);
         } else {
           setApiError("Карточка команды не найдена");
         }
@@ -393,7 +422,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
           return res.json();
         })
         .then((data) => {
-          // ⚠️ фильтруем только enabled === true
           const activeTrackers = (data.content || []).filter(t => t.enabled === true);
           setTrackers(activeTrackers);
         })
@@ -405,7 +433,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   }, [role]);
 
 
-  // Замените useEffect загрузки потоков на этот:
   useEffect(() => {
     if (role === "ADMIN" || role === "SUPER_ADMIN") {
       fetch(`${backendHost}/api/v1/streams?page=0&size=1500`, {
@@ -424,7 +451,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         .then((data) => {
           const allStreams = Array.isArray(data.content) ? data.content : [];
 
-          // Фильтруем: активные потоки + текущий поток команды (если есть)
           const currentTeamStreamId = teamData.streams?.[0]?.id;
           const filteredStreams = allStreams.filter(stream =>
             stream.active === true || stream.id === currentTeamStreamId
@@ -434,14 +460,15 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
             id: s.id,
             name: s.name,
             active: s.active,
-            isCurrentTeamStream: s.id === currentTeamStreamId
+            isCurrentTeamStream: s.id === currentTeamStreamId,
+            ntiMarkets: s.ntiMarkets || []
           }));
 
           setStreams(streamsWithNames);
         })
         .catch((err) => handleApiError(err, "загрузке потоков"));
     }
-  }, [role, teamData.streams]); // Добавляем teamData.streams в зависимости
+  }, [role, teamData.streams]);
 
   useEffect(() => {
     fetch(`${backendHost}/api/v1/streams/nti-markets`, {
@@ -482,7 +509,17 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     }
   }, [teamData, trlLevels]);
 
+  useEffect(() => {
+    if (selectedStreamId && editedData.ntiMarketIds) {
+      checkNtiMarketsMatchWithStream(selectedStreamId, editedData.ntiMarketIds);
+    }
+  }, [selectedStreamId, editedData.ntiMarketIds]);
 
+  useEffect(() => {
+    if (streamInfo?.id && teamData.ntiMarketIds) {
+      checkNtiMarketsMatchWithStream(streamInfo.id, teamData.ntiMarketIds);
+    }
+  }, [streamInfo, teamData]);
 
   const handleTRLSelect = (trl) => {
     setSelectedTRL(trl);
@@ -496,28 +533,27 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   };
 
   const hasUnsavedChanges = () => {
-  if (!isEditing || !originalData) return false;
-  
-  const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
-  for (const field of fieldsToCheck) {
-    const original = originalData[field];
-    const current = editedData[field];
+    if (!isEditing || !originalData) return false;
     
-    if (Array.isArray(original) && Array.isArray(current)) {
-      const compareFn = (a, b) => {
-        if (typeof a === 'number' && typeof b === 'number') return a - b;
-        return String(a).localeCompare(String(b));
-      };
-      // Используем slice() для создания копии, затем sort() (мутирует копию)
-      const sortedOriginal = original.slice().sort(compareFn);
-      const sortedCurrent = current.slice().sort(compareFn);
-      if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
-    } else if (original !== current) {
-      return true;
+    const fieldsToCheck = ['name', 'meetingRoomLink', 'description', 'ntiMarketIds', 'readinessLevel', 'username'];
+    for (const field of fieldsToCheck) {
+      const original = originalData[field];
+      const current = editedData[field];
+      
+      if (Array.isArray(original) && Array.isArray(current)) {
+        const compareFn = (a, b) => {
+          if (typeof a === 'number' && typeof b === 'number') return a - b;
+          return String(a).localeCompare(String(b));
+        };
+        const sortedOriginal = original.slice().sort(compareFn);
+        const sortedCurrent = current.slice().sort(compareFn);
+        if (JSON.stringify(sortedOriginal) !== JSON.stringify(sortedCurrent)) return true;
+      } else if (original !== current) {
+        return true;
+      }
     }
-  }
-  return false;
-};
+    return false;
+  };
 
   const handleMeetingClick = async (meeting) => {
     if (hasUnsavedChanges()) {
@@ -534,15 +570,34 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         )
       );
     } else {
-      setSelectedMarket([]); // Устанавливаем пустой массив, если ntiMarkets не массив
+      setSelectedMarket([]);
     }
   }, [editedData.ntiMarketIds, ntiMarkets]);
+
+  const handleNtiMarketChange = (market) => {
+    const already = editedData.ntiMarketIds?.includes(market.id);
+    const currentLength = editedData.ntiMarketIds?.length || 0;
+    
+    if (!already) {
+      if (!checkNtiMarketsLimit(currentLength, true)) return;
+    }
+    
+    setEditedData(prev => {
+      const newIds = already
+        ? prev.ntiMarketIds.filter(id => id !== market.id)
+        : [...(prev.ntiMarketIds || []), market.id];
+      
+      setTimeout(() => checkNtiMarketsMatchWithStream(selectedStreamId, newIds), 0);
+      
+      return { ...prev, ntiMarketIds: newIds };
+    });
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
     setApiError(null);
 
     try {
-      // 1. Проверка заполненности
       if (!editedData.name?.trim() ||
         !editedData.meetingRoomLink?.trim() ||
         !editedData.description?.trim() ||
@@ -559,13 +614,22 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         }
       }
 
-      // 2. Выбираем endpoint
+      // === НОВАЯ ПРОВЕРКА ===
+      if (selectedStreamId && editedData.ntiMarketIds?.length > 0) {
+        const hasMatch = checkNtiMarketsMatchWithStream(selectedStreamId, editedData.ntiMarketIds);
+        if (!hasMatch) {
+          setMeetingError("Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.");
+          setTimeout(() => setMeetingError(""), 5000);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const baseEndpoint =
         (role === "ADMIN" || role === "SUPER_ADMIN")
           ? `${backendHost}/api/v1/admin/team-card`
           : `${backendHost}/api/v1/team-card`;
 
-      // 2. Параметры запроса
       const params = new URLSearchParams();
       params.append("teamCardId", id);
       params.append("streamId", selectedStreamId);
@@ -573,9 +637,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         params.append("username", usernameToSend);
       }
 
-
-
-      // 4. Тело запроса
       const patchData = {
         name: editedData.name.trim(),
         meetingRoomLink: editedData.meetingRoomLink.trim(),
@@ -585,7 +646,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         passive: editedData.passive,
       };
 
-      // 5. Отправка PATCH
       const response = await fetch(
         `${baseEndpoint}?${params.toString()}`,
         {
@@ -623,16 +683,15 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
       const selectedDate = new Date(localISOTime);
 
-      // ✅ Используем функцию валидации для проверки переноса
       const validation = validateMeetingDateChange(
-        meetings,           // Все встречи
-        meetingId,         // Исключаем редактируемую встречу из подсчета
-        selectedDate       // Новая дата
+        meetings,
+        meetingId,
+        selectedDate
       );
 
       if (!validation.isValid) {
         setMeetingError(validation.errorMessage);
-        setTimeout(() => setMeetingError(""), 5000); // Увеличиваем время показа ошибки
+        setTimeout(() => setMeetingError(""), 5000);
         return;
       }
 
@@ -651,14 +710,12 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     try {
       const isoDate = new Date(newMeetingDate).toISOString();
 
-      // ✅ ВАЖНО: создаем копию встреч БЕЗ текущей редактируемой
       const meetingsWithoutCurrent = meetings.filter(m => m.id !== editingMeetingId);
 
-      // ✅ Проверяем на копии данных
       const validation = validateMeetingDateChange(
-        meetingsWithoutCurrent,  // Все встречи кроме редактируемой
-        null,                    // Не нужно исключать, мы уже убрали
-        isoDate                  // Новая дата
+        meetingsWithoutCurrent,
+        null,
+        isoDate
       );
 
       if (!validation.isValid) {
@@ -668,7 +725,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         return;
       }
 
-      // Отправляем на сервер
       const response = await fetch(
         `${backendHost2}/api/v1/update-meeting/${editingMeetingId}?teamCardId=${id}`,
         {
@@ -684,7 +740,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
       if (!response.ok) throw new Error('Ошибка при обновлении даты');
 
-      // ✅ Получаем обновленную встречу с сервера и обновляем стейт
       const updatedMeeting = await response.json();
 
       setMeetings(prev =>
@@ -696,7 +751,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       );
 
       setEditingMeetingId(null);
-      setMeetingError(""); // Сбрасываем ошибку при успехе
+      setMeetingError("");
     } catch (error) {
       handleApiError(error, "сохранении даты встречи");
       setEditingMeetingId(null);
@@ -724,13 +779,11 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         throw new Error(`Ошибка при удалении: ${response.status} ${errorText}`);
       }
 
-      // Успешно удалено → оптимистичное обновление UI
       setMeetings(prev => prev.filter(m => m.id !== meetingToDelete));
       setEditingMeetingId(null);
       setShowDeleteModal(false);
       setMeetingToDelete(null);
       
-      // ✅ Перезагружаем и встречи, и данные карточки (включая рейтинг)
       await loadMeetings();
       await loadTeamCard();
     } catch (error) {
@@ -739,7 +792,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       setTimeout(() => setMeetingError(""), 3000);
       setShowDeleteModal(false);
       
-      // При ошибке перезагружаем данные для восстановления актуального состояния
       await loadMeetings();
       await loadTeamCard();
     }
@@ -761,7 +813,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
 
     if (isAdmin) {
       const userIdOrUsername = teamData?.user?.id || teamData?.username || "";
-      params.append("username", userIdOrUsername); // ← важно, если бэкенд требует
+      params.append("username", userIdOrUsername);
     }
 
     try {
@@ -775,7 +827,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         throw new Error(`Ошибка при удалении: ${response.status}`);
       }
 
-      navigate(from); // или `navigate(-1)` для возврата
+      navigate(from);
     } catch (error) {
       handleApiError(error, "удалении карточки");
     }
@@ -904,7 +956,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       
       {isTrackerDropdownOpen && (
         <div className="team-card_field-select-dropdown">
-          {/* Строка поиска внутри выпадающего списка */}
           <div className="team-card_field-select-search">
             <input
               type="text"
@@ -995,17 +1046,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                         <input
                           type="checkbox"
                           checked={editedData.ntiMarketIds?.includes(market.id)}
-                          onChange={() => {
-                            setEditedData(prev => {
-                              const already = prev.ntiMarketIds?.includes(market.id);
-                              return {
-                                ...prev,
-                                ntiMarketIds: already
-                                  ? prev.ntiMarketIds.filter(id => id !== market.id)
-                                  : [...(prev.ntiMarketIds || []), market.id]
-                              };
-                            });
-                          }}
+                          onChange={() => handleNtiMarketChange(market)}
                         />
                         {market.displayName}
                       </label>
@@ -1091,10 +1132,12 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                         tabIndex={0}
                         onClick={() => {
                           setSelectedStreamId(stream.id);
+                          checkNtiMarketsMatchWithStream(stream.id, editedData.ntiMarketIds || []);
                         }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             setSelectedStreamId(stream.id);
+                            checkNtiMarketsMatchWithStream(stream.id, editedData.ntiMarketIds || []);
                           }
                         }}
                       >
@@ -1104,6 +1147,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                           checked={selectedStreamId === stream.id}
                           onChange={() => {
                             setSelectedStreamId(stream.id);
+                            checkNtiMarketsMatchWithStream(stream.id, editedData.ntiMarketIds || []);
                           }}
                         />
                         {stream.name}
@@ -1191,7 +1235,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
               <button
                 className="team-card_meetings-button"
                 onClick={() => {
-                // Админ может создавать встречи для пассивной команды
                 if (teamData.passive && role !== "ADMIN" && role !== "SUPER_ADMIN") {
                     setMeetingError("Нельзя создавать встречи для пассивной команды");
                     setTimeout(() => setMeetingError(""), 3000);
@@ -1240,6 +1283,5 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     </>
   );
 };
-
 
 export default TeamCard;

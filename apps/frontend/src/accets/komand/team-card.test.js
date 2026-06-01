@@ -1692,4 +1692,5 @@ describe('Visibility and popstate handlers', () => {
       expect(screen.getByTestId('inputbox-name')).toHaveValue('Команда Икс');
     });
   });
+  
 });
