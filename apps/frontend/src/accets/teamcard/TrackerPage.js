@@ -847,8 +847,8 @@ const options = {
       className="stream-image"
     />
   </div>
-                            <span className={`status ${!card.enabled ? "inactive" : ""}`}>
-                                {card.enabled ? "Активно" : "Завершено"}
+                            <span className={`status ${!card.enabled ? "inactive" : (card.passive ? "passive" : "")}`}>
+                            {!card.enabled ? "Завершено" : (card.passive ? "Пассивно" : "Активно")}
                             </span>
 
                             <div className="card-content">

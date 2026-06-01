@@ -26,10 +26,12 @@ public interface MeetingMapper {
     MeetingDto mapToDto(Meeting meeting);
 
     @Mapping(target = "trackerName", source = "trackerUsername")
+    @Mapping(target = "teamId", source = "teamCardId")
     MeetingReportRecordDto mapToReportDto(Meeting meeting);
 
     @Mapping(target = "teamCardId", ignore = true)
     @Mapping(target = "imageBytes", ignore = true)
     @Mapping(target = "id", ignore = true)
     void updateEntityFromDto(MeetingUpdateDto updateDto, @MappingTarget Meeting meeting);
+
 }

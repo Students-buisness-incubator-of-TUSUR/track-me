@@ -11,6 +11,7 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
@@ -44,5 +45,10 @@ public class AppConfiguration {
                         .version(buildProperties.getVersion())
                         .description("Единая точка входа в сервисы TrackMe.")
                 );
+    }
+
+    @Bean
+    public RestClient backendRestClient() {
+        return RestClient.create(appProperties.getServices().getBackend().getUrl());
     }
 }

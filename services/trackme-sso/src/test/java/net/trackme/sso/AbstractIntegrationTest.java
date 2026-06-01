@@ -39,7 +39,6 @@ public abstract class AbstractIntegrationTest {
     REDIS_CONTAINER.start();
   }
 
-
   @DynamicPropertySource
   static void properties(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.url", POSTGRESQL_CONTAINER::getJdbcUrl);

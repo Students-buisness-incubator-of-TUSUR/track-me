@@ -27,6 +27,9 @@ public class AppProperties {
 
   private MailProperties mail = new MailProperties();
 
+  @NestedConfigurationProperty
+  private ServicesProperties services = new ServicesProperties();
+
   @Data
   public static class SwaggerProperties {
     private AuthTypesConfig authTypes = new AuthTypesConfig();
@@ -64,5 +67,15 @@ public class AppProperties {
     private String subject;
 
     private List<String> summarySendRoles;
+  }
+
+  @Data
+  public static class ServicesProperties {
+    private BackendProperties backend = new BackendProperties();
+
+    @Data
+    public static class BackendProperties {
+      private String url;
+    }
   }
 }

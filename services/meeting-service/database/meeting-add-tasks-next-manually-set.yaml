@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: meeting-add-tasks-next-manually-set
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              tableName: meeting
+              schemaName: ${db_schema}
+              columnName: tasks_next_manually_set
+      changes:
+        - addColumn:
+            tableName: meeting
+            schemaName: ${db_schema}
+            columns:
+              - column:
+                  name: tasks_next_manually_set
+                  type: boolean
+                  defaultValueBoolean: false

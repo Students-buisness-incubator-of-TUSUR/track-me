@@ -4,12 +4,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.filters.FilterRequest;
 import net.trackme.sso.controller.UserController;
+import net.trackme.sso.dto.ErrorResponseDto;
 import net.trackme.sso.dto.UserDto;
+import net.trackme.sso.exception.TeamReassignmentException;
 import net.trackme.sso.services.UserService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -38,7 +42,6 @@ public class DefaultUserController implements UserController {
     return ResponseEntity.ok().build();
   }
 
-  // НОВЫЙ МЕТОД: разблокировка
   @Override
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> unlockUser(String username) {
@@ -47,7 +50,6 @@ public class DefaultUserController implements UserController {
     return ResponseEntity.ok().build();
   }
 
-  // НОВЫЙ МЕТОД: полное удаление
   @Override
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deleteUser(String username) {
@@ -56,7 +58,6 @@ public class DefaultUserController implements UserController {
     return ResponseEntity.ok().build();
   }
 
-  // НОВЫЙ МЕТОД: список команд пользователя
   @Override
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<Map<String, String>>> getUserTeams(String username) {
@@ -89,5 +90,20 @@ public class DefaultUserController implements UserController {
     log.info("Getting admins with filter: {}", filterRequest);
     var admins = userService.getAdmins(filterRequest, pageable);
     return ResponseEntity.ok(new PagedModel<>(admins));
+  }
+
+  @ExceptionHandler(TeamReassignmentException.class)
+  public ResponseEntity<ErrorResponseDto> handleTeamReassignmentException(
+          TeamReassignmentException e) {
+      log.error("Team operation failed: {}", e.getMessage(), e);
+      
+      ErrorResponseDto errorResponse = ErrorResponseDto.builder()
+          .error("TEAM_OPERATION_FAILED")
+          .message(e.getMessage())
+          .status(HttpStatus.CONFLICT.value())
+          .timestamp(System.currentTimeMillis())
+          .build();
+      
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
   }
 }

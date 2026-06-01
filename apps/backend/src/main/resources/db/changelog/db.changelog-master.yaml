@@ -33,6 +33,10 @@ databaseChangeLog:
   - include:
       file: db/changelog/team-card-add-meeting-link.yaml
   - include:
+      file: db/changelog/team-card-add-passive-column.yaml
+  - include:
       file: db/changelog/team-card-add-tracker-full-name.yaml
   - include:
       file: db/changelog/fill-tracker-full-name-from-meetings.yaml
+  - include:
+      file: db/changelog/add-report-indexes.yaml

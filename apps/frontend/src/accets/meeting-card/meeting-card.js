@@ -30,7 +30,6 @@ const MeetingCard = () => {
     const isNewMeeting = meetingId === "new";
     const [error, setError] = useState(null);
     const [recordLinkError, setRecordLinkError] = useState(null);
-    const [showDateTooltip, setShowDateTooltip] = useState(false);
     const [meetingData, setMeetingData] = useState({
         number: isNewMeeting ? "Новая встреча" : "",
         startDate: new Date().toISOString(),
@@ -69,10 +68,7 @@ const MeetingCard = () => {
 
     const isMeetingLocked = !canEdit();
 
-    // Визуальный статус (только для отображения)
-    const isMeetingCompleted = meetingData.status === "COMPLETED" ||
-        meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ||
-        meetingData.status === "FINALLY_COMPLETED";
+    
 
     const renderTextareaSection = (name, label, value) => (
         <div className="unique-meeting-info-row">
@@ -237,6 +233,34 @@ const MeetingCard = () => {
             reader.readAsDataURL(file);
         }
     };
+    
+
+    useEffect(() => {
+        const handlePasteImage = (event) => {
+            if (!isEditing || isMeetingLocked) return;
+            const clipboardData = event.clipboardData;
+            if (!clipboardData) return;
+
+            const imageItem = Array.from(clipboardData.items || []).find(
+                (item) => item.kind === 'file' && item.type.startsWith('image/')
+            );
+
+            if (!imageItem) return;
+
+            const file = imageItem.getAsFile();
+            if (!file) return;
+
+            event.preventDefault();
+            setImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => setImagePreview(reader.result);
+            reader.readAsDataURL(file);
+        };
+
+        document.addEventListener('paste', handlePasteImage);
+        return () => document.removeEventListener('paste', handlePasteImage);
+    }, [isEditing, isMeetingLocked]);
+
 
     const handleSave = async () => {
         try {
@@ -346,8 +370,7 @@ const MeetingCard = () => {
 
         if (!isMeetingDatePassed()) {
             setError(completeNotReadyMessage);
-            setShowDateTooltip(true);
-            setTimeout(() => { setError(null); setShowDateTooltip(false); }, 5000);
+            setTimeout(() => setError(null), 5000);
             return;
         }
 
@@ -573,11 +596,6 @@ const MeetingCard = () => {
                                 >
                                     Не состоялась
                                 </button>
-                            )}
-                            {showDateTooltip && (
-                                <div className="date-tooltip">
-                                    Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить
-                                </div>
                             )}
                         </div>
                     )}

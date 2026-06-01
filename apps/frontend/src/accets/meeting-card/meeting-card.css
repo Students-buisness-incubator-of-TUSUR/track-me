@@ -422,6 +422,30 @@
     background: #0056b3;
 }
 
+@media (max-width: 480px) {
+    .meeting-create-popup {
+        width: calc(100vw - 32px);
+        max-width: 300px;
+        padding: 16px;
+        bottom: 60px;
+    }
+
+    .date-selection {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .date-selection .custom-datetime-wrapper {
+        width: 100%;
+    }
+
+    .custom-datetime-display {
+        min-width: unset;
+        font-size: 14px;
+    }
+}
+
 .error-message {
     color: red;
     font-size: 12px;
@@ -905,12 +929,30 @@
     border-radius: 4px;
     font-size: 16px;
     width: 150px;
+    height: 39px;
+    box-sizing: border-box;
 }
 
 .unique-date-input:focus {
     outline: none;
     border-color: #007bff;
 }
+
+.unique-time-input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    width: 100px;
+    height: 39px;
+    box-sizing: border-box;
+}
+
+.unique-time-input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
 .unique-meeting-info {
     
    
@@ -933,12 +975,43 @@
     }
 }
 
-/* Обновленные стили для кнопок статуса встречи */
+/* Стили для всплывающей подсказки о плановом времени */
+.date-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+    font-family: 'Montserrat', sans-serif;
+    white-space: normal;
+    z-index: 9999;
+    max-width: calc(100vw - 32px);
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+.date-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.85);
+}
+
 /* Обновленные стили для кнопок статуса встречи */
 .unique-meeting-status-buttons {
     display: flex;
     gap: 15px;
     margin-top: -10px;
+    position: relative;
 }
 .unique-status-button.unique-status-completed {
     padding: 7.5px 65px; 
@@ -1130,6 +1203,30 @@
     .unique-status-button {
         width: 100%;
         min-width: unset;
+        font-size: 18px;
+    }
+
+    .date-tooltip {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+}
+
+@media (max-width: 600px) {
+    .unique-date-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .unique-date-row .unique-label {
+        margin-bottom: 0;
+    }
+
+    .unique-date-row .unique-meeting-date {
+        width: auto;
+        align-self: flex-start;
     }
 }
 
@@ -1146,6 +1243,12 @@
     }
     .unique-meeting-container {
         padding: 0;
+    }
+
+    .date-tooltip {
+        font-size: 12px;
+        padding: 6px 10px;
+        bottom: calc(100% + 4px);
     }
 
     .unique-meeting-card {
@@ -1168,7 +1271,14 @@
       display: none;
     }
     .unique-meeting-date {
-      padding: 6px 10px;
+      padding: 6px 16px;
+      font-size: 16px;
+      width: auto;
+      white-space: nowrap;
+    }
+    .unique-date-input-wrapper {
+        flex-wrap: wrap;
+        gap: 6px;
     }
     .unique-input {
       width: 90%;

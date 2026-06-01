@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: team-card-add-passive-column
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: backend
+                tableName: team_card
+                columnName: passive
+      changes:
+        - addColumn:
+            schemaName: backend
+            tableName: team_card
+            columns:
+              - column:
+                  name: passive
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

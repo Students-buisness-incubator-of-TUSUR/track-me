@@ -1,0 +1,86 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-report-indexes-1
+      author: developer
+      runInTransaction: false
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - indexExists:
+                schemaName: ${db_schema}
+                indexName: idx_tc_username_avg_grade
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: |
+              CREATE INDEX CONCURRENTLY idx_tc_username_avg_grade
+                  ON ${db_schema}.team_card (username)
+                  INCLUDE (average_grade);
+      rollback:
+        - sql:
+            dbms: postgresql
+            sql: DROP INDEX CONCURRENTLY IF EXISTS ${db_schema}.idx_tc_username_avg_grade;
+
+  - changeSet:
+      id: add-report-indexes-2
+      author: developer
+      runInTransaction: false
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - indexExists:
+                schemaName: ${db_schema}
+                indexName: idx_stc_team_id
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: |
+              CREATE INDEX CONCURRENTLY idx_stc_team_id
+                  ON ${db_schema}.stream_team_card (team_id);
+      rollback:
+        - sql:
+            dbms: postgresql
+            sql: DROP INDEX CONCURRENTLY IF EXISTS ${db_schema}.idx_stc_team_id;
+
+  - changeSet:
+      id: add-report-indexes-3
+      author: developer
+      runInTransaction: false
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - indexExists:
+                schemaName: ${db_schema}
+                indexName: idx_tcnm_team_card_id
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: |
+              CREATE INDEX CONCURRENTLY idx_tcnm_team_card_id
+                  ON ${db_schema}.team_card_nti_market (team_card_id);
+      rollback:
+        - sql:
+            dbms: postgresql
+            sql: DROP INDEX CONCURRENTLY IF EXISTS ${db_schema}.idx_tcnm_team_card_id;
+
+  - changeSet:
+      id: add-report-indexes-4
+      author: developer
+      runInTransaction: false
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - indexExists:
+                schemaName: ${db_schema}
+                indexName: idx_meeting_team_id
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: |
+              CREATE INDEX CONCURRENTLY idx_meeting_team_id
+                  ON ${db_schema}.meeting (team_id);
+      rollback:
+        - sql:
+            dbms: postgresql
+            sql: DROP INDEX CONCURRENTLY IF EXISTS ${db_schema}.idx_meeting_team_id;
+            
