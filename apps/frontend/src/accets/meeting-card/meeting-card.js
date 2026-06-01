@@ -30,6 +30,7 @@ const MeetingCard = () => {
     const isNewMeeting = meetingId === "new";
     const [error, setError] = useState(null);
     const [recordLinkError, setRecordLinkError] = useState(null);
+    const [showDateTooltip, setShowDateTooltip] = useState(false);
     const [meetingData, setMeetingData] = useState({
         number: isNewMeeting ? "Новая встреча" : "",
         startDate: new Date().toISOString(),
@@ -53,11 +54,8 @@ const MeetingCard = () => {
     const [role, setRole] = useState(null);
 
     // Статусы, которые суперадминистратор может редактировать
-    //const EDITABLE_BY_SUPER_ADMIN_STATUSES = new Set(["COMPLETED", "COMPLETED_AS_NOT_HAPPENED"]); 
-    
-    //const EDITABLE_BY_SUPER_ADMIN_STATUSES = new Set(["FINALLY_COMPLETED", "COMPLETED_AS_NOT_HAPPENED"]);
-    const EDITABLE_BY_SUPER_ADMIN_STATUSES = new Set(["FINALLY_COMPLETED", "COMPLETED_AS_NOT_HAPPENED", "COMPLETED"]);
-    
+    const EDITABLE_BY_SUPER_ADMIN_STATUSES = new Set(["COMPLETED", "COMPLETED_AS_NOT_HAPPENED", "FINALLY_COMPLETED"]);
+
     const canEdit = () => {
         if (isNewMeeting) return true;
         const status = meetingData.status;
@@ -71,7 +69,10 @@ const MeetingCard = () => {
 
     const isMeetingLocked = !canEdit();
 
-    
+    // Визуальный статус (только для отображения)
+    const isMeetingCompleted = meetingData.status === "COMPLETED" ||
+        meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ||
+        meetingData.status === "FINALLY_COMPLETED";
 
     const renderTextareaSection = (name, label, value) => (
         <div className="unique-meeting-info-row">
@@ -236,34 +237,6 @@ const MeetingCard = () => {
             reader.readAsDataURL(file);
         }
     };
-    
-
-    useEffect(() => {
-        const handlePasteImage = (event) => {
-            if (!isEditing || isMeetingLocked) return;
-            const clipboardData = event.clipboardData;
-            if (!clipboardData) return;
-
-            const imageItem = Array.from(clipboardData.items || []).find(
-                (item) => item.kind === 'file' && item.type.startsWith('image/')
-            );
-
-            if (!imageItem) return;
-
-            const file = imageItem.getAsFile();
-            if (!file) return;
-
-            event.preventDefault();
-            setImage(file);
-            const reader = new FileReader();
-            reader.onloadend = () => setImagePreview(reader.result);
-            reader.readAsDataURL(file);
-        };
-
-        document.addEventListener('paste', handlePasteImage);
-        return () => document.removeEventListener('paste', handlePasteImage);
-    }, [isEditing, isMeetingLocked]);
-
 
     const handleSave = async () => {
         try {
@@ -373,7 +346,8 @@ const MeetingCard = () => {
 
         if (!isMeetingDatePassed()) {
             setError(completeNotReadyMessage);
-            setTimeout(() => setError(null), 5000);
+            setShowDateTooltip(true);
+            setTimeout(() => { setError(null); setShowDateTooltip(false); }, 5000);
             return;
         }
 
@@ -500,6 +474,7 @@ const MeetingCard = () => {
         fetchAllMeetings();
     }, [teamId, backendHost]);
 
+    //f
     return (
         <>
         <Header userRole={role}/>
@@ -600,6 +575,11 @@ const MeetingCard = () => {
                                     Не состоялась
                                 </button>
                             )}
+                            {showDateTooltip && (
+                                <div className="date-tooltip">
+                                    Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -676,6 +656,23 @@ const MeetingCard = () => {
                     )}
                 </div>
 
+                {/* НОВЫЙ БЛОК: изменение статуса встречи суперадминистратором */}
+                {isEditing && role === "SUPER_ADMIN" && (
+                    <div className="unique-meeting-info-row">
+                        <span className="unique-label">Статус встречи:</span>
+                        <select
+                            value={meetingData.status}
+                            onChange={(e) => setMeetingData(prev => ({ ...prev, status: e.target.value }))}
+                            className="unique-select"
+                            disabled={isMeetingLocked}
+                        >
+                            <option value="COMPLETED">Состоялась</option>
+                            <option value="COMPLETED_AS_NOT_HAPPENED">Не состоялась</option>
+                        </select>
+                        <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
+                    </div>
+                )}
+
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Скриншот встречи:</span>
                     {isEditing ? (
@@ -738,7 +735,7 @@ const MeetingCard = () => {
                         <h3 className="confirm-modal-title">Подтверждение действия</h3>
                         <p className="confirm-modal-text">Вы уверены, что хотите завершить встречу как <b>несостоявшуюся</b>?</p>
                         <div className="confirm-modal-buttons">
-                            <button className="confirm-button yes" onClick={() => { setShowConfirmModal(false); handleCompleteMeeting(pendingCompletion); }}>Да</button>
+                            <button className="confirm-button yes" onClick={() => { setShowConfirmModal(false); handleCompleteMeeting(pendingCompletion); }}>Да</button> 
                             <button className="confirm-button no" onClick={() => setShowConfirmModal(false)}>Отмена</button>
                         </div>
                     </div>
