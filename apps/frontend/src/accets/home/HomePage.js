@@ -17,18 +17,18 @@ const HomePage = () => {
 
     const handleYandexLogin = () => {
         const gatewayBase = process.env.REACT_APP_BACKEND_URI || "http://localhost";
-        const registrationPageUrl = window.location.origin + '/register'; 
+        const registrationPageUrl = globalThis.location.origin + '/register'; 
         
         // Эндпоинт авторизации теперь ведет на yandex
-        window.location.href = `${gatewayBase}/oauth2/authorization/yandex?redirect_uri=${encodeURIComponent(registrationPageUrl)}`;
+        globalThis.location.href = `${gatewayBase}/oauth2/authorization/yandex?redirect_uri=${encodeURIComponent(registrationPageUrl)}`;
     };
 
     const handleGoogleLogin = () => {
     // Шлюз доступен на http://localhost
     const gatewayBase = process.env.REACT_APP_BACKEND_URI || "http://localhost";
-    const registrationPageUrl = window.location.origin + '/register'; 
+    const registrationPageUrl = globalThis.location.origin + '/register'; 
     
-    window.location.href = `${gatewayBase}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(registrationPageUrl)}`;
+    globalThis.location.href = `${gatewayBase}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(registrationPageUrl)}`;
 };
 
     const handleTelegramLogin = () => {

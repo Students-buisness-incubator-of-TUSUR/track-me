@@ -6,7 +6,6 @@ import org.springframework.security.oauth2.client.web.server.ServerOAuth2Authori
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import java.util.Map;
 public class CustomAuthorizationRequestResolver implements ServerOAuth2AuthorizationRequestResolver {
 
     static final String SESSION_KEY = "post_login_redirect_uri";
