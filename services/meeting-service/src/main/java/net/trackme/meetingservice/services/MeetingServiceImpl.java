@@ -1,6 +1,7 @@
 package net.trackme.meetingservice.services;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.acl.AclService;
@@ -193,6 +194,7 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         var oldStatus = meeting.getStatus();
+        var oldTeamStatus = meeting.getTeamStatus(); // сохраняем старый статус команды
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         var savedMeeting = meetingRepository.saveAndFlush(meeting);
 
@@ -203,7 +205,8 @@ public class MeetingServiceImpl implements MeetingService {
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
         }
 
-        if (oldStatus != meeting.getStatus()) {
+        // Отправляем событие, если изменился статус встречи ИЛИ статус команды
+        if (oldStatus != meeting.getStatus() || !Objects.equals(oldTeamStatus, meeting.getTeamStatus())) {
             sendMeetingUpdatedEvent(savedMeeting, oldStatus);
         }
 
