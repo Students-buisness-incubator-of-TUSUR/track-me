@@ -1,6 +1,7 @@
 package net.trackme.meetingservice.services;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -236,6 +237,7 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         var oldStatus = meeting.getStatus();
+        var oldTeamStatus = meeting.getTeamStatus(); // сохраняем старый статус команды
 
         // Сохраняем старое значение ДО обновления
         String oldTasksNext = meeting.getTasksNextMeeting();
@@ -267,6 +269,8 @@ public class MeetingServiceImpl implements MeetingService {
                     .orElseThrow(() -> new MeetingNotFoundException(meetingId));
         }
 
+        // Отправляем событие, если изменился статус встречи ИЛИ статус команды
+        if (oldStatus != meeting.getStatus() || !Objects.equals(oldTeamStatus, meeting.getTeamStatus())) {
         recalculateTasksChain(teamCardId);
 
         if (oldStatus != meeting.getStatus()) {
