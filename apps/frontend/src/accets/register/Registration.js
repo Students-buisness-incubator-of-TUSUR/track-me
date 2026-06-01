@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import './Registration.css';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 
 const Registration = () => {
     const [form, setForm] = useState({
@@ -15,7 +16,28 @@ const Registration = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewPhoto, setPreviewPhoto] = useState(null);
     const backendHost = (process.env.REACT_APP_BACKEND_URI || 'http://localhost:8080') + '/backend';
+    const location = useLocation(); // <-- Получаем объект локации роутера
 
+    useEffect(() => {
+        // Логируем вообще ВСЁ, что происходит в адресе в момент запуска компонента
+        console.log("=== ТЕСТ ЗАПУСКА КОМПОНЕНТА ===");
+        console.log("Полный URL в браузере:", window.location.href);
+        console.log("Сырая строка параметров:", window.location.search);
+
+        const searchParams = new URLSearchParams(window.location.search);
+        const emailParam = searchParams.get('email');
+        const nameParam = searchParams.get('name');
+
+        console.log("Распарсенные параметры напрямую из window:", { emailParam, nameParam });
+
+        if (emailParam || nameParam) {
+            setForm(prevForm => ({
+                ...prevForm,
+                email: emailParam ? decodeURIComponent(emailParam.replace(/\+/g, ' ')) : prevForm.email,
+                fullName: nameParam ? decodeURIComponent(nameParam.replace(/\+/g, ' ')) : prevForm.fullName
+            }));
+        }
+    }, []);
     const handleChange = (e) => {
         setForm({...form, [e.target.name]: e.target.value});
     };

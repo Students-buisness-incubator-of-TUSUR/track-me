@@ -55,6 +55,7 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}
+
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     producer:

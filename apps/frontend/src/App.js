@@ -18,7 +18,7 @@ import FeedbackWidget from "./accets/FeedbackWidget/FeedbackWidget.js";
 import ProtectedRoute from "./accets/ProtectedRoute/ProtectedRoute.js"; // Импортируем компонент защиты
 import ReportPage from "./accets/report-page/ReportPage.js";
 import MeetingReportPage from "./accets/meeting-report-page/MeetingReportPage.js";
-
+import Registration from "./accets/register/Registration.js";
 const AdminPage = () => <h1>Страница Админа</h1>;
 const SuperAdminPage = () => <h1>Страница Суперадмина</h1>;
 
@@ -30,6 +30,7 @@ function App() {
                     {/* Публичные маршруты (не требуют авторизации) */}
                     <Route path="/" element={<HomePage />} />
                     <Route path="/after-login" element={<AfterLogin />} />
+                    <Route path="/client/registration" element={<Registration />} />
                     
                     {/* Защищённые маршруты (требуют авторизации) */}
                     <Route path="/meeting-create/:teamId" element={

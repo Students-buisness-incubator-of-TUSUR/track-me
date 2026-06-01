@@ -76,10 +76,29 @@ spring:
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             scope: openid, profile
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - email
+              - profile 
+          yandex:
+            client-id: 7b4b646d981942cfb165179d31c0dcb6
+            client-secret: 5ca3c5e0160f43169144a58c894e738b
+            client-name: Yandex
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: login:email, login:info
         provider:
           track-me-client:
             issuer-uri: ${SSO_URI:http://localhost:9000}
-logging:
+          yandex:
+            authorization-uri: https://oauth.yandex.ru/authorize
+            token-uri: https://oauth.yandex.ru/token
+            user-info-uri: https://login.yandex.ru/info
+            user-name-attribute: id
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
   level:
     # Use info level by default, override to debug/trace only when needed
     org.springframework.security: ${SECURITY_LOG_LEVEL:info}

@@ -6,7 +6,7 @@ import org.springframework.security.oauth2.client.web.server.ServerOAuth2Authori
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
+import java.util.Map;
 public class CustomAuthorizationRequestResolver implements ServerOAuth2AuthorizationRequestResolver {
 
     static final String SESSION_KEY = "post_login_redirect_uri";
@@ -31,6 +31,22 @@ public class CustomAuthorizationRequestResolver implements ServerOAuth2Authoriza
 
     private Mono<OAuth2AuthorizationRequest> saveRedirectUri(ServerWebExchange exchange,
                                                               OAuth2AuthorizationRequest request) {
+        // Если Спринг вернул пустой запрос, просто идем дальше
+    if (request == null) {
+        return Mono.empty();
+    }
+
+    try {
+        // Железобетонная и безопасная проверка на google
+        if (request.getAttributes() != null && "google".equals(request.getAttributes().get("registration_id"))) {
+            request = OAuth2AuthorizationRequest.from(request)
+                    .redirectUri("http://localhost/login/oauth2/code/google")
+                    .build();
+        }
+    } catch (Exception e) {
+        // Если внутри логики модификации что-то пошло не так, логируем и не роняем приложение
+        System.err.println("Ошибка при кастомизации OAuth2 запроса: " + e.getMessage());
+    }
         String redirectUri = exchange.getRequest().getQueryParams().getFirst("redirect_uri");
         if (redirectUri == null) {
             return Mono.just(request);

@@ -1,5 +1,5 @@
 package net.trackme.cliengateway.config;
-
+import java.net.URI;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
@@ -21,6 +22,7 @@ import org.springframework.security.web.server.authentication.logout.ServerLogou
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 
@@ -46,7 +48,7 @@ public class OAuth2ClientConfiguration {
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
                                 .pathMatchers("/csrf").permitAll()
-                                .anyExchange().authenticated())
+                                .anyExchange().authenticated())                   
                 .oauth2Login(oauth2Login -> {
                         oauth2Login.authorizationRequestResolver(
                                 new CustomAuthorizationRequestResolver(clientRegistrationRepository));
@@ -139,7 +141,45 @@ public class OAuth2ClientConfiguration {
                         var redirectUri = (String) session.getAttributes()
                                 .remove(CustomAuthorizationRequestResolver.SESSION_KEY);
                         var target = (redirectUri != null) ? redirectUri : appProperties.afterLoginUrl();
-                        return new RedirectServerAuthenticationSuccessHandler(target)
+                        String baseTarget = (authentication.getPrincipal() instanceof OAuth2User)
+                                ? "http://localhost:9000/client/registration" 
+                                : ((redirectUri != null) ? redirectUri : appProperties.afterLoginUrl());
+                        String finalTargetUrl = baseTarget;
+                        if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
+                            String email = "";
+                            String name = "";
+                            // Проверка на Google (по ключу sub)
+                            if (oauth2User.getAttributes().containsKey("sub")) {
+                                email = oauth2User.getAttribute("email");
+                                name = oauth2User.getAttribute("name");
+                            } 
+                            // Проверка на Яндекс. У него в качестве user-name-attribute мы указали id
+                            else if (oauth2User.getAttributes().containsKey("id")) {
+                                // === ЛОГИКА ДЛЯ ЯНДЕКСА ===
+                                // Яндекс может вернуть email в default_email
+                                email = oauth2User.getAttribute("default_email");
+                                if (email == null) {
+                                    email = oauth2User.getAttribute("email");
+                                }
+                                // Имя пользователя
+                                name = oauth2User.getAttribute("real_name");
+                                if (name == null) {
+                                    name = oauth2User.getAttribute("display_name");
+                                }
+                            }
+                            if (email == null) email = "";
+                            if (name == null) name = "";
+
+                            finalTargetUrl = UriComponentsBuilder.fromUriString(baseTarget)
+                                    .queryParam("email", email)
+                                    .queryParam("name", name)
+                                    .encode() 
+                                    .build()
+                                    .toUriString();
+
+                        }
+                        
+                        return new RedirectServerAuthenticationSuccessHandler(finalTargetUrl)
                                 .onAuthenticationSuccess(webFilterExchange, authentication);
                     });
         };
