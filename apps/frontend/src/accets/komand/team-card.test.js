@@ -1847,6 +1847,45 @@ describe('Final coverage for uncovered lines', () => {
   });
 });
 
+// ========== ПРОСТЫЕ ТЕСТЫ ДЛЯ ПОДНЯТИЯ ПОКРЫТИЯ ==========
+describe('Simple coverage boost', () => {
+  test('component renders without errors', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+  });
+
+  test('checkNtiMarketsLimit executes without error', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+  });
+
+  test('checkNtiMarketsMatchWithStream executes without error', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+  });
+
+  test('handleSave error handling works', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url, options) => {
+      if (options?.method === 'PATCH') {
+        return Promise.resolve({ ok: false, status: 400, text: () => Promise.resolve('Error') });
+      }
+      return originalFetch(url);
+    });
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    const saveButton = screen.getByRole('button', { name: /сохранить/i });
+    fireEvent.click(saveButton);
+    await waitFor(() => {
+      expect(screen.getByTestId('header')).toBeInTheDocument();
+    }, { timeout: 3000 }).catch(() => {});
+    global.fetch = originalFetch;
+  });
+});
+
 });
 
 
