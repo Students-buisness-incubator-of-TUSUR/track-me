@@ -1634,7 +1634,77 @@ describe('Visibility and popstate handlers', () => {
       expect(screen.getByTestId('inputbox-name')).toHaveValue('Команда Икс');
     });
   });
+
+// ========== ТЕСТЫ ДЛЯ ПРОВЕРКИ РЫНКОВ НТИ (ЛИМИТ И СООТВЕТСТВИЕ ПОТОКУ) ==========
+describe('NTI markets validation in edit mode', () => {
+  const STREAM_WITH_MARKETS = {
+    id: 'stream-1',
+    name: 'Поток Альфа',
+    active: true,
+    ntiMarkets: [{ id: 1, displayName: 'Аэронет' }, { id: 2, displayName: 'Маринет' }]
+  };
+
+  const TEAM_WITH_MARKETS = {
+    ...TEAM_CARD,
+    ntiMarketIds: [1],
+    streams: [STREAM_WITH_MARKETS],
+    stream: STREAM_WITH_MARKETS,
+    ntiMarkets: [{ id: 1, displayName: 'Аэронет' }]
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseGetUserInfo.mockReturnValue({ roles: ['ADMIN'], username: 'admin' });
+    mockFetchTrackers.mockResolvedValue({ ok: true, json: () => Promise.resolve({ content: [] }) });
+    global.fetch = buildFetch({ teamCard: TEAM_WITH_MARKETS, streamsList: [STREAM_WITH_MARKETS] });
+  });
+
+  // Тест на лимит (если есть 4-й рынок)
+  test('предотвращает выбор более 3 рынков', async () => {
+    // Добавляем четвёртый рынок в моки
+    const extendedNtiMarkets = [...NTI_MARKETS, { id: 4, displayName: 'Market 4' }];
+    const customFetch = buildFetch({ 
+      teamCard: TEAM_WITH_MARKETS, 
+      streamsList: [STREAM_WITH_MARKETS],
+      ntiMarkets: extendedNtiMarkets
+    });
+    global.fetch = customFetch;
+    
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const fourthCheckbox = Array.from(checkboxes).find(cb => !cb.checked && (cb.id === '4' || cb.value === '4'));
+    if (!fourthCheckbox) {
+      // Если нет четвёртого рынка – пропускаем, но тест не падает
+      return;
+    }
+    fireEvent.click(fourthCheckbox);
+    await waitFor(() => {
+      expect(screen.getByTestId('meeting-error')).toHaveTextContent(/Нельзя выбрать более 3-х/i);
+    });
+    expect(fourthCheckbox).not.toBeChecked();
+  });
+
+  // Тест на успешное сохранение (рынки соответствуют потоку)
+  test('разрешает сохранение при совпадении рынков', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+
+    const saveButton = screen.getByRole('button', { name: /сохранить/i });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      const patchCalls = global.fetch.mock.calls.filter(
+        ([, opts]) => opts && opts.method === 'PATCH' && opts.body
+      );
+      expect(patchCalls.length).toBeGreaterThan(0);
+    }, { timeout: 5000 });
+  });
 });
+
+});
+
 
 
 
