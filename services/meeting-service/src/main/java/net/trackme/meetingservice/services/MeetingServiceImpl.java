@@ -481,7 +481,7 @@ public class MeetingServiceImpl implements MeetingService {
         // 4. Обновляем поля с помощью существующего маппера
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         
-        // 5. Сохраняем
+        // 5. Сохраняем.
         Meeting savedMeeting = meetingRepository.save(meeting);
         
         log.info("Super admin {} updated meeting {}", authentication.getName(), meetingId);

@@ -474,6 +474,7 @@ const MeetingCard = () => {
         fetchAllMeetings();
     }, [teamId, backendHost]);
 
+    //f
     return (
         <>
         <Header userRole={role}/>
@@ -734,7 +735,7 @@ const MeetingCard = () => {
                         <h3 className="confirm-modal-title">Подтверждение действия</h3>
                         <p className="confirm-modal-text">Вы уверены, что хотите завершить встречу как <b>несостоявшуюся</b>?</p>
                         <div className="confirm-modal-buttons">
-                            <button className="confirm-button yes" onClick={() => { setShowConfirmModal(false); handleCompleteMeeting(pendingCompletion); }}>Да</button>
+                            <button className="confirm-button yes" onClick={() => { setShowConfirmModal(false); handleCompleteMeeting(pendingCompletion); }}>Да</button> 
                             <button className="confirm-button no" onClick={() => setShowConfirmModal(false)}>Отмена</button>
                         </div>
                     </div>

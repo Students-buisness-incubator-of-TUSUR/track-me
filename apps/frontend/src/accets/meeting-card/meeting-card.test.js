@@ -3184,7 +3184,7 @@ describe('Super admin meeting status select', () => {
     const statusSelect = document.querySelector('select');
     expect(statusSelect).not.toBeInTheDocument();
   });
-}); // закрытие describe
+}); // закрытие describe/
 
 });
 
