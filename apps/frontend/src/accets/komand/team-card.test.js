@@ -1703,7 +1703,49 @@ describe('NTI markets validation in edit mode', () => {
   });
 });
 
+// ========== ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ ДЛЯ ПОКРЫТИЯ НЕПОКРЫТЫХ СТРОК ==========
+describe('Additional coverage for uncovered lines', () => {
+  const STREAM_WITH_MARKETS = {
+    id: 'stream-1',
+    name: 'Поток Альфа',
+    active: true,
+    ntiMarkets: [{ id: 1, displayName: 'Аэронет' }, { id: 2, displayName: 'Маринет' }]
+  };
+
+  const TEAM_WITH_MARKETS = {
+    ...TEAM_CARD,
+    ntiMarketIds: [1],
+    streams: [STREAM_WITH_MARKETS],
+    stream: STREAM_WITH_MARKETS,
+    ntiMarkets: [{ id: 1, displayName: 'Аэронет' }]
+  };
+
+  test('checkNtiMarketsMatchWithStream is called when stream changes', async () => {
+    const teamNoMatch = {
+      ...TEAM_WITH_MARKETS,
+      ntiMarketIds: [999],
+      ntiMarkets: [{ id: 999, displayName: 'Чужой рынок' }]
+    };
+    global.fetch = buildFetch({ teamCard: teamNoMatch, streamsList: [STREAM_WITH_MARKETS] });
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+
+    const streamRadios = document.querySelectorAll('input[name="stream"]');
+    const otherStream = Array.from(streamRadios).find(radio => !radio.checked);
+    if (otherStream) {
+      fireEvent.click(otherStream);
+      await waitFor(() => {
+        const errorElement = document.querySelector('.team-card_error-message');
+        expect(errorElement).toBeInTheDocument();
+        expect(errorElement.textContent).toMatch(/Хотя бы один рынок НТИ/i);
+      });
+    }
+  });
 });
+
+});
+
+
 
 
 
