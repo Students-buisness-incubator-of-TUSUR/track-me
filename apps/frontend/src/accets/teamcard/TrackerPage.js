@@ -30,8 +30,6 @@ const [showMyTeamsOnly, setShowMyTeamsOnly] = useState(false);
 const [page, setPage] = useState(0);
 const pageSize = 18; // или 10, если хочешь другой размер
 const [totalPages, setTotalPages] = useState(1);
-const [allCards, setAllCards] = useState([]);
-const [allCardsLoaded, setAllCardsLoaded] = useState(false);
 const [currentFilters, setCurrentFilters] = useState([]);
     const formatDateToYMD = (dateString) => {
     if (!dateString) return "";
@@ -127,6 +125,14 @@ const [currentFilters, setCurrentFilters] = useState([]);
     const buildTeamCardFilters = useCallback((filters = [], searchParams) => {
         const allFilters = [...filters];
 
+        if (searchQuery?.trim()) {
+                allFilters.push({
+                    fieldName: "name",
+                    type: "LIKE",
+                    value: searchQuery.trim(),
+                });
+            }
+
         if (userRole === "ADMIN" || userRole === "SUPER_ADMIN") {
             if (!showAllCards && streamName) {
                 allFilters.push({
@@ -159,7 +165,7 @@ const [currentFilters, setCurrentFilters] = useState([]);
         }
 
         return allFilters;
-    }, [userRole, username, streamName, showAllCards, showMyTeamsOnly]);
+    }, [userRole, username, streamName, showAllCards, showMyTeamsOnly, searchQuery]);
 
     const getTeamCardsEndpoint = useCallback(() => {
         return (userRole === "ADMIN" || userRole === "SUPER_ADMIN")
@@ -201,61 +207,6 @@ const [currentFilters, setCurrentFilters] = useState([]);
             setError(`Ошибка при загрузке карточек: ${err.message}`);
         });
 }, [userRole, username, buildTeamCardFilters, getTeamCardsEndpoint, page]);
-
-const fetchAllCards = useCallback(async (filters = [], searchParams) => { //NOSONAR
-    if (!userRole || !username) return []; //NOSONAR
-
-    const allFilters = buildTeamCardFilters(filters, searchParams); //NOSONAR
-    const endpoint = getTeamCardsEndpoint(); //NOSONAR
-
-    let combinedCards = []; //NOSONAR
-    let currentPageIndex = 0; //NOSONAR
-    let totalPagesLocal = 1; //NOSONAR
-
-    setAllCardsLoaded(false); //NOSONAR
-
-    try { //NOSONAR
-        do { //NOSONAR
-            const response = await fetch(`${endpoint}?page=${currentPageIndex}&size=${pageSize}&${sortParams}`, { //NOSONAR
-                method: "POST", //NOSONAR
-                headers: { //NOSONAR
-                    "Content-Type": "application/json", //NOSONAR
-                    ...getCsrfConfigForFetch() //NOSONAR
-                }, //NOSONAR
-                credentials: "include", //NOSONAR
-                body: JSON.stringify({ filters: allFilters }), //NOSONAR
-            }); //NOSONAR
-
-            if (!response.ok) { //NOSONAR
-                throw new Error(`HTTP error! status: ${response.status}`); //NOSONAR
-            } //NOSONAR
-
-            const data = await response.json(); //NOSONAR
-            const cardsArray = Array.isArray(data.content) ? data.content : []; //NOSONAR
-
-            combinedCards = [ //NOSONAR
-                ...combinedCards, //NOSONAR
-                ...cardsArray.map(card => ({ ...card, _showFull: false })) //NOSONAR
-            ]; //NOSONAR
-
-            totalPagesLocal = data?.page?.totalPages || 1; //NOSONAR
-            currentPageIndex += 1; //NOSONAR
-        } while (currentPageIndex < totalPagesLocal); //NOSONAR
-
-        setAllCards(combinedCards); //NOSONAR
-        setAllCardsLoaded(true); //NOSONAR
-
-        return combinedCards; //NOSONAR
-    } catch (err) { //NOSONAR
-        console.error("Error fetching all cards:", err); //NOSONAR
-
-        setError(`Ошибка при загрузке карточек: ${err.message}`); //NOSONAR
-        setAllCards([]); //NOSONAR
-        setAllCardsLoaded(true); //NOSONAR
-
-        return []; //NOSONAR
-    } //NOSONAR
-}, [userRole, username, buildTeamCardFilters, getTeamCardsEndpoint]); //NOSONAR
 
  // ✅ streamName в зависимости
 
@@ -425,53 +376,20 @@ const options = {
 }, [backendHost, userRole]);
 
 
-    const normalizedSearchQuery = searchQuery?.trim().toLowerCase();
-    const filteredCards = normalizedSearchQuery
-        ? (allCardsLoaded
-            ? allCards.filter((card) => {
-                const cardName = card.name?.toString().toLowerCase();
-                return cardName?.includes(normalizedSearchQuery);
-            })
-            : cards.filter((card) => {
-                const cardName = card.name?.toString().toLowerCase();
-                return cardName?.includes(normalizedSearchQuery);
-            })
-        )
-        : cards;
-
-    const totalPagesToUse = normalizedSearchQuery
-        ? Math.max(1, Math.ceil(filteredCards.length / pageSize))
-        : totalPages;
-
-    const visibleCards = normalizedSearchQuery
-        ? filteredCards.slice(page * pageSize, (page + 1) * pageSize)
-        : filteredCards;
-
-    useEffect(() => {
-        if (!normalizedSearchQuery) {
-            setAllCards([]);
-            setAllCardsLoaded(false);
-            return;
-        }
-
-        if (userRole && username) {
-            setPage(0);
-            fetchAllCards(currentFilters, searchParams);
-        }
-    }, [normalizedSearchQuery, currentFilters, userRole, username, searchParams, fetchAllCards]);
-
-    useEffect(() => {
-        if (normalizedSearchQuery && page >= totalPagesToUse) {
-            setPage(Math.max(0, totalPagesToUse - 1));
-        }
-    }, [normalizedSearchQuery, page, totalPagesToUse]);
+    const filteredCards = cards;
+    const totalPagesToUse = totalPages;
+    const visibleCards = cards;
 
     const handleShowMore = () => {
-        setPage((prev) => prev + 1)
+        if (page + 1 < totalPagesToUse) {
+            setPage((prev) => prev + 1);
+        }
     };
 
     const handleShowPrevious = () => {
-        setPage((prev) => Math.max(prev - 1, 0))
+        if (page > 0) {
+            setPage((prev) => prev - 1);
+        }
     };
 
     const handleSearchChange = (e) => {
@@ -525,10 +443,7 @@ const options = {
         console.log("Applying filters:", filters);
         setCurrentFilters(filters);
         setCards([]);     // сброс перед новым поиском/фильтром
-        setAllCards([]);
-        setAllCardsLoaded(false);
         setPage(0);
-        fetchCards(filters);
         setIsVisible(false);
     };
 
@@ -539,10 +454,7 @@ const options = {
         setSelectedNtiMarkets([]);
         setSelectedStreams([]);
         setSearchQuery("");
-        setAllCards([]);
-        setAllCardsLoaded(false);
         setPage(0);
-        fetchCards([]);
         setIsVisible(false);
         setSelectedYears([]);
 
@@ -566,6 +478,12 @@ const options = {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
 }, [userRole, username, streamName, fetchCards, searchParams]);
+    // Добавить этот useEffect для перезагрузки карточек при изменении страницы
+    useEffect(() => {
+        if (userRole && username && streamName) {
+            fetchCards(currentFilters, searchParams);
+        }
+    }, [page]);
 
     return (
         <div className="tracker-container">
