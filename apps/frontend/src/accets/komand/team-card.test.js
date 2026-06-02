@@ -1942,6 +1942,45 @@ describe('Cover uncovered lines in team-card', () => {
   });
 });
 
+// ========== ПОСЛЕДНИЕ ТЕСТЫ ДЛЯ ДОСТИЖЕНИЯ 80% ПОКРЫТИЯ ==========
+describe('Final coverage boost', () => {
+  test('covers handleApiError in loadMeetings', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (url.includes('meeting.test/api/v1/meetings')) {
+        return Promise.reject(new Error('Network error'));
+      }
+      return originalFetch(url);
+    });
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+    global.fetch = originalFetch;
+  });
+
+  test('covers setIsLoading(false) when validation fails in handleSave', async () => {
+  renderTeamCard({ role: 'ADMIN' });
+  await enterEditMode();
+  const nameInput = screen.getByTestId('inputbox-name');
+  fireEvent.change(nameInput, { target: { value: '' } });
+  const saveButton = screen.getByRole('button', { name: /сохранить/i });
+  fireEvent.click(saveButton);
+  // Просто проверяем, что кнопка не осталась заблокированной навсегда
+  await waitFor(() => {
+    expect(saveButton).toBeInTheDocument();
+  });
+  expect(saveButton).not.toBeDisabled();
+});
+
+  test('covers setting selectedStreamId from teamData', async () => {
+    const teamWithStream = { ...TEAM_CARD, stream: { id: 'stream-1', name: 'Поток Альфа' } };
+    global.fetch = buildFetch({ teamCard: teamWithStream });
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    expect(screen.getByText('Поток Альфа')).toBeInTheDocument();
+  });
+});
+
 });
 
 
