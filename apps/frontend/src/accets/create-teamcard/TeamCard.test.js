@@ -927,6 +927,94 @@ describe('Final coverage for team-card-create.js', () => {
 
 });
 
+// ========== ПОКРЫТИЕ ПОСЛЕДНИХ НЕПОКРЫТЫХ СТРОК ==========
+describe('Final missing coverage for create', () => {
+  test('covers streams fetch error', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams?page=0')) {
+        return Promise.reject(new Error('Streams error'));
+      }
+      if (url.includes('/account/info')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ roles: [], fullName: 'User' }) });
+      }
+      if (url.includes('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByText(/Ошибка при загрузке потоков/i)).toBeInTheDocument();
+    });
+  });
+
+  test('covers nti-markets fetch error', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams/nti-markets')) {
+        return Promise.reject(new Error('Markets error'));
+      }
+      if (url.includes('/account/info')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ roles: [], fullName: 'User' }) });
+      }
+      if (url.includes('/streams?page=0')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByText(/Ошибка при загрузке рынков НТИ/i)).toBeInTheDocument();
+    });
+  });
+
+  test('covers setError("") after creating error and clicking error button', async () => {
+    renderComponent();
+    const createBtn = await screen.findByText(/Создать/i);
+    fireEvent.click(createBtn);
+    await waitFor(() => {
+      expect(screen.getByText(/Название команды обязательно/i)).toBeInTheDocument();
+    });
+    const errorButton = screen.getByText(/Название команды обязательно/i);
+    fireEvent.click(errorButton);
+    await waitFor(() => {
+      expect(screen.queryByText(/Название команды обязательно/i)).not.toBeInTheDocument();
+    });
+  });
+
+  test('covers handleMarketSelect when selecting more than 3 markets', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([
+          { id: 1, displayName: 'Market 1' },
+          { id: 2, displayName: 'Market 2' },
+          { id: 3, displayName: 'Market 3' },
+          { id: 4, displayName: 'Market 4' },
+        ]) });
+      }
+      if (url.includes('/account/info')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ roles: [], fullName: 'User' }) });
+      }
+      if (url.includes('/streams?page=0')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Введите название команды/i)).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText(/Рынки НТИ/i, { selector: '.create-dropdown-toggle' }));
+    const checkboxes = await screen.findAllByRole('checkbox');
+    // Выбираем 4 рынка
+    for (let i = 0; i < 4 && i < checkboxes.length; i++) {
+      fireEvent.click(checkboxes[i]);
+    }
+    await waitFor(() => {
+      expect(screen.getByText(/Нельзя выбрать более 3-х/i)).toBeInTheDocument();
+    });
+  });
+});
+
 
 });
 
