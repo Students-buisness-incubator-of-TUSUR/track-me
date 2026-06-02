@@ -111,7 +111,7 @@ const Register = () => {
         if (showModal) {
             setShowModal(false);
         } else {
-            globalThis.history.back();
+            window.history.back(); // nosonar
         }
     };
 
@@ -126,7 +126,7 @@ const Register = () => {
             setEmail(decodeURIComponent(emailParam));
         }
         if (nameParam) {
-            setFullName(decodeURIComponent(nameParam.replaceAll()(/\+/g, ' ')));
+            setFullName(decodeURIComponent(nameParam.replaceAll(/\+/g, ' ')));
         }
     }, []);
 

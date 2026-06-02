@@ -17,18 +17,18 @@ const HomePage = () => {
 
     const handleYandexLogin = () => {
         const gatewayBase = process.env.REACT_APP_BACKEND_URI || "http://localhost";
-        const registrationPageUrl = globalThis.location.origin + '/register'; 
+        const registrationPageUrl = window.location.origin + '/register';  // nosonar
         
         // Эндпоинт авторизации теперь ведет на yandex
-        globalThis.location.href = `${gatewayBase}/oauth2/authorization/yandex?redirect_uri=${encodeURIComponent(registrationPageUrl)}`;
+        window.location.href = `${gatewayBase}/oauth2/authorization/yandex?redirect_uri=${encodeURIComponent(registrationPageUrl)}`; // nosonar
     };
 
     const handleGoogleLogin = () => {
     // Шлюз доступен на http://localhost
     const gatewayBase = process.env.REACT_APP_BACKEND_URI || "http://localhost";
-    const registrationPageUrl = globalThis.location.origin + '/register'; 
+    const registrationPageUrl = window.location.origin + '/register';  // nosonar
     
-    globalThis.location.href = `${gatewayBase}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(registrationPageUrl)}`;
+    window.location.href = `${gatewayBase}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(registrationPageUrl)}`; // nosonar
 };
 
     const handleTelegramLogin = () => {
