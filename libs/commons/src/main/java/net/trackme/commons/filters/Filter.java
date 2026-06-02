@@ -92,8 +92,14 @@ public record Filter(
             case LESS_THAN -> createComparisonPredicate(cb, fieldPath, first, fieldType, ComparisonType.LESS);
             case LESS_THAN_OR_EQUAL ->
                     createComparisonPredicate(cb, fieldPath, first, fieldType, ComparisonType.LESS_OR_EQUAL);
-            case LIKE -> cb.like(fieldPath.as(String.class), "%" + first + "%");
-            case NOT_LIKE -> cb.notLike(fieldPath.as(String.class), "%" + first + "%");
+            case LIKE -> cb.like(
+                    cb.lower(fieldPath.as(String.class)),
+                    "%" + first.toLowerCase() + "%"
+            );
+            case NOT_LIKE -> cb.notLike(
+                    cb.lower(fieldPath.as(String.class)),
+                    "%" + first.toLowerCase() + "%"
+            );
             case IS_NULL -> cb.isNull(fieldPath);
             case IS_NOT_NULL -> cb.isNotNull(fieldPath);
         };
