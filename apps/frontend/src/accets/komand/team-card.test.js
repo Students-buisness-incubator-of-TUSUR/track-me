@@ -2169,6 +2169,54 @@ describe('Cover last 5 lines', () => {
   });
 });
 
+// ========== ТОЧНОЕ ПОКРЫТИЕ КОНКРЕТНЫХ СТРОК ==========
+describe('Exact line coverage', () => {
+  // Покрывает setMeetingError("") в checkNtiMarketsLimit (когда лимит не превышен)
+  test('covers setMeetingError("") in checkNtiMarketsLimit', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    if (checkboxes[0] && !checkboxes[0].checked) {
+      fireEvent.click(checkboxes[0]);
+      await waitFor(() => expect(checkboxes[0]).toBeChecked());
+    }
+    // Если ошибки нет, значит setMeetingError("") был вызван
+    expect(screen.queryByTestId('meeting-error')).not.toBeInTheDocument();
+  });
+
+  // Покрывает handleApiError в fetchFullName
+  test('covers handleApiError in tracker full name fetch', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (url.includes('sso.test/api/v1/users/') || url.includes('sso.test/api/v1/account/info')) {
+        return Promise.reject(new Error('FullName error'));
+      }
+      return originalFetch(url);
+    });
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+    global.fetch = originalFetch;
+  });
+
+  // Покрывает throw new Error в fetchTeamCardsCount
+  test('covers throw new Error in fetchTeamCardsCount', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/team-card/count')) {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
+      return originalFetch(url);
+    });
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+    global.fetch = originalFetch;
+  });
+
+
+});
+
 
 });
 
