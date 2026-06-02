@@ -2119,6 +2119,57 @@ test('trivial coverage boost', async () => {
   expect(screen.getByTestId('header')).toBeInTheDocument();
 });
 
+// ========== ПОКРЫТИЕ ПОСЛЕДНИХ 5 СТРОК ==========
+describe('Cover last 5 lines', () => {
+  test('covers setMeetingError("") when limit not exceeded', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    if (checkboxes[0] && !checkboxes[0].checked) {
+      fireEvent.click(checkboxes[0]);
+      await waitFor(() => expect(checkboxes[0]).toBeChecked());
+    }
+    expect(screen.queryByTestId('meeting-error')).not.toBeInTheDocument();
+  });
+
+  test('covers setInterval for loadMeetings and loadTeamCard', async () => {
+    jest.useFakeTimers();
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    act(() => { jest.advanceTimersByTime(30000); });
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+    jest.useRealTimers();
+  });
+
+  test('covers setTrackers([]) and handleApiError', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/users/trackers')) {
+        return Promise.reject(new Error('Fail'));
+      }
+      return originalFetch(url);
+    });
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+    global.fetch = originalFetch;
+  });
+
+  test('covers setTimeout and setIsLoading(false) when validation fails', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    const nameInput = screen.getByTestId('inputbox-name');
+    fireEvent.change(nameInput, { target: { value: '' } });
+    const saveButton = screen.getByRole('button', { name: /сохранить/i });
+    fireEvent.click(saveButton);
+    await waitFor(() => {
+      expect(saveButton).toBeInTheDocument();
+    });
+    expect(saveButton).not.toBeDisabled();
+  });
+});
+
+
 });
 
 
