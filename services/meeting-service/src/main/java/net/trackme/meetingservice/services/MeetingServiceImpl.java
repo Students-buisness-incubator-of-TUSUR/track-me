@@ -3,6 +3,7 @@ package net.trackme.meetingservice.services;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import static java.util.stream.Collectors.toSet;
 
@@ -236,6 +237,7 @@ public class MeetingServiceImpl implements MeetingService {
         }
 
         var oldStatus = meeting.getStatus();
+        var oldTeamStatus = meeting.getTeamStatus(); // ДОБАВЛЕНО
 
         // Сохраняем старое значение ДО обновления
         String oldTasksNext = meeting.getTasksNextMeeting();
@@ -269,11 +271,13 @@ public class MeetingServiceImpl implements MeetingService {
 
         recalculateTasksChain(teamCardId);
 
-        if (oldStatus != meeting.getStatus()) {
-            sendMeetingUpdatedEvent(savedMeeting, oldStatus);
-        }
+       // ИЗМЕНЕНО: отправляем событие при изменении статуса ИЛИ teamStatus
+if (oldStatus != meeting.getStatus()
+        || !Objects.equals(oldTeamStatus, meeting.getTeamStatus())) {
+    sendMeetingUpdatedEvent(savedMeeting, oldStatus);
+}
 
-        return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
+return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
     }
 
     @Override

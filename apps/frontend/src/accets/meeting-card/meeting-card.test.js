@@ -3394,7 +3394,130 @@ describe('handlePasteImage functionality', () => {
     }, { timeout: 3000 });
   });
 });
+
+// ========== ТЕСТЫ ДЛЯ СЕЛЕКТА СТАТУСА ВСТРЕЧИ ==========
+describe('Super admin meeting status select', () => {
+  const getStoreWithRole = (role) => createStore(() => ({ user: { user: { roles: [role] } } }));
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    mockUseLocation.mockReturnValue({ search: '?teamId=team123&userId=user123' });
+    global.fetch = jest.fn();
+    global.URL.createObjectURL = jest.fn(() => 'mock-image-url');
+    mockValidateMeetingWeekLimit.mockReturnValue({ isValid: true, errorMessage: '' });
+    mockValidateMeetingDateChange.mockReturnValue({ isValid: true, errorMessage: '' });
+  });
+
+  test('super admin sees status select when editing completed meeting', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'completed-123' });
+    const meetingData = {
+      id: 'completed-123',
+      number: '5',
+      startDate: new Date().toISOString(),
+      status: 'COMPLETED',
+      tasksCurrentMeeting: 'Tasks',
+      tasksNextMeeting: 'Next',
+      teamStatus: 'OK',
+      recordLink: 'http://example.com',
+      roomLink: ''
+    };
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: [meetingData] }) })
+      .mockRejectedValueOnce(new Error('no image'));
+    render(
+      <Provider store={getStoreWithRole('SUPER_ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/completed-123?teamId=team123']}>
+          <Routes><Route path="/meeting/:meetingId" element={<MeetingCard />} /></Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+    await waitFor(() => expect(screen.getByText(/Встреча 5/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Редактировать'));
+    await waitFor(() => expect(screen.getByText('Сохранить')).toBeInTheDocument());
+    const statusSelect = screen.getByRole('combobox');
+    expect(statusSelect).toBeInTheDocument();
+    expect(statusSelect).toHaveValue('COMPLETED');
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(2);
+    expect(options[0]).toHaveValue('COMPLETED');
+    expect(options[1]).toHaveValue('COMPLETED_AS_NOT_HAPPENED');
+  });
+
+  test('super admin can change meeting status via select and save', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'status-change-123' });
+    const meetingData = {
+      id: 'status-change-123',
+      number: '7',
+      startDate: new Date().toISOString(),
+      status: 'COMPLETED',
+      tasksCurrentMeeting: 'Tasks',
+      tasksNextMeeting: 'Next',
+      teamStatus: 'OK',
+      recordLink: 'http://example.com',
+      roomLink: ''
+    };
+    let patchCalled = false;
+    let fetchCall = 0;
+    global.fetch.mockImplementation(() => {
+      fetchCall++;
+      if (fetchCall === 1) return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [meetingData] }) });
+      if (fetchCall === 2) return Promise.reject(new Error('no image'));
+      if (fetchCall === 3) {
+        return Promise.resolve({ ok: true, json: () => { patchCalled = true; return Promise.resolve({ ...meetingData, status: 'COMPLETED_AS_NOT_HAPPENED' }); } });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [] }) });
+    });
+    render(
+      <Provider store={getStoreWithRole('SUPER_ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/status-change-123?teamId=team123&userId=user123']}>
+          <Routes><Route path="/meeting/:meetingId" element={<MeetingCard />} /></Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+    await waitFor(() => expect(screen.getByText(/Встреча 7/i)).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Редактировать'));
+    await waitFor(() => expect(screen.getByText('Сохранить')).toBeInTheDocument());
+    const statusSelect = screen.getByRole('combobox');
+    expect(statusSelect).toHaveValue('COMPLETED');
+    fireEvent.change(statusSelect, { target: { value: 'COMPLETED_AS_NOT_HAPPENED' } });
+    fireEvent.click(screen.getByText('Сохранить'));
+    await waitFor(() => expect(patchCalled).toBe(true), { timeout: 5000 });
+  });
+
+  test('regular admin does not see status select', async () => {
+    mockUseParams.mockReturnValue({ meetingId: 'admin-no-select' });
+    const meetingData = {
+      id: 'admin-no-select',
+      number: '8',
+      startDate: new Date().toISOString(),
+      status: 'COMPLETED',
+      tasksCurrentMeeting: 'Tasks',
+      tasksNextMeeting: 'Next',
+      teamStatus: 'OK',
+      recordLink: 'http://example.com',
+      roomLink: ''
+    };
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ content: [meetingData] }) })
+      .mockRejectedValueOnce(new Error('no image'));
+    render(
+      <Provider store={getStoreWithRole('ADMIN')}>
+        <MemoryRouter initialEntries={['/meeting/admin-no-select?teamId=team123']}>
+          <Routes><Route path="/meeting/:meetingId" element={<MeetingCard />} /></Routes>
+        </MemoryRouter>
+      </Provider>
+    );
+    await waitFor(() => expect(screen.getByText(/Встреча 8/i)).toBeInTheDocument());
+    const editButton = screen.getByText('Редактировать');
+    expect(editButton).toBeDisabled();
+    const statusSelect = document.querySelector('select');
+    expect(statusSelect).not.toBeInTheDocument();
+  });
+
 });
+
+});
+
 
 
 

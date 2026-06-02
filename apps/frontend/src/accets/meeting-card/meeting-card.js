@@ -53,9 +53,6 @@ const MeetingCard = () => {
     const [role, setRole] = useState(null);
 
     // Статусы, которые суперадминистратор может редактировать
-    //const EDITABLE_BY_SUPER_ADMIN_STATUSES = new Set(["COMPLETED", "COMPLETED_AS_NOT_HAPPENED"]); 
-    
-    //const EDITABLE_BY_SUPER_ADMIN_STATUSES = new Set(["FINALLY_COMPLETED", "COMPLETED_AS_NOT_HAPPENED"]);
     const EDITABLE_BY_SUPER_ADMIN_STATUSES = new Set(["FINALLY_COMPLETED", "COMPLETED_AS_NOT_HAPPENED", "COMPLETED"]);
     
     const canEdit = () => {
@@ -70,8 +67,6 @@ const MeetingCard = () => {
     };
 
     const isMeetingLocked = !canEdit();
-
-    
 
     const renderTextareaSection = (name, label, value) => (
         <div className="unique-meeting-info-row">
@@ -675,6 +670,23 @@ const MeetingCard = () => {
                         </div>
                     )}
                 </div>
+
+                {/* НОВЫЙ БЛОК: изменение статуса встречи суперадминистратором */}
+                {isEditing && role === "SUPER_ADMIN" && (
+                    <div className="unique-meeting-info-row">
+                        <span className="unique-label">Статус встречи:</span>
+                        <select
+                            value={meetingData.status}
+                            onChange={(e) => setMeetingData(prev => ({ ...prev, status: e.target.value }))}
+                            className="unique-select"
+                            disabled={isMeetingLocked}
+                        >
+                            <option value="COMPLETED">Состоялась</option>
+                            <option value="COMPLETED_AS_NOT_HAPPENED">Не состоялась</option>
+                        </select>
+                        <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
+                    </div>
+                )}
 
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Скриншот встречи:</span>

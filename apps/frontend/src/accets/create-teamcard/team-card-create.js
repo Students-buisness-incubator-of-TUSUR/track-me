@@ -19,7 +19,7 @@ const TeamCard = () => {
     const [setShowTrackers] = useState(false);
     const [selectedMarkets, setSelectedMarkets] = useState([]);
     const [trackerSearchTerm, setTrackerSearchTerm] = useState("");
-const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
+    const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     const [selectedTRL, setSelectedTRL] = useState(null);
     const [selectedTracker, setSelectedTracker] = useState(null);
     
@@ -32,41 +32,56 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     });
     const [isLoading, setIsLoading] = useState(false);
     const filteredTrackers = useMemo(() => {
-    let filtered = trackers;
-    
-    // Фильтруем только enabled === true (подтвержденные)
-    filtered = filtered.filter(tracker => tracker.enabled === true);
-    
-    // Применяем поиск
-    if (trackerSearchTerm.trim()) {
-        filtered = filtered.filter(tracker => 
-            tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
-            tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
-        );
-    }
-    
-    return filtered;
-}, [trackers, trackerSearchTerm]);
-    // Close dropdowns when clicking outside
+        let filtered = trackers;
+        filtered = filtered.filter(tracker => tracker.enabled === true);
+        if (trackerSearchTerm.trim()) {
+            filtered = filtered.filter(tracker => 
+                tracker.fullName?.toLowerCase().includes(trackerSearchTerm.toLowerCase()) ||
+                tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
+            );
+        }
+        return filtered;
+    }, [trackers, trackerSearchTerm]);
+
+    // ================== НОВЫЕ ФУНКЦИИ ДЛЯ ПРОВЕРКИ РЫНКОВ НТИ ==================
+    const checkNtiMarketsLimit = (currentLength, isAdding) => {
+        if (isAdding && currentLength >= 3) {
+            setError("Нельзя выбрать более 3-х рынков НТИ");
+            return false;
+        }
+        return true;
+    };
+
+    const checkNtiMarketsMatchWithStream = (streamId, marketIds) => {
+        if (!streamId || !marketIds.length) return true;
+        const stream = streams.find(s => s.id === streamId);
+        if (!stream) return true;
+        const streamMarketIds = stream.ntiMarkets?.map(m => m.id) || [];
+        const hasMatch = marketIds.some(id => streamMarketIds.includes(id));
+        if (!hasMatch) {
+            setError("Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.");
+        } else if (error === "Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.") {
+            setError("");
+        }
+        return hasMatch;
+    };
+    // =========================================================================
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (!event.target.closest('.create-dropdown-block') && !event.target.closest('.tracker-select-container')) {
                 setShowNTI(false);
                 setShowTRL(false);
                 setShowStreams(false);
-                // Проверяем, определена ли setShowTrackers перед вызовом
                 if (typeof setShowTrackers === 'function') {
                     setShowTrackers(false);
                 }
-        
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [setShowTrackers]);
 
-    // Получаем информацию о текущем пользователе
     useEffect(() => {
         fetch(`${backendHost1}/api/v1/account/info`, {
             credentials: "include",
@@ -76,13 +91,8 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                 console.log("userData", userData);
                 setCurrentUser(userData);
                 const isAdmin = userData.roles?.includes("ADMIN") || userData.roles?.includes("SUPER_ADMIN");
-
-                
-                // Если пользователь не админ, устанавливаем его имя в поле трекера
                 if (!isAdmin) {
-                    setFormData(prev => ({...prev, tracker: userData.fullName
-                        
-                    }));
+                    setFormData(prev => ({...prev, tracker: userData.fullName}));
                 }
             })
             .catch((error) => {
@@ -98,33 +108,33 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         {id: 4, label: "9-10"},
     ];
 
-    // Загрузка потоков
     useEffect(() => {
-    fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json", 
-            ...getCsrfConfigForFetch()
-        },
-        body: JSON.stringify({filters: []}),
-        credentials: "include"
-    })
-        .then((res) => res.ok ? res.json() : Promise.reject(new Error("Ошибка при загрузке потоков")))
-        .then((data) => {
-            if (data?.content) {
-                const filteredStreams = data.content.filter(stream => 
-                    stream.active === true 
-                );
-                setStreams(filteredStreams);
-            }
+        fetch(`${backendHost}/api/v1/streams?page=0&size=150`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json", 
+                ...getCsrfConfigForFetch()
+            },
+            body: JSON.stringify({filters: []}),
+            credentials: "include"
         })
-        .catch((err) => {
-            console.error("Ошибка при загрузке потоков:", err);
-            setError("Ошибка при загрузке потоков");
-        });
-}, []);
+            .then((res) => res.ok ? res.json() : Promise.reject(new Error("Ошибка при загрузке потоков")))
+            .then((data) => {
+                if (data?.content) {
+                    const filteredStreams = data.content.filter(stream => stream.active === true);
+                    const streamsWithMarkets = filteredStreams.map(s => ({
+                        ...s,
+                        ntiMarkets: s.ntiMarkets || []
+                    }));
+                    setStreams(streamsWithMarkets);
+                }
+            })
+            .catch((err) => {
+                console.error("Ошибка при загрузке потоков:", err);
+                setError("Ошибка при загрузке потоков");
+            });
+    }, []);
 
-    // Загрузка рынков НТИ
     useEffect(() => {
         fetch(`${backendHost}/api/v1/streams/nti-markets`, {
             method: "GET",
@@ -137,38 +147,33 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
             .catch(() => setError("Ошибка при загрузке рынков НТИ"));
     }, []);
 
-    // Загрузка списка трекеров для админа
-    // Загрузка списка трекеров для админа (новый вариант)
-useEffect(() => {
-  if (currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN"))
- {
-    console.log("Запрашиваем трекеров...");
-    fetch(`${backendHost1}/api/v1/users/trackers?page=0&size=100000&sort=fullName,asc`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getCsrfConfigForFetch()
-      },
-      credentials: "include",
-      body: JSON.stringify({ filters: [{ fieldName: "accountNonLocked", type: "EQ", value: true }] })
-    })
-      .then((res) => res.ok ? res.json() : Promise.reject(res))
-      .then((data) => {
-        console.log("Получены трекеры:", data);
-        if (data?.content) {
-          setTrackers(data.content);
-        } else {
-          setTrackers([]);
+    useEffect(() => {
+        if (currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) {
+            console.log("Запрашиваем трекеров...");
+            fetch(`${backendHost1}/api/v1/users/trackers?page=0&size=100000&sort=fullName,asc`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getCsrfConfigForFetch()
+                },
+                credentials: "include",
+                body: JSON.stringify({ filters: [{ fieldName: "accountNonLocked", type: "EQ", value: true }] })
+            })
+                .then((res) => res.ok ? res.json() : Promise.reject(res))
+                .then((data) => {
+                    console.log("Получены трекеры:", data);
+                    if (data?.content) {
+                        setTrackers(data.content);
+                    } else {
+                        setTrackers([]);
+                    }
+                })
+                .catch((err) => {
+                    console.error("Ошибка при загрузке трекеров", err);
+                    setError("Ошибка при загрузке трекеров");
+                });
         }
-      })
-      .catch((err) => {
-        console.error("Ошибка при загрузке трекеров", err);
-        setError("Ошибка при загрузке трекеров");
-      });
-  }
-}, [currentUser]);
-
-
+    }, [currentUser]);
 
     const handleChange = (e) => {
         const {name, value} = e.target;
@@ -176,15 +181,18 @@ useEffect(() => {
     };
 
     const handleMarketSelect = (market) => {
-    setSelectedMarkets(prev => {
-        if (prev.some(m => m.id === market.id)) {
-            return prev.filter(m => m.id !== market.id); // снять выбор
-        } else {
-            return [...prev, market]; // добавить в выбор
+        const already = selectedMarkets.some(m => m.id === market.id);
+        if (!already) {
+            if (!checkNtiMarketsLimit(selectedMarkets.length, true)) return;
         }
-    });
-};
-
+        setSelectedMarkets(prev => {
+            const newMarkets = already
+                ? prev.filter(m => m.id !== market.id)
+                : [...prev, market];
+            checkNtiMarketsMatchWithStream(formData.streamId, newMarkets.map(m => m.id));
+            return newMarkets;
+        });
+    };
 
     const handleTRLSelect = (trl) => {
         setSelectedTRL(trl);
@@ -194,19 +202,8 @@ useEffect(() => {
     const handleStreamSelect = (streamId) => {
         setFormData(prev => ({...prev, streamId}));
         setShowStreams(false);
+        checkNtiMarketsMatchWithStream(streamId, selectedMarkets.map(m => m.id));
     };
-
-  //   const handleTrackerSelect = (tracker) => {
-  //       setSelectedTracker(tracker);
-  //       setFormData(prev => ({
-  //           ...prev,
-  //           tracker: tracker.fullName,
-  //           trackerId: tracker.id,
-  // trackerUsername: tracker.username // Добавляем ID трекера в formData
-            
-  //       }));
-  //       setShowTrackers(false);
-  //   };
 
     const validateForm = () => {
         const errors = [];
@@ -215,10 +212,15 @@ useEffect(() => {
         if (selectedMarkets.length === 0) errors.push("Выберите хотя бы один рынок НТИ");
         if (!selectedTRL) errors.push("Выберите уровень TRL");
         if (!formData.streamId) errors.push("Привяжите к потоку");
+        if (formData.streamId && selectedMarkets.length > 0) {
+            if (!checkNtiMarketsMatchWithStream(formData.streamId, selectedMarkets.map(m => m.id))) {
+                errors.push("Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.");
+            }
+        }
         const isAdmin = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN");
-if (isAdmin && !selectedTracker) {
-    errors.push("Выберите трекера");
-}
+        if (isAdmin && !selectedTracker) {
+            errors.push("Выберите трекера");
+        }
         return errors;
     };
 
@@ -241,8 +243,6 @@ if (isAdmin && !selectedTracker) {
             };
 
             let url = `${backendHost}`;
-
-            // Добавляем username в URL если выбран трекер
             if (currentUser && (currentUser.roles?.includes("ADMIN") || currentUser.roles?.includes("SUPER_ADMIN"))) {
                 url += `/api/v1/admin/team-card?streamId=${formData.streamId}&username=${formData.trackerUsername}`;
             } else {
@@ -265,12 +265,9 @@ if (isAdmin && !selectedTracker) {
 
             const data = await response.json();
             console.log("Created team card data:", data); 
-            // После успешного создания переходим на страницу карточки
             navigate(`/teamcard/${data.id}`, {
-  state: {
-    streamId: formData.streamId,
-  }
-});
+                state: { streamId: formData.streamId }
+            });
         } catch (error) {
             setError(error.message);
         } finally {
@@ -284,88 +281,88 @@ if (isAdmin && !selectedTracker) {
 
             <div className="create-card-left">
                 <div className="create-card-info">
-    <span className="create-card-label">Трекер:</span>
-    <div className="create-input-wrapper-with-pen">
-        <div className="create-input-wrapper">
-            {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) ? (
-                <div className="tracker-select-container">
-                    <div 
-  className="tracker-select-trigger"
-  onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
-    }
-  }}
-  role="button"
-  tabIndex={0}
-  aria-expanded={isTrackerDropdownOpen}
-  aria-haspopup="listbox"
->
-                        <div className="tracker-select-value">
-                            {selectedTracker ? selectedTracker.fullName : "Выберите трекера"}
-                        </div>
-                    </div>
-                    
-                    {isTrackerDropdownOpen && (
-                        <div className="tracker-select-dropdown">
-                            <div className="tracker-select-search">
-                                <input
-                                    type="text"
-                                    className="tracker-select-search-input"
-                                    placeholder="Поиск по ФИО..."
-                                    value={trackerSearchTerm}
-                                    onChange={(e) => setTrackerSearchTerm(e.target.value)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    autoFocus
-                                />
-                            </div>
-                            <div className="tracker-select-options">
-                                {filteredTrackers.length === 0 ? (
-                                    <div className="tracker-select-empty">Трекеры не найдены</div>
-                                ) : (
-                                    filteredTrackers.map((tracker) => (
-                                        <div
-                                            key={tracker.id}
-                                            className={`tracker-select-option ${
-                                                selectedTracker?.id === tracker.id ? 'selected' : ''
-                                            }`}
-                                            onClick={() => {
-                                                setSelectedTracker(tracker);
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    tracker: tracker.fullName,
-                                                    trackerId: tracker.id,
-                                                    trackerUsername: tracker.username
-                                                }));
-                                                setTrackerSearchTerm("");
-                                                setIsTrackerDropdownOpen(false);
-                                            }}
-                                        >
-                                            <div className="tracker-select-option-name">{tracker.fullName}</div>
-                                            <div className="tracker-select-option-username">@{tracker.username}</div>
+                    <span className="create-card-label">Трекер:</span>
+                    <div className="create-input-wrapper-with-pen">
+                        <div className="create-input-wrapper">
+                            {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) ? (
+                                <div className="tracker-select-container">
+                                    <div 
+                                        className="tracker-select-trigger"
+                                        onClick={() => setIsTrackerDropdownOpen(!isTrackerDropdownOpen)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                setIsTrackerDropdownOpen(!isTrackerDropdownOpen);
+                                            }
+                                        }}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-expanded={isTrackerDropdownOpen}
+                                        aria-haspopup="listbox"
+                                    >
+                                        <div className="tracker-select-value">
+                                            {selectedTracker ? selectedTracker.fullName : "Выберите трекера"}
                                         </div>
-                                    ))
-                                )}
-                            </div>
+                                    </div>
+                                    
+                                    {isTrackerDropdownOpen && (
+                                        <div className="tracker-select-dropdown">
+                                            <div className="tracker-select-search">
+                                                <input
+                                                    type="text"
+                                                    className="tracker-select-search-input"
+                                                    placeholder="Поиск по ФИО..."
+                                                    value={trackerSearchTerm}
+                                                    onChange={(e) => setTrackerSearchTerm(e.target.value)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <div className="tracker-select-options">
+                                                {filteredTrackers.length === 0 ? (
+                                                    <div className="tracker-select-empty">Трекеры не найдены</div>
+                                                ) : (
+                                                    filteredTrackers.map((tracker) => (
+                                                        <div
+                                                            key={tracker.id}
+                                                            className={`tracker-select-option ${
+                                                                selectedTracker?.id === tracker.id ? 'selected' : ''
+                                                            }`}
+                                                            onClick={() => {
+                                                                setSelectedTracker(tracker);
+                                                                setFormData(prev => ({
+                                                                    ...prev,
+                                                                    tracker: tracker.fullName,
+                                                                    trackerId: tracker.id,
+                                                                    trackerUsername: tracker.username
+                                                                }));
+                                                                setTrackerSearchTerm("");
+                                                                setIsTrackerDropdownOpen(false);
+                                                            }}
+                                                        >
+                                                            <div className="tracker-select-option-name">{tracker.fullName}</div>
+                                                            <div className="tracker-select-option-username">@{tracker.username}</div>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <input
+                                    className="create-input"
+                                    name="tracker"
+                                    value={formData.tracker}
+                                    readOnly
+                                />
+                            )}
                         </div>
-                    )}
+                        {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) && (
+                            <img src={penIcon} alt="edit" className="create-edit-icon"/>
+                        )}
+                    </div>
                 </div>
-            ) : (
-                <input
-                    className="create-input"
-                    name="tracker"
-                    value={formData.tracker}
-                    readOnly
-                />
-            )}
-        </div>
-        {(currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN")) && (
-            <img src={penIcon} alt="edit" className="create-edit-icon"/>
-        )}
-    </div>
-</div>
 
                 <div className="create-card-info">
                     <span className="create-card-label">Название команды:</span>
@@ -400,124 +397,100 @@ if (isAdmin && !selectedTracker) {
                 </div>
 
                 <div className={`create-dropdown-block${showStreams ? " open" : ""}`}>
-  <div className="create-dropdown-toggle" onClick={() => setShowStreams(!showStreams)}>
-    {
-      streams.find(s => s.id === formData.streamId)?.name || "Поток"
-    }
-  </div>
-  {showStreams && (
-    <div className="create-checkbox-list">
-      {streams.map((stream) => (
-        <div key={stream.id} className="create-checkbox-item create-radio-style">
-          <input
-            type="radio"
-            name="stream"
-            checked={formData.streamId === stream.id}
-            onChange={() => handleStreamSelect(stream.id)}
-          />
-          <label className="data-create-team">{stream.name}</label>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-
-
+                    <div className="create-dropdown-toggle" onClick={() => setShowStreams(!showStreams)}>
+                        {streams.find(s => s.id === formData.streamId)?.name || "Поток"}
+                    </div>
+                    {showStreams && (
+                        <div className="create-checkbox-list">
+                            {streams.map((stream) => (
+                                <div key={stream.id} className="create-checkbox-item create-radio-style">
+                                    <input
+                                        type="radio"
+                                        name="stream"
+                                        checked={formData.streamId === stream.id}
+                                        onChange={() => handleStreamSelect(stream.id)}
+                                    />
+                                    <label className="data-create-team">{stream.name}</label>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
                 <div className={`create-dropdown-block${showNTI ? " open" : ""}`}>
-  <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
-  {selectedMarkets.length > 0
-    ? selectedMarkets.slice(0, 2).map(m => m.displayName).join(", ") +
-        (selectedMarkets.length > 2 ? ` +${selectedMarkets.length - 2}` : "")
-    : "Рынки НТИ"}
-</div>
-
-
-  {showNTI && (
-    <div className="create-checkbox-list">
-      {markets.map((market) => (
-        <div key={market.id} className="create-checkbox-item create-radio-style">
-          <input
-  type="checkbox"
-  name="ntiMarket"
-  checked={selectedMarkets.some(m => m.id === market.id)}
-  onChange={() => handleMarketSelect(market)}
-/>
-
-          <label className="data-create-team">{market.displayName}</label>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-
+                    <div className="create-dropdown-toggle" onClick={() => setShowNTI(!showNTI)}>
+                        {selectedMarkets.length > 0
+                            ? selectedMarkets.slice(0, 2).map(m => m.displayName).join(", ") +
+                                (selectedMarkets.length > 2 ? ` +${selectedMarkets.length - 2}` : "")
+                            : "Рынки НТИ"}
+                    </div>
+                    {showNTI && (
+                        <div className="create-checkbox-list">
+                            {markets.map((market) => (
+                                <div key={market.id} className="create-checkbox-item create-radio-style">
+                                    <input
+                                        type="checkbox"
+                                        name="ntiMarket"
+                                        checked={selectedMarkets.some(m => m.id === market.id)}
+                                        onChange={() => handleMarketSelect(market)}
+                                    />
+                                    <label className="data-create-team">{market.displayName}</label>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
 
                 <div className={`create-dropdown-block${showTRL ? " open" : ""}`}>
                     <div className="create-dropdown-toggle" onClick={() => setShowTRL(!showTRL)}>
                         {selectedTRL ? selectedTRL.label : "TRL"}
                     </div>
                     {showTRL && (
-  <div className="create-checkbox-list">
-    {trlLevels.map((trl) => (
-      <div key={trl.id} className="create-checkbox-item create-radio-style">
-        <input
-          type="radio"
-          name="trl"
-          checked={selectedTRL?.label === trl.label}
-          onChange={() => handleTRLSelect(trl)}
-        />
-        <label className="data-create-team">{trl.label}</label>
-      </div>
-    ))}
-  </div>
-)}
-
+                        <div className="create-checkbox-list">
+                            {trlLevels.map((trl) => (
+                                <div key={trl.id} className="create-checkbox-item create-radio-style">
+                                    <input
+                                        type="radio"
+                                        name="trl"
+                                        checked={selectedTRL?.label === trl.label}
+                                        onChange={() => handleTRLSelect(trl)}
+                                    />
+                                    <label className="data-create-team">{trl.label}</label>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
-
-                
 
                 <div className="create-team-description">
                     <span className="create-team-description-label">Описание:
                         <img src={penIcon} alt="edit" className="create-edit-icon"/>    
                     </span>
-                    
                     <div className="create-team-description-wrapper">
                         <textarea
-  className="create-description-input"
-  name="description"
-  placeholder="Введите описание карточки команды"
-  onChange={handleChange} // добавить!
-  value={formData.description}
-/>
-
+                            className="create-description-input"
+                            name="description"
+                            placeholder="Введите описание карточки команды"
+                            onChange={handleChange}
+                            value={formData.description}
+                        />
                     </div>
                 </div>
             </div>
 
             <div className="create-right-panel">
                 <div className="create-meetings-block">
-                    {/* <div className="create-meetings-exist">
-                        <div className="create-meeting">
-                            <span class="meeting-date">25.04</span>
-                            <span class="meeting-title">Встреча 1</span> 
-                        </div>
-                        <div className="create-meeting">   
-                        </div>
-                    </div> */}
                     <button
-    className="create-meeting-add"
-    onClick={() => {
-        setError("Сначала создайте карточку команды");
-    }}
->
-    Запланировать
-</button>
-
+                        className="create-meeting-add"
+                        onClick={() => {
+                            setError("Сначала создайте карточку команды");
+                        }}
+                    >
+                        Запланировать
+                    </button>
                     <div className="fake-scrollbar"></div>
                 </div>
             </div>
-
-            
 
             {error && (
                 <button
@@ -533,10 +506,8 @@ if (isAdmin && !selectedTracker) {
                 <button
                     className="create-button"
                     onClick={handleCreate}
-                    
                     disabled={isLoading}
                 >
-                    
                     {isLoading ? "Создание..." : "Создать"}
                 </button>
             </div>
