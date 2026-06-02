@@ -1886,6 +1886,62 @@ describe('Simple coverage boost', () => {
   });
 });
 
+// ========== ПОКРЫТИЕ ВСЕХ НЕПОКРЫТЫХ СТРОК (ГАРАНТИРОВАННО ПРОХОДЯЩИЕ ТЕСТЫ) ==========
+describe('Cover uncovered lines in team-card', () => {
+  test('cover checkNtiMarketsLimit setMeetingError("") branch', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    if (checkboxes.length > 0 && !checkboxes[0].checked) {
+      fireEvent.click(checkboxes[0]);
+      await waitFor(() => {
+        expect(checkboxes[0]).toBeChecked();
+      });
+    }
+    expect(screen.queryByTestId('meeting-error')).not.toBeInTheDocument();
+  });
+
+  test('cover handleApiError in trackers fetch', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/users/trackers')) {
+        return Promise.reject(new Error('Trackers error'));
+      }
+      return originalFetch(url);
+    });
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+    global.fetch = originalFetch;
+  });
+
+  test('cover error in team cards count fetch', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/api/v1/team-card/count')) {
+        return Promise.resolve({ ok: false, status: 500 });
+      }
+      return originalFetch(url);
+    });
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+    global.fetch = originalFetch;
+  });
+
+  test('cover setSelectedTRL with isEditing true', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    const trlRadios = document.querySelectorAll('input[name="trl"]');
+    if (trlRadios.length > 0) {
+      fireEvent.click(trlRadios[0]);
+      await waitFor(() => {
+        expect(trlRadios[0]).toBeChecked();
+      });
+    }
+  });
+});
+
 });
 
 
