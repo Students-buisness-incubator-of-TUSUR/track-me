@@ -1013,6 +1013,7 @@ describe('Final missing coverage for create', () => {
       expect(screen.getByText(/Нельзя выбрать более 3-х/i)).toBeInTheDocument();
     });
   });
+  
 });
 
 
