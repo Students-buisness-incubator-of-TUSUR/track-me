@@ -754,7 +754,183 @@ describe("TeamCard — выбор рынков НТИ", () => {
     });
     */
   });
+
+  // ========== ФИНАЛЬНЫЕ ТЕСТЫ ДЛЯ 80% ПОКРЫТИЯ (team-card-create) ==========
+describe('Final coverage for team-card-create.js', () => {
+  beforeEach(() => {
+    // Обеспечиваем чистые моки для каждого теста
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/account/info')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ roles: [], fullName: 'User' }) });
+      }
+      if (url.includes('/streams?page=0')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: 1, name: 'Stream 1', active: true }] }) });
+      }
+      if (url.includes('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 1, displayName: 'Market 1' }]) });
+      }
+      if (url.includes('/users/trackers')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [] }) });
+      }
+      if (url.includes('/team-card')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 42 }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+  });
+
+  test('covers setError for more than 3 markets', async () => {
+    // Подменяем список рынков на 4
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([
+          { id: 1, displayName: 'Market 1' },
+          { id: 2, displayName: 'Market 2' },
+          { id: 3, displayName: 'Market 3' },
+          { id: 4, displayName: 'Market 4' },
+        ]) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Введите название команды/i)).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Введите название команды/i), { target: { value: 'Team' } });
+    fireEvent.change(screen.getByPlaceholderText(/https:\/\/webinar\.tusur\.ru/i), { target: { value: 'https://link.com' } });
+    fireEvent.click(screen.getByText(/Рынки НТИ/i, { selector: '.create-dropdown-toggle' }));
+    const checkboxes = await screen.findAllByRole('checkbox');
+    // Выбираем 4 рынка
+    for (let i = 0; i < 4 && i < checkboxes.length; i++) {
+      fireEvent.click(checkboxes[i]);
+    }
+    await waitFor(() => {
+      expect(screen.getByText(/Нельзя выбрать более 3-х/i)).toBeInTheDocument();
+    });
+  });
+
+  test('covers error clearing when matching market selected', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams/nti-markets')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve([
+          { id: 1, displayName: 'Market 1' },
+          { id: 2, displayName: 'Market 2' },
+        ]) });
+      }
+      if (url.includes('/streams?page=0')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: 1, name: 'Stream 1', active: true, ntiMarkets: [{ id: 1, displayName: 'Market 1' }] }] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Введите название команды/i)).toBeInTheDocument();
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Введите название команды/i), { target: { value: 'Team' } });
+    fireEvent.change(screen.getByPlaceholderText(/https:\/\/webinar\.tusur\.ru/i), { target: { value: 'https://link.com' } });
+    // Выбрать рынок 2 (не подходит для потока)
+    fireEvent.click(screen.getByText(/Рынки НТИ/i, { selector: '.create-dropdown-toggle' }));
+    const market2 = await screen.findByText(/Market 2/i);
+    const market2Checkbox = market2.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market2Checkbox);
+    // Выбрать поток
+    fireEvent.click(screen.getByText(/Поток/i, { selector: '.create-dropdown-toggle' }));
+    const streamRadio = (await screen.findByText(/Stream 1/i)).closest('.create-checkbox-item').querySelector('input[type="radio"]');
+    fireEvent.click(streamRadio);
+    await waitFor(() => {
+      expect(screen.getByText(/Хотя бы один рынок/i)).toBeInTheDocument();
+    });
+    // Теперь выбрать подходящий рынок 1
+    const market1 = await screen.findByText(/Market 1/i);
+    const market1Checkbox = market1.closest('.create-checkbox-item').querySelector('input[type="checkbox"]');
+    fireEvent.click(market1Checkbox);
+    await waitFor(() => {
+      expect(screen.queryByText(/Хотя бы один рынок/i)).not.toBeInTheDocument();
+    });
+  });
+
+  test('covers streams fetch error', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams?page=0')) {
+        return Promise.reject(new Error('Streams error'));
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByText(/Ошибка при загрузке потоков/i)).toBeInTheDocument();
+    });
+  });
+
+  test('covers nti-markets fetch error', async () => {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/streams/nti-markets')) {
+        return Promise.reject(new Error('Markets error'));
+      }
+      if (url.includes('/account/info')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ roles: [], fullName: 'User' }) });
+      }
+      if (url.includes('/streams?page=0')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+    renderComponent();
+    await waitFor(() => {
+      expect(screen.getByText(/Ошибка при загрузке рынков НТИ/i)).toBeInTheDocument();
+    });
+  });
+
+
+  test('covers close error message click', async () => {
+    renderComponent();
+    fireEvent.click(screen.getByRole('button', { name: /создать/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/Название команды обязательно/i)).toBeInTheDocument();
+    });
+    const errorButton = screen.getByRole('button', { name: /Название команды обязательно/i });
+    fireEvent.click(errorButton);
+    await waitFor(() => {
+      expect(screen.queryByText(/Название команды обязательно/i)).not.toBeInTheDocument();
+    });
+  });
+
+  test('covers keyboard events for tracker dropdown', async () => {
+  global.fetch = jest.fn((url) => {
+    if (url.includes('/account/info')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ roles: ['ADMIN'], fullName: 'Admin' }) });
+    }
+    if (url.includes('/users/trackers')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: 1, fullName: 'Tracker A', username: 'tracker', enabled: true }] }) });
+    }
+    if (url.includes('/streams?page=0')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ content: [{ id: 1, name: 'Stream 1', active: true }] }) });
+    }
+    if (url.includes('/streams/nti-markets')) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([{ id: 1, displayName: 'Market 1' }]) });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+  });
+  renderComponent();
+  await waitFor(() => {
+    expect(screen.getByText(/Выберите трекера/i)).toBeInTheDocument();
+  });
+  const trackerButton = screen.getByText(/Выберите трекера/i);
+  fireEvent.keyDown(trackerButton, { key: 'Enter', code: 'Enter' });
+  await waitFor(() => {
+    expect(screen.getByPlaceholderText(/Поиск по ФИО/i)).toBeInTheDocument();
+  });
+  fireEvent.keyDown(trackerButton, { key: ' ', code: 'Space' });
+  // Проверяем, что контейнер всё ещё в DOM (используем класс)
+  expect(document.querySelector('.create-card-container')).toBeInTheDocument();
 });
+
+});
+
+
+});
+
+
 
 
 
