@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import "./Register.css";
 import LoginAPI from "../../services/login-service";
 import InputBox from "../input-box/InputBox";
-
+import { useSearchParams } from "react-router-dom";
 const Register = () => {
     const basePath = process.env.REACT_APP_BASE_PATH || "";
+    const [searchParams] = useSearchParams();
     const [username, _setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
@@ -116,6 +117,18 @@ const Register = () => {
     };
 
     useEffect(() => {
+        // Читаем параметры из адресной строки браузера
+        const searchParams = new URLSearchParams(window.location.search);
+        const emailParam = searchParams.get('email');
+        const nameParam = searchParams.get('name');
+
+        // Если параметры есть, обновляем соответствующие стейты
+        if (emailParam) {
+            setEmail(decodeURIComponent(emailParam));
+        }
+        if (nameParam) {
+            setFullName(decodeURIComponent(nameParam.replace(/\+/g, ' ')));
+        }
     }, []);
 
     return (
