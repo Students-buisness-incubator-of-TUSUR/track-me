@@ -21,7 +21,7 @@ import org.springframework.security.web.server.authentication.logout.ServerLogou
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import org.springframework.web.util.UriComponentsBuilder;
+
 import java.util.HashMap;
 
 import static org.springframework.http.HttpMethod.OPTIONS;
@@ -133,23 +133,19 @@ public class OAuth2ClientConfiguration {
         this.logoutSuccessHandler = serverLogoutSuccessHandler;
 
         this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
-    var exchange = webFilterExchange.getExchange();
-    
-    // Получаем ID провайдера для определения соцсетей
-    String registrationId = "";
-    if (authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken oauthToken) {
-        registrationId = oauthToken.getAuthorizedClientRegistrationId();
-    }
-    final String finalRegistrationId = registrationId;
+            var exchange = webFilterExchange.getExchange();
+            
+            String registrationId = "";
+            if (authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken oauthToken) {
+                registrationId = oauthToken.getAuthorizedClientRegistrationId();
+            }
+            final String finalRegistrationId = registrationId;
 
-    return exchange.getSession().flatMap(session -> {
-        // 1. Сначала пробуем вытащить URL из сессии (для SSO и возврата на старую страницу)
-        var redirectUri = (String) session.getAttributes().remove(CustomAuthorizationRequestResolver.SESSION_KEY);
+            return exchange.getSession().flatMap(session -> {
+                var redirectUri = (String) session.getAttributes().remove(CustomAuthorizationRequestResolver.SESSION_KEY);
+                String target;
 
-        String target;
-
-        // 2. Если это соцсеть - принудительно шлем на регистрацию
-        if (("yandex".equals(finalRegistrationId) || "google".equals(finalRegistrationId)) 
+                if (("yandex".equals(finalRegistrationId) || "google".equals(finalRegistrationId)) 
                     && authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
                     
                     var attributes = oauth2User.getAttributes();
@@ -170,17 +166,15 @@ public class OAuth2ClientConfiguration {
                             .encode()
                             .build()
                             .toUriString();
-                }else if (redirectUri != null) {
-            target = redirectUri;
-        } 
-        // 4. Иначе - дефолтный адрес из конфига
-        else {
-            target = appProperties.afterLoginUrl();
-        }
+                } else if (redirectUri != null) {
+                    target = redirectUri;
+                } else {
+                    target = appProperties.afterLoginUrl();
+                }
 
-        return new RedirectServerAuthenticationSuccessHandler(target)
-                .onAuthenticationSuccess(webFilterExchange, authentication);
-    });
-};
+                return new org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler(target)
+                        .onAuthenticationSuccess(webFilterExchange, authentication);
+                    });
+        };
     }
 }
