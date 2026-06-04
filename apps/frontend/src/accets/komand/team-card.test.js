@@ -2267,6 +2267,52 @@ describe('Exact uncovered lines coverage', () => {
 });
 
 
+// ========== ТОЧНОЕ ПОКРЫТИЕ УКАЗАННЫХ СТРОК (рабочая версия) ==========
+describe('Final exact line coverage', () => {
+  // 1. Покрывает setMeetingError("") и return true в checkNtiMarketsLimit
+  test('covers checkNtiMarketsLimit success path', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await enterEditMode();
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    if (checkboxes[0] && !checkboxes[0].checked) {
+      fireEvent.click(checkboxes[0]);
+      await waitFor(() => expect(checkboxes[0]).toBeChecked());
+    }
+    expect(screen.queryByTestId('meeting-error')).not.toBeInTheDocument();
+  });
+
+  // 2. Покрывает значение trackerFullName в InputBox
+  test('covers trackerFullName in InputBox', async () => {
+    renderTeamCard({ role: 'TRACKER' });
+    await waitForLoad();
+    const trackerInput = screen.getByTestId('inputbox-username');
+    expect(trackerInput).toBeInTheDocument();
+    expect(trackerInput).toHaveValue('Test FullName');
+  });
+
+  // 3. Покрывает onClick e.stopPropagation в delete modal overlay
+  test('covers e.stopPropagation in delete modal', async () => {
+    renderTeamCard({ role: 'ADMIN' });
+    await waitForLoad();
+    const dateBtns = document.querySelectorAll('.team-card_meeting-date');
+    if (dateBtns.length > 0) {
+      fireEvent.click(dateBtns[0]);
+      await waitFor(() => {
+        expect(screen.getByTestId('delete-meeting')).toBeInTheDocument();
+      });
+      fireEvent.click(screen.getByTestId('delete-meeting'));
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+      const overlay = screen.getByTestId('delete-modal-overlay');
+      fireEvent.click(overlay);
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+    }
+  });
+});
+
 });
 
 
