@@ -364,15 +364,16 @@ const MeetingCard = () => {
     };
 
     const handleCompleteMeeting = async (completed) => {
-        const completeNotReadyMessage = 'Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить';
+        const isSuperAdmin = role === "SUPER_ADMIN";
 
-        if (!isMeetingDatePassed()) {
-            setError(completeNotReadyMessage);
+        // Для суперадминистратора пропускаем проверки даты и заполненности полей
+        if (!isSuperAdmin && !isMeetingDatePassed()) {
+            setError('Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить');
             setTimeout(() => setError(null), 5000);
             return;
         }
 
-        if (completed && !areAllFieldsFilled()) {
+        if (completed && !isSuperAdmin && !areAllFieldsFilled()) {
             setError("Нельзя завершить встречу как состоявшуюся. Заполните все поля.");
             setTimeout(() => setError(null), 5000);
             return;
@@ -566,17 +567,43 @@ const MeetingCard = () => {
                         </button>
                     </div>
 
+                    {/* Блок кнопок статуса встречи - для суперадминистратора в режиме редактирования */}
+                    {isEditing && role === "SUPER_ADMIN" && (
+                        <div className="unique-meeting-status-buttons">
+                            <button
+                                onClick={() => handleCompleteMeeting(true)}
+                                disabled={meetingData.status === "COMPLETED"}
+                                className={`unique-status-button unique-status-completed ${meetingData.status === "COMPLETED" ? "active-status" : ""}`}
+                            >
+                                Состоялась
+                            </button>
+                            <button
+                                onClick={() => handleCompleteMeeting(false)}
+                                disabled={meetingData.status === "COMPLETED_AS_NOT_HAPPENED"}
+                                className={`unique-status-button unique-status-not-happened ${meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : ""}`}
+                            >
+                                Не состоялась
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Блок кнопок статуса для всех в режиме просмотра (кроме суперадминистратора, у которого уже есть в редактировании) */}
                     {!isNewMeeting && !isEditing && (
                         <div className="unique-meeting-status-buttons">
                             {meetingData.status !== "COMPLETED_AS_NOT_HAPPENED" && (
                                 <button
                                     data-testid="complete-meeting-btn"
                                     onClick={() => handleCompleteMeeting(true)}
-                                    disabled={meetingData.status === "COMPLETED" || !areAllFieldsFilled() || !isMeetingDatePassed()}
+                                    disabled={
+                                        meetingData.status === "COMPLETED" ||
+                                        (role !== "SUPER_ADMIN" && (!areAllFieldsFilled() || !isMeetingDatePassed()))
+                                    }
                                     className={`unique-status-button unique-status-completed ${meetingData.status === "COMPLETED" ? "active-status" : ""}`}
                                     title={
-                                        !areAllFieldsFilled() ? "Заполните все поля перед завершением встречи"
-                                            : !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить"
+                                        role !== "SUPER_ADMIN" && !areAllFieldsFilled() 
+                                            ? "Заполните все поля перед завершением встречи"
+                                            : role !== "SUPER_ADMIN" && !isMeetingDatePassed() 
+                                                ? "Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить"
                                                 : ""
                                     }
                                 >
@@ -585,11 +612,23 @@ const MeetingCard = () => {
                             )}
                             {meetingData.status !== "COMPLETED" && (
                                 <button
-                                    onClick={() => { setPendingCompletion(false); setShowConfirmModal(true); }}
-                                    disabled={meetingData.status === "COMPLETED_AS_NOT_HAPPENED" || !isMeetingDatePassed()}
+                                    onClick={() => {
+                                        if (role === "SUPER_ADMIN") {
+                                            handleCompleteMeeting(false);
+                                        } else {
+                                            setPendingCompletion(false);
+                                            setShowConfirmModal(true);
+                                        }
+                                    }}
+                                    disabled={
+                                        meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ||
+                                        (role !== "SUPER_ADMIN" && !isMeetingDatePassed())
+                                    }
                                     className={`unique-status-button unique-status-not-happened ${meetingData.status === "COMPLETED_AS_NOT_HAPPENED" ? "active-status" : ""}`}
                                     title={
-                                        !isMeetingDatePassed() ? "Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить" : ""
+                                        role !== "SUPER_ADMIN" && !isMeetingDatePassed() 
+                                            ? "Плановое время завершения встречи ещё не наступило, поэтому её невозможно завершить" 
+                                            : ""
                                     }
                                 >
                                     Не состоялась
@@ -597,6 +636,7 @@ const MeetingCard = () => {
                             )}
                         </div>
                     )}
+
                 </div>
 
                 <div className="unique-meeting-info-row unique-date-row">
@@ -670,23 +710,6 @@ const MeetingCard = () => {
                         </div>
                     )}
                 </div>
-
-                {/* НОВЫЙ БЛОК: изменение статуса встречи суперадминистратором */}
-                {isEditing && role === "SUPER_ADMIN" && (
-                    <div className="unique-meeting-info-row">
-                        <span className="unique-label">Статус встречи:</span>
-                        <select
-                            value={meetingData.status}
-                            onChange={(e) => setMeetingData(prev => ({ ...prev, status: e.target.value }))}
-                            className="unique-select"
-                            disabled={isMeetingLocked}
-                        >
-                            <option value="COMPLETED">Состоялась</option>
-                            <option value="COMPLETED_AS_NOT_HAPPENED">Не состоялась</option>
-                        </select>
-                        <img src={pencilIcon} alt="Редактировать" className="edit-icon23" />
-                    </div>
-                )}
 
                 <div className="unique-meeting-info-row">
                     <span className="unique-label">Скриншот встречи:</span>
