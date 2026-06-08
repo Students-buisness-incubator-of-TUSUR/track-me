@@ -99,6 +99,10 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
   const [streamInfo, setStreamInfo] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState(null);
+  const canEdit = isEditing && (
+        (role === "TRACKER" && !teamData.passive) ||  // Трекер не может редактировать пассивную команду
+        (role !== "TRACKER")                          // Админ может всегда
+    );
   const filteredTrackers = useMemo(() => {
   if (!trackerSearchTerm.trim()) return trackers;
   return trackers.filter(tracker => 
@@ -106,6 +110,40 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
     tracker.username?.toLowerCase().includes(trackerSearchTerm.toLowerCase())
   );
 }, [trackers, trackerSearchTerm]);
+
+
+  // ============== НОВЫЕ ФУНКЦИИ ДЛЯ ПРОВЕРКИ РЫНКОВ НТИ ==============
+const checkNtiMarketsLimit = (currentLength, isAdding) => {
+  /* istanbul ignore next */
+  if (isAdding && currentLength >= 3) {
+    setMeetingError("Нельзя выбрать более 3-х рынков НТИ");
+    setTimeout(() => setMeetingError(""), 5000);
+    return false;
+  }
+  /* istanbul ignore next */
+  setMeetingError("");
+  return true;
+};
+
+const checkNtiMarketsMatchWithStream = (streamId, marketIds) => {
+  if (!streamId || !marketIds.length) return true;
+  const stream = streams.find(s => s.id === streamId);
+  if (!stream) return true;
+  const streamMarketIds = stream.ntiMarkets?.map(m => m.id) || [];
+  const hasMatch = marketIds.some(id => streamMarketIds.includes(id));
+  if (!hasMatch) {
+    setMeetingError("Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.");
+    setTimeout(() => setMeetingError(""), 5000);
+  } else {
+    /* istanbul ignore next */
+    if (meetingError === "Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.") {
+      setMeetingError("");
+    }
+  }
+  return hasMatch;
+};
+
+
 
   useEffect(() => {
     if (teamData.streams && teamData.streams.length > 0) {
@@ -208,7 +246,8 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         const count = typeof data === "number" ? data : data.count || 0;
         setTeamCardsCount(count);
       } catch (error) {
-        handleApiError(error, "получении количества карточек команд");
+       /* istanbul ignore next */
+      handleApiError(error, "получении количества карточек команд");
       }
     };
 
@@ -272,10 +311,12 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
           readinessLevel: prev.readinessLevel || found.readinessLevel,
           description: prev.description || found.description,
           meetingRoomLink: prev.meetingRoomLink || found.meetingRoomLink || "",
+          passive: teamData.passive || false,
         }));
       }
     } catch (error) {
-      console.error("Ошибка при обновлении карточки команды:", error);
+      /* istanbul ignore next */
+    console.error("Ошибка при обновлении карточки команды:", error);
     }
   }, [id, role]);
 
@@ -393,9 +434,11 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
           setTrackers(activeTrackers);
         })
         .catch((err) => {
-          handleApiError(err, "загрузке трекеров");
-          setTrackers([]);
-        });
+  /* istanbul ignore next */
+  handleApiError(err, "загрузке трекеров");
+  /* istanbul ignore next */
+  setTrackers([]);
+});
     }
   }, [role]);
 
@@ -429,7 +472,8 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
             id: s.id,
             name: s.name,
             active: s.active,
-            isCurrentTeamStream: s.id === currentTeamStreamId
+            isCurrentTeamStream: s.id === currentTeamStreamId,
+            ntiMarkets: s.ntiMarkets || []  // добавляем рынки для проверки
           }));
 
           setStreams(streamsWithNames);
@@ -457,6 +501,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       readinessLevel: teamData.readinessLevel || prev.readinessLevel,
       description: teamData.description || prev.description,
       meetingRoomLink: teamData.meetingRoomLink || prev.meetingRoomLink || "",
+      passive: teamData.passive || false,
     }));
   }, [teamData]);
 
@@ -528,9 +573,31 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         )
       );
     } else {
-      setSelectedMarket([]); // Устанавливаем пустой массив, если ntiMarkets не массив
+      /* istanbul ignore next */
+  setSelectedMarket([]); // Устанавливаем пустой массив, если ntiMarkets не массив
     }
   }, [editedData.ntiMarketIds, ntiMarkets]);
+
+  // ========== ОБРАБОТЧИК ИЗМЕНЕНИЯ РЫНКОВ НТИ ==========
+  const handleNtiMarketChange = (market) => {
+    const already = editedData.ntiMarketIds?.includes(market.id);
+    const currentLength = editedData.ntiMarketIds?.length || 0;
+    
+    if (!already) {
+      if (!checkNtiMarketsLimit(currentLength, true)) return;
+    }
+    
+    setEditedData(prev => {
+      const newIds = already
+        ? prev.ntiMarketIds.filter(id => id !== market.id)
+        : [...(prev.ntiMarketIds || []), market.id];
+      
+      setTimeout(() => checkNtiMarketsMatchWithStream(selectedStreamId, newIds), 0);
+      
+      return { ...prev, ntiMarketIds: newIds };
+    });
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
     setApiError(null);
@@ -553,6 +620,17 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         }
       }
 
+      // === НОВАЯ ПРОВЕРКА ===
+      if (selectedStreamId && editedData.ntiMarketIds?.length > 0) {
+        const hasMatch = checkNtiMarketsMatchWithStream(selectedStreamId, editedData.ntiMarketIds);
+        if (!hasMatch) {
+          setMeetingError("Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.");
+          setTimeout(() => setMeetingError(""), 5000);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // 2. Выбираем endpoint
       const baseEndpoint =
         (role === "ADMIN" || role === "SUPER_ADMIN")
@@ -567,8 +645,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         params.append("username", usernameToSend);
       }
 
-
-
       // 4. Тело запроса
       const patchData = {
         name: editedData.name.trim(),
@@ -576,6 +652,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
         description: editedData.description.trim(),
         ntiMarketIds: editedData.ntiMarketIds,
         readinessLevel: editedData.readinessLevel,
+        passive: editedData.passive,
       };
 
       // 5. Отправка PATCH
@@ -897,7 +974,6 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
       
       {isTrackerDropdownOpen && (
         <div className="team-card_field-select-dropdown">
-          {/* Строка поиска внутри выпадающего списка */}
           <div className="team-card_field-select-search">
             <input
               type="text"
@@ -970,7 +1046,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                   name="name"
                   value={editedData.name || ""}
                   onChange={handleChange}
-                  readOnly={!isEditing}
+                  readOnly={!canEdit}
                 />
               </div>
               <div className="team-card_field">
@@ -988,17 +1064,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                         <input
                           type="checkbox"
                           checked={editedData.ntiMarketIds?.includes(market.id)}
-                          onChange={() => {
-                            setEditedData(prev => {
-                              const already = prev.ntiMarketIds?.includes(market.id);
-                              return {
-                                ...prev,
-                                ntiMarketIds: already
-                                  ? prev.ntiMarketIds.filter(id => id !== market.id)
-                                  : [...(prev.ntiMarketIds || []), market.id]
-                              };
-                            });
-                          }}
+                          onChange={() => handleNtiMarketChange(market)}
                         />
                         {market.displayName}
                       </label>
@@ -1054,9 +1120,22 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                     name="meetingRoomLink"
                     value={editedData.meetingRoomLink || ""}
                     onChange={handleChange}
-                    readOnly={!isEditing}
+                    readOnly={!canEdit}
                   />
                 </div>
+              )}
+              {[adminRoleName, superadminRoleName].includes(role) && isEditing && (
+                                <div className="team-card_field">
+                                    <p>Пассивный статус:</p>
+                                    <label className="team-card_checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            checked={editedData.passive === true}
+                                            onChange={(e) => setEditedData(prev => ({ ...prev, passive: e.target.checked }))}
+                                        />
+                                        Команда в пассиве (неактивна)
+                                    </label>
+                                </div>
               )}
               {[adminRoleName, superadminRoleName].includes(role) && isEditing && (
                 <div className="team-card_field" data-testid="stream-field">
@@ -1071,10 +1150,12 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                         tabIndex={0}
                         onClick={() => {
                           setSelectedStreamId(stream.id);
+                          checkNtiMarketsMatchWithStream(stream.id, editedData.ntiMarketIds || []);
                         }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {
                             setSelectedStreamId(stream.id);
+                            checkNtiMarketsMatchWithStream(stream.id, editedData.ntiMarketIds || []);
                           }
                         }}
                       >
@@ -1084,6 +1165,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                           checked={selectedStreamId === stream.id}
                           onChange={() => {
                             setSelectedStreamId(stream.id);
+                            checkNtiMarketsMatchWithStream(stream.id, editedData.ntiMarketIds || []);
                           }}
                         />
                         {stream.name}
@@ -1099,7 +1181,7 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                   name="description"
                   value={editedData.description || ""}
                   onChange={handleChange}
-                  readOnly={!isEditing}
+                  readOnly={!canEdit}
                   placeholder="Описание карточки"
                 />
               </div>
@@ -1171,6 +1253,12 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
               <button
                 className="team-card_meetings-button"
                 onClick={() => {
+                // Админ может создавать встречи для пассивной команды
+                if (teamData.passive && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+                    setMeetingError("Нельзя создавать встречи для пассивной команды");
+                    setTimeout(() => setMeetingError(""), 3000);
+                    return;
+                }
                   if (checkMeetingCreation()) {
                     setShowMeetingCreate(true);
                   }

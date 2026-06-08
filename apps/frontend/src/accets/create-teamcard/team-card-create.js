@@ -115,7 +115,12 @@ const [isTrackerDropdownOpen, setIsTrackerDropdownOpen] = useState(false);
                 const filteredStreams = data.content.filter(stream => 
                     stream.active === true 
                 );
-                setStreams(filteredStreams);
+                // Добавляем ntiMarkets для каждого потока
+                const streamsWithMarkets = filteredStreams.map(s => ({
+                    ...s,
+                    ntiMarkets: s.ntiMarkets || []
+                }));
+                setStreams(streamsWithMarkets);
             }
         })
         .catch((err) => {
@@ -175,16 +180,44 @@ useEffect(() => {
         setFormData(prev => ({...prev, [name]: value}));
     };
 
-    const handleMarketSelect = (market) => {
-    setSelectedMarkets(prev => {
-        if (prev.some(m => m.id === market.id)) {
-            return prev.filter(m => m.id !== market.id); // снять выбор
-        } else {
-            return [...prev, market]; // добавить в выбор
+    // ========== НОВАЯ ФУНКЦИЯ ПРОВЕРКИ ЛИМИТА ==========
+    const checkNtiMarketsLimit = (currentLength, isAdding) => {
+        if (isAdding && currentLength >= 3) {
+            setError("Нельзя выбрать более 3-х рынков НТИ");
+            return false;
         }
-    });
-};
+        return true;
+    };
 
+    // ========== НОВАЯ ФУНКЦИЯ ПРОВЕРКИ СООТВЕТСТВИЯ ПОТОКУ ==========
+    const checkNtiMarketsMatchWithStream = (streamId, marketIds) => {
+        if (!streamId || !marketIds.length) return true;
+        const stream = streams.find(s => s.id === streamId);
+        if (!stream) return true;
+        const streamMarketIds = stream.ntiMarkets?.map(m => m.id) || [];
+        const hasMatch = marketIds.some(id => streamMarketIds.includes(id));
+        if (!hasMatch) {
+            setError("Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.");
+        } else if (error === "Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.") {
+            setError("");
+        }
+        return hasMatch;
+    };
+
+    const handleMarketSelect = (market) => {
+        const already = selectedMarkets.some(m => m.id === market.id);
+        if (!already) {
+            if (!checkNtiMarketsLimit(selectedMarkets.length, true)) return;
+        }
+        setSelectedMarkets(prev => {
+            const newMarkets = already
+                ? prev.filter(m => m.id !== market.id)
+                : [...prev, market];
+            // Проверяем соответствие после изменения
+            checkNtiMarketsMatchWithStream(formData.streamId, newMarkets.map(m => m.id));
+            return newMarkets;
+        });
+    };
 
     const handleTRLSelect = (trl) => {
         setSelectedTRL(trl);
@@ -194,19 +227,9 @@ useEffect(() => {
     const handleStreamSelect = (streamId) => {
         setFormData(prev => ({...prev, streamId}));
         setShowStreams(false);
+        // Проверяем соответствие после выбора потока
+        checkNtiMarketsMatchWithStream(streamId, selectedMarkets.map(m => m.id));
     };
-
-  //   const handleTrackerSelect = (tracker) => {
-  //       setSelectedTracker(tracker);
-  //       setFormData(prev => ({
-  //           ...prev,
-  //           tracker: tracker.fullName,
-  //           trackerId: tracker.id,
-  // trackerUsername: tracker.username // Добавляем ID трекера в formData
-            
-  //       }));
-  //       setShowTrackers(false);
-  //   };
 
     const validateForm = () => {
         const errors = [];
@@ -216,9 +239,18 @@ useEffect(() => {
         if (!selectedTRL) errors.push("Выберите уровень TRL");
         if (!formData.streamId) errors.push("Привяжите к потоку");
         const isAdmin = currentUser?.roles?.includes("ADMIN") || currentUser?.roles?.includes("SUPER_ADMIN");
-if (isAdmin && !selectedTracker) {
-    errors.push("Выберите трекера");
-}
+        if (isAdmin && !selectedTracker) {
+            errors.push("Выберите трекера");
+        }
+        // Новая проверка соответствия рынков потоку
+        if (formData.streamId && selectedMarkets.length > 0) {
+            const stream = streams.find(s => s.id === formData.streamId);
+            const streamMarketIds = stream?.ntiMarkets?.map(m => m.id) || [];
+            const hasMatch = selectedMarkets.some(m => streamMarketIds.includes(m.id));
+            if (!hasMatch) {
+                errors.push("Хотя бы один рынок НТИ команды должен соответствовать рынкам НТИ акселерационного потока.");
+            }
+        }
         return errors;
     };
 
