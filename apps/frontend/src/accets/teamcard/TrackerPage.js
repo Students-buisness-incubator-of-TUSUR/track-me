@@ -406,6 +406,14 @@ const options = {
     const applyFilters = () => {
         const filters = [];
 
+        if (searchQuery?.trim()) {
+                filters.push({
+                    fieldName: "name",
+                    type: "LIKE",
+                    value: searchQuery.trim(),
+                });
+            }
+
         // Поиск по name теперь на клиенте, не отправляем на бэкенд
 
         if (selectedTrl.length > 0) {
@@ -445,6 +453,8 @@ const options = {
         setCards([]);     // сброс перед новым поиском/фильтром
         setPage(0);
         setIsVisible(false);
+
+        fetchCards(filters, searchParams);
     };
 
     // Обработчик сброса фильтров
