@@ -106,7 +106,7 @@ trackme-client-gateway :8081
 | Meeting Service | `trackme-meeting-service` | `8082` | `docker-local` |
 | SSO (Authorization Server) | `trackme-sso` | `9000` | `docker-local` |
 | Telegram Service | `telegram-service` | `8084` | `docker-local` |
-| Frontend (React) | `trackme-frontend` | `3000` | — |
+| Frontend (React) | `trackme-frontend` | `3000` | — (образ из отдельного репозитория `track-me-frontend`) |
 | PostgreSQL | `trackme-postgres` | `5432` | — |
 | Redis | `trackme-redis` | `6380` | — |
 | Kafka | `trackme-kafka` | `9092`, `29092` | — |
@@ -150,8 +150,11 @@ docker compose watch
 | `trackme-sso` | `services/trackme-sso/src/`, `libs/commons/src/`, `platform/`, `build.gradle` | `rebuild` |
 | `trackme-client-gateway` | `apps/trackme-gateway/src/`, `apps/trackme-gateway/build.gradle`, `platform/`, `build.gradle` | `rebuild` |
 | `telegram-service` | `services/telegram-service/src/`, `libs/commons/src/`, `platform/`, `build.gradle` | `rebuild` |
-| `trackme-frontend` | `apps/frontend/src/`, `apps/frontend/public/`, `apps/frontend/package.json` | `rebuild` |
 | `trackme-nginx` | `docker/nginx/nginx.conf` | `sync+restart` |
+
+> Фронтенд вынесен в отдельный репозиторий `track-me-frontend`. Локально он поднимается как готовый
+> образ из GHCR, исходники здесь не отслеживаются; для разработки фронта запускайте `npm start` из
+> того репозитория.
 
 ---
 

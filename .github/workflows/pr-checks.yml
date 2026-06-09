@@ -27,7 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.changes.outputs.backend }}
-      frontend: ${{ steps.changes.outputs.frontend }}
       meeting-service: ${{ steps.changes.outputs.meeting-service }}
       sso: ${{ steps.changes.outputs.sso }}
       gateway: ${{ steps.changes.outputs.gateway }}
@@ -47,8 +46,6 @@ jobs:
               - 'build.gradle'
               - 'settings.gradle'
               - 'gradle/**'
-            frontend:
-              - 'apps/frontend/**'
             meeting-service:
               - 'services/meeting-service/**'
               - 'libs/commons/**'
@@ -120,54 +117,6 @@ jobs:
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
             -Dsonar.pullrequest.branch=${{ github.head_ref }} \
             -Dsonar.pullrequest.base=${{ github.base_ref }} \
-
-  frontend-check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    needs: detect-changes
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: apps/frontend/package-lock.json
-      - name: Cache Node modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            apps/frontend/node_modules
-            apps/frontend/package-lock.json
-          key: ${{ runner.os }}-node-${{ hashFiles('apps/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node
-      - name: Install dependencies
-        run: npm install
-        working-directory: apps/frontend
-      - name: Install sonar-scanner
-        run: npm install -g sonar-scanner
-      - name: Run tests and generate coverage
-        run: npm run test:coverage
-        working-directory: apps/frontend
-      - name: Run sonar-scanner
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=${{ secrets.SONAR_FRONTEND_PROJECT_KEY }} \
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-            -Dsonar.sources=src \
-            -Dsonar.exclusions="src/**/*.test.js,src/**/*.spec.js,src/**/__tests__/**" \
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }}
-        working-directory: apps/frontend
 
   meeting-service-check:
     runs-on: ubuntu-latest
@@ -383,7 +332,7 @@ jobs:
 
   trackme-check:
     runs-on: ubuntu-latest
-    needs: [ detect-changes, backend-check, frontend-check, meeting-service-check, sso-check, gateway-check, libs-commons-check, telegram-service-check ]
+    needs: [ detect-changes, backend-check, meeting-service-check, sso-check, gateway-check, libs-commons-check, telegram-service-check ]
     if: ${{ always() && needs.detect-changes.result == 'success' }}
     steps:
       - name: Final check

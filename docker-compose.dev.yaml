@@ -229,10 +229,12 @@
         - action: rebuild
           path: build.gradle
 
+  # Frontend was extracted into a separate repository. This pulls the last image
+  # published to GHCR; update the coordinates once the standalone frontend repo
+  # publishes its own image. For local frontend development run `npm start` from
+  # that repository instead.
   trackme-frontend:
-    build:
-      context: apps/frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/akarmanov2022/track-me/frontend:latest
     platform: linux/amd64
     environment:
       - REACT_APP_BACKEND_URI=http://localhost
@@ -249,16 +251,6 @@
       interval: 30s
       timeout: 10s
       retries: 5
-    develop:
-      watch:
-        - action: rebuild
-          path: apps/frontend/src
-        - action: rebuild
-          path: apps/frontend/public
-        - action: rebuild
-          path: apps/frontend/package.json
-          ignore:
-            - apps/frontend/node_modules
 
   trackme-nginx:
     image: nginx:alpine

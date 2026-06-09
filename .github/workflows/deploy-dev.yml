@@ -111,6 +111,9 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}/backend:$TAG
             docker pull ghcr.io/${{ github.repository }}/gateway:$TAG
             docker pull ghcr.io/${{ github.repository }}/sso:$TAG
+            # Frontend was extracted into a separate repository and is no longer
+            # built here. Update these coordinates to the standalone frontend
+            # package once it publishes its own image.
             docker pull ghcr.io/${{ github.repository }}/frontend:$TAG
             docker pull ghcr.io/${{ github.repository }}/meeting-service:$TAG
             docker pull ghcr.io/${{ github.repository }}/telegram-service:$TAG
