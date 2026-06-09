@@ -21,6 +21,7 @@ import org.springframework.security.web.server.authentication.logout.ServerLogou
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 
