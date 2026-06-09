@@ -160,7 +160,7 @@ public class OAuth2ClientConfiguration {
                         name = (String) attributes.getOrDefault("real_name", attributes.get("display_name"));
                     }
 
-                    target = org.springframework.web.util.UriComponentsBuilder.fromUriString("http://localhost:9000/client/registration")
+                    target = UriComponentsBuilder.fromUriString(appProperties.ssoRegistrationUrl())
                             .queryParam("email", email != null ? email : "")
                             .queryParam("name", name != null ? name : "")
                             .encode()

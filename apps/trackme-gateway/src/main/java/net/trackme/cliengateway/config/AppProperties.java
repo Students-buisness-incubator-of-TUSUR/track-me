@@ -13,6 +13,7 @@ public record AppProperties(
         @NotBlank String afterLoginUrl,
         @NotBlank String afterLogoutUri,
         @NotBlank String logoutUri,
+        @NotBlank String ssoRegistrationUrl,
         CorsProperties cors,
         SessionCookieProperties sessionCookie) {
 
