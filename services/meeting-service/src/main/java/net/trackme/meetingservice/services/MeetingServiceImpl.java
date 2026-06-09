@@ -24,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.acl.AclService;
@@ -36,9 +37,11 @@ import static net.trackme.meetingservice.entities.MeetingSpecification.meetingId
 import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardIdEquals;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.configuration.AppProperties;
 import net.trackme.meetingservice.messaging.own.MeetingCreatedEvent;
 import net.trackme.meetingservice.messaging.own.MeetingDeletedEvent;
 import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
+import net.trackme.meetingservice.messaging.own.MeetingInviteEvent;
 import net.trackme.meetingservice.messaging.own.MeetingUpdatedEvent;
 import net.trackme.meetingservice.services.exceptions.MeetingAlreadyExistsInSameDayException;
 import net.trackme.meetingservice.services.exceptions.MeetingCompletedException;
@@ -62,7 +65,7 @@ import org.springframework.security.access.AccessDeniedException;
 @Slf4j
 @Service
 public class MeetingServiceImpl implements MeetingService {
-
+    private final AppProperties appProperties;
     /** Маппер для преобразования между сущностями и DTO. */
     private final MeetingMapper meetingMapper;
 
@@ -100,7 +103,8 @@ public class MeetingServiceImpl implements MeetingService {
             MeetingEventsProducer meetingEventsProducer,
             @Qualifier("userBackendApiClient") BackendApiClient userBackendClient,
             SsoApiClient ssoApiClient,
-            MutableAclService mutableAclService) {
+            MutableAclService mutableAclService,
+            AppProperties appProperties) {
 
         this.meetingMapper = meetingMapper;
         this.meetingRepository = meetingRepository;
@@ -109,6 +113,7 @@ public class MeetingServiceImpl implements MeetingService {
         this.userBackendClient = userBackendClient;
         this.ssoApiClient = ssoApiClient;
         this.mutableAclService = mutableAclService;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -135,6 +140,7 @@ public class MeetingServiceImpl implements MeetingService {
         meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
         meeting.setTrackerUsername(trackerUsername);
 
+        String trackerEmail = null;
         // Denormalize (SSO)
         if (trackerUsername != null) {
             var tracker = ssoApiClient.getTrackers().stream()
@@ -145,6 +151,7 @@ public class MeetingServiceImpl implements MeetingService {
                 UserDto user = tracker.get();
                 meeting.setTrackerId(user.getId());
                 meeting.setTrackerFullName(user.getFullName());
+                trackerEmail = tracker.get().getEmail();
             } else {
                 meeting.setTrackerFullName(trackerUsername);
                 log.warn("Tracker with username {} not found in SSO during meeting creation", 
@@ -184,9 +191,23 @@ public class MeetingServiceImpl implements MeetingService {
 
         sendMeetingCreatedEvent(refreshedMeeting);
 
-        return enrichWithRoomLink(meetingMapper.mapToDto(refreshedMeeting), teamCardId);
-    }
+        meetingEventsProducer.sendMeetingInviteEvent(
+            MeetingInviteEvent.builder()
+                .meetingId(refreshedMeeting.getId())
+                .teamName(refreshedMeeting.getTeamName())
+                .trackerUsername(refreshedMeeting.getTrackerUsername())
+                .trackerFullName(refreshedMeeting.getTrackerFullName())
+                .trackerEmail(trackerEmail)
+                .creatorUsername(creatorUsername)
+                .startDate(refreshedMeeting.getStartDate())
+                .meetingLink(getMeetingLink(refreshedMeeting))
+                .build());
 
+        return enrichWithRoomLink(
+            meetingMapper.mapToDto(refreshedMeeting),
+            teamCardId);
+    }
+    
     @Override
     public Page<MeetingDto> getMeetings(UUID teamCardId, Pageable pageable) {
         var meetings = meetingRepository.findAll(teamCardIdEquals(teamCardId), pageable);
@@ -498,6 +519,7 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
         return new MeetingDto(
                 dto.id(),
                 dto.recordLink(),
+                dto.googleCalendarLink(),
                 roomLink,
                 dto.number(),
                 dto.startDate(),
@@ -628,6 +650,14 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
                             || "ROLE_SUPER_ADMIN".equals(auth)
                             || "SUPER_ADMIN".equals(auth);
                 });
+    }
+
+    String getMeetingLink(Meeting meeting) {
+        var httpUrl = appProperties.getAppUrl() + "/meeting/{meetingId}";
+        return UriComponentsBuilder.fromUriString(httpUrl, UriComponentsBuilder.ParserType.WHAT_WG)
+                .queryParam("teamId", "{teamId}")
+                .build(meeting.getId(), meeting.getTeamCardId())
+                .toString();
     }
 }
 

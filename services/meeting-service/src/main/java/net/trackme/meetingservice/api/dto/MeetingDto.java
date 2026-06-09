@@ -18,6 +18,10 @@ public record MeetingDto(
         String recordLink,
 
         @Nullable
+        @Schema(description = "Ссылка для добавления встречи в Google Calendar")
+        String googleCalendarLink,
+
+        @Nullable
         @Schema(description = "Ссылка на комнату встречи")
         String roomLink,
 

@@ -1,6 +1,9 @@
 package net.trackme.sso.services.impl;
 
 import java.text.Collator;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -219,6 +222,15 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    private static final ZoneId TOMSK_ZONE = ZoneId.of("Asia/Tomsk");
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
+    private String formatToTomsk(OffsetDateTime dateTime) {
+        if (dateTime == null) return "";
+        return dateTime.atZoneSameInstant(TOMSK_ZONE).format(DATE_FORMATTER);
+    }
+
     private String getShortName(String fullName) {
         if (fullName == null || fullName.isBlank()) {
             return NOT_ASSIGNED;
@@ -228,5 +240,115 @@ public class NotificationServiceImpl implements NotificationService {
             return parts[0] + " " + parts[1];
         }
         return fullName;
+    }
+
+    @Override
+    public void sendMeetingInvite(
+        String email,
+        String fullName,
+        String teamName,
+        String meetingLink,
+        OffsetDateTime meetingDate) {
+
+        String formattedDate = formatToTomsk(meetingDate);
+        emailService.sendMail(
+            email,
+            appProperties.getMail().getFrom(),
+            "[" + appProperties.getMail().getSubject() + "] Приглашение на встречу",
+            "email-meeting-invite.html",
+            Map.of(
+                    "fullName", fullName,
+                    "teamName", teamName,
+                    "meetingDate", formattedDate,
+                    "meetingLink", meetingLink,
+                    "appName", appProperties.getMail().getSubject(),
+                    "supportEmail", appProperties.getMail().getFrom()
+            )
+        );
+    }
+
+    @Override
+    public void sendMeetingReminder(
+        String email,
+        String fullName,
+        String teamName,
+        String meetingLink,
+        OffsetDateTime meetingDate) {
+
+        String formattedDate = formatToTomsk(meetingDate);
+        emailService.sendMail(
+            email,
+            appProperties.getMail().getFrom(),
+            "[" + appProperties.getMail().getSubject() + "] Напоминание о встрече",
+            "email-meeting-reminder.html",
+            Map.of(
+                    "fullName", fullName,
+                    "teamName", teamName,
+                    "meetingDate", formattedDate,
+                    "meetingLink", meetingLink,
+                    "appName", appProperties.getMail().getSubject(),
+                    "supportEmail", appProperties.getMail().getFrom()
+            )
+        );
+    }
+
+    @Override
+    public void sendMeetingInviteByUsername(
+            String username,
+            String teamName,
+            String meetingLink,
+            OffsetDateTime meetingDate) {
+
+        userRepository.findByUsername(username).ifPresentOrElse(
+            user -> {
+                if (user.getEmail() == null || user.getEmail().isBlank()) {
+                    log.warn("User {} has no email, skipping invite", username);
+                    return;
+                }
+                sendMeetingInvite(
+                        user.getEmail(),
+                        user.getFullName() != null ? user.getFullName() : username,
+                        teamName,
+                        meetingLink,
+                        meetingDate);
+            },
+            () -> log.warn("User {} not found in SSO, skipping invite", username)
+        );
+    }
+
+    @Override
+    public void sendMeetingReminderByUsername(
+            String username,
+            String teamName,
+            String meetingLink,
+            OffsetDateTime meetingDate,
+            int daysUntilMeeting) {
+
+        userRepository.findByUsername(username).ifPresentOrElse(
+            user -> {
+                if (user.getEmail() == null || user.getEmail().isBlank()) {
+                    log.warn("User {} has no email, skipping reminder", username);
+                    return;
+                }
+                String formattedDate = formatToTomsk(meetingDate);
+                emailService.sendMail(
+                    user.getEmail(),
+                    appProperties.getMail().getFrom(),
+                    "[" + appProperties.getMail().getSubject() + "] Напоминание: встреча через "
+                            + daysUntilMeeting + (daysUntilMeeting == 1 ? " день" : " дня"),
+                    "email-meeting-reminder.html",
+                    Map.of(
+                            "fullName", user.getFullName() != null ? user.getFullName() : username,
+                            "teamName", teamName,
+                            "meetingDate", formattedDate,
+                            "meetingLink", meetingLink,
+                            "daysUntilMeeting", daysUntilMeeting,
+                            "appName", appProperties.getMail().getSubject(),
+                            "supportEmail", appProperties.getMail().getFrom()
+                    )
+                );
+            },
+            () -> log.warn("User {} not found in SSO, skipping reminder", username)
+        );
     }
 }

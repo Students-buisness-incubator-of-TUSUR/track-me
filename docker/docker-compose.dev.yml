@@ -2,7 +2,7 @@ services:
   redis:
     image: redis:latest
     env_file:
-      - .env
+      - ../.env
     ports:
       - "${REDIS_PORT}:6379"
     volumes:
@@ -43,7 +43,7 @@ services:
     platform: linux/amd64
     restart: always
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - redis
     ports:
@@ -65,7 +65,7 @@ services:
     depends_on:
       - redis
     env_file:
-      - .env
+      - ../.env
     ports:
       - '9000:9000'
     networks:
@@ -81,11 +81,10 @@ services:
     platform: linux/amd64
     restart: always
     depends_on:
-      - backend
-      - sso
+      - trackme-backend
+      - trackme-sso
     env_file:
-      - .env
-      - .env.dev.redis
+      - ../.env
     ports:
       - '8081:8081'
     networks:
@@ -100,10 +99,9 @@ services:
     image: ghcr.io/akarmanov2022/track-me/frontend:latest
     platform: linux/amd64
     env_file:
-      - .env
-      - .env.dev.redis
+      - ../.env
     depends_on:
-      - backend
+      - trackme-backend
     ports:
       - '3000:3000'
     networks:

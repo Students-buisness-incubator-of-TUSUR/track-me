@@ -1,6 +1,8 @@
 package net.trackme.sso.config;
 
+import net.trackme.sso.messaging.MeetingInviteEvent;
 import net.trackme.sso.messaging.MeetingNotHappenedEvent;
+import net.trackme.sso.messaging.MeetingReminderEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -68,6 +70,36 @@ public class KafkaConsumerConfiguration {
     ) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, List<LinkedHashMap<String, String>>>();
         factory.setConsumerFactory(teamCardSummaryEventConsumerFactory);
+        return factory;
+    }
+
+    @Bean
+    ConsumerFactory<String, MeetingInviteEvent> meetingInviteEventConsumerFactory(
+            KafkaProperties kafkaProperties) {
+        return createConsumerFactory(kafkaProperties, MeetingInviteEvent.class);
+    }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, MeetingInviteEvent> meetingInviteListenerContainerFactory(
+            ConsumerFactory<String, MeetingInviteEvent> meetingInviteEventConsumerFactory
+    ) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, MeetingInviteEvent>();
+        factory.setConsumerFactory(meetingInviteEventConsumerFactory);
+        return factory;
+    }
+
+    @Bean
+    ConsumerFactory<String, MeetingReminderEvent> meetingReminderEventConsumerFactory(
+            KafkaProperties kafkaProperties) {
+        return createConsumerFactory(kafkaProperties, MeetingReminderEvent.class);
+    }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, MeetingReminderEvent> meetingReminderListenerContainerFactory(
+            ConsumerFactory<String, MeetingReminderEvent> meetingReminderEventConsumerFactory
+    ) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, MeetingReminderEvent>();
+        factory.setConsumerFactory(meetingReminderEventConsumerFactory);
         return factory;
     }
 

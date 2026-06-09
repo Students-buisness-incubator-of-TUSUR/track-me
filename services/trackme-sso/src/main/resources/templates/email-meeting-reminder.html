@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Напоминание о встрече</title>
+</head>
+<body>
+<div>
+    <h1>Напоминание о встрече</h1>
+
+    <p>Здравствуйте, <span th:text="${fullName}"></span>!</p>
+
+    <p th:if="${daysUntilMeeting != null and daysUntilMeeting == 1}">
+        Напоминаем, что <strong>завтра</strong> запланирована встреча команды
+        <strong th:text="${teamName}"></strong>.
+    </p>
+    <p th:if="${daysUntilMeeting == null or daysUntilMeeting != 1}">
+        Напоминаем, что через <strong th:text="${daysUntilMeeting}"></strong> дня запланирована встреча команды
+        <strong th:text="${teamName}"></strong>.
+    </p>
+
+    <p>
+        <strong>Дата и время:</strong>
+        <span th:text="${meetingDate}"></span>
+    </p>
+
+    <p>
+        <a th:href="${meetingLink}">Перейти к встрече</a>
+    </p>
+
+    <div>
+        <p>С уважением,<br>Команда <span th:text="${appName}"></span></p>
+        <p>
+            <small>
+                Это автоматическое письмо. Пожалуйста, не отвечайте на него.<br>
+                По вопросам обращайтесь:
+                <a th:href="'mailto:' + ${supportEmail}">поддержка</a>
+            </small>
+        </p>
+    </div>
+</div>
+</body>
+</html>

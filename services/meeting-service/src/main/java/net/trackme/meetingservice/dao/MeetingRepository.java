@@ -62,6 +62,19 @@ public interface MeetingRepository extends JpaRepository<Meeting, UUID>, JpaSpec
             UUID excludeId);
 
     /**
+     * Находит встречи по статусу и дате начала в указанном диапазоне (для напоминаний).
+     *
+     * @param status статус встречи
+     * @param from начало диапазона дат (включительно)
+     * @param to конец диапазона дат (исключительно)
+     * @return список встреч
+     */
+    List<Meeting> findByStatusAndStartDateGreaterThanEqualAndStartDateLessThan(
+            MeetingStatus status,
+            OffsetDateTime from,
+            OffsetDateTime to);
+
+    /**
      * Находит все встречи, соответствующие спецификации, с указанной сортировкой.
      *
      * @param spec спецификация для фильтрации
