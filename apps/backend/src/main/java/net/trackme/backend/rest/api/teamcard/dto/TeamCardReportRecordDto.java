@@ -38,7 +38,9 @@ public record TeamCardReportRecordDto(
         List<String> ntiMarkets,
         @Schema(description = "Уровень готовности технологии",
                 allowableValues = {"0-2", "3-5", "6-8", "9-10"})
-        String readinessLevel
+        String readinessLevel,
+        @Schema(description = "Пассивный статус команды (отчислена)")
+        Boolean passive
 ) {
     public TeamCardReportRecordDto withAverageUserGrade(BigDecimal averageUserGrade) {
         return new TeamCardReportRecordDto(
@@ -54,7 +56,8 @@ public record TeamCardReportRecordDto(
                 meetingsCountPlan,
                 meetingsCountFact,
                 ntiMarkets,
-                readinessLevel
+                readinessLevel,
+                passive
         );
     }
 

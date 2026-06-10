@@ -79,6 +79,16 @@ public class Meeting {
     @Column(name = "tracker_full_name", nullable = true)
     private String trackerFullName;
 
+    /**
+     * Пассивный статус карточки команды.
+     * Если true - команда пассивна, её встречи не влияют на рейтинг,
+     * и трекер не может создавать/редактировать встречи для такой команды.
+     * По умолчанию false.
+     */
+    @Column(name = "team_card_passive", nullable = false)
+    @Builder.Default
+    private Boolean teamCardPassive = false;
+
     @Builder.Default
     @ElementCollection
     @CollectionTable(name = "meeting_stream", joinColumns = @JoinColumn(name = "meeting_id"))
@@ -88,6 +98,11 @@ public class Meeting {
     @PrePersist
     @PreUpdate
     public void updateTeamStatusValue() {
+
+        if (this.teamCardPassive != null && this.teamCardPassive) {
+            return;
+        }
+
         if (this.status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
             this.teamStatusValue = BigDecimal.valueOf(0.0);
             this.teamStatus = null;
