@@ -116,6 +116,13 @@ public class MeetingServiceImpl implements MeetingService {
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
 
+        var teamDataForCheck = userBackendClient.getTeamCardById(teamCardId);
+        boolean isAdmin = isCurrentUserAdminOrSuperAdmin();
+
+        if (teamDataForCheck.getPassive() != null && teamDataForCheck.getPassive() && !isAdmin) {
+            throw new IllegalStateException("Трекер не может создавать встречи для пассивной команды");
+        }
+
         var meeting = meetingMapper.mapToEntity(createDto);
         var teamData = userBackendClient.getTeamCardById(teamCardId);
         var trackerUsername = teamData.getUsername();
@@ -200,6 +207,13 @@ public class MeetingServiceImpl implements MeetingService {
         var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
                         .and(meetingIdEquals(meetingId)))
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
+
+        var teamData = userBackendClient.getTeamCardById(teamCardId);
+        boolean isAdmin = isCurrentUserAdminOrSuperAdmin();
+
+        if (teamData.getPassive() != null && teamData.getPassive() && !isAdmin) {
+            throw new IllegalStateException("Трекер не может редактировать встречи пассивной команды");
+        }
 
         // Получаем текущего пользователя и проверяем роль
         var authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -598,4 +612,22 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
         String tasks = meeting.getTasksCurrentMeeting();
         return (tasks != null && !tasks.isBlank()) ? tasks : null;
     }
+
+    /**
+     * Проверяет, является ли текущий пользователь ADMIN или SUPER_ADMIN.
+     * Смотрит на ВСЕ роли, а не только первую.
+     */
+    private boolean isCurrentUserAdminOrSuperAdmin() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) return false;
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> {
+                    String auth = a.getAuthority();
+                    return "ROLE_ADMIN".equals(auth)
+                            || "ADMIN".equals(auth)
+                            || "ROLE_SUPER_ADMIN".equals(auth)
+                            || "SUPER_ADMIN".equals(auth);
+                });
+    }
 }
+

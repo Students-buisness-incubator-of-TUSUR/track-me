@@ -657,4 +657,35 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    @WithMockUser(roles = "SUPER_ADMIN")
+    void createMeetingForPassiveTeamSuperAdminShouldSucceed() throws Exception {
+        // Создаём пассивную команду
+        var passiveTeamCardId = UUID.randomUUID();
+        var mockPassiveTeamCard = TeamCardDto.builder()
+                .id(passiveTeamCardId)
+                .name("Passive Team")
+                .username("tracker_user")
+                .streams(List.of(new StreamDto(UUID.randomUUID())))
+                .meetingRoomLink("https://zoom.us/j/123")
+                .passive(true)  // Пассивная команда
+                .build();
+
+        when(userBackendApiClient.getTeamCardById(passiveTeamCardId)).thenReturn(mockPassiveTeamCard);
+        var meetingCreateDto = MeetingCreateDto.builder()
+                .recordLink("https://example.com/meeting")
+                .number("12345")
+                .startDate(OffsetDateTime.now().plusDays(3))
+                .build();
+
+        mockMvc.perform(post("/api/v1/create-meeting")
+                        .param("teamCardId", passiveTeamCardId.toString())
+                        .contentType("application/json")
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(meetingCreateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").isNotEmpty());
+    }
 }

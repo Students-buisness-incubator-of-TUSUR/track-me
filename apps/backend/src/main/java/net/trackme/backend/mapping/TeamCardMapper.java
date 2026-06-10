@@ -41,6 +41,7 @@ public interface TeamCardMapper {
     @Mapping(target = "streams", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "passive", source = "passive")
     @Mapping(target = "meetingGrades", ignore = true)
     @Mapping(
             target = "readinessLevel",
@@ -50,6 +51,7 @@ public interface TeamCardMapper {
     @Mapping(target = "enabled", expression = "java( entity.isActive() )")
     @Mapping(
             target = "readinessLevel", expression = "java( entity.getReadinessLevel().getValue() )")
+    @Mapping(target = "passive", source = "passive")
     TeamCardDto mapToDto(TeamCard entity);
 
     @Mapping(
@@ -94,5 +96,6 @@ public interface TeamCardMapper {
     @Mapping(
             target = "readinessLevel",
             expression = "java( entity.getReadinessLevel().getValue() )")
+    @Mapping(target = "passive", source = "passive")
     TeamCardReportRecordDto mapToReportDto(TeamCard entity);
 }

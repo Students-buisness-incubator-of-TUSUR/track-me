@@ -38,6 +38,15 @@ public class TeamCard {
     @Builder.Default
     private Boolean enabled = true;
 
+    /**
+     * Пассивный статус команды.
+     * Если true - команда не доступна для редактирования трекером,
+     * её рейтинг фиксируется, а план встреч отображается как есть.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean passive = false;
+
     @Column(length = 32)
     @Enumerated(EnumType.STRING)
     private TeamCardStatus status;
@@ -97,6 +106,15 @@ public class TeamCard {
     private Set<MeetingGrade> meetingGrades = new HashSet<>();
 
     public Integer getMeetingsCountPlan() {
+        // Пассивная команда (отчисленная) — показываем полное количество встреч потока
+        if (Boolean.TRUE.equals(passive)) {
+            return streams.stream()
+                    .findFirst()
+                    .map(Stream::getMeetingsCount)
+                    .orElse(0);
+        }
+
+        // Активная команда — динамический расчёт от trackStartDate
         return streams.stream()
                 .findFirst()
                 .map(stream -> {
