@@ -45,6 +45,8 @@ jobs:
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
           proxy_host: bastion.tusur.ru
@@ -52,7 +54,7 @@ jobs:
           proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          envs: DEV_FRONTEND_URI,DEV_BACKEND_URI,DEV_SSO_URI,MAIL_HOST,MAIL_PORT,MAIL_USERNAME,MAIL_PASSWORD,MAIL_FROM,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME
+          envs: DEV_FRONTEND_URI,DEV_BACKEND_URI,DEV_SSO_URI,MAIL_HOST,MAIL_PORT,MAIL_USERNAME,MAIL_PASSWORD,MAIL_FROM,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
           script: |
             set -e
             
@@ -78,8 +80,11 @@ jobs:
             echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env
             echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env
             echo "LOGOUT_URI=$DEV_SSO_URI/connect/logout" >> .env
-            
-            
+            echo "SSO_REGISTRATION_URL=$DEV_SSO_URI/client/registration" >> .env
+            echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
+            echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
+
+
             cat .env.dev.redis | tr -d '\r' >> .env
             echo "" >> .env
             cat .env.dev.database | tr -d '\r' >> .env

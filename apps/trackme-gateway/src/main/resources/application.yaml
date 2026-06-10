@@ -85,8 +85,8 @@ spring:
               - email
               - profile 
           yandex:
-            client-id: ${YANDEX_CLIENT_ID}
-            client-secret: ${YANDEX_CLIENT_SECRET}
+            client-id: ${YANDEX_CLIENT_ID:7b4b646d981942cfb165179d31c0dcb6}
+            client-secret: ${YANDEX_CLIENT_SECRET:5ca3c5e0160f43169144a58c894e738b}
             client-name: Yandex
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
