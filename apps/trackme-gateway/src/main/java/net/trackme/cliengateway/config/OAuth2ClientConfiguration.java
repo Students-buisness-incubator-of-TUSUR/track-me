@@ -134,13 +134,46 @@ public class OAuth2ClientConfiguration {
 
         this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
             var exchange = webFilterExchange.getExchange();
-            return exchange.getSession()
-                    .flatMap(session -> {
-                        var redirectUri = (String) session.getAttributes()
-                                .remove(CustomAuthorizationRequestResolver.SESSION_KEY);
-                        var target = (redirectUri != null) ? redirectUri : appProperties.afterLoginUrl();
-                        return new RedirectServerAuthenticationSuccessHandler(target)
-                                .onAuthenticationSuccess(webFilterExchange, authentication);
+            
+            String registrationId = "";
+            if (authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken oauthToken) {
+                registrationId = oauthToken.getAuthorizedClientRegistrationId();
+            }
+            final String finalRegistrationId = registrationId;
+
+            return exchange.getSession().flatMap(session -> {
+                var redirectUri = (String) session.getAttributes().remove(CustomAuthorizationRequestResolver.SESSION_KEY);
+                String target;
+
+                if (("yandex".equals(finalRegistrationId) || "google".equals(finalRegistrationId)) 
+                    && authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
+                    
+                    var attributes = oauth2User.getAttributes();
+                    String email = "";
+                    String name = "";
+
+                    if (attributes.containsKey("sub")) { // Google
+                        email = (String) attributes.get("email");
+                        name = (String) attributes.get("name");
+                    } else if (attributes.containsKey("id")) { // Yandex
+                        email = (String) attributes.getOrDefault("default_email", attributes.get("email"));
+                        name = (String) attributes.getOrDefault("real_name", attributes.get("display_name"));
+                    }
+
+                    target = org.springframework.web.util.UriComponentsBuilder.fromUriString("http://localhost:9000/client/registration")
+                            .queryParam("email", email != null ? email : "")
+                            .queryParam("name", name != null ? name : "")
+                            .encode()
+                            .build()
+                            .toUriString();
+                } else if (redirectUri != null) {
+                    target = redirectUri;
+                } else {
+                    target = appProperties.afterLoginUrl();
+                }
+
+                return new org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler(target)
+                        .onAuthenticationSuccess(webFilterExchange, authentication);
                     });
         };
     }
