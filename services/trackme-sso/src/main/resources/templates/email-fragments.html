@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<body>
+
+<p th:fragment="greeting(fullName)">
+    Здравствуйте, <span th:text="${fullName}"></span>!
+</p>
+
+<div th:fragment="meetingDetails(meetingDate, meetingLink)">
+    <p>
+        <strong>Дата и время:</strong>
+        <span th:text="${meetingDate}"></span>
+    </p>
+    <p>
+        <a th:href="${meetingLink}">Перейти к встрече</a>
+    </p>
+</div>
+
+<div th:fragment="emailFooter(appName, supportEmail)">
+    <p>С уважением,<br>Команда <span th:text="${appName}"></span></p>
+    <p>
+        <small>
+            Это автоматическое письмо. Пожалуйста, не отвечайте на него.<br>
+            По вопросам обращайтесь:
+            <a th:href="'mailto:' + ${supportEmail}">поддержка</a>
+        </small>
+    </p>
+</div>
+
+</body>
+</html>
