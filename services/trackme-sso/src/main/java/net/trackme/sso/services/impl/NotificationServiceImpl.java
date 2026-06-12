@@ -31,6 +31,11 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String FIELD_TRACKER_FULL_NAME = "trackerFullName";
     private static final String FIELD_MEETING_LINK = "meetingLink";
     private static final String FIELD_AVERAGE_GRADE = "averageGrade";
+    private static final String FIELD_FULL_NAME = "fullName";
+    private static final String FIELD_TEAM_NAME = "teamName";
+    private static final String FIELD_MEETING_DATE = "meetingDate";
+    private static final String FIELD_APP_NAME = "appName";
+    private static final String FIELD_SUPPORT_EMAIL = "supportEmail";
 
     private static final Collator RUSSIAN_COLLATOR = Collator.getInstance(Locale.of("ru", "RU"));
 
@@ -60,9 +65,9 @@ public class NotificationServiceImpl implements NotificationService {
                 "email-meeting-not-happened.html",
                 Map.of(
                         "email", emailTo,
-                        "fullName", fullName,
-                        "appName", appProperties.getMail().getSubject(),
-                        "supportEmail", appProperties.getMail().getFrom(),
+                        FIELD_FULL_NAME, fullName,
+                        FIELD_APP_NAME, appProperties.getMail().getSubject(),
+                        FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom(),
                         FIELD_TEAM_CARD_NAME, teamCardName,
                         FIELD_STREAM_NAME, streamName,
                         FIELD_MEETING_LINK, meetingLink));
@@ -215,9 +220,9 @@ public class NotificationServiceImpl implements NotificationService {
                     templateName,
                     Map.of(
                             "email", emailTo.getEmail(),
-                            "fullName", emailTo.getFullName(),
-                            "appName", appProperties.getMail().getSubject(),
-                            "supportEmail", appProperties.getMail().getFrom(),
+                            FIELD_FULL_NAME, emailTo.getFullName(),
+                            FIELD_APP_NAME, appProperties.getMail().getSubject(),
+                            FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom(),
                             "summary", summary));
         }
     }
@@ -257,12 +262,12 @@ public class NotificationServiceImpl implements NotificationService {
             "[" + appProperties.getMail().getSubject() + "] Приглашение на встречу",
             "email-meeting-invite.html",
             Map.of(
-                    "fullName", fullName,
-                    "teamName", teamName,
-                    "meetingDate", formattedDate,
-                    "meetingLink", meetingLink,
-                    "appName", appProperties.getMail().getSubject(),
-                    "supportEmail", appProperties.getMail().getFrom()
+                    FIELD_FULL_NAME, fullName,
+                    FIELD_TEAM_NAME, teamName,
+                    FIELD_MEETING_DATE, formattedDate,
+                    FIELD_MEETING_LINK, meetingLink,
+                    FIELD_APP_NAME, appProperties.getMail().getSubject(),
+                    FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom()
             )
         );
     }
@@ -282,12 +287,12 @@ public class NotificationServiceImpl implements NotificationService {
             "[" + appProperties.getMail().getSubject() + "] Напоминание о встрече",
             "email-meeting-reminder.html",
             Map.of(
-                    "fullName", fullName,
-                    "teamName", teamName,
-                    "meetingDate", formattedDate,
-                    "meetingLink", meetingLink,
-                    "appName", appProperties.getMail().getSubject(),
-                    "supportEmail", appProperties.getMail().getFrom()
+                    FIELD_FULL_NAME, fullName,
+                    FIELD_TEAM_NAME, teamName,
+                    FIELD_MEETING_DATE, formattedDate,
+                    FIELD_MEETING_LINK, meetingLink,
+                    FIELD_APP_NAME, appProperties.getMail().getSubject(),
+                    FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom()
             )
         );
     }
@@ -338,13 +343,13 @@ public class NotificationServiceImpl implements NotificationService {
                             + daysUntilMeeting + (daysUntilMeeting == 1 ? " день" : " дня"),
                     "email-meeting-reminder.html",
                     Map.of(
-                            "fullName", user.getFullName() != null ? user.getFullName() : username,
-                            "teamName", teamName,
-                            "meetingDate", formattedDate,
-                            "meetingLink", meetingLink,
+                            FIELD_FULL_NAME, user.getFullName() != null ? user.getFullName() : username,
+                            FIELD_TEAM_NAME, teamName,
+                            FIELD_MEETING_DATE, formattedDate,
+                            FIELD_MEETING_LINK, meetingLink,
                             "daysUntilMeeting", daysUntilMeeting,
-                            "appName", appProperties.getMail().getSubject(),
-                            "supportEmail", appProperties.getMail().getFrom()
+                            FIELD_APP_NAME, appProperties.getMail().getSubject(),
+                            FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom()
                     )
                 );
             },

@@ -23,7 +23,13 @@ import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.web.server.WebSession;
+
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.springframework.http.HttpMethod.OPTIONS;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -33,6 +39,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 @EnableConfigurationProperties({AppProperties.class})
 public class OAuth2ClientConfiguration {
+    private static final String ATTR_EMAIL = "email";
+
     private final ReactiveClientRegistrationRepository clientRegistrationRepository;
     private final AppProperties appProperties;
 
@@ -134,48 +142,51 @@ public class OAuth2ClientConfiguration {
         this.logoutSuccessHandler = serverLogoutSuccessHandler;
 
         this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
-            var exchange = webFilterExchange.getExchange();
-            
-            String registrationId = "";
-            if (authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken oauthToken) {
-                registrationId = oauthToken.getAuthorizedClientRegistrationId();
-            }
-            final String finalRegistrationId = registrationId;
-
-            return exchange.getSession().flatMap(session -> {
-                var redirectUri = (String) session.getAttributes().remove(CustomAuthorizationRequestResolver.SESSION_KEY);
-                String target;
-
-                if (("yandex".equals(finalRegistrationId) || "google".equals(finalRegistrationId)) 
-                    && authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
-                    
-                    var attributes = oauth2User.getAttributes();
-                    String email = "";
-                    String name = "";
-
-                    if (attributes.containsKey("sub")) { // Google
-                        email = (String) attributes.get("email");
-                        name = (String) attributes.get("name");
-                    } else if (attributes.containsKey("id")) { // Yandex
-                        email = (String) attributes.getOrDefault("default_email", attributes.get("email"));
-                        name = (String) attributes.getOrDefault("real_name", attributes.get("display_name"));
-                    }
-
-                    target = UriComponentsBuilder.fromUriString(appProperties.ssoRegistrationUrl())
-                            .queryParam("email", email != null ? email : "")
-                            .queryParam("name", name != null ? name : "")
-                            .encode()
-                            .build()
-                            .toUriString();
-                } else if (redirectUri != null) {
-                    target = redirectUri;
-                } else {
-                    target = appProperties.afterLoginUrl();
-                }
-
-                return new org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler(target)
+            String registrationId = extractRegistrationId(authentication);
+            return webFilterExchange.getExchange().getSession().flatMap(session -> {
+                String target = resolveRedirectTarget(session, authentication, registrationId);
+                return new RedirectServerAuthenticationSuccessHandler(target)
                         .onAuthenticationSuccess(webFilterExchange, authentication);
-                    });
+            });
         };
+    }
+
+    private String extractRegistrationId(Authentication authentication) {
+        if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
+            return oauthToken.getAuthorizedClientRegistrationId();
+        }
+        return "";
+    }
+
+    private String resolveRedirectTarget(WebSession session, Authentication authentication, String registrationId) {
+        var redirectUri = (String) session.getAttributes().remove(CustomAuthorizationRequestResolver.SESSION_KEY);
+        if (isExternalOAuthProvider(registrationId)
+                && authentication.getPrincipal() instanceof OAuth2User oauth2User) {
+            return buildOAuthRegistrationUrl(oauth2User);
+        }
+        return redirectUri != null ? redirectUri : appProperties.afterLoginUrl();
+    }
+
+    private boolean isExternalOAuthProvider(String registrationId) {
+        return "yandex".equals(registrationId) || "google".equals(registrationId);
+    }
+
+    private String buildOAuthRegistrationUrl(OAuth2User oauth2User) {
+        Map<String, Object> attributes = oauth2User.getAttributes();
+        String email;
+        String name;
+        if (attributes.containsKey("sub")) { // Google
+            email = (String) attributes.get(ATTR_EMAIL);
+            name = (String) attributes.get("name");
+        } else { // Yandex
+            email = (String) attributes.getOrDefault("default_email", attributes.get(ATTR_EMAIL));
+            name = (String) attributes.getOrDefault("real_name", attributes.get("display_name"));
+        }
+        return UriComponentsBuilder.fromUriString(appProperties.ssoRegistrationUrl())
+                .queryParam(ATTR_EMAIL, email != null ? email : "")
+                .queryParam("name", name != null ? name : "")
+                .encode()
+                .build()
+                .toUriString();
     }
 }
