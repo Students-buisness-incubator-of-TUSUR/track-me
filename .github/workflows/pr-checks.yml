@@ -24,7 +24,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - backend
+          - trackme-gateway
+          - trackme-sso
+          - meeting-service
+          - telegram-service
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Check ${{ matrix.module }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :${{ matrix.module }}:check
+
+  sonar:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -52,3 +77,19 @@ jobs:
           -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
           ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.key={0} -Dsonar.pullrequest.branch={1} -Dsonar.pullrequest.base={2}', github.event.pull_request.number, github.head_ref, github.base_ref) || '' }}
+
+  all-checks:
+    needs: [ check, sonar ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify results
+        run: |
+          check_result="${{ needs.check.result }}"
+          sonar_result="${{ needs.sonar.result }}"
+          echo "check: $check_result, sonar: $sonar_result"
+          if [[ "$check_result" != "success" || "$sonar_result" != "success" ]]; then
+            echo "❌ Проверки не прошли"
+            exit 1
+          fi
+          echo "✅ Все проверки пройдены"
