@@ -26,16 +26,21 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - backend
-          - trackme-gateway
-          - trackme-sso
-          - meeting-service
-          - telegram-service
+        include:
+          - module: backend
+            path: apps/backend
+          - module: trackme-gateway
+            path: apps/trackme-gateway
+          - module: trackme-sso
+            path: services/trackme-sso
+          - module: meeting-service
+            path: services/meeting-service
+          - module: telegram-service
+            path: services/telegram-service
     steps:
       - uses: actions/checkout@v4
       - name: Set up Java
@@ -48,10 +53,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :${{ matrix.module }}:check
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-${{ matrix.module }}
+          path: ${{ matrix.path }}/build/reports/jacoco/test/jacocoTestReport.xml
+          if-no-files-found: error
+          retention-days: 1
 
   sonar:
+    needs: check
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,10 +76,31 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
-      - name: Build and test
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew build
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-backend
+          path: apps/backend/build/reports/jacoco/test
+      - name: Download gateway coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-trackme-gateway
+          path: apps/trackme-gateway/build/reports/jacoco/test
+      - name: Download sso coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-trackme-sso
+          path: services/trackme-sso/build/reports/jacoco/test
+      - name: Download meeting-service coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-meeting-service
+          path: services/meeting-service/build/reports/jacoco/test
+      - name: Download telegram-service coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-telegram-service
+          path: services/telegram-service/build/reports/jacoco/test
       - name: SonarCloud analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
