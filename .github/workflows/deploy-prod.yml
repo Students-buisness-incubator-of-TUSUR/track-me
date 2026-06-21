@@ -1,0 +1,126 @@
+name: Deploy to PROD
+
+# Релиз на prod = публикация GitHub Release с тегом vX.Y.Z (образы :vX.Y.Z собирает
+# build-artifacts из ветки main). Выкатка идёт через окружение `production` с обязательным
+# ручным апрувом — он же гарантирует, что к моменту деплоя образы уже собраны.
+# workflow_dispatch со входом tag — для повторной выкатки/отката на любой релизный тег.
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Релизный тег vX.Y.Z для выкатки/отката'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image reference
+        id: image
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            TAG="$INPUT_TAG"
+          else
+            TAG="$RELEASE_TAG"
+          fi
+          # На prod выкатываем только неизменяемые релизные теги vX.Y.Z
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "Ожидался релизный тег вида vX.Y.Z, получено: '$TAG'" >&2
+            exit 1
+          fi
+          echo "repo=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Copy deployment files to PROD
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SBI_SSH_HOST }}
+          username: ${{ secrets.SBI_SSH_USERNAME }}
+          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          proxy_host: bastion.tusur.ru
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
+          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          source: "docker/docker-compose.prod.yaml,docker/nginx/nginx.conf,database/init_schemas.sql"
+          target: track-me-prod
+          overwrite: true
+
+      - name: Deploy to PROD
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_REPO: ${{ steps.image.outputs.repo }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SBI_SSH_HOST }}
+          username: ${{ secrets.SBI_SSH_USERNAME }}
+          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          proxy_host: bastion.tusur.ru
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
+          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          script: |
+            set -euo pipefail
+            cd "$HOME/track-me-prod"
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            # Идемпотентно патчим только ссылки на образы; прикладные секреты в .env не трогаем
+            touch .env
+            sed -i '/^IMAGE_REPO=/d;/^IMAGE_TAG=/d' .env
+            echo "IMAGE_REPO=$IMAGE_REPO" >> .env
+            echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+
+            # Отдельный проект track-me-prod изолирует контейнеры/сеть/volume'ы от dev на том же хосте.
+            # pull заранее — подстраховка, если образ ещё докачивается; up -d пересоздаёт только изменившееся.
+            docker compose -p track-me-prod -f docker-compose.prod.yaml pull
+            docker compose -p track-me-prod -f docker-compose.prod.yaml up -d
+            docker image prune -f
+
+      - name: Healthcheck
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SBI_SSH_HOST }}
+          username: ${{ secrets.SBI_SSH_USERNAME }}
+          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          proxy_host: bastion.tusur.ru
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
+          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd "$HOME/track-me-prod"
+            # Порты сервисов наружу не публикуются — проверяем изнутри prod-проекта через compose exec.
+            check() {
+              for i in $(seq 1 24); do
+                if docker compose -p track-me-prod -f docker-compose.prod.yaml exec -T "$1" curl -sf "$2" > /dev/null; then
+                  echo "$1 is up"
+                  return 0
+                fi
+                echo "Waiting for $1... ($i/24)"
+                sleep 5
+              done
+              echo "$1 failed healthcheck" >&2
+              return 1
+            }
+            check trackme-backend http://localhost:8080/actuator/health
+            check trackme-sso http://localhost:9000/actuator/health
