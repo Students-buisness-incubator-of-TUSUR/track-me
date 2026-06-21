@@ -74,6 +74,8 @@
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
+      secrets:
+        - gpr_token
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
       - BACKEND_URI=http://localhost
@@ -106,16 +108,14 @@
         - action: rebuild
           path: apps/backend/build.gradle
         - action: rebuild
-          path: libs/commons/src
-        - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
 
   trackme-meeting-service:
     build:
       context: .
       dockerfile: services/meeting-service/Dockerfile
+      secrets:
+        - gpr_token
     platform: linux/amd64
     restart: always
     depends_on:
@@ -144,16 +144,14 @@
         - action: rebuild
           path: services/meeting-service/src
         - action: rebuild
-          path: libs/commons/src
-        - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
 
   trackme-sso:
     build:
       context: .
       dockerfile: services/trackme-sso/Dockerfile
+      secrets:
+        - gpr_token
     platform: linux/amd64
     restart: always
     depends_on:
@@ -182,16 +180,14 @@
         - action: rebuild
           path: services/trackme-sso/src
         - action: rebuild
-          path: libs/commons/src
-        - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
 
   trackme-client-gateway:
     build:
       context: .
       dockerfile: apps/trackme-gateway/Dockerfile
+      secrets:
+        - gpr_token
     platform: linux/amd64
     restart: always
     environment:
@@ -225,32 +221,7 @@
         - action: rebuild
           path: apps/trackme-gateway/build.gradle
         - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
-
-  # Frontend was extracted into a separate repository. This pulls the last image
-  # published to GHCR; update the coordinates once the standalone frontend repo
-  # publishes its own image. For local frontend development run `npm start` from
-  # that repository instead.
-  trackme-frontend:
-    image: ghcr.io/akarmanov2022/track-me/frontend:latest
-    platform: linux/amd64
-    environment:
-      - REACT_APP_BACKEND_URI=http://localhost
-    env_file:
-      - .env
-    ports:
-      - '3000:3000'
-    networks:
-      - trackme-net
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
   trackme-nginx:
     image: nginx:alpine
@@ -311,6 +282,8 @@
     build:
       context: .
       dockerfile: services/telegram-service/Dockerfile
+      secrets:
+        - gpr_token
     platform: linux/amd64
     restart: always
     depends_on:
@@ -336,10 +309,6 @@
         - action: rebuild
           path: services/telegram-service/src
         - action: rebuild
-          path: libs/commons/src
-        - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
 
 volumes:
@@ -349,3 +318,9 @@ volumes:
 networks:
   trackme-net:
     driver: bridge
+
+# Токен для чтения Maven-пакетов track-me-platform из GitHub Packages
+# (PAT со scope read:packages); задаётся в .env или окружении.
+secrets:
+  gpr_token:
+    environment: GITHUB_TOKEN

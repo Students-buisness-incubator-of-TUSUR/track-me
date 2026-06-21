@@ -43,6 +43,7 @@ cp .env.example .env
 
 | Переменная | Описание |
 |---|---|
+| `GITHUB_TOKEN` | PAT со scope `read:packages` — нужен для чтения Maven-пакетов [track-me-platform](https://github.com/Students-buisness-incubator-of-TUSUR/track-me-platform) (BOM + commons) при сборке Java-сервисов |
 | `TRACKME_CLIENT_SECRET` | Секрет OAuth2-клиента (совпадает с настройкой в SSO) |
 | `JWT_SECRET` | SHA-512 хеш для подписи токенов |
 | `REDIS_PASSWORD` / `REDIS_USER_PASSWORD` | Пароли Redis |
@@ -145,11 +146,11 @@ docker compose watch
 
 | Сервис | Пути | Действие |
 |---|---|---|
-| `trackme-backend` | `apps/backend/src/`, `libs/commons/src/`, `platform/`, `build.gradle` | `rebuild` |
-| `trackme-meeting-service` | `services/meeting-service/src/`, `libs/commons/src/`, `platform/`, `build.gradle` | `rebuild` |
-| `trackme-sso` | `services/trackme-sso/src/`, `libs/commons/src/`, `platform/`, `build.gradle` | `rebuild` |
-| `trackme-client-gateway` | `apps/trackme-gateway/src/`, `apps/trackme-gateway/build.gradle`, `platform/`, `build.gradle` | `rebuild` |
-| `telegram-service` | `services/telegram-service/src/`, `libs/commons/src/`, `platform/`, `build.gradle` | `rebuild` |
+| `trackme-backend` | `apps/backend/src/`, `apps/backend/build.gradle`, `build.gradle` | `rebuild` |
+| `trackme-meeting-service` | `services/meeting-service/src/`, `build.gradle` | `rebuild` |
+| `trackme-sso` | `services/trackme-sso/src/`, `build.gradle` | `rebuild` |
+| `trackme-client-gateway` | `apps/trackme-gateway/src/`, `apps/trackme-gateway/build.gradle`, `build.gradle` | `rebuild` |
+| `telegram-service` | `services/telegram-service/src/`, `build.gradle` | `rebuild` |
 | `trackme-nginx` | `docker/nginx/nginx.conf` | `sync+restart` |
 
 > Фронтенд вынесен в отдельный репозиторий `track-me-frontend`. Локально он поднимается как готовый

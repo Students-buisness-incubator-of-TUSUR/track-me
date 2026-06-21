@@ -1,12 +1,13 @@
 package net.trackme.backend.messaging;
 
-import net.trackme.backend.BaseApplicationTest;
 import net.trackme.backend.services.teamcard.TeamCardMeetingsService;
 import net.trackme.backend.services.teamcard.TeamCardSummaryService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -16,16 +17,17 @@ import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
 
-class MeetingEventsListenerTest extends BaseApplicationTest {
+@ExtendWith(MockitoExtension.class)
+class MeetingEventsListenerTest {
 
-    @Autowired
-    private MeetingEventsListener meetingEventsListener;
-
-    @MockitoBean
+    @Mock
     private TeamCardSummaryService teamCardSummaryService;
 
-    @MockitoBean
+    @Mock
     private TeamCardMeetingsService teamCardMeetingsService;
+
+    @InjectMocks
+    private MeetingEventsListener meetingEventsListener;
 
     @Test
     void onMeetingSummaryEvent() {

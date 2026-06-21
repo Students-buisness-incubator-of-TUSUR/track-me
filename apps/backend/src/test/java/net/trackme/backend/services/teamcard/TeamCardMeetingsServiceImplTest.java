@@ -13,10 +13,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -43,9 +41,6 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
 
     @Autowired
     private NtiMarketRepository ntiMarketRepository;
-
-    @MockitoBean
-    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @AfterEach
     void tearDown() {

@@ -10,9 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -29,9 +27,6 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
 
     @Autowired
     private TeamCardSummaryService teamCardSummaryService;
-
-    @MockitoBean
-    private KafkaTemplate<String, Object> kafkaTemplate;
 
     protected TeamCard teamCard;
 

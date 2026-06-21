@@ -34,14 +34,24 @@ jobs:
           filters: |
             backend:
               - 'apps/backend/**'
+              - 'build.gradle'
+              - 'gradle.properties'
             gateway:
               - 'apps/trackme-gateway/**'
+              - 'build.gradle'
+              - 'gradle.properties'
             sso:
               - 'services/trackme-sso/**'
+              - 'build.gradle'
+              - 'gradle.properties'
             meeting-service:
               - 'services/meeting-service/**'
+              - 'build.gradle'
+              - 'gradle.properties'
             telegram-service:
               - 'services/telegram-service/**'
+              - 'build.gradle'
+              - 'gradle.properties'
 
   trackme-backend-build-push:
     needs: changes
@@ -49,6 +59,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Lowercase image repository name
+        run: echo "IMAGE_REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -68,10 +81,12 @@ jobs:
           context: .
           file: apps/backend/Dockerfile
           push: true
+          secrets: |
+            gpr_token=${{ secrets.GITHUB_TOKEN }}
           tags: |
-            ghcr.io/${{ github.repository }}/backend:latest
-            ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
+            ghcr.io/${{ env.IMAGE_REPO }}/backend:latest
+            ghcr.io/${{ env.IMAGE_REPO }}/backend:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_REPO }}/backend:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -81,6 +96,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Lowercase image repository name
+        run: echo "IMAGE_REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -97,10 +114,12 @@ jobs:
           context: .
           file: apps/trackme-gateway/Dockerfile
           push: true
+          secrets: |
+            gpr_token=${{ secrets.GITHUB_TOKEN }}
           tags: |
-            ghcr.io/${{ github.repository }}/gateway:latest
-            ghcr.io/${{ github.repository }}/gateway:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/gateway:${{ github.ref_name }}
+            ghcr.io/${{ env.IMAGE_REPO }}/gateway:latest
+            ghcr.io/${{ env.IMAGE_REPO }}/gateway:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_REPO }}/gateway:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -110,6 +129,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Lowercase image repository name
+        run: echo "IMAGE_REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -126,10 +147,12 @@ jobs:
           context: .
           file: services/trackme-sso/Dockerfile
           push: true
+          secrets: |
+            gpr_token=${{ secrets.GITHUB_TOKEN }}
           tags: |
-            ghcr.io/${{ github.repository }}/sso:latest
-            ghcr.io/${{ github.repository }}/sso:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/sso:${{ github.ref_name }}
+            ghcr.io/${{ env.IMAGE_REPO }}/sso:latest
+            ghcr.io/${{ env.IMAGE_REPO }}/sso:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_REPO }}/sso:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -139,6 +162,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Lowercase image repository name
+        run: echo "IMAGE_REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -155,10 +180,12 @@ jobs:
           context: .
           file: services/meeting-service/Dockerfile
           push: true
+          secrets: |
+            gpr_token=${{ secrets.GITHUB_TOKEN }}
           tags: |
-            ghcr.io/${{ github.repository }}/meeting-service:latest
-            ghcr.io/${{ github.repository }}/meeting-service:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/meeting-service:${{ github.ref_name }}
+            ghcr.io/${{ env.IMAGE_REPO }}/meeting-service:latest
+            ghcr.io/${{ env.IMAGE_REPO }}/meeting-service:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_REPO }}/meeting-service:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -168,6 +195,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Lowercase image repository name
+        run: echo "IMAGE_REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -184,10 +213,12 @@ jobs:
           context: .
           file: services/telegram-service/Dockerfile
           push: true
+          secrets: |
+            gpr_token=${{ secrets.GITHUB_TOKEN }}
           tags: |
-            ghcr.io/${{ github.repository }}/telegram-service:latest
-            ghcr.io/${{ github.repository }}/telegram-service:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/telegram-service:${{ github.ref_name }}
+            ghcr.io/${{ env.IMAGE_REPO }}/telegram-service:latest
+            ghcr.io/${{ env.IMAGE_REPO }}/telegram-service:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_REPO }}/telegram-service:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -106,17 +106,14 @@ jobs:
             cd /home/${{ secrets.SBI_SSH_USERNAME }}/track-me-dev
             
             TAG='${{ needs.choose-image-tag.outputs.image_tag }}'
-            
+            REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+
             # Скачать новые версии image'ей
-            docker pull ghcr.io/${{ github.repository }}/backend:$TAG
-            docker pull ghcr.io/${{ github.repository }}/gateway:$TAG
-            docker pull ghcr.io/${{ github.repository }}/sso:$TAG
-            # Frontend was extracted into a separate repository and is no longer
-            # built here. Update these coordinates to the standalone frontend
-            # package once it publishes its own image.
-            docker pull ghcr.io/${{ github.repository }}/frontend:$TAG
-            docker pull ghcr.io/${{ github.repository }}/meeting-service:$TAG
-            docker pull ghcr.io/${{ github.repository }}/telegram-service:$TAG
+            docker pull ghcr.io/$REPO/backend:$TAG
+            docker pull ghcr.io/$REPO/gateway:$TAG
+            docker pull ghcr.io/$REPO/sso:$TAG
+            docker pull ghcr.io/$REPO/meeting-service:$TAG
+            docker pull ghcr.io/$REPO/telegram-service:$TAG
             
             # Остановить текущие контейнеры и поднять новые
             docker compose -f docker-compose.dev.yml down
@@ -150,10 +147,5 @@ jobs:
             
             until curl -sf http://localhost:9000/actuator/health; do
               echo "Waiting for sso..."
-              sleep 5
-            done
-            
-            until curl -sf http://localhost:3000/actuator/health; do
-              echo "Waiting for frontend..."
               sleep 5
             done

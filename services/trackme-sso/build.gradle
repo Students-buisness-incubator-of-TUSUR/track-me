@@ -4,13 +4,12 @@ plugins {
     id 'jacoco'
     id 'com.github.node-gradle.node' version '7.0.2'
     id 'io.freefair.lombok'
-    id "org.sonarqube" version "6.2.0.5505"
 }
 
 version = '1.0.0'
 
 dependencies {
-    implementation platform(project(':platform'))
+    implementation platform("net.trackme.platform:platform:${trackmePlatformVersion}")
 
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -48,7 +47,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    implementation project(':commons')
+    implementation "net.trackme.commons:commons:${trackmePlatformVersion}"
 }
 
 test {
@@ -77,16 +76,6 @@ sourceSets {
 
 springBoot {
     buildInfo()
-}
-
-sonar {
-    properties {
-        property "sonar.language", "java"
-        property "sonar.projectKey", "trackme-sso"
-        property "sonar.organization", "akarmanov2022"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.java.checkstyle.reportPaths", "build/reports/checkstyle/main.xml,build/reports/checkstyle/test.xml"
-    }
 }
 
 node {
