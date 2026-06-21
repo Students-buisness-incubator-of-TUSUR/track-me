@@ -101,6 +101,10 @@ jobs:
         with:
           name: jacoco-telegram-service
           path: services/telegram-service/build/reports/jacoco/test
+      - name: Compile sources
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew testClasses
       - name: SonarCloud analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
