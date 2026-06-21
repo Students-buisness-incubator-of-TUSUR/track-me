@@ -9,10 +9,6 @@ gradle.startParameter.parallelProjectExecutionEnabled = true
 sonar {
     properties {
         property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.coverage.jacoco.xmlReportPaths",
-                subprojects.collect {
-                    it.layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile.path
-                }.join(',')
     }
 }
 
@@ -27,6 +23,17 @@ subprojects {
             credentials {
                 username = project.findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR') ?: ''
                 password = project.findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN') ?: ''
+            }
+        }
+    }
+
+    // Покрытие задаётся на каждом модуле: jacoco-отчёт модуля сопоставляется с его же
+    // исходниками. Модули с jacoco (в т.ч. через java-quality) подхватываются автоматически.
+    plugins.withId('jacoco') {
+        sonar {
+            properties {
+                property "sonar.coverage.jacoco.xmlReportPaths",
+                    layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile.path
             }
         }
     }
