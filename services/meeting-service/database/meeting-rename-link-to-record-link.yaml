@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: meeting-rename-link-to-record-link
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            schemaName: ${db_schema}
+            tableName: meeting
+            columnName: link
+      changes:
+        - renameColumn:
+            schemaName: ${db_schema}
+            tableName: meeting
+            oldColumnName: link
+            newColumnName: record_link
+            columnDataType: varchar(255)

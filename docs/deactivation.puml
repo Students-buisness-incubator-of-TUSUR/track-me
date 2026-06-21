@@ -1,0 +1,31 @@
+@startuml
+
+actor Admin
+actor Tracker
+participant "trackme-frontend" as Frontend
+participant "trackme-client-gateway" as Gateway
+participant "trackme-sso" as SSO
+database Redis
+
+== Деактивация пользователя ==
+
+Admin -> Frontend: Инициирует\nдеактивацию пользователя
+Frontend -> Gateway: PATCH /sso/api/v1/users/\n{id}/deactivate
+Gateway -> SSO: PATCH /api/v1/users/\n{id}/deactivate
+SSO -> SSO: установка статуса\nactive=false
+SSO -> Redis: Удаление сессии\nпо authorization_id
+Redis --> SSO: OK
+SSO --> Gateway: 200 OK
+Gateway --> Frontend: 200 OK
+Frontend --> Admin: Подтверждение\nдеактивации
+
+== Попытка доступа деактивированного пользователя ==
+
+Tracker -> Frontend: Выполняет действие\nв системе
+Frontend -> Gateway: GET /api/protected-resource
+Gateway -> Redis: Провека сессии\nпо authorization_id
+Redis --> Gateway: Сессия не найдена
+Gateway --> Frontend: 401 Unauthorized
+Frontend --> Tracker: Запрещен доступ
+
+@enduml

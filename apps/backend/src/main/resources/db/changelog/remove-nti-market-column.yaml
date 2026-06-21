@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: remove-nti-market-column-1
+      author: akarmanov
+      dbms: h2, postgresql
+      preConditions:
+        - onFail: MARK_RAN
+          columnExists:
+            tableName: stream
+            schemaName: ${db_schema}
+            columnName: nti_market
+      changes:
+        - dropColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columnName: nti_market

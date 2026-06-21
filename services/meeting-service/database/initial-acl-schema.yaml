@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: initial-acl-schema-1
+      author: akarmanov
+      dbms: h2, postgresql
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            tableExists:
+              schemaName: ${db_schema}
+              tableName: acl_sid
+      changes:
+        - sqlFile:
+            path: initial-acl-schema.sql
+            relativeToChangelogFile: true

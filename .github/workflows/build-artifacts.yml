@@ -1,0 +1,84 @@
+name: Build and Push Docker Images
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  pull-requests: write
+  security-events: write
+
+on:
+  push:
+    # develop → dev-линия образов; main и теги v*.*.* → prod-линия (см. deploy-dev / deploy-prod)
+    branches: [ develop, main ]
+    tags: [ 'v*.*.*' ]
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - 'docs/**'
+
+jobs:
+  build-push:
+    # Собираем и пушим ВСЕ сервисы на каждый push: deploy-dev разворачивает образы по точному
+    # коммиту (head_sha), поэтому тег ${{ github.sha }} должен существовать у всех сервисов сразу.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: backend
+            dockerfile: apps/backend/Dockerfile
+          - image: gateway
+            dockerfile: apps/trackme-gateway/Dockerfile
+          - image: sso
+            dockerfile: services/trackme-sso/Dockerfile
+          - image: meeting-service
+            dockerfile: services/meeting-service/Dockerfile
+          - image: telegram-service
+            dockerfile: services/telegram-service/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase image repository name
+        run: echo "IMAGE_REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          IMG="ghcr.io/${IMAGE_REPO}/${{ matrix.image }}"
+          {
+            echo "list<<EOF"
+            # Всегда: неизменяемый тег по коммиту + тег по ref (develop / main / vX.Y.Z)
+            echo "${IMG}:${GITHUB_SHA}"
+            echo "${IMG}:${GITHUB_REF_NAME}"
+            # :latest двигаем только с develop, чтобы релизный тег/main не затирали dev-линию
+            if [[ "${GITHUB_REF_TYPE}" == "branch" && "${GITHUB_REF_NAME}" == "develop" ]]; then
+              echo "${IMG}:latest"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build and push ${{ matrix.image }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          secrets: |
+            gpr_token=${{ secrets.GITHUB_TOKEN }}
+          tags: ${{ steps.tags.outputs.list }}
+          # Отдельный scope на сервис, чтобы matrix-сборки не затирали кэш друг друга
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}

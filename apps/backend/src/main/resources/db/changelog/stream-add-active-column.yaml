@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-stream-active-column-1
+      author: akarmanov
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columns:
+              - column:
+                  name: active
+                  type: boolean
+                  defaultValue: "false"
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            columnName: active
+            schemaName: ${db_schema}
+            tableName: stream

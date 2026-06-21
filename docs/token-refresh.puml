@@ -1,0 +1,33 @@
+@startuml
+actor User
+participant "trackme-frontend" as Frontend
+participant "trackme-client-gateway" as Gateway
+participant "trackme-sso" as SSO
+participant "Redis"
+
+== Процесс обновления токена доступа ==
+User -> Frontend : Выполняет действие,\nтребующее авторизации
+Frontend -> Gateway : HTTP запрос к API\nc истекшим access_token
+
+note over Gateway
+  Перехват запроса фильтром
+  Проверка срока действия access_token
+  и необходимости обновления
+  Обнаружение истекшего токена
+end note
+
+Gateway -> SSO : POST /oauth2/token\n{grant_type=refresh_token,\nrefresh_token=...}
+
+SSO -> Redis : Поиск авторизации\nпо refresh_token
+Redis --> SSO : Данные авторизации
+
+
+SSO -> Redis : Сохранение обновленной\nавторизации
+Redis --> SSO : OK
+
+SSO --> Gateway : 200 OK\n{access_token: ..., refresh_token: ...}
+Gateway -> Gateway : Сохранение новых токенов\nв сессии пользователя
+Gateway -> Frontend : Перенаправление запроса\nс обновленным токеном
+Frontend -> User : Отображение результата\nзапроса
+
+@enduml

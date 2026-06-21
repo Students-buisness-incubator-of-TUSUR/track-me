@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - property:
+      name: db_schema
+      value: meeting_service
+  - include:
+      file: create-schema.sql
+  - include:
+      file: initial-schema.yaml
+  - include:
+      file: initial-acl-schema.yaml
+  - include:
+      file: meeting-add-tasks-columns.yaml
+  - include:
+      file: meeting-add-image-column.yaml
+  - include:
+      file: meeting-rename-link-to-record-link.yaml
+  - include:
+      file: meeting-denormalized.yaml
+  - include:
+      file: meeting-add-tasks-next-manually-set.yaml

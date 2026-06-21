@@ -1,48 +1,40 @@
 plugins {
-  id 'java'
-  id 'war'
-  id 'org.springframework.boot' version '3.3.4'
-  id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.freefair.lombok' version '8.14'
+    id 'org.sonarqube' version '7.3.1.8318'
 }
 
-group = 'net.akarmanov'
-version = '0.0.1-SNAPSHOT'
+gradle.startParameter.parallelProjectExecutionEnabled = true
 
-java {
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
-  }
+sonar {
+    properties {
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
 }
 
-configurations {
-  compileOnly {
-    extendsFrom annotationProcessor
-  }
-}
+subprojects {
+    group = 'net.trackme'
+    version = '0.0.3-SNAPSHOT'
 
-repositories {
-  mavenCentral()
-}
+    repositories {
+        mavenCentral()
+        maven {
+            url = uri('https://maven.pkg.github.com/Students-buisness-incubator-of-TUSUR/track-me-platform')
+            credentials {
+                username = project.findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR') ?: ''
+                password = project.findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN') ?: ''
+            }
+        }
+    }
 
-dependencies {
-  implementation 'org.springframework.boot:spring-boot-starter-actuator'
-  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-  implementation 'org.springframework.boot:spring-boot-starter-mail'
-  implementation 'org.springframework.boot:spring-boot-starter-validation'
-  implementation 'org.springframework.boot:spring-boot-starter-web'
-  implementation 'org.liquibase:liquibase-core'
-  implementation 'org.modelmapper:modelmapper:3.2.0'
-  compileOnly 'org.projectlombok:lombok'
-  developmentOnly 'org.springframework.boot:spring-boot-devtools'
-  developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
-  runtimeOnly 'com.h2database:h2'
-  runtimeOnly 'org.postgresql:postgresql'
-  annotationProcessor 'org.projectlombok:lombok'
-  providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
-  testImplementation 'org.springframework.boot:spring-boot-starter-test'
-  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.named('test') {
-  useJUnitPlatform()
+    // Покрытие задаётся на каждом модуле: jacoco-отчёт модуля сопоставляется с его же
+    // исходниками. Модули с jacoco (в т.ч. через java-quality) подхватываются автоматически.
+    plugins.withId('jacoco') {
+        sonar {
+            properties {
+                property "sonar.coverage.jacoco.xmlReportPaths",
+                    layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile.path
+            }
+        }
+    }
 }

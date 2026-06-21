@@ -1,0 +1,279 @@
+databaseChangeLog:
+  - changeSet:
+      id: update-db-schema-1
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          or:
+            - tableExists:
+                schemaName: ${db_schema}
+                tableName: stream
+            - not:
+                - columnExists:
+                    schemaName: ${db_schema}
+                    tableName: stream
+                    columnName: teams_count
+      changes:
+        - dropColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columnName: teams_count
+  - changeSet:
+      id: update-db-schema-2
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: readiness_level
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columns:
+              - column:
+                  name: readiness_level
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: update-db-schema-3
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: nti_market
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columns:
+              - column:
+                  name: nti_market
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: update-db-schema-4
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: enabled
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: enabled
+                  type: boolean
+                  constraints:
+                    nullable: false
+                  defaultValue: true
+  - changeSet:
+      id: update-db-schema-5
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: average_grade
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: average_grade
+                  type: decimal(3,2)
+                  constraints:
+                    nullable: true
+  - changeSet:
+      id: stream-add-trackStartDate-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: trackStartDate
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columns:
+              - column:
+                  name: track_start_date
+                  type: date
+                  constraints:
+                    nullable: true
+  - changeSet:
+      id: stream-add-meetingsCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: meetings_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columns:
+              - column:
+                  name: meetings_count
+                  type: integer
+                  constraints:
+                    nullable: false
+                  defaultValue: "0"
+  - changeSet:
+      id: team-card-add-meetingsCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meetings_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meetings_count
+                  type: integer
+                  constraints:
+                    nullable: false
+                  defaultValue: "0"
+  - changeSet:
+      id: team-card-add-meetingsCompletedCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meetings_completed_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meetings_completed_count
+                  type: integer
+                  constraints:
+                    nullable: false
+                  defaultValue: "0"
+  - changeSet:
+      id: team-card-add-meetingsNotHappenedCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meetings_not_happened_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meetings_not_happened_count
+                  type: integer
+                  constraints:
+                    nullable: false
+                  defaultValue: "0"
+  - changeSet:
+      id: team-card-add-meetingsCompletedAsNotHappenedCount-column
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: meetings_completed_as_not_happened_count
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: meetings_completed_as_not_happened_count
+                  type: integer
+                  constraints:
+                    nullable: false
+                  defaultValue: "0"
+  - changeSet:
+      id: add-meeting-grade-table
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                schemaName: ${db_schema}
+                tableName: meeting_grade
+      changes:
+        - createTable:
+            schemaName: ${db_schema}
+            tableName: meeting_grade
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: meeting_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: team_card_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: grade
+                  type: decimal(3,2)
+                  constraints:
+                    nullable: false
+                  defaultValue: "0.0"
+        - addForeignKeyConstraint:
+            baseTableName: meeting_grade
+            baseColumnNames: team_card_id
+            referencedTableName: team_card
+            referencedColumnNames: id
+            constraintName: fk_meeting_grade_team_card
+            baseTableSchemaName: ${db_schema}
+            referencedTableSchemaName: ${db_schema}
+  - changeSet:
+      id: meeting-grade-update-grade-column
+      author: popovam
+      changes:
+        - dropNotNullConstraint:
+            tableName: meeting_grade
+            columnName: grade
+            schemaName: ${db_schema}

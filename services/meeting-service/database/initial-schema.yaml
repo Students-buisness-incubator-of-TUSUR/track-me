@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: meeting-initial-schema-1
+      author: Arseniy Karmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                tableName: meeting
+      changes:
+        - createTable:
+            tableName: meeting
+            schemaName: ${db_schema}
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: team_card_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: link
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: number
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: start_date
+                  type: DATETIME
+                  constraints:
+                    nullable: false
+              - column:
+                  name: screenshot
+                  type: BLOB
+                  constraints:
+                    nullable: true
+              - column:
+                  name: team_status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: status
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+

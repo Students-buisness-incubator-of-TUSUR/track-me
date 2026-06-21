@@ -1,0 +1,18 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+  kafka:
+    listener:
+      auto-startup: false
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  security:
+    oauth2:
+      client:
+        provider:
+          sso:
+            issuer-uri: ""

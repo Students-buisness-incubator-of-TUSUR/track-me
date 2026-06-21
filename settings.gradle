@@ -1,1 +1,30 @@
-rootProject.name = 'project-place'
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        maven {
+            url = uri('https://maven.pkg.github.com/Students-buisness-incubator-of-TUSUR/track-me-platform')
+            credentials {
+                username = providers.gradleProperty('gpr.user').getOrElse(System.getenv('GITHUB_ACTOR') ?: '')
+                password = providers.gradleProperty('gpr.key').getOrElse(System.getenv('GITHUB_TOKEN') ?: '')
+            }
+        }
+    }
+}
+
+rootProject.name = 'trackme'
+
+include ':backend'
+project(':backend').projectDir = file('apps/backend')
+
+include ':trackme-gateway'
+project(':trackme-gateway').projectDir = file('apps/trackme-gateway')
+
+include ':trackme-sso'
+project(':trackme-sso').projectDir = file('services/trackme-sso')
+
+include ':meeting-service'
+findProject(':meeting-service').projectDir = file('services/meeting-service')
+
+include ':telegram-service'
+project(':telegram-service').projectDir = file('services/telegram-service')

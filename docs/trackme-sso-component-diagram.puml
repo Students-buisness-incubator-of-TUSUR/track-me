@@ -1,0 +1,53 @@
+@startuml trackme-sso-component-diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title "Сервис TrackMe SSO - Диаграмма компонентов"
+
+Person(user, "Пользователь", "Пользователь системы")
+
+System_Boundary(trackme_sso, "Сервис TrackMe SSO") {
+    Container(frontend, "Фронтенд-приложение", "React", "Предоставляет интерфейс для аутентификации и регистрации")
+
+    Container_Boundary(backend, "Бэкенд SSO") {
+        Component(controllers, "API Контроллеры", "Spring REST Controllers", "Обрабатывает HTTP-запросы")
+        Component(service_layer, "Сервисный слой", "Spring Services", "Содержит бизнес-логику")
+        Component(dao_layer, "Слой доступа к данным", "Spring Data JPA", "Управляет операциями с базой данных")
+        Component(auth_server, "OAuth2 Сервер авторизации", "Spring Security", "Аутентификация и авторизация")
+        Component(dto_objects, "DTO Объекты", "Java Classes", "Объекты передачи данных")
+        Component(mappers, "Мапперы", "MapStruct", "Преобразует между сущностями и DTO")
+        Component(exception_handling, "Обработка исключений", "ControllerAdvice", "Глобальная обработка ошибок")
+        Component(utils, "Утилиты", "Helper Classes", "Общие вспомогательные функции")
+        Component(config, "Конфигурация", "Spring @Configuration", "Конфигурация приложения")
+        Component(custom_components, "Пользовательские компоненты", "Spring Components", "Специальные компоненты приложения")
+    }
+
+    ContainerDb(db, "База данных", "PostgreSQL", "Хранит данные пользователей, учетные данные и сессии")
+    ContainerDb(cache, "Кэш", "Redis", "Хранит токены и данные сессий")
+}
+
+System_Ext(mail_server, "Почтовый сервер", "SMTP-сервер для отправки электронных писем")
+System_Ext(client_apps, "Клиентские приложения", "Приложения, использующие сервис SSO")
+
+' Основные связи
+Rel(user, frontend, "Использует", "HTTPS")
+Rel(frontend, controllers, "Выполняет API-вызовы", "JSON/HTTPS")
+Rel(controllers, service_layer, "Использует")
+Rel(controllers, dto_objects, "Использует")
+Rel(controllers, exception_handling, "Обрабатывается")
+
+Rel(service_layer, dao_layer, "Использует")
+Rel(service_layer, mappers, "Использует")
+Rel(service_layer, utils, "Использует")
+Rel(service_layer, auth_server, "Использует")
+
+Rel(dao_layer, db, "Читает и записывает", "JPA/JDBC")
+Rel(auth_server, cache, "Хранит токены", "Redis Protocol")
+Rel(service_layer, mail_server, "Отправляет электронные письма", "SMTP")
+
+Rel(client_apps, auth_server, "Аутентифицируется через", "OAuth2/OIDC")
+
+Rel(mappers, dto_objects, "Создает")
+Rel(config, custom_components, "Конфигурирует")
+Rel(config, auth_server, "Конфигурирует")
+
+@enduml

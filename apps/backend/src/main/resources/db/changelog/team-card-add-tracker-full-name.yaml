@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: team-card-add-tracker-full-name-20250109
+      author: developer
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: tracker_full_name
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: tracker_full_name
+                  type: varchar(255)
+                  remarks: "ФИО трекера для отображения в сводках"
+      rollback:
+        - dropColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columnName: tracker_full_name

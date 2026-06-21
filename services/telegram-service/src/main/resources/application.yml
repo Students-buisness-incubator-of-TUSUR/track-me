@@ -1,0 +1,80 @@
+server:
+  port: 8084
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  profiles:
+    active: development
+  application:
+    name: telegram-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    password: ${DB_PASSWORD:project-place}
+    username: ${DB_USERNAME:project-place}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
+    hikari:
+      schema: telegram_service
+  liquibase:
+    enabled: true
+    liquibase-schema: telegram_service
+    default-schema: telegram_service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      group-id: telegram-service
+    listener:
+      missing-topics-fatal: false
+      concurrency: 3
+      ack-mode: record
+      poll-timeout: 3000
+      auto-startup: true
+app:
+  telegram-bot-properties:
+    bot-token: ${TELEGRAM_BOT_TOKEN}
+    bot-username: ${TELEGRAM_BOT_USERNAME}
+---
+spring:
+  config:
+    activate:
+      on-profile: development
+  liquibase:
+    contexts: dev prod
+logging:
+  level:
+    org.springframework.security: trace
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker-local
+  liquibase:
+    contexts: dev prod
+logging:
+  level:
+    org.springframework.security: trace
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  liquibase:
+    contexts: prod
+logging:
+  level:
+    root: info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  liquibase:
+    liquibase-schema: telegram_service
+    default-schema: telegram_service
+    contexts: prod, dev
+  datasource:
+    hikari:
+      schema: telegram_service

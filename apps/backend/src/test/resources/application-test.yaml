@@ -1,0 +1,41 @@
+logging:
+  level:
+    net:
+      trackme:
+        backend:
+          services:
+            acl: DEBUG
+spring:
+  application:
+    name: project-place-backend
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/project-place-test
+    username: postgres
+    password: postgres
+    hikari:
+      schema: public
+      pool-name: project-place-test
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 60000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
+
+  liquibase:
+    enabled: true
+    default-schema: backend
+    liquibase-schema: backend
+
+app:
+  acl:
+    class-identity-query: "select currval(pg_get_serial_sequence('acl_class', 'id'))"
+    sid-identity-query: "select currval(pg_get_serial_sequence('acl_sid', 'id'))"
+
+kafka:
+  enabled: false

@@ -1,0 +1,92 @@
+server:
+  port: 9000
+  servlet:
+    session:
+      cookie:
+        name: SSO_SESSION
+
+logging:
+  level:
+    org.springframework.security: trace
+
+spring:
+  application:
+    name: trackme-sso
+  mvc:
+    static-path-pattern: /static/**
+  web:
+    resources:
+      static-locations: classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: trackme-sso
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    listener:
+      missing-topics-fatal: false
+  config:
+    import:
+      - application-data.yaml
+      - application-security.yaml
+springdoc:
+  swagger-ui:
+    enabled: false
+  paths-to-exclude: /client/**, /api/csrf
+
+app:
+  swagger:
+    auth-types:
+      auth-header-enabled: true
+      client-credentials-enabled: true
+      authorization-code-enabled: true
+    auth-oauth:
+      token-url: http://localhost:9000/oauth2/token
+      authorization_url: http://localhost:9000/oauth2/authorize
+      refresh-url: http://localhost:9000/oauth2/token
+  api-url: ${BACKEND_URI:http://127.0.0.1:8081}/sso
+  telegram-url: ${TELEGRAM_URI:https://t.me}
+  bot-username: ${TELEGRAM_BOT_USERNAME}
+  mail:
+    from: ${MAIL_FROM}
+    subject: ${MAIL_SUBJECT}
+    summarySendRoles: ${MAIL_SUMMARY_SEND_ROLES:ADMIN,SUPER_ADMIN}
+  services:
+    backend:
+      url: ${BACKEND_SERVICE_URL:http://trackme-backend:8080}
+
+registration-store:
+  cookie-name: trackme-sso-temporary-session
+  cookie-domain: ${SSO_COOKIE_DOMAIN:localhost}
+  cookie-max-age: 10m
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker-local
+app:
+  api-url: ${BACKEND_URI:http://localhost}/sso
+  services:
+    backend:
+      url: ${BACKEND_SERVICE_URL:http://trackme-backend:8080}
+
+management:
+  health:
+    mail:
+      enabled: false

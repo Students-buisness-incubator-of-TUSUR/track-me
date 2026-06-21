@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: meeting-add-image-column-1
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: meeting
+                schemaName: ${db_schema}
+                columnName: image
+      changes:
+        - addColumn:
+            tableName: meeting
+            schemaName: ${db_schema}
+            columns:
+              - column:
+                  name: image
+                  type: BLOB
+                  constraints:
+                    nullable: true

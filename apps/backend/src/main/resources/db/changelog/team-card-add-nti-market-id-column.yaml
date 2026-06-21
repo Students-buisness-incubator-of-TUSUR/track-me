@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: team-card-add-nti-market-id-column-1
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              tableName: team_card
+              schemaName: ${db_schema}
+              columnName: nti_market_id
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: nti_market_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_team_card_nti_market_id
+                    references: ${db_schema}.nti_market(id)
+                    nullable: false
+      rollback:
+        - dropColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columnName: nti_market_id
+  - changeSet:
+      id: team-card-add-readiness-column-2
+      author: akarmanov
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            columnExists:
+              schemaName: ${db_schema}
+              tableName: team_card
+              columnName: readiness_level
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: readiness_level
+                  type: text
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columnName: readiness_level
+  - changeSet:
+      id: team-card-add-nti-market-id-column-2
+      author: akarmanov
+      changes:
+        - dropColumn:
+            tableName: team_card
+            columnName: nti_market_id
+            schemaName: ${db_schema}

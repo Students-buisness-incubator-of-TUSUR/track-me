@@ -1,0 +1,88 @@
+spring:
+  profiles:
+    active: development
+  session:
+    redis:
+      flush-mode: immediate
+      namespace: track-me-sso:session
+  data:
+    redis:
+      client-type: lettuce
+      database: 0
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USER:trackme-redis}
+      password: ${REDIS_USER_PASSWORD:trackme-redis}
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    password: ${DB_PASSWORD:project-place}
+    username: ${DB_USERNAME:project-place}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/project-place}
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 10
+      initialization-fail-timeout: 1
+      leak-detection-threshold: 0
+      pool-name: "HikariPool-track-me-sso"
+      register-mbeans: true
+      schema: sso
+  liquibase:
+    enabled: true
+    change-log: classpath:db.changelog.yaml
+    contexts: dev prod
+    default-schema: sso
+    liquibase-schema: sso
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: trackme-sso
+    listener:
+      missing-topics-fatal: false
+      concurrency: 3
+      ack-mode: record
+      poll-timeout: 3000
+      auto-startup: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+  liquibase:
+    contexts: prod
+
+---
+spring:
+  config:
+    activate:
+      on-profile: development,docker-local
+  liquibase:
+    contexts: prod, dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  liquibase:
+    liquibase-schema: sso
+    default-schema: sso
+    contexts: prod, dev
+  datasource:
+    hikari:
+      schema: sso
+  data:
+    redis:
+      database: 1
+      host: localhost
+      port: 6379
+      username:
+      password:

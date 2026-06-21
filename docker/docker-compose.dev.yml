@@ -1,0 +1,229 @@
+services:
+  redis:
+    image: redis:latest
+    env_file:
+      - .env
+    volumes:
+      - ./redisdata:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    command: >
+      sh -c '
+        cat .env.dev.redis >> .env
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass ${REDIS_PASSWORD}" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        echo "user ${REDIS_USER} on >${REDIS_USER_PASSWORD} ~* +@all" >> /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+    networks:
+      - demo
+
+  trackme-backend:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/backend:${IMAGE_TAG:-latest}
+    platform: linux/amd64
+    restart: always
+    environment:
+      - SERVER_FORWARD_HEADERS_STRATEGY=native
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    ports:
+      - '8080:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  trackme-sso:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/sso:${IMAGE_TAG:-latest}
+    platform: linux/amd64
+    restart: always
+    environment:
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=TRACE
+      - SERVER_FORWARD_HEADERS_STRATEGY=native
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    ports:
+      - '9000:9000'
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  trackme-client-gateway:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/gateway:${IMAGE_TAG:-latest}
+    platform: linux/amd64
+    restart: always
+    environment:
+      - SERVER_FORWARD_HEADERS_STRATEGY=native
+      - CORS_ORIGINS=http://localhost:3000,${FRONTEND_URI},${BACKEND_URI}
+      - SESSION_COOKIE_SAME_SITE=None
+      - SESSION_COOKIE_SECURE=True
+    depends_on:
+      - trackme-backend
+      - trackme-sso
+    env_file:
+      - .env
+    ports:
+      - '8081:8081'
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  trackme-frontend:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: ${FRONTEND_IMAGE}
+    platform: linux/amd64
+    env_file:
+      - .env
+    ports:
+      - '3000:3000'
+    networks:
+      - demo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  trackme-meeting-service:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/meeting-service:${IMAGE_TAG:-latest}
+    platform: linux/amd64
+    restart: always
+    environment:
+      - SERVER_FORWARD_HEADERS_STRATEGY=native
+    env_file:
+      - .env
+    ports:
+      - '8082:8082'
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  trackme-telegram-service:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/telegram-service:${IMAGE_TAG:-latest}
+    platform: linux/amd64
+    restart: always
+    environment:
+      - SERVER_FORWARD_HEADERS_STRATEGY=native
+    env_file:
+      - .env
+    ports:
+      - '8084:8084'
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  trackme-kafka:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: bitnami/kafka:3.7
+    container_name: trackme-kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@trackme-kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://trackme-kafka:9092,PLAINTEXT_HOST://localhost:29092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    volumes:
+      - kafka_data:/bitnami/kafka
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  trackme-kafka-ui:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: provectuslabs/kafka-ui:latest
+    container_name: trackme-kafka-ui
+    depends_on:
+      - trackme-kafka
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=trackme
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=trackme-kafka:9092
+    ports:
+      - "8085:8080"
+    networks:
+      - demo
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  demo:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  kafka_data:

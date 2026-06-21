@@ -1,0 +1,4 @@
+app:
+  telegram-bot-properties:
+    bot-token: test-token
+    bot-username: test-username

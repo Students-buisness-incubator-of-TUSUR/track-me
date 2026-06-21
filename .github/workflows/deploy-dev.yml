@@ -1,0 +1,107 @@
+name: Deploy to DEV
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        default: 'latest'
+        type: string
+  workflow_run:
+    workflows: [ "Build and Push Docker Images" ]
+    types: [ completed ]
+    branches: [ develop ]
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Ручной запуск — всегда; workflow_run — только успешный CI от push (не PR, не master/tag)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: dev
+    steps:
+      - name: Resolve image reference
+        id: image
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.image_tag }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            TAG="$INPUT_TAG"
+          else
+            # Деплоим ровно тот коммит, образы которого собрал CI
+            TAG="$HEAD_SHA"
+          fi
+          echo "repo=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to DEV
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_REPO: ${{ steps.image.outputs.repo }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.SBI_SSH_HOST }}
+          username: ${{ secrets.SBI_SSH_USERNAME }}
+          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          proxy_host: bastion.tusur.ru
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
+          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          script: |
+            set -euo pipefail
+            cd "$HOME/track-me-dev"
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            # Идемпотентно патчим только ссылки на образы; прикладные секреты в .env не трогаем
+            touch .env
+            sed -i '/^IMAGE_REPO=/d;/^IMAGE_TAG=/d' .env
+            echo "IMAGE_REPO=$IMAGE_REPO" >> .env
+            echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+
+            # up -d сам докачивает отсутствующие SHA-образы и пересоздаёт только изменившиеся сервисы;
+            # фронтенд (своя ${FRONTEND_IMAGE}) и инфра (:latest, уже на месте) не трогаются — без down
+            docker compose up -d
+            docker image prune -f
+
+      - name: Healthcheck
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SBI_SSH_HOST }}
+          username: ${{ secrets.SBI_SSH_USERNAME }}
+          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          proxy_host: bastion.tusur.ru
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
+          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            check() {
+              for i in $(seq 1 24); do
+                if curl -sf "$2" > /dev/null; then
+                  echo "$1 is up"
+                  return 0
+                fi
+                echo "Waiting for $1... ($i/24)"
+                sleep 5
+              done
+              echo "$1 failed healthcheck" >&2
+              return 1
+            }
+            check backend http://localhost:8080/actuator/health
+            check sso http://localhost:9000/actuator/health
