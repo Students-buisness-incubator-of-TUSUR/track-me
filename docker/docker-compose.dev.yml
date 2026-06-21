@@ -39,7 +39,7 @@ services:
       - demo
 
   trackme-backend:
-    image: ghcr.io/akarmanov2022/track-me/backend:latest
+    image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/backend:${IMAGE_TAG:-latest}
     platform: linux/amd64
     restart: always
     env_file:
@@ -59,7 +59,7 @@ services:
       retries: 5
 
   trackme-sso:
-    image: ghcr.io/akarmanov2022/track-me/sso:latest
+    image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/sso:${IMAGE_TAG:-latest}
     platform: linux/amd64
     restart: always
     depends_on:
@@ -77,7 +77,7 @@ services:
       retries: 5
 
   trackme-client-gateway:
-    image: ghcr.io/akarmanov2022/track-me/gateway:latest
+    image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/gateway:${IMAGE_TAG:-latest}
     platform: linux/amd64
     restart: always
     depends_on:
@@ -97,7 +97,7 @@ services:
       retries: 5
 
   trackme-frontend:
-    image: ghcr.io/akarmanov2022/track-me/frontend:latest
+    image: ${FRONTEND_IMAGE:-ghcr.io/students-buisness-incubator-of-tusur/track-me/frontend:latest}
     platform: linux/amd64
     env_file:
       - .env
