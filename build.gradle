@@ -9,6 +9,10 @@ gradle.startParameter.parallelProjectExecutionEnabled = true
 sonar {
     properties {
         property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.coverage.jacoco.xmlReportPaths",
+                subprojects.collect {
+                    it.layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml").get().asFile.path
+                }.join(',')
     }
 }
 
