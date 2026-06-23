@@ -650,7 +650,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
     @Transactional
     void sendMeetingInviteByUsername_userHasNoEmail_noEmailSent() {
         var user = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
-        user.setEmail(null);
+        user.setEmail("");
         userRepository.saveAndFlush(user);
 
         NotificationService notificationService = new NotificationServiceImpl(
