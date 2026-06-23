@@ -10,12 +10,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TeamCardEventsListenerTest extends AbstractIntegrationTest {
@@ -25,6 +26,15 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
     @Mock
     private ConsumerRecord<String, List<LinkedHashMap<String, String>>> teamCardSummaryRecord;
+
+    @Mock
+    private ConsumerRecord<String, List<LinkedHashMap<String, String>>> teamCardLowGradeSummaryRecord;
+
+    @Mock
+    private ConsumerRecord<String, MeetingInviteEvent> meetingInviteRecord;
+
+    @Mock
+    private ConsumerRecord<String, MeetingReminderEvent> meetingReminderRecord;
 
     @Autowired
     private TeamCardEventsListener teamCardEventsListener;
@@ -72,5 +82,93 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
         // Assert
         verify(notificationService).sendTeamCardSummary(event);
+    }
+
+    @Test
+    void onTeamCardLowGradeSummaryEvent() {
+        List<LinkedHashMap<String, String>> event = new ArrayList<>();
+        when(teamCardLowGradeSummaryRecord.value()).thenReturn(event);
+
+        teamCardEventsListener.onTeamCardLowGradeSummaryEvent(teamCardLowGradeSummaryRecord);
+
+        verify(notificationService).sendTeamCardLowGradeSummary(event);
+    }
+
+    @Test
+    void onMeetingInviteEvent_withTrackerEmail_sendsInviteToTracker() {
+        UUID meetingId = UUID.randomUUID();
+        MeetingInviteEvent event = new MeetingInviteEvent(
+                meetingId, "Test Team", "tracker", "Трекер Трекерович",
+                "tracker@example.com", "tracker", OffsetDateTime.now(), "http://meeting.link");
+        when(meetingInviteRecord.value()).thenReturn(event);
+
+        teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
+
+        verify(notificationService).sendMeetingInvite(
+                "tracker@example.com", "Трекер Трекерович", "Test Team",
+                "http://meeting.link", event.startDate());
+        verify(notificationService, never()).sendMeetingInviteByUsername(any(), any(), any(), any());
+    }
+
+    @Test
+    void onMeetingInviteEvent_withDifferentCreator_sendsInviteToBoth() {
+        UUID meetingId = UUID.randomUUID();
+        OffsetDateTime startDate = OffsetDateTime.now();
+        MeetingInviteEvent event = new MeetingInviteEvent(
+                meetingId, "Test Team", "tracker", "Трекер Трекерович",
+                "tracker@example.com", "creator_user", startDate, "http://meeting.link");
+        when(meetingInviteRecord.value()).thenReturn(event);
+
+        teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
+
+        verify(notificationService).sendMeetingInvite(
+                "tracker@example.com", "Трекер Трекерович", "Test Team",
+                "http://meeting.link", startDate);
+        verify(notificationService).sendMeetingInviteByUsername(
+                "creator_user", "Test Team", "http://meeting.link", startDate);
+    }
+
+    @Test
+    void onMeetingInviteEvent_withoutTrackerEmail_skipsTrackerInvite() {
+        UUID meetingId = UUID.randomUUID();
+        OffsetDateTime startDate = OffsetDateTime.now();
+        MeetingInviteEvent event = new MeetingInviteEvent(
+                meetingId, "Test Team", "tracker", "Трекер Трекерович",
+                null, "creator_user", startDate, "http://meeting.link");
+        when(meetingInviteRecord.value()).thenReturn(event);
+
+        teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
+
+        verify(notificationService, never()).sendMeetingInvite(any(), any(), any(), any(), any());
+        verify(notificationService).sendMeetingInviteByUsername(
+                "creator_user", "Test Team", "http://meeting.link", startDate);
+    }
+
+    @Test
+    void onMeetingReminderEvent_withTrackerUsername_sendsReminder() {
+        UUID meetingId = UUID.randomUUID();
+        OffsetDateTime startDate = OffsetDateTime.now().plusDays(3);
+        MeetingReminderEvent event = new MeetingReminderEvent(
+                meetingId, "Test Team", "tracker", "Трекер Трекерович",
+                startDate, "http://meeting.link", 3);
+        when(meetingReminderRecord.value()).thenReturn(event);
+
+        teamCardEventsListener.onMeetingReminderEvent(meetingReminderRecord);
+
+        verify(notificationService).sendMeetingReminderByUsername(
+                "tracker", "Test Team", "http://meeting.link", startDate, 3);
+    }
+
+    @Test
+    void onMeetingReminderEvent_withoutTrackerUsername_skipsReminder() {
+        UUID meetingId = UUID.randomUUID();
+        MeetingReminderEvent event = new MeetingReminderEvent(
+                meetingId, "Test Team", null, null,
+                OffsetDateTime.now(), "http://meeting.link", 1);
+        when(meetingReminderRecord.value()).thenReturn(event);
+
+        teamCardEventsListener.onMeetingReminderEvent(meetingReminderRecord);
+
+        verify(notificationService, never()).sendMeetingReminderByUsername(any(), any(), any(), any(), anyInt());
     }
 }

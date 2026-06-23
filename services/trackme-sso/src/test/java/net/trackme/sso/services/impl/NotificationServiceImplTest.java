@@ -17,6 +17,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -562,6 +563,179 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event.put("averageGrade", "0.1");
 
         assertDoesNotThrow(() -> notificationService.sendTeamCardLowGradeSummary(List.of(event)));
+
+        verify(javaMailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingInvite_success() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingInvite(
+                    "tracker@tracker.com",
+                    "Трекер Трекерович",
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    OffsetDateTime.now())
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingInvite_withNullDate_usesEmptyString() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingInvite(
+                    "tracker@tracker.com",
+                    "Трекер",
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    null)
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingReminder_success() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingReminder(
+                    "tracker@tracker.com",
+                    "Трекер Трекерович",
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    OffsetDateTime.now().plusDays(3))
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingInviteByUsername_success() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingInviteByUsername(
+                    "superadmin",
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    OffsetDateTime.now().plusDays(1))
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    @Transactional
+    void sendMeetingInviteByUsername_userHasNoEmail_noEmailSent() {
+        var user = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
+        user.setEmail(null);
+        userRepository.saveAndFlush(user);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        notificationService.sendMeetingInviteByUsername(
+                "superadmin", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now());
+
+        verify(javaMailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingInviteByUsername_userNotFound_noEmailSent() {
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        notificationService.sendMeetingInviteByUsername(
+                "nonexistent_user_xyz", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now());
+
+        verify(javaMailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingReminderByUsername_oneDayAhead_success() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingReminderByUsername(
+                    "superadmin",
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    OffsetDateTime.now().plusDays(1),
+                    1)
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingReminderByUsername_threeDaysAhead_success() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingReminderByUsername(
+                    "superadmin",
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    OffsetDateTime.now().plusDays(3),
+                    3)
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    @Transactional
+    void sendMeetingReminderByUsername_userHasNoEmail_noEmailSent() {
+        var user = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
+        user.setEmail("");
+        userRepository.saveAndFlush(user);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        notificationService.sendMeetingReminderByUsername(
+                "superadmin", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now(), 3);
+
+        verify(javaMailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingReminderByUsername_userNotFound_noEmailSent() {
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        notificationService.sendMeetingReminderByUsername(
+                "nonexistent_user_xyz", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now(), 1);
 
         verify(javaMailSender, never()).send(any(MimeMessage.class));
     }
