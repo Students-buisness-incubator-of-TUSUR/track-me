@@ -56,6 +56,7 @@ spring:
         jwt:
           issuer-uri: ${SSO_URI:http://localhost:9000}
   kafka:
+    enabled: true
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer

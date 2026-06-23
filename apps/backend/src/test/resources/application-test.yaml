@@ -36,3 +36,6 @@ app:
   acl:
     class-identity-query: "select currval(pg_get_serial_sequence('acl_class', 'id'))"
     sid-identity-query: "select currval(pg_get_serial_sequence('acl_sid', 'id'))"
+
+kafka:
+  enabled: false

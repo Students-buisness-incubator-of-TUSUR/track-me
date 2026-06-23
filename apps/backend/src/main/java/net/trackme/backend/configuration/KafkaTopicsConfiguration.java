@@ -1,12 +1,17 @@
 package net.trackme.backend.configuration;
 
 import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
+/**
+ * Объявление Kafka-топиков.
+ */
 @Configuration
+@ConditionalOnProperty(prefix = "kafka", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaTopicsConfiguration {
     public static final String MEETING_NOT_HAPPENED_TOPIC = "meeting-not-happened";
     public static final String TEAM_CARD_SUMMARY_TOPIC = "team-card-summary";

@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -27,6 +29,9 @@ public abstract class BaseApplicationTest extends AbstractIntegrationTest {
 
   @Autowired
   protected StreamRepository streamRepository;
+
+  @MockitoBean
+  protected KafkaTemplate<String, Object> kafkaTemplate;
 
   protected Stream stream;
 

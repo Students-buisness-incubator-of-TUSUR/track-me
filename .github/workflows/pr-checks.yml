@@ -3,6 +3,7 @@ name: PR Checks
 permissions:
   contents: read
   pull-requests: write
+  packages: read
 
 on:
   push:
@@ -23,359 +24,110 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  detect-changes:
+  check:
     runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.changes.outputs.backend }}
-      meeting-service: ${{ steps.changes.outputs.meeting-service }}
-      sso: ${{ steps.changes.outputs.sso }}
-      gateway: ${{ steps.changes.outputs.gateway }}
-      commons: ${{ steps.changes.outputs.commons }}
-      telegram-service: ${{ steps.changes.outputs.telegram-service }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: backend
+            path: apps/backend
+          - module: trackme-gateway
+            path: apps/trackme-gateway
+          - module: trackme-sso
+            path: services/trackme-sso
+          - module: meeting-service
+            path: services/meeting-service
+          - module: telegram-service
+            path: services/telegram-service
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            backend:
-              - 'apps/backend/**'
-              - 'libs/commons/**'
-              - 'build.gradle'
-              - 'settings.gradle'
-              - 'gradle/**'
-            meeting-service:
-              - 'services/meeting-service/**'
-              - 'libs/commons/**'
-              - 'build.gradle'
-              - 'settings.gradle'
-              - 'gradle/**'
-            sso:
-              - 'services/trackme-sso/**'
-              - 'libs/commons/**'
-              - 'build.gradle'
-              - 'settings.gradle'
-              - 'gradle/**'
-            gateway:
-              - 'apps/trackme-gateway/**'
-              - 'libs/commons/**'
-              - 'build.gradle'
-              - 'settings.gradle'
-              - 'gradle/**'
-            commons:
-              - 'libs/commons/**'
-              - 'build.gradle'
-              - 'settings.gradle'
-              - 'gradle/**'
-            telegram-service:
-              - 'services/telegram-service/**'
-              - 'libs/commons/**'
-              - 'build.gradle'
-              - 'settings.gradle'
-              - 'gradle/**'
-
-  backend-check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
-      - name: Cache SonarQube
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
-      - name: Build and analyze
+      - name: Check ${{ matrix.module }}
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          pwd; ls -l .
-          ./gradlew :backend:check :backend:sonar \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :${{ matrix.module }}:check
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-${{ matrix.module }}
+          path: ${{ matrix.path }}/build/reports/jacoco/test/jacocoTestReport.xml
+          if-no-files-found: error
+          retention-days: 1
 
-  meeting-service-check:
+  sonar:
+    needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: detect-changes
-    if: needs.detect-changes.outputs.meeting-service == 'true'
     steps:
       - uses: actions/checkout@v4
         with:
+          # Полная история нужна SonarCloud для анализа нового кода и blame
           fetch-depth: 0
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: gradle
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v3
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
-      - name: Cache SonarQube
-        uses: actions/cache@v3
+          name: jacoco-backend
+          path: apps/backend/build/reports/jacoco/test
+      - name: Download gateway coverage
+        uses: actions/download-artifact@v4
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
-      - name: Build and analyze
+          name: jacoco-trackme-gateway
+          path: apps/trackme-gateway/build/reports/jacoco/test
+      - name: Download sso coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-trackme-sso
+          path: services/trackme-sso/build/reports/jacoco/test
+      - name: Download meeting-service coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-meeting-service
+          path: services/meeting-service/build/reports/jacoco/test
+      - name: Download telegram-service coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-telegram-service
+          path: services/telegram-service/build/reports/jacoco/test
+      - name: Compile sources
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          pwd; ls -l .
-          ./gradlew :meeting-service:check :meeting-service:sonar \
-            -Dsonar.projectKey=trackme-meeting-service \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
-
-  sso-check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: detect-changes
-    if: needs.detect-changes.outputs.sso == 'true'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: gradle
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
-      - name: Cache SonarQube
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
-      - name: Build and analyze
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew testClasses
+      - name: SonarCloud analysis
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          pwd; ls -l .
-          ./gradlew :trackme-sso:check :trackme-sso:sonar \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
+        run: >
+          ./gradlew sonar
+          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+          -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          ${{ github.event_name == 'pull_request' && format('-Dsonar.pullrequest.key={0} -Dsonar.pullrequest.branch={1} -Dsonar.pullrequest.base={2}', github.event.pull_request.number, github.head_ref, github.base_ref) || '' }}
 
-  gateway-check:
+  all-checks:
+    needs: [ check, sonar ]
+    if: always()
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: detect-changes
-    if: needs.detect-changes.outputs.gateway == 'true'
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: gradle
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
-      - name: Cache SonarQube
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
-      - name: Build and analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Verify results
         run: |
-          pwd; ls -l .
-          ./gradlew :trackme-gateway:check :trackme-gateway:sonar \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
-
-  libs-commons-check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: detect-changes
-    if: needs.detect-changes.outputs.commons == 'true'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: gradle
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
-      - name: Cache SonarQube
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
-      - name: Build and analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          pwd; ls -l .
-          ./gradlew :commons:check :commons:sonar \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
-
-  telegram-service-check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: detect-changes
-    if: needs.detect-changes.outputs.telegram-service == 'true'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: gradle
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle
-          restore-keys: |
-            ${{ runner.os }}-gradle
-      - name: Cache SonarQube
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: |
-            ${{ runner.os }}-sonar
-      - name: Build and analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          pwd; ls -l .
-          ./gradlew :telegram-service:check :telegram-service:sonar \
-            -Dsonar.projectKey=track-me-telegram-service \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
-
-  trackme-check:
-    runs-on: ubuntu-latest
-    needs: [ detect-changes, backend-check, meeting-service-check, sso-check, gateway-check, libs-commons-check, telegram-service-check ]
-    if: ${{ always() && needs.detect-changes.result == 'success' }}
-    steps:
-      - name: Final check
-        run: |
-          echo "Checking results of all completed jobs..."
-          
-          # Check if any job was required and failed
-          backend_needed="${{ needs.detect-changes.outputs.backend }}"
-          meeting_service_needed="${{ needs.detect-changes.outputs.meeting-service }}"
-          sso_needed="${{ needs.detect-changes.outputs.sso }}"
-          gateway_needed="${{ needs.detect-changes.outputs.gateway }}"
-          
-          backend_result="${{ needs.backend-check.result }}"
-          meeting_service_result="${{ needs.meeting-service-check.result }}"
-          sso_result="${{ needs.sso-check.result }}"
-          gateway_result="${{ needs.gateway-check.result }}"
-          telegram_service_result="${{ needs.telegram-service-check.result }}"
-          
-          failed_jobs=""
-          
-          if [[ "$backend_needed" == "true" && "$backend_result" == "failure" ]]; then
-            failed_jobs="$failed_jobs backend-check"
-          fi
-          
-          if [[ "$meeting_service_needed" == "true" && "$meeting_service_result" == "failure" ]]; then
-            failed_jobs="$failed_jobs meeting-service-check"
-          fi
-          
-          if [[ "$sso_needed" == "true" && "$sso_result" == "failure" ]]; then
-            failed_jobs="$failed_jobs sso-check"
-          fi
-          
-          if [[ "$gateway_needed" == "true" && "$gateway_result" == "failure" ]]; then
-            failed_jobs="$failed_jobs gateway-check"
-          fi
-          
-            if [[ "$telegram_service_result" == "failure" ]]; then
-                failed_jobs="$failed_jobs telegram-service-check"
-            fi
-          
-          if [[ -n "$failed_jobs" ]]; then
-            echo "❌ The following required checks failed:$failed_jobs"
+          check_result="${{ needs.check.result }}"
+          sonar_result="${{ needs.sonar.result }}"
+          echo "check: $check_result, sonar: $sonar_result"
+          if [[ "$check_result" != "success" || "$sonar_result" != "success" ]]; then
+            echo "❌ Проверки не прошли"
             exit 1
-          else
-            echo "✅ All required checks completed successfully!"
           fi
+          echo "✅ Все проверки пройдены"

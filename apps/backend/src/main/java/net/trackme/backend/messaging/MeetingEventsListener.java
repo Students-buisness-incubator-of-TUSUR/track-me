@@ -5,15 +5,23 @@ import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.services.teamcard.TeamCardMeetingsService;
 import net.trackme.backend.services.teamcard.TeamCardSummaryService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 
+/**
+ * Слушатель событий встреч из Kafka.
+ *
+ * <p>Отключается через {@code kafka.enabled=false} (например, в тестах), чтобы не
+ * создавать контейнеры слушателей и не подключаться к брокеру.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "kafka", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class MeetingEventsListener {
 
     private final TeamCardMeetingsService teamCardMeetingsService;

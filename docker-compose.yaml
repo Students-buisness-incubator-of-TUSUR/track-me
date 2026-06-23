@@ -58,6 +58,8 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
+      secrets:
+        - gpr_token
     environment:
       - SPRING_PROFILES_ACTIVE=docker-local
       - BACKEND_URI=http://localhost
@@ -90,16 +92,14 @@ services:
         - action: rebuild
           path: apps/backend/build.gradle
         - action: rebuild
-          path: libs/commons/src
-        - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
 
   trackme-meeting-service:
     build:
       context: .
       dockerfile: services/meeting-service/Dockerfile
+      secrets:
+        - gpr_token
     platform: linux/amd64
     restart: always
     depends_on:
@@ -128,16 +128,14 @@ services:
         - action: rebuild
           path: services/meeting-service/src
         - action: rebuild
-          path: libs/commons/src
-        - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
 
   trackme-sso:
     build:
       context: .
       dockerfile: services/trackme-sso/Dockerfile
+      secrets:
+        - gpr_token
     platform: linux/amd64
     restart: always
     depends_on:
@@ -166,16 +164,14 @@ services:
         - action: rebuild
           path: services/trackme-sso/src
         - action: rebuild
-          path: libs/commons/src
-        - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
 
   trackme-client-gateway:
     build:
       context: .
       dockerfile: apps/trackme-gateway/Dockerfile
+      secrets:
+        - gpr_token
     platform: linux/amd64
     restart: always
     environment:
@@ -208,8 +204,6 @@ services:
           path: apps/trackme-gateway/src
         - action: rebuild
           path: apps/trackme-gateway/build.gradle
-        - action: rebuild
-          path: platform
         - action: rebuild
           path: build.gradle
 
@@ -295,6 +289,8 @@ services:
     build:
       context: .
       dockerfile: services/telegram-service/Dockerfile
+      secrets:
+        - gpr_token
     platform: linux/amd64
     restart: always
     depends_on:
@@ -320,10 +316,6 @@ services:
         - action: rebuild
           path: services/telegram-service/src
         - action: rebuild
-          path: libs/commons/src
-        - action: rebuild
-          path: platform
-        - action: rebuild
           path: build.gradle
 
 volumes:
@@ -333,3 +325,9 @@ volumes:
 networks:
   trackme-net:
     driver: bridge
+
+# Токен для чтения Maven-пакетов track-me-platform из GitHub Packages
+# (PAT со scope read:packages); задаётся в .env или окружении.
+secrets:
+  gpr_token:
+    environment: GITHUB_TOKEN
