@@ -1,7 +1,6 @@
 HELP.md
 .gradle
 .env
-docker/docker-compose.local.yml
 build/
 !apps/backend/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
