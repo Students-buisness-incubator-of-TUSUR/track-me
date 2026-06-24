@@ -1,161 +1,111 @@
 name: Deploy to DEV
+
 on:
   workflow_dispatch:
     inputs:
       image_tag:
+        description: 'Docker image tag to deploy'
         required: true
-        description: 'Docker Image Tag to deploy'
         default: 'latest'
         type: string
   workflow_run:
-    workflows:
-      - 'Build and Push Docker Images'
-    types:
-      - completed
-jobs:
-  choose-image-tag:
-    runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
-    steps:
-      - name: Set tag depending on trigger
-        id: set-image-tag
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "image_tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "image_tag=latest" >> $GITHUB_OUTPUT
-          fi
-  set-env:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print SHA
-        run: echo "Deploying commit ${{ github.event.workflow_run.head_sha }}"
+    workflows: [ "Build and Push Docker Images" ]
+    types: [ completed ]
+    branches: [ develop ]
 
-      - name: Set Environment Variables
-        uses: appleboy/ssh-action@master
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Ручной запуск — всегда; workflow_run — только успешный CI от push (не PR, не master/tag)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: dev
+    steps:
+      - name: Resolve image reference
+        id: image
         env:
-          DEV_FRONTEND_URI: ${{ secrets.DEV_FRONTEND_URI }}
-          DEV_BACKEND_URI: ${{ secrets.DEV_BACKEND_URI }}
-          DEV_SSO_URI: ${{ secrets.DEV_SSO_URI }}
-          MAIL_HOST: ${{ secrets.MAIL_HOST }}
-          MAIL_PORT: ${{ secrets.MAIL_PORT }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          MAIL_FROM: ${{ secrets.MAIL_FROM }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+          EVENT: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.image_tag }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            TAG="$INPUT_TAG"
+          else
+            # Деплоим ровно тот коммит, образы которого собрал CI
+            TAG="$HEAD_SHA"
+          fi
+          echo "repo=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to DEV
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_REPO: ${{ steps.image.outputs.repo }}
+          IMAGE_TAG: ${{ steps.image.outputs.tag }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
+          username: ${{ secrets.SBI_SSH_USERNAME }}
+          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           proxy_host: bastion.tusur.ru
           proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          username: ${{ secrets.SBI_SSH_USERNAME }}
-          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          envs: DEV_FRONTEND_URI,DEV_BACKEND_URI,DEV_SSO_URI,MAIL_HOST,MAIL_PORT,MAIL_USERNAME,MAIL_PASSWORD,MAIL_FROM,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
+          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
           script: |
-            set -e
-            
-            # Перейти в рабочую директорию проекта
-            cd /home/${{ secrets.SBI_SSH_USERNAME }}/track-me-dev
-            
-            # Создать .env файл с переменными окружения
-            rm -f .env
-            
-            echo "FRONTEND_URI=$DEV_FRONTEND_URI" >> .env
-            echo "CORS_ORIGINS=$DEV_FRONTEND_URI,http://localhost:3000" >> .env
-            echo "AFTER_LOGOUT_URI=$DEV_FRONTEND_URI" >> .env
-            echo "AFTER_LOGIN_URL=$DEV_FRONTEND_URI/after-login" >> .env
-            echo "SSO_URI=$DEV_SSO_URI" >> .env
-            echo "BACKEND_URI=$DEV_BACKEND_URI" >> .env
-            echo "REACT_APP_BACKEND_URI=$DEV_BACKEND_URI" >> .env
-            echo "MAIL_HOST=$MAIL_HOST" >> .env
-            echo "MAIL_PORT=$MAIL_PORT" >> .env
-            echo "MAIL_USERNAME=$MAIL_USERNAME" >> .env
-            echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
-            echo "MAIL_FROM=$MAIL_FROM" >> .env
-            echo "MAIL_SUBJECT=TrackMe" >> .env
-            echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env
-            echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env
-            echo "LOGOUT_URI=$DEV_SSO_URI/connect/logout" >> .env
+            set -euo pipefail
+            cd "$HOME/track-me-dev"
+
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            # Идемпотентно патчим только ссылки на образы; прикладные секреты в .env не трогаем
+            touch .env
+            sed -i '/^IMAGE_REPO=/d;/^IMAGE_TAG=/d;/^GOOGLE_CLIENT_ID=/d;/^GOOGLE_CLIENT_SECRET=/d' .env
+            echo "IMAGE_REPO=$IMAGE_REPO" >> .env
+            echo "IMAGE_TAG=$IMAGE_TAG" >> .env
             echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
             echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
-            echo "SSO_REGISTRATION_URL=$DEV_SSO_URI/client/registration" >> .env
-            
-            
-            cat .env.dev.redis | tr -d '\r' >> .env
-            echo "" >> .env
-            cat .env.dev.database | tr -d '\r' >> .env
-            echo "" >> .env
-            cat .env.dev.sso | tr -d '\r' >> .env
 
-  deploy:
-    needs: [ set-env, choose-image-tag ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to DEV
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SBI_SSH_HOST }}
-          proxy_host: bastion.tusur.ru
-          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
-          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          username: ${{ secrets.SBI_SSH_USERNAME }}
-          key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          script: |
-            set -e
-            
-            # Перейти в рабочую директорию проекта
-            cd /home/${{ secrets.SBI_SSH_USERNAME }}/track-me-dev
-            
-            TAG='${{ needs.choose-image-tag.outputs.image_tag }}'
-            
-            # Скачать новые версии image'ей
-            docker pull ghcr.io/${{ github.repository }}/backend:$TAG
-            docker pull ghcr.io/${{ github.repository }}/gateway:$TAG
-            docker pull ghcr.io/${{ github.repository }}/sso:$TAG
-            docker pull ghcr.io/${{ github.repository }}/frontend:$TAG
-            docker pull ghcr.io/${{ github.repository }}/meeting-service:$TAG
-            docker pull ghcr.io/${{ github.repository }}/telegram-service:$TAG
-            
-            # Остановить текущие контейнеры и поднять новые
-            docker compose -f docker-compose.dev.yml down
-            docker compose -f docker-compose.dev.yml up -d
-            
-            # Удалить старые образы
+            # up -d сам докачивает отсутствующие SHA-образы и пересоздаёт только изменившиеся сервисы;
+            # фронтенд (своя ${FRONTEND_IMAGE}) и инфра (:latest, уже на месте) не трогаются — без down
+            docker compose up -d
             docker image prune -f
-  
 
-  healthcheck-services:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
       - name: Healthcheck
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
-          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
-          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           proxy_host: bastion.tusur.ru
+          proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
+          proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
             set -e
-            
-            # Проверить доступность сервисов
-            until curl -sf http://localhost:8080/actuator/health; do
-              echo "Waiting for backend..."
-              sleep 5
-            done
-            
-            until curl -sf http://localhost:9000/actuator/health; do
-              echo "Waiting for sso..."
-              sleep 5
-            done
-            
-            until curl -sf http://localhost:3000/actuator/health; do
-              echo "Waiting for frontend..."
-              sleep 5
-            done
+            check() {
+              for i in $(seq 1 24); do
+                if curl -sf "$2" > /dev/null; then
+                  echo "$1 is up"
+                  return 0
+                fi
+                echo "Waiting for $1... ($i/24)"
+                sleep 5
+              done
+              echo "$1 failed healthcheck" >&2
+              return 1
+            }
+            check backend http://localhost:8080/actuator/health
+            check sso http://localhost:9000/actuator/health
