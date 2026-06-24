@@ -83,8 +83,8 @@ jobs:
             echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
             echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
             echo "SSO_REGISTRATION_URL=$DEV_SSO_URI/client/registration" >> .env
-
-
+            
+            
             cat .env.dev.redis | tr -d '\r' >> .env
             echo "" >> .env
             cat .env.dev.database | tr -d '\r' >> .env
