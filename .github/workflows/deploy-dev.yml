@@ -57,13 +57,13 @@ jobs:
           envs: DEV_FRONTEND_URI,DEV_BACKEND_URI,DEV_SSO_URI,MAIL_HOST,MAIL_PORT,MAIL_USERNAME,MAIL_PASSWORD,MAIL_FROM,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
           script: |
             set -e
-
+            
             # Перейти в рабочую директорию проекта
             cd /home/${{ secrets.SBI_SSH_USERNAME }}/track-me-dev
-
+            
             # Создать .env файл с переменными окружения
             rm -f .env
-
+            
             echo "FRONTEND_URI=$DEV_FRONTEND_URI" >> .env
             echo "CORS_ORIGINS=$DEV_FRONTEND_URI,http://localhost:3000" >> .env
             echo "AFTER_LOGOUT_URI=$DEV_FRONTEND_URI" >> .env
@@ -106,12 +106,12 @@ jobs:
           key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
             set -e
-
+            
             # Перейти в рабочую директорию проекта
             cd /home/${{ secrets.SBI_SSH_USERNAME }}/track-me-dev
-
+            
             TAG='${{ needs.choose-image-tag.outputs.image_tag }}'
-
+            
             # Скачать новые версии image'ей
             docker pull ghcr.io/${{ github.repository }}/backend:$TAG
             docker pull ghcr.io/${{ github.repository }}/gateway:$TAG
@@ -119,14 +119,14 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}/frontend:$TAG
             docker pull ghcr.io/${{ github.repository }}/meeting-service:$TAG
             docker pull ghcr.io/${{ github.repository }}/telegram-service:$TAG
-
+            
             # Остановить текущие контейнеры и поднять новые
             docker compose -f docker-compose.dev.yml down
             docker compose -f docker-compose.dev.yml up -d
-
+            
             # Удалить старые образы
             docker image prune -f
-
+  
 
   healthcheck-services:
     needs: deploy
@@ -143,18 +143,18 @@ jobs:
           proxy_host: bastion.tusur.ru
           script: |
             set -e
-
+            
             # Проверить доступность сервисов
             until curl -sf http://localhost:8080/actuator/health; do
               echo "Waiting for backend..."
               sleep 5
             done
-
+            
             until curl -sf http://localhost:9000/actuator/health; do
               echo "Waiting for sso..."
               sleep 5
             done
-
+            
             until curl -sf http://localhost:3000/actuator/health; do
               echo "Waiting for frontend..."
               sleep 5
