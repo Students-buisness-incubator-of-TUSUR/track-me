@@ -3,14 +3,19 @@ package net.trackme.meetingservice.services;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -28,6 +33,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,8 +60,18 @@ class MeetingReminderServiceIT {
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
         // схема meeting_service не существует в чистом testcontainer — используем public
-        // HikariCP пытается SET search_path TO meeting_service — схемы нет в тестконтейнере
         registry.add("spring.datasource.hikari.schema", () -> "public");
+    }
+
+    // topic doesn't exist until the producer first sends to it — pre-create it so the
+    // consumer can subscribe and get a partition assignment before sendReminders() runs
+    @BeforeAll
+    static void createKafkaTopic() throws Exception {
+        try (var admin = AdminClient.create(Map.of(
+                AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers()))) {
+            admin.createTopics(List.of(new NewTopic("meeting-reminder", 1, (short) 1)))
+                 .all().get(10, TimeUnit.SECONDS);
+        }
     }
 
     @MockitoBean
@@ -66,6 +82,9 @@ class MeetingReminderServiceIT {
 
     @Autowired
     MeetingRepository meetingRepository;
+
+    @Autowired
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     @BeforeEach
     void setUp() {
@@ -86,12 +105,12 @@ class MeetingReminderServiceIT {
                 .teamCardId(UUID.randomUUID())
                 .build());
 
-        // subscribe BEFORE producing so the consumer doesn't miss the message
         try (KafkaConsumer<String, String> consumer = createConsumer("it-group-produce-1", "earliest")) {
             consumer.subscribe(List.of("meeting-reminder"));
-            consumer.poll(Duration.ofSeconds(2)); // force partition assignment
+            consumer.poll(Duration.ofSeconds(5)); // force partition assignment
 
             meetingReminderService.sendReminders();
+            kafkaTemplate.flush(); // ensure message is written to broker before polling
 
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
             assertThat(records.count()).isEqualTo(1);
@@ -114,12 +133,12 @@ class MeetingReminderServiceIT {
                 .teamCardId(UUID.randomUUID())
                 .build());
 
-        // use "latest" so we don't read messages produced by other tests
         try (KafkaConsumer<String, String> consumer = createConsumer("it-group-noproduce-2", "latest")) {
             consumer.subscribe(List.of("meeting-reminder"));
-            consumer.poll(Duration.ofSeconds(2)); // force partition assignment at latest offset
+            consumer.poll(Duration.ofSeconds(5)); // force partition assignment at latest offset
 
             meetingReminderService.sendReminders();
+            kafkaTemplate.flush();
 
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3));
             assertThat(records.isEmpty()).isTrue();
@@ -140,12 +159,12 @@ class MeetingReminderServiceIT {
                 .teamCardId(UUID.randomUUID())
                 .build());
 
-        // use "latest" so we don't read messages produced by other tests
         try (KafkaConsumer<String, String> consumer = createConsumer("it-group-noproduce-3", "latest")) {
             consumer.subscribe(List.of("meeting-reminder"));
-            consumer.poll(Duration.ofSeconds(2)); // force partition assignment at latest offset
+            consumer.poll(Duration.ofSeconds(5)); // force partition assignment at latest offset
 
             meetingReminderService.sendReminders();
+            kafkaTemplate.flush();
 
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3));
             assertThat(records.isEmpty()).isTrue();
