@@ -16,7 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -85,17 +86,21 @@ class MeetingReminderServiceIT {
         }
     }
 
+    // With WebEnvironment.NONE, OAuth2ClientAutoConfiguration is skipped (@ConditionalOnWebApplication),
+    // so ClientRegistrationRepository and OAuth2AuthorizedClientManager are not auto-configured.
+    // ServiceClientConfig.authorizedClientManager() would fail without these mocks.
     @MockitoBean
     JwtDecoder jwtDecoder;
+    @MockitoBean
+    ClientRegistrationRepository clientRegistrationRepository;
+    @MockitoBean
+    OAuth2AuthorizedClientManager authorizedClientManager;
 
     @Autowired
     MeetingReminderService meetingReminderService;
 
     @Autowired
     MeetingRepository meetingRepository;
-
-    @Autowired
-    KafkaTemplate<String, Object> kafkaTemplate;
 
     @BeforeEach
     void setUp() {
@@ -122,8 +127,6 @@ class MeetingReminderServiceIT {
             consumer.seekToBeginning(consumer.assignment()); // reset to beginning regardless of prior messages
 
             meetingReminderService.sendReminders();
-            kafkaTemplate.flush(); // ensure message is written to broker before polling
-
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
             assertThat(records.count()).isEqualTo(1);
             String payload = records.iterator().next().value();
@@ -151,8 +154,6 @@ class MeetingReminderServiceIT {
             awaitPartitionAssignment(consumer); // consumer position = end of partition
 
             meetingReminderService.sendReminders();
-            kafkaTemplate.flush();
-
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3));
             assertThat(records.isEmpty()).isTrue();
         }
@@ -178,8 +179,6 @@ class MeetingReminderServiceIT {
             awaitPartitionAssignment(consumer); // consumer position = end of partition
 
             meetingReminderService.sendReminders();
-            kafkaTemplate.flush();
-
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3));
             assertThat(records.isEmpty()).isTrue();
         }
