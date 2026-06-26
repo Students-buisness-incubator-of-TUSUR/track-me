@@ -49,6 +49,8 @@ class MeetingReminderServiceIT {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+        // схема meeting_service не существует в чистом testcontainer — используем public
+        registry.add("MEETING_DB_SCHEMA", () -> "public");
     }
 
     @MockBean
