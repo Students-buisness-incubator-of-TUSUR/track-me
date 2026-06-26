@@ -1,5 +1,6 @@
 package net.trackme.backend.messaging;
 
+import net.trackme.backend.models.MeetingStatus;
 import net.trackme.backend.services.teamcard.TeamCardMeetingsService;
 import net.trackme.backend.services.teamcard.TeamCardSummaryService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -45,13 +46,13 @@ class MeetingEventsListenerTest {
         UUID meetingId = UUID.randomUUID();
         UUID teamCardId = UUID.randomUUID();
         MeetingDeletedEvent event = new MeetingDeletedEvent(
-                meetingId, teamCardId, OffsetDateTime.now());
+                meetingId, teamCardId, OffsetDateTime.now(), MeetingStatus.COMPLETED);
 
         ConsumerRecord<String, MeetingDeletedEvent> deletedRecord =
                 new ConsumerRecord<>("meeting-deleted", 0, 0L, "key", event);
 
         meetingEventsListener.onMeetingDeletedEvent(deletedRecord);
 
-        verify(teamCardMeetingsService).handleMeetingDeleted(teamCardId, meetingId);
+        verify(teamCardMeetingsService).handleMeetingDeleted(teamCardId, meetingId, MeetingStatus.COMPLETED);
     }
 }

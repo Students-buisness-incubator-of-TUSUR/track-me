@@ -52,12 +52,8 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                             teamCard.addMeetingGrade(meetingId);
                             teamCardsRepository.saveAndFlush(teamCard);
                             calculateAverageGrade(teamCard);
-                            log.info(
-                                    "Increased meeting count for team card {}. "
-                                            + "Current count: {}. Average grade: {}",
-                                    teamCardId,
-                                    teamCard.getMeetingsCount(),
-                                    teamCard.getAverageGrade());
+                            log.info("Increased meeting count for team card {}. Current count: {}. Average grade: {}",
+                                    teamCardId, teamCard.getMeetingsCount(), teamCard.getAverageGrade());
                         },
                         () -> log.warn("Team card {} not found", teamCardId));
     }
@@ -65,11 +61,11 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
     @Override
     @Transactional
     public void updateTeamCardInfo(UUID teamCardId,
-                                   UUID meetingId, MeetingStatus newStatus,
-                                   MeetingStatus oldStatus,
-                                   TeamCardStatus teamCardStatus,
-                                   BigDecimal teamGrade,
-                                   String meetingLink) {
+                                UUID meetingId, MeetingStatus newStatus,
+                                MeetingStatus oldStatus,
+                                TeamCardStatus teamCardStatus,
+                                BigDecimal teamGrade,
+                                String meetingLink) {
         meetingGradeRepository.findByMeetingIdAndTeamCardId(meetingId, teamCardId)
                 .ifPresent(meetingGrade -> {
                     meetingGrade.setGrade(teamGrade);
@@ -80,8 +76,19 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                 .ifPresentOrElse(
                         teamCard -> {
                             if (oldStatus != newStatus) {
+                                if (oldStatus == MeetingStatus.COMPLETED) {
+                                    teamCard.setMeetingsCompletedCount(
+                                        Math.max(0, teamCard.getMeetingsCompletedCount() - 1));
+                                } else if (oldStatus == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+                                    teamCard.setMeetingsCompletedAsNotHappenedCount(
+                                        Math.max(0, teamCard.getMeetingsCompletedAsNotHappenedCount() - 1));
+                                }
+
                                 if (newStatus == MeetingStatus.COMPLETED) {
                                     teamCard.increaseMeetingCompletedCount();
+                                } else if (newStatus == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+                                    teamCard.setMeetingsCompletedAsNotHappenedCount(
+                                        teamCard.getMeetingsCompletedAsNotHappenedCount() + 1);
                                 }
                             } else {
                                 if (newStatus == MeetingStatus.SCHEDULED) {
@@ -95,13 +102,10 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                                 calculateAverageGrade(teamCard);
                             }
                             teamCardsRepository.saveAndFlush(teamCard);
-                            log.info(
-                                    "Updated team card {} info. "
-                                            + "Current count: {}, status: {}, grade: {}",
+                            log.info("Updated team card {}: completed={}, completedAsNotHappened={}",
                                     teamCardId,
-                                    teamCard.getMeetingsCount(),
-                                    teamCard.getStatus(),
-                                    teamCard.getAverageGrade());
+                                    teamCard.getMeetingsCompletedCount(),
+                                    teamCard.getMeetingsCompletedAsNotHappenedCount());
                         },
                         () -> log.warn("Team card {} not found", teamCardId));
 
@@ -109,7 +113,7 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
 
     @Override
     @Transactional
-    public void handleMeetingDeleted(UUID teamCardId, UUID meetingId) {
+    public void handleMeetingDeleted(UUID teamCardId, UUID meetingId, MeetingStatus status) {
         var teamCard = teamCardsRepository.findById(teamCardId)
                 .orElseThrow(() -> new TeamCardNotFoundException(teamCardId));
 
@@ -124,25 +128,24 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
             
             meetingGradeRepository.delete(meetingGrade);
             
-            log.debug("Deleted meeting grade for meeting {} from team card {}",
-                    meetingId, teamCardId);
-            
-            // Обновляем счетчики
             teamCard.setMeetingsCount(Math.max(0, teamCard.getMeetingsCount() - 1));
             
-            // Пересчитываем среднюю оценку
+            if (status == MeetingStatus.COMPLETED) {
+                teamCard.setMeetingsCompletedCount(Math.max(0, teamCard.getMeetingsCompletedCount() - 1));
+            } else if (status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+                teamCard.setMeetingsCompletedAsNotHappenedCount(
+                    Math.max(0, teamCard.getMeetingsCompletedAsNotHappenedCount() - 1));
+            }
+            
             calculateAverageGrade(teamCard);
             
             // Сохраняем изменения в TeamCard
             teamCardsRepository.saveAndFlush(teamCard);
             
-            log.info("Team card {} updated after meeting {} deletion. "
-                    + "Remaining meetings: {}, New average grade: {}",
-                    teamCardId, meetingId, teamCard.getMeetingsCount(),
-                    teamCard.getAverageGrade());
+            log.info("Team card {} updated after meeting {} deletion. Status: {}, Remaining: {}",
+                    teamCardId, meetingId, status, teamCard.getMeetingsCount());
         } else {
-            log.warn("Meeting grade for meeting {} not found in team card {}",
-                    meetingId, teamCardId);
+            log.warn("Meeting grade for meeting {} not found in team card {}", meetingId, teamCardId);
         }
     }
 
@@ -156,8 +159,7 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
             teamCard.setAverageGrade(BigDecimal.ZERO);
         } else {
             var total = grades.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-            var average = total.divide(
-                    BigDecimal.valueOf(grades.size()), 2, RoundingMode.HALF_UP);
+            var average = total.divide(BigDecimal.valueOf(grades.size()), 2, RoundingMode.HALF_UP);
             teamCard.setAverageGrade(average);
         }
     }

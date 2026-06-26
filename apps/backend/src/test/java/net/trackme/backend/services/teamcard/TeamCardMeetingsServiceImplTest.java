@@ -163,8 +163,7 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
         teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId1);
         teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId2);
 
-        // Act
-        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), meetingId1);
+        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), meetingId1, MeetingStatus.COMPLETED);
 
         // Assert
         var updatedTeamCard = teamCardsService.getTeamCard(teamCard.getId());
@@ -190,8 +189,7 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
         // Увеличиваем счётчик через правильный метод
         teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId1);
 
-        // Act
-        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), nonExistentMeetingId);
+        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), nonExistentMeetingId, MeetingStatus.COMPLETED);
 
         // Assert
         var updatedTeamCard = teamCardsService.getTeamCard(teamCard.getId());

@@ -11,6 +11,7 @@ import net.trackme.backend.repos.TeamCardsRepository;
 import net.trackme.backend.services.exceptions.TeamCardNotFoundException;
 import net.trackme.backend.services.stream.StreamService;
 import net.trackme.commons.acl.AclService;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,6 +51,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public TeamCard createTeamCard(TeamCard createTeamCard) {
         createTeamCard.setStatus(TeamCardStatus.OK);
         if (createTeamCard.getTrackerFullName() == null) {
@@ -63,6 +65,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
 
     @Override
     @PreAuthorize("hasPermission(#teamCardId, 'net.trackme.backend.domain.TeamCard', 'WRITE')")
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public TeamCard updateTeamCard(UUID teamCardId, TeamCard teamCardDto) {
         var teamCard = get(teamCardId);
         updateTeamCard(teamCardDto, teamCard);
@@ -91,6 +94,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
 
     @Override
     @PreAuthorize("hasPermission(#id, 'net.trackme.backend.domain.TeamCard', 'DELETE')")
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public void deleteTeamCard(UUID id) {
         teamCardsRepository.deleteById(id);
     }
@@ -98,6 +102,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public TeamCard createTeamCard(TeamCard create, String username) {
         create.setUsername(username);
         create.setStatus(TeamCardStatus.OK);
@@ -112,6 +117,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public TeamCard updateTeamCard(UUID teamCardId,
                                    TeamCard teamCardDto,
                                    UUID streamId,
@@ -155,6 +161,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public void deleteTeamCard(UUID id, String username) {
         var teamCard = get(id, username);
         aclService.deleteAcl(teamCard);
@@ -164,6 +171,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
         if (streamId != null) {
             var stream = streamService.getById(streamId);
@@ -239,6 +247,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public void reassignTeams(String fromUsername, String toUsername, String toUserFullName) {
         List<TeamCard> teams = teamCardsRepository.findByUsername(fromUsername);
         log.info("Reassigning {} teams from '{}' to '{}'", teams.size(), fromUsername, toUsername);
