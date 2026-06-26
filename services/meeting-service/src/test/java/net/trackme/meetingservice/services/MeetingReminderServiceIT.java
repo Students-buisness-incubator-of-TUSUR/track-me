@@ -32,7 +32,11 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
-        properties = "app.app-url=http://localhost:8082")
+        properties = {
+            "app.app-url=http://localhost:8082",
+            "spring.liquibase.enabled=false",
+            "spring.jpa.hibernate.ddl-auto=create-drop"
+        })
 @Testcontainers
 class MeetingReminderServiceIT {
 
@@ -50,7 +54,8 @@ class MeetingReminderServiceIT {
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
         // схема meeting_service не существует в чистом testcontainer — используем public
-        registry.add("MEETING_DB_SCHEMA", () -> "public");
+        // HikariCP пытается SET search_path TO meeting_service — схемы нет в тестконтейнере
+        registry.add("spring.datasource.hikari.schema", () -> "public");
     }
 
     @MockitoBean
