@@ -75,26 +75,7 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
         teamCardsRepository.findById(teamCardId)
                 .ifPresentOrElse(
                         teamCard -> {
-                            if (oldStatus != newStatus) {
-                                if (oldStatus == MeetingStatus.COMPLETED) {
-                                    teamCard.setMeetingsCompletedCount(
-                                        Math.max(0, teamCard.getMeetingsCompletedCount() - 1));
-                                } else if (oldStatus == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
-                                    teamCard.setMeetingsCompletedAsNotHappenedCount(
-                                        Math.max(0, teamCard.getMeetingsCompletedAsNotHappenedCount() - 1));
-                                }
-
-                                if (newStatus == MeetingStatus.COMPLETED) {
-                                    teamCard.increaseMeetingCompletedCount();
-                                } else if (newStatus == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
-                                    teamCard.setMeetingsCompletedAsNotHappenedCount(
-                                        teamCard.getMeetingsCompletedAsNotHappenedCount() + 1);
-                                }
-                            } else {
-                                if (newStatus == MeetingStatus.SCHEDULED) {
-                                    sendMeetingNotHappenedEvent(teamCard, meetingLink);
-                                }
-                            }
+                            updateStatusCounters(teamCard, oldStatus, newStatus, meetingLink);
                             if (teamCardStatus != null) {
                                 teamCard.setStatus(teamCardStatus);
                             }
@@ -108,7 +89,37 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                                     teamCard.getMeetingsCompletedAsNotHappenedCount());
                         },
                         () -> log.warn("Team card {} not found", teamCardId));
+    }
 
+    private void updateStatusCounters(TeamCard teamCard, MeetingStatus oldStatus,
+                                    MeetingStatus newStatus, String meetingLink) {
+        if (oldStatus == newStatus) {
+            if (newStatus == MeetingStatus.SCHEDULED) {
+                sendMeetingNotHappenedEvent(teamCard, meetingLink);
+            }
+            return;
+        }
+        decrementCounter(teamCard, oldStatus);
+        incrementCounter(teamCard, newStatus);
+    }
+
+    private void decrementCounter(TeamCard teamCard, MeetingStatus status) {
+        if (status == MeetingStatus.COMPLETED) {
+            teamCard.setMeetingsCompletedCount(
+                Math.max(0, teamCard.getMeetingsCompletedCount() - 1));
+        } else if (status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+            teamCard.setMeetingsCompletedAsNotHappenedCount(
+                Math.max(0, teamCard.getMeetingsCompletedAsNotHappenedCount() - 1));
+        }
+    }
+
+    private void incrementCounter(TeamCard teamCard, MeetingStatus status) {
+        if (status == MeetingStatus.COMPLETED) {
+            teamCard.increaseMeetingCompletedCount();
+        } else if (status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+            teamCard.setMeetingsCompletedAsNotHappenedCount(
+                teamCard.getMeetingsCompletedAsNotHappenedCount() + 1);
+        }
     }
 
     @Override

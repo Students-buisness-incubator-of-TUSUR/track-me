@@ -555,6 +555,14 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         meeting1.setTasksNextManuallySet(false);
         meetingRepository.save(meeting1);
 
+        // Вторая встреча — у неё должен появиться tasksNextMeeting после пересчёта
+        var meeting2 = meetingRepository.findAll().stream()
+                .filter(m -> !m.getId().equals(meeting1.getId()))
+                .findFirst().orElseThrow();
+        meeting2.setTasksNextMeeting(null);
+        meeting2.setTasksNextManuallySet(false);
+        meetingRepository.save(meeting2);
+
         // Создаём новую встречу позже
         var createDto = MeetingCreateDto.builder()
                 .startDate(OffsetDateTime.now().plusDays(5))
@@ -568,14 +576,10 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // Проверяем что у второй встречи (с датой +2 дня) появился tasksNextMeeting
-        var updatedMeeting2 = meetingRepository.findAll().stream()
-                .filter(m -> m.getStartDate().toLocalDate().equals(OffsetDateTime.now().plusDays(2).toLocalDate()))
-                .findFirst().orElseThrow();
+        // Проверяем что у второй встречи появился tasksNextMeeting
+        var updatedMeeting2 = meetingRepository.findById(meeting2.getId()).orElseThrow();
         Assertions.assertEquals("Tasks from meeting 1", updatedMeeting2.getTasksNextMeeting());
     }
-
-    // ========== НОВЫЕ ТЕСТЫ ДЛЯ ПОКРЫТИЯ РЕДАКТИРОВАНИЯ СУПЕРАДМИНОМ ==========
 
     @Test
     @WithMockUser(roles = "SUPER_ADMIN")
@@ -687,5 +691,75 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNotEmpty());
+    }
+
+    @Test
+    @WithMockUser(roles = "SUPER_ADMIN")
+    void updateBySuperAdmin_directCall_shouldSucceed() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.FINALLY_COMPLETED)
+                .recordLink("https://example.com/direct")
+                .number("777")
+                .startDate(OffsetDateTime.now().minusDays(1))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .status(MeetingStatus.COMPLETED)
+                .teamStatus(TeamStatus.OK)
+                .build();
+
+        mockMvc.perform(put("/api/v1/super-admin-update/" + meeting.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateBySuperAdmin_notSuperAdmin_shouldReturnForbidden() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.FINALLY_COMPLETED)
+                .startDate(OffsetDateTime.now().minusDays(1))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .status(MeetingStatus.COMPLETED)
+                .build();
+
+        mockMvc.perform(put("/api/v1/super-admin-update/" + meeting.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "SUPER_ADMIN")
+    void updateBySuperAdmin_notEditableStatus_shouldReturnError() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.SCHEDULED)
+                .startDate(OffsetDateTime.now().minusDays(1))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .status(MeetingStatus.COMPLETED)
+                .build();
+
+        mockMvc.perform(put("/api/v1/super-admin-update/" + meeting.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().is5xxServerError());
     }
 }
