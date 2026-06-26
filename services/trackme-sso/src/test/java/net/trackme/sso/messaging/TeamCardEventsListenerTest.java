@@ -14,12 +14,17 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TeamCardEventsListenerTest extends AbstractIntegrationTest {
+
+    private static final String INVITE_TEMPLATE = "email-meeting-invite.html";
+    private static final String REMINDER_TEMPLATE = "email-meeting-reminder.html";
+    private static final String INVITE_SUBJECT = "Приглашение на встречу";
 
     @Mock
     private ConsumerRecord<String, MeetingNotHappenedEvent> meetingNotHappenedRecord;
@@ -97,17 +102,18 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
     @Test
     void onMeetingInviteEvent_withTrackerEmail_sendsInviteToTracker() {
         UUID meetingId = UUID.randomUUID();
+        OffsetDateTime startDate = OffsetDateTime.now();
         MeetingInviteEvent event = new MeetingInviteEvent(
                 meetingId, "Test Team", "tracker", "Трекер Трекерович",
-                "tracker@example.com", "tracker", OffsetDateTime.now(), "http://meeting.link");
+                "tracker@example.com", "tracker", startDate, "http://meeting.link");
         when(meetingInviteRecord.value()).thenReturn(event);
 
         teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
 
-        verify(notificationService).sendMeetingInvite(
+        verify(notificationService).sendMeetingEmail(
                 "tracker@example.com", "Трекер Трекерович", "Test Team",
-                "http://meeting.link", event.startDate());
-        verify(notificationService, never()).sendMeetingInviteByUsername(any(), any(), any(), any());
+                "http://meeting.link", startDate, INVITE_TEMPLATE, INVITE_SUBJECT, Map.of());
+        verify(notificationService, never()).sendMeetingEmailByUsername(any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -121,11 +127,12 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
         teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
 
-        verify(notificationService).sendMeetingInvite(
+        verify(notificationService).sendMeetingEmail(
                 "tracker@example.com", "Трекер Трекерович", "Test Team",
-                "http://meeting.link", startDate);
-        verify(notificationService).sendMeetingInviteByUsername(
-                "creator_user", "Test Team", "http://meeting.link", startDate);
+                "http://meeting.link", startDate, INVITE_TEMPLATE, INVITE_SUBJECT, Map.of());
+        verify(notificationService).sendMeetingEmailByUsername(
+                "creator_user", "Test Team", "http://meeting.link", startDate,
+                INVITE_TEMPLATE, INVITE_SUBJECT, Map.of());
     }
 
     @Test
@@ -139,9 +146,10 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
         teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
 
-        verify(notificationService, never()).sendMeetingInvite(any(), any(), any(), any(), any());
-        verify(notificationService).sendMeetingInviteByUsername(
-                "creator_user", "Test Team", "http://meeting.link", startDate);
+        verify(notificationService, never()).sendMeetingEmail(any(), any(), any(), any(), any(), any(), any(), any());
+        verify(notificationService).sendMeetingEmailByUsername(
+                "creator_user", "Test Team", "http://meeting.link", startDate,
+                INVITE_TEMPLATE, INVITE_SUBJECT, Map.of());
     }
 
     @Test
@@ -155,8 +163,9 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
         teamCardEventsListener.onMeetingReminderEvent(meetingReminderRecord);
 
-        verify(notificationService).sendMeetingReminderByUsername(
-                "tracker", "Test Team", "http://meeting.link", startDate, 3);
+        verify(notificationService).sendMeetingEmailByUsername(
+                "tracker", "Test Team", "http://meeting.link", startDate,
+                REMINDER_TEMPLATE, "Напоминание: встреча через 3 дня", Map.of("daysUntilMeeting", 3));
     }
 
     @Test
@@ -169,6 +178,6 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
         teamCardEventsListener.onMeetingReminderEvent(meetingReminderRecord);
 
-        verify(notificationService, never()).sendMeetingReminderByUsername(any(), any(), any(), any(), anyInt());
+        verify(notificationService, never()).sendMeetingEmailByUsername(any(), any(), any(), any(), any(), any(), any());
     }
 }

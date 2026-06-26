@@ -23,8 +23,9 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.springframework.data.jpa.domain.Specification;
+
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,8 +54,7 @@ class MeetingReminderServiceTest {
 
     @Test
     void sendReminders_noMeetings_noEventsProduced() {
-        when(meetingRepository.findByStatusAndStartDateGreaterThanEqualAndStartDateLessThan(
-                any(), any(), any()))
+        when(meetingRepository.findAll(any(Specification.class)))
                 .thenReturn(List.of());
 
         meetingReminderService.sendReminders();
@@ -76,8 +76,7 @@ class MeetingReminderServiceTest {
                 .status(MeetingStatus.SCHEDULED)
                 .build();
 
-        when(meetingRepository.findByStatusAndStartDateGreaterThanEqualAndStartDateLessThan(
-                eq(MeetingStatus.SCHEDULED), any(), any()))
+        when(meetingRepository.findAll(any(Specification.class)))
                 .thenReturn(List.of(meeting))
                 .thenReturn(List.of());
 
@@ -105,8 +104,7 @@ class MeetingReminderServiceTest {
                 .status(MeetingStatus.SCHEDULED)
                 .build();
 
-        when(meetingRepository.findByStatusAndStartDateGreaterThanEqualAndStartDateLessThan(
-                eq(MeetingStatus.SCHEDULED), any(), any()))
+        when(meetingRepository.findAll(any(Specification.class)))
                 .thenReturn(List.of())
                 .thenReturn(List.of(meeting));
 
@@ -141,8 +139,7 @@ class MeetingReminderServiceTest {
                 .status(MeetingStatus.SCHEDULED)
                 .build();
 
-        when(meetingRepository.findByStatusAndStartDateGreaterThanEqualAndStartDateLessThan(
-                eq(MeetingStatus.SCHEDULED), any(), any()))
+        when(meetingRepository.findAll(any(Specification.class)))
                 .thenReturn(List.of(meeting3Days))
                 .thenReturn(List.of(meeting1Day));
 
@@ -162,8 +159,7 @@ class MeetingReminderServiceTest {
                 .status(MeetingStatus.SCHEDULED)
                 .build();
 
-        when(meetingRepository.findByStatusAndStartDateGreaterThanEqualAndStartDateLessThan(
-                eq(MeetingStatus.SCHEDULED), any(), any()))
+        when(meetingRepository.findAll(any(Specification.class)))
                 .thenReturn(List.of(meeting))
                 .thenReturn(List.of());
 
@@ -185,8 +181,7 @@ class MeetingReminderServiceTest {
                 .status(MeetingStatus.SCHEDULED)
                 .build();
 
-        when(meetingRepository.findByStatusAndStartDateGreaterThanEqualAndStartDateLessThan(
-                eq(MeetingStatus.SCHEDULED), any(), any()))
+        when(meetingRepository.findAll(any(Specification.class)))
                 .thenReturn(List.of(meeting))
                 .thenReturn(List.of());
 

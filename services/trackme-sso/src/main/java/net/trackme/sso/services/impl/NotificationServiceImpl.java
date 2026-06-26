@@ -236,6 +236,45 @@ public class NotificationServiceImpl implements NotificationService {
         return dateTime.atZoneSameInstant(TOMSK_ZONE).format(DATE_FORMATTER);
     }
 
+    @Override
+    public void sendMeetingEmail(String email, String fullName, String teamName,
+                                 String meetingLink, OffsetDateTime meetingDate,
+                                 String templateName, String subject,
+                                 Map<String, Object> extraParams) {
+        String formattedDate = formatToTomsk(meetingDate);
+        Map<String, Object> vars = new java.util.HashMap<>();
+        vars.put(FIELD_FULL_NAME, fullName);
+        vars.put(FIELD_TEAM_NAME, teamName);
+        vars.put(FIELD_MEETING_DATE, formattedDate);
+        vars.put(FIELD_MEETING_LINK, meetingLink);
+        vars.put(FIELD_APP_NAME, appProperties.getMail().getSubject());
+        vars.put(FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom());
+        vars.putAll(extraParams);
+        emailService.sendMail(email, appProperties.getMail().getFrom(),
+                "[" + appProperties.getMail().getSubject() + "] " + subject,
+                templateName, vars);
+    }
+
+    @Override
+    public void sendMeetingEmailByUsername(String username, String teamName,
+                                           String meetingLink, OffsetDateTime meetingDate,
+                                           String templateName, String subject,
+                                           Map<String, Object> extraParams) {
+        userRepository.findByUsername(username).ifPresentOrElse(
+                user -> {
+                    if (user.getEmail() == null || user.getEmail().isBlank()) {
+                        log.warn("User {} has no email, skipping meeting email", username);
+                        return;
+                    }
+                    sendMeetingEmail(user.getEmail(),
+                            user.getFullName() != null ? user.getFullName() : username,
+                            teamName, meetingLink, meetingDate,
+                            templateName, subject, extraParams);
+                },
+                () -> log.warn("User {} not found in SSO, skipping meeting email", username)
+        );
+    }
+
     private String getShortName(String fullName) {
         if (fullName == null || fullName.isBlank()) {
             return NOT_ASSIGNED;
@@ -247,113 +286,4 @@ public class NotificationServiceImpl implements NotificationService {
         return fullName;
     }
 
-    @Override
-    public void sendMeetingInvite(
-        String email,
-        String fullName,
-        String teamName,
-        String meetingLink,
-        OffsetDateTime meetingDate) {
-
-        String formattedDate = formatToTomsk(meetingDate);
-        emailService.sendMail(
-            email,
-            appProperties.getMail().getFrom(),
-            "[" + appProperties.getMail().getSubject() + "] Приглашение на встречу",
-            "email-meeting-invite.html",
-            Map.of(
-                    FIELD_FULL_NAME, fullName,
-                    FIELD_TEAM_NAME, teamName,
-                    FIELD_MEETING_DATE, formattedDate,
-                    FIELD_MEETING_LINK, meetingLink,
-                    FIELD_APP_NAME, appProperties.getMail().getSubject(),
-                    FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom()
-            )
-        );
-    }
-
-    @Override
-    public void sendMeetingReminder(
-        String email,
-        String fullName,
-        String teamName,
-        String meetingLink,
-        OffsetDateTime meetingDate) {
-
-        String formattedDate = formatToTomsk(meetingDate);
-        emailService.sendMail(
-            email,
-            appProperties.getMail().getFrom(),
-            "[" + appProperties.getMail().getSubject() + "] Напоминание о встрече",
-            "email-meeting-reminder.html",
-            Map.of(
-                    FIELD_FULL_NAME, fullName,
-                    FIELD_TEAM_NAME, teamName,
-                    FIELD_MEETING_DATE, formattedDate,
-                    FIELD_MEETING_LINK, meetingLink,
-                    FIELD_APP_NAME, appProperties.getMail().getSubject(),
-                    FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom()
-            )
-        );
-    }
-
-    @Override
-    public void sendMeetingInviteByUsername(
-            String username,
-            String teamName,
-            String meetingLink,
-            OffsetDateTime meetingDate) {
-
-        userRepository.findByUsername(username).ifPresentOrElse(
-            user -> {
-                if (user.getEmail() == null || user.getEmail().isBlank()) {
-                    log.warn("User {} has no email, skipping invite", username);
-                    return;
-                }
-                sendMeetingInvite(
-                        user.getEmail(),
-                        user.getFullName() != null ? user.getFullName() : username,
-                        teamName,
-                        meetingLink,
-                        meetingDate);
-            },
-            () -> log.warn("User {} not found in SSO, skipping invite", username)
-        );
-    }
-
-    @Override
-    public void sendMeetingReminderByUsername(
-            String username,
-            String teamName,
-            String meetingLink,
-            OffsetDateTime meetingDate,
-            int daysUntilMeeting) {
-
-        userRepository.findByUsername(username).ifPresentOrElse(
-            user -> {
-                if (user.getEmail() == null || user.getEmail().isBlank()) {
-                    log.warn("User {} has no email, skipping reminder", username);
-                    return;
-                }
-                String formattedDate = formatToTomsk(meetingDate);
-                emailService.sendMail(
-                    user.getEmail(),
-                    appProperties.getMail().getFrom(),
-                    "[" + appProperties.getMail().getSubject() + "] Напоминание: встреча через "
-                            + daysUntilMeeting + (daysUntilMeeting == 1 ? " день" : " дня"),
-                    "email-meeting-reminder.html",
-                    Map.of(
-                            FIELD_FULL_NAME, user.getFullName() != null ? user.getFullName() : username,
-                            FIELD_TEAM_NAME, teamName,
-                            FIELD_MEETING_DATE, formattedDate,
-                            FIELD_MEETING_LINK, meetingLink,
-                            "daysUntilMeeting", daysUntilMeeting,
-                            FIELD_APP_NAME, appProperties.getMail().getSubject(),
-                            FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom()
-                    )
-                );
-            },
-            () -> log.warn("User {} not found in SSO, skipping reminder", username)
-        );
-    }
 }

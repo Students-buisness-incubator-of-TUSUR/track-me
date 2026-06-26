@@ -10,12 +10,17 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class TeamCardEventsListener {
+
+    private static final String INVITE_TEMPLATE = "email-meeting-invite.html";
+    private static final String REMINDER_TEMPLATE = "email-meeting-reminder.html";
+    private static final String INVITE_SUBJECT = "Приглашение на встречу";
 
     private final NotificationService notificationService;
 
@@ -63,12 +68,15 @@ public class TeamCardEventsListener {
 
         // Отправляем приглашение тимлиду (TrackerUsername = team card owner = тимлид)
         if (event.trackerEmail() != null && !event.trackerEmail().isBlank()) {
-            notificationService.sendMeetingInvite(
+            notificationService.sendMeetingEmail(
                     event.trackerEmail(),
                     event.trackerFullName() != null ? event.trackerFullName() : event.trackerUsername(),
                     event.teamName(),
                     event.meetingLink(),
-                    event.startDate());
+                    event.startDate(),
+                    INVITE_TEMPLATE,
+                    INVITE_SUBJECT,
+                    Map.of());
         } else {
             log.warn("No tracker email for meeting {}, skipping tracker invite", event.meetingId());
         }
@@ -77,11 +85,14 @@ public class TeamCardEventsListener {
         if (event.creatorUsername() != null
                 && !event.creatorUsername().isBlank()
                 && !Objects.equals(event.creatorUsername(), event.trackerUsername())) {
-            notificationService.sendMeetingInviteByUsername(
+            notificationService.sendMeetingEmailByUsername(
                     event.creatorUsername(),
                     event.teamName(),
                     event.meetingLink(),
-                    event.startDate());
+                    event.startDate(),
+                    INVITE_TEMPLATE,
+                    INVITE_SUBJECT,
+                    Map.of());
         }
     }
 
@@ -94,12 +105,16 @@ public class TeamCardEventsListener {
                 event.daysUntilMeeting(), event.meetingId());
 
         if (event.trackerUsername() != null && !event.trackerUsername().isBlank()) {
-            notificationService.sendMeetingReminderByUsername(
+            int days = event.daysUntilMeeting();
+            String subject = "Напоминание: встреча через " + days + (days == 1 ? " день" : " дня");
+            notificationService.sendMeetingEmailByUsername(
                     event.trackerUsername(),
                     event.teamName(),
                     event.meetingLink(),
                     event.startDate(),
-                    event.daysUntilMeeting());
+                    REMINDER_TEMPLATE,
+                    subject,
+                    Map.of("daysUntilMeeting", days));
         } else {
             log.warn("No trackerUsername for meeting {}, skipping reminder", event.meetingId());
         }

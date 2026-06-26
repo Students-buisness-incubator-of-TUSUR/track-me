@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.configuration.AppProperties;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
+import net.trackme.meetingservice.entities.MeetingSpecification;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
 import net.trackme.meetingservice.messaging.own.MeetingReminderEvent;
@@ -40,9 +41,10 @@ public class MeetingReminderService {
         OffsetDateTime from = targetDate.atStartOfDay(zone).toOffsetDateTime();
         OffsetDateTime to = targetDate.plusDays(1).atStartOfDay(zone).toOffsetDateTime();
 
-        List<Meeting> meetings = meetingRepository
-                .findByStatusAndStartDateGreaterThanEqualAndStartDateLessThan(
-                        MeetingStatus.SCHEDULED, from, to);
+        List<Meeting> meetings = meetingRepository.findAll(
+                MeetingSpecification.withStatus(MeetingStatus.SCHEDULED)
+                        .and(MeetingSpecification.startDateAfter(from))
+                        .and(MeetingSpecification.startDateBefore(to)));
 
         log.info("Found {} meetings for reminder in {} days", meetings.size(), daysAhead);
 

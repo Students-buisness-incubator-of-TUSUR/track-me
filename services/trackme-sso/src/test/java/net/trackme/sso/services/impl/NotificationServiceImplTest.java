@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -568,7 +569,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void sendMeetingInvite_success() {
+    void sendMeetingEmail_invite_success() {
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
 
@@ -576,19 +577,22 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
                 userRepository, appProperties, emailService);
 
         assertDoesNotThrow(() ->
-            notificationService.sendMeetingInvite(
+            notificationService.sendMeetingEmail(
                     "tracker@tracker.com",
                     "Трекер Трекерович",
                     TEST_TEAM_NAME,
                     TEST_MEETING_LINK,
-                    OffsetDateTime.now())
+                    OffsetDateTime.now(),
+                    "email-meeting-invite.html",
+                    "Приглашение на встречу",
+                    Map.of())
         );
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
-    void sendMeetingInvite_withNullDate_usesEmptyString() {
+    void sendMeetingEmail_reminder_withNullDate_usesEmptyString() {
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
 
@@ -596,19 +600,22 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
                 userRepository, appProperties, emailService);
 
         assertDoesNotThrow(() ->
-            notificationService.sendMeetingInvite(
+            notificationService.sendMeetingEmail(
                     "tracker@tracker.com",
                     "Трекер",
                     TEST_TEAM_NAME,
                     TEST_MEETING_LINK,
-                    null)
+                    null,
+                    "email-meeting-reminder.html",
+                    "Напоминание о встрече",
+                    Map.of("daysUntilMeeting", 3))
         );
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
-    void sendMeetingReminder_success() {
+    void sendMeetingEmailByUsername_invite_success() {
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
 
@@ -616,85 +623,21 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
                 userRepository, appProperties, emailService);
 
         assertDoesNotThrow(() ->
-            notificationService.sendMeetingReminder(
-                    "tracker@tracker.com",
-                    "Трекер Трекерович",
-                    TEST_TEAM_NAME,
-                    TEST_MEETING_LINK,
-                    OffsetDateTime.now().plusDays(3))
-        );
-
-        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
-    }
-
-    @Test
-    void sendMeetingInviteByUsername_success() {
-        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
-        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-
-        NotificationService notificationService = new NotificationServiceImpl(
-                userRepository, appProperties, emailService);
-
-        assertDoesNotThrow(() ->
-            notificationService.sendMeetingInviteByUsername(
-                    "superadmin",
-                    TEST_TEAM_NAME,
-                    TEST_MEETING_LINK,
-                    OffsetDateTime.now().plusDays(1))
-        );
-
-        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
-    }
-
-    @Test
-    @Transactional
-    void sendMeetingInviteByUsername_userHasNoEmail_noEmailSent() {
-        var user = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
-        user.setEmail("");
-        userRepository.saveAndFlush(user);
-
-        NotificationService notificationService = new NotificationServiceImpl(
-                userRepository, appProperties, emailService);
-
-        notificationService.sendMeetingInviteByUsername(
-                "superadmin", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now());
-
-        verify(javaMailSender, never()).send(any(MimeMessage.class));
-    }
-
-    @Test
-    void sendMeetingInviteByUsername_userNotFound_noEmailSent() {
-        NotificationService notificationService = new NotificationServiceImpl(
-                userRepository, appProperties, emailService);
-
-        notificationService.sendMeetingInviteByUsername(
-                "nonexistent_user_xyz", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now());
-
-        verify(javaMailSender, never()).send(any(MimeMessage.class));
-    }
-
-    @Test
-    void sendMeetingReminderByUsername_oneDayAhead_success() {
-        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
-        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-
-        NotificationService notificationService = new NotificationServiceImpl(
-                userRepository, appProperties, emailService);
-
-        assertDoesNotThrow(() ->
-            notificationService.sendMeetingReminderByUsername(
+            notificationService.sendMeetingEmailByUsername(
                     "superadmin",
                     TEST_TEAM_NAME,
                     TEST_MEETING_LINK,
                     OffsetDateTime.now().plusDays(1),
-                    1)
+                    "email-meeting-invite.html",
+                    "Приглашение на встречу",
+                    Map.of())
         );
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
-    void sendMeetingReminderByUsername_threeDaysAhead_success() {
+    void sendMeetingEmailByUsername_reminder_success() {
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
 
@@ -702,12 +645,14 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
                 userRepository, appProperties, emailService);
 
         assertDoesNotThrow(() ->
-            notificationService.sendMeetingReminderByUsername(
+            notificationService.sendMeetingEmailByUsername(
                     "superadmin",
                     TEST_TEAM_NAME,
                     TEST_MEETING_LINK,
                     OffsetDateTime.now().plusDays(3),
-                    3)
+                    "email-meeting-reminder.html",
+                    "Напоминание: встреча через 3 дня",
+                    Map.of("daysUntilMeeting", 3))
         );
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
@@ -715,7 +660,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     @Transactional
-    void sendMeetingReminderByUsername_userHasNoEmail_noEmailSent() {
+    void sendMeetingEmailByUsername_userHasNoEmail_noEmailSent() {
         var user = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
         user.setEmail("");
         userRepository.saveAndFlush(user);
@@ -723,19 +668,21 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         NotificationService notificationService = new NotificationServiceImpl(
                 userRepository, appProperties, emailService);
 
-        notificationService.sendMeetingReminderByUsername(
-                "superadmin", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now(), 3);
+        notificationService.sendMeetingEmailByUsername(
+                "superadmin", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now(),
+                "email-meeting-invite.html", "Приглашение", Map.of());
 
         verify(javaMailSender, never()).send(any(MimeMessage.class));
     }
 
     @Test
-    void sendMeetingReminderByUsername_userNotFound_noEmailSent() {
+    void sendMeetingEmailByUsername_userNotFound_noEmailSent() {
         NotificationService notificationService = new NotificationServiceImpl(
                 userRepository, appProperties, emailService);
 
-        notificationService.sendMeetingReminderByUsername(
-                "nonexistent_user_xyz", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now(), 1);
+        notificationService.sendMeetingEmailByUsername(
+                "nonexistent_user_xyz", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now(),
+                "email-meeting-invite.html", "Приглашение", Map.of());
 
         verify(javaMailSender, never()).send(any(MimeMessage.class));
     }
