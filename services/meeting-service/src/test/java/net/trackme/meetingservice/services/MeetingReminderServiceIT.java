@@ -11,10 +11,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -53,7 +53,7 @@ class MeetingReminderServiceIT {
         registry.add("MEETING_DB_SCHEMA", () -> "public");
     }
 
-    @MockBean
+    @MockitoBean
     JwtDecoder jwtDecoder;
 
     @Autowired
@@ -81,10 +81,13 @@ class MeetingReminderServiceIT {
                 .teamCardId(UUID.randomUUID())
                 .build());
 
-        meetingReminderService.sendReminders();
-
-        try (KafkaConsumer<String, String> consumer = createConsumer("it-group-1")) {
+        // subscribe BEFORE producing so the consumer doesn't miss the message
+        try (KafkaConsumer<String, String> consumer = createConsumer("it-group-produce-1", "earliest")) {
             consumer.subscribe(List.of("meeting-reminder"));
+            consumer.poll(Duration.ofSeconds(2)); // force partition assignment
+
+            meetingReminderService.sendReminders();
+
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
             assertThat(records.count()).isEqualTo(1);
             String payload = records.iterator().next().value();
@@ -106,10 +109,13 @@ class MeetingReminderServiceIT {
                 .teamCardId(UUID.randomUUID())
                 .build());
 
-        meetingReminderService.sendReminders();
-
-        try (KafkaConsumer<String, String> consumer = createConsumer("it-group-2")) {
+        // use "latest" so we don't read messages produced by other tests
+        try (KafkaConsumer<String, String> consumer = createConsumer("it-group-noproduce-2", "latest")) {
             consumer.subscribe(List.of("meeting-reminder"));
+            consumer.poll(Duration.ofSeconds(2)); // force partition assignment at latest offset
+
+            meetingReminderService.sendReminders();
+
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3));
             assertThat(records.isEmpty()).isTrue();
         }
@@ -129,20 +135,23 @@ class MeetingReminderServiceIT {
                 .teamCardId(UUID.randomUUID())
                 .build());
 
-        meetingReminderService.sendReminders();
-
-        try (KafkaConsumer<String, String> consumer = createConsumer("it-group-3")) {
+        // use "latest" so we don't read messages produced by other tests
+        try (KafkaConsumer<String, String> consumer = createConsumer("it-group-noproduce-3", "latest")) {
             consumer.subscribe(List.of("meeting-reminder"));
+            consumer.poll(Duration.ofSeconds(2)); // force partition assignment at latest offset
+
+            meetingReminderService.sendReminders();
+
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(3));
             assertThat(records.isEmpty()).isTrue();
         }
     }
 
-    private KafkaConsumer<String, String> createConsumer(String groupId) {
+    private KafkaConsumer<String, String> createConsumer(String groupId, String offsetReset) {
         return new KafkaConsumer<>(Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers(),
                 ConsumerConfig.GROUP_ID_CONFIG, groupId,
-                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, offsetReset,
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
         ));
