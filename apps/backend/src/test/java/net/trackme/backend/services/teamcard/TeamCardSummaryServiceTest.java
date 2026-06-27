@@ -67,9 +67,8 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
         meetingSummaryEvent.put("meetingLink", "test link");
 
         List<Map<String, String>> teamCardSummaryEvents =
-                new ArrayList<>(){{
-                    add(meetingSummaryEvent);
-                }};
+                new ArrayList<>();
+        teamCardSummaryEvents.add(meetingSummaryEvent);
 
         // Act
         teamCardSummaryService.sendTeamCardsSummary(teamCardSummaryEvents);
