@@ -14,6 +14,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
@@ -32,8 +33,8 @@ class MeetingEventsListenerTest {
 
     @Test
     void onMeetingSummaryEvent() {
-        List<LinkedHashMap<String, String>> event = new ArrayList<>();
-        ConsumerRecord<String, List<LinkedHashMap<String, String>>> summaryRecord =
+        List<Map<String, String>> event = new ArrayList<>();
+        ConsumerRecord<String, List<Map<String, String>>> summaryRecord =
                 new ConsumerRecord<>("meeting-summary", 0, 0L, "key", event);
 
         meetingEventsListener.onMeetingSummaryEvent(summaryRecord);

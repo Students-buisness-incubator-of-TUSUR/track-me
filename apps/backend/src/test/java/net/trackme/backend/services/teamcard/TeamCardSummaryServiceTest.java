@@ -66,7 +66,7 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
                     put("meetingLink", "test link");
                 }};
 
-        List<LinkedHashMap<String, String>> teamCardSummaryEvents =
+        List<Map<String, String>> teamCardSummaryEvents =
                 new ArrayList<>(){{
                     add(meetingSummaryEvent);
                 }};
