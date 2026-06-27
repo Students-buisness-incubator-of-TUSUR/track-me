@@ -28,6 +28,10 @@ spring:
         pool:
           max-active: 16
           max-idle: 8
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
   datasource:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}

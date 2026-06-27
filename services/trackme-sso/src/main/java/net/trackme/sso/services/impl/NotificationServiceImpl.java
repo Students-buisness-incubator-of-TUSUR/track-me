@@ -31,6 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String FIELD_TRACKER_FULL_NAME = "trackerFullName";
     private static final String FIELD_MEETING_LINK = "meetingLink";
     private static final String FIELD_AVERAGE_GRADE = "averageGrade";
+    private static final String FIELD_MEETING_NUMBER = "meetingNumber";
     private static final String FIELD_FULL_NAME = "fullName";
     private static final String FIELD_TEAM_NAME = "teamName";
     private static final String FIELD_MEETING_DATE = "meetingDate";

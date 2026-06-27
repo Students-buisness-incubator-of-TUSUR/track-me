@@ -117,20 +117,31 @@ public class TeamCard {
         // Активная команда — динамический расчёт от trackStartDate
         return streams.stream()
                 .findFirst()
-                .map(stream -> {
-                    java.time.LocalDate now = java.time.LocalDate.now();
-                    java.time.LocalDate start = stream.getTrackStartDate();
-
-                    if (start == null || now.isBefore(start)) {
-                        return 0;
-                    }
-
-                    long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(start, now);
-                    if (daysBetween <= 7) return 1;
-
-                    return (int) ((daysBetween - 1) / 7) + 1;
-                })
+                .map(this::calculateMeetingsPlan)
                 .orElse(0);
+    }
+
+    private Integer calculateMeetingsPlan(Stream stream) {
+        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.LocalDate start = stream.getTrackStartDate();
+
+        if (start == null || now.isBefore(start)) {
+            return 0;
+        }
+
+        java.time.LocalDate calculationEnd = stream.getEndDate() != null 
+                && stream.getEndDate().isBefore(now) 
+                ? stream.getEndDate() 
+                : now;
+
+        // Считаем номер календарной недели от даты старта
+        java.time.LocalDate firstMonday = start.with(java.time.DayOfWeek.MONDAY);
+        java.time.LocalDate currentMonday = calculationEnd.with(java.time.DayOfWeek.MONDAY);
+        long weeksBetween = java.time.temporal.ChronoUnit.WEEKS.between(firstMonday, currentMonday);
+        int weekNumber = (int) weeksBetween + 1;
+
+        Integer maxMeetings = stream.getMeetingsCount();
+        return Math.min(weekNumber, maxMeetings != null ? maxMeetings : Integer.MAX_VALUE);
     }
 
     public void addStream(Stream stream) {

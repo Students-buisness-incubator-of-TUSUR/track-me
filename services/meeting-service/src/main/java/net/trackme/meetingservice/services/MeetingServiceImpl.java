@@ -8,6 +8,7 @@ import java.util.UUID;
 import static java.util.stream.Collectors.toSet;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -118,6 +119,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
 
@@ -220,6 +222,7 @@ public class MeetingServiceImpl implements MeetingService {
     @PreAuthorize(
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') "
                     + "or hasRole('ADMIN')")
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
         log.info("updateMeeting called by user: {}",
          SecurityContextHolder.getContext().getAuthentication().getName());
@@ -306,6 +309,7 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
     @PreAuthorize(
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') "
                     + "or hasRole('ADMIN')")
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public void deleteMeeting(UUID meetingId) {
         log.debug("Deleting meeting: {}", meetingId);
         
@@ -325,6 +329,7 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
                 .meetingId(meetingId)
                 .teamCardId(teamCardId)
                 .startDate(meeting.getStartDate())
+                .status(meeting.getStatus())
                 .build();
         meetingEventsProducer.sendMeetingDeletedEvent(event);
 
@@ -531,10 +536,9 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
         );
     }
 
-    // ==================== НОВЫЙ МЕТОД ДЛЯ СУПЕРАДМИНИСТРАТОРА ====================
-
     @Override
     @Transactional
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public MeetingDto updateBySuperAdmin(UUID meetingId, MeetingUpdateDto updateDto) {
         
         // 1. Проверка роли суперадмина
@@ -569,11 +573,24 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
             );
         }
         
-        // 4. Обновляем поля с помощью существующего маппера
+        // Сохраняем старый статус до обновления
+        var oldStatus = meeting.getStatus();
+        var oldTeamStatus = meeting.getTeamStatus();
+        
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         
-        // 5. Сохраняем
+        // Если встречу завершили как несостоявшуюся — сбрасываем teamStatus
+        if (updateDto.status() == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+            meeting.setTeamStatus(null);
+        }
+        
         Meeting savedMeeting = meetingRepository.save(meeting);
+        
+        // Отправляем событие обновления (важно для обновления счётчиков на бэкенде)
+        if (oldStatus != savedMeeting.getStatus()
+                || !Objects.equals(oldTeamStatus, savedMeeting.getTeamStatus())) {
+            sendMeetingUpdatedEvent(savedMeeting, oldStatus);
+        }
         
         log.info("Super admin {} updated meeting {}", authentication.getName(), meetingId);
         
@@ -660,4 +677,3 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
                 .toString();
     }
 }
-
