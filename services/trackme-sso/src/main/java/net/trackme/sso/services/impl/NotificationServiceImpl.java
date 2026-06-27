@@ -108,15 +108,15 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     public void sendTeamCardSummary(
-                List<LinkedHashMap<String, String>> teamCardSummaryEvents) {
-        Map<String, List<LinkedHashMap<String, String>>> groupedByStream =
+            List<Map<String, String>> teamCardSummaryEvents) {
+        Map<String, List<Map<String, String>>> groupedByStream =
                 groupAndSortByStream(teamCardSummaryEvents);
 
         List<String> infos = new ArrayList<>();
 
         for (var entry : groupedByStream.entrySet()) {
                 String streamName = entry.getKey();
-                List<LinkedHashMap<String, String>> streamEvents =
+                List<Map<String, String>> streamEvents =
                         entry.getValue();
 
                 int meetingNumber = 1;
@@ -156,15 +156,15 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     public void sendTeamCardLowGradeSummary(
-            List<LinkedHashMap<String, String>> teamCardLowGradeSummaryEvents) {
-        Map<String, List<LinkedHashMap<String, String>>> groupedByStream =
+            List<Map<String, String>> teamCardLowGradeSummaryEvents) {
+        Map<String, List<Map<String, String>>> groupedByStream =
                 groupAndSortByStream(teamCardLowGradeSummaryEvents);
 
         List<String> infos = new ArrayList<>();
 
         for (var entry : groupedByStream.entrySet()) {
             String streamName = entry.getKey();
-            List<LinkedHashMap<String, String>> streamEvents =
+            List<Map<String, String>> streamEvents =
                     entry.getValue();
 
             int count = 1;
@@ -203,11 +203,10 @@ public class NotificationServiceImpl implements NotificationService {
      * @param events список событий для группировки
      * @return сгруппированные и отсортированные события по потокам
      */
-    private Map<String, List<LinkedHashMap<String, String>>>
-    groupAndSortByStream(
-            List<LinkedHashMap<String, String>> events) {
+    private Map<String, List<Map<String, String>>>
+    groupAndSortByStream(List<Map<String, String>> events) {
 
-        Map<String, List<LinkedHashMap<String, String>>> grouped =
+        Map<String, List<Map<String, String>>> grouped =
                 new LinkedHashMap<>();
 
         for (var event : events) {
@@ -217,7 +216,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         for (var entry : grouped.entrySet()) {
-            List<LinkedHashMap<String, String>> streamTeams =
+            List<Map<String, String>> streamTeams =
                     entry.getValue();
             streamTeams.sort((a, b) -> {
                 String nameA = a.getOrDefault(FIELD_TEAM_CARD_NAME, "");

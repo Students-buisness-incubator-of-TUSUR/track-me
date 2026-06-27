@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Слушатель событий встреч из Kafka.
@@ -74,7 +75,7 @@ public class MeetingEventsListener {
             topics = "meeting-summary",
             containerFactory = "meetingSummaryListenerContainerFactory")
     public void onMeetingSummaryEvent(
-            ConsumerRecord<String, List<LinkedHashMap<String, String>>> record) {
+            ConsumerRecord<String, List<Map<String, String>>> record) {
         var meetingSummaryEvents = record.value();
         log.info("Received meetings summary requested event: {}", meetingSummaryEvents);
         teamCardSummaryService.sendTeamCardsSummary(meetingSummaryEvents);

@@ -1,8 +1,8 @@
 plugins {
     id 'java'
     id 'org.springframework.boot'
-    id 'jacoco'
     id 'io.freefair.lombok'
+    id 'net.trackme.java-quality' version '1.1.0'
 }
 
 version = '1.0.0'
@@ -33,15 +33,6 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    finalizedBy jacocoTestReport
-}
-
-jacocoTestReport {
-    dependsOn test
-    reports {
-        xml.required = true
-        html.required = true
-    }
 }
 
 sourceSets {
@@ -53,5 +44,9 @@ sourceSets {
             srcDirs = ['src/main/resources', 'database']
         }
     }
+}
+
+tasks.compileJava {
+    options.errorprone.error("NonApiType")
 }
 

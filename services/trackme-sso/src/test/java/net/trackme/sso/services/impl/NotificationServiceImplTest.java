@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -153,7 +154,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event1.put("meetingNumber", "1");
         event1.put("meetingLink", "http://example.com/meeting/1");
 
-        List<LinkedHashMap<String, String>> teamCardSummaryEvents = List.of(event1);
+        List<Map<String, String>> teamCardSummaryEvents = List.of(event1);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -171,21 +172,21 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     void sendTeamCardSummary_multipleStreams_sorted() {
-        LinkedHashMap<String, String> event1 = new LinkedHashMap<>();
+        Map<String, String> event1 = new LinkedHashMap<>();
         event1.put("streamName", "Поток A");
         event1.put("teamCardName", "AAA Team");
         event1.put("trackerFullName", "Иванов Иван");
         event1.put("meetingNumber", "1");
         event1.put("meetingLink", "http://example.com/1");
 
-        LinkedHashMap<String, String> event2 = new LinkedHashMap<>();
+        Map<String, String> event2 = new LinkedHashMap<>();
         event2.put("streamName", "Поток A");
         event2.put("teamCardName", "BBB Team");
         event2.put("trackerFullName", "Петров Петр");
         event2.put("meetingNumber", "2");
         event2.put("meetingLink", "http://example.com/2");
 
-        List<LinkedHashMap<String, String>> events = List.of(event2, event1);
+        List<Map<String, String>> events = List.of(event2, event1);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -223,7 +224,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event.put("meetingNumber", "1");
         event.put("meetingLink", "http://example.com/meeting/1");
 
-        List<LinkedHashMap<String, String>> events = List.of(event);
+        List<Map<String, String>> events = List.of(event);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -261,7 +262,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event3.put("meetingNumber", "3");
         event3.put("meetingLink", "http://example.com/3");
 
-        List<LinkedHashMap<String, String>> events = List.of(event3, event2, event1);
+        List<Map<String, String>> events = List.of(event3, event2, event1);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -299,7 +300,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event3.put("meetingNumber", "1");
         event3.put("meetingLink", "http://example.com/3");
 
-        List<LinkedHashMap<String, String>> events = List.of(event3, event2, event1);
+        List<Map<String, String>> events = List.of(event3, event2, event1);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -321,7 +322,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event.put("trackerFullName", "Иванов Иван");
         event.put("meetingLink", "http://example.com");
 
-        List<LinkedHashMap<String, String>> events = List.of(event);
+        List<Map<String, String>> events = List.of(event);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -344,7 +345,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event1.put("trackerFullName", "Иванов Иван Иванович");
         event1.put("averageGrade", "0.25");
 
-        List<LinkedHashMap<String, String>> teamCardLowGradeSummaryEvents = List.of(event1);
+        List<Map<String, String>> teamCardLowGradeSummaryEvents = List.of(event1);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -388,7 +389,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event2.put("trackerFullName", "Иванов Иван");
         event2.put("averageGrade", "0.3");
 
-        List<LinkedHashMap<String, String>> events = List.of(event2, event1);
+        List<Map<String, String>> events = List.of(event2, event1);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -423,7 +424,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event3.put("trackerFullName", "Петров");
         event3.put("averageGrade", "0.1");
 
-        List<LinkedHashMap<String, String>> events = List.of(event3, event2, event1);
+        List<Map<String, String>> events = List.of(event3, event2, event1);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -446,7 +447,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event.put("trackerFullName", "Иванов");
         event.put("averageGrade", "0.5");
 
-        List<LinkedHashMap<String, String>> events = List.of(event);
+        List<Map<String, String>> events = List.of(event);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -581,7 +582,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         event2.put("trackerFullName", "Test");
         event2.put("meetingLink", "http://example.com/2");
 
-        List<LinkedHashMap<String, String>> events = List.of(event1, event2);
+        List<Map<String, String>> events = List.of(event1, event2);
 
         MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);

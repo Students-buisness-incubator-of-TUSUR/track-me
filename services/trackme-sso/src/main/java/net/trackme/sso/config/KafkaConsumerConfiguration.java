@@ -14,6 +14,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @EnableKafka
 @Configuration
@@ -57,31 +58,31 @@ public class KafkaConsumerConfiguration {
     }
 
     @Bean
-    ConsumerFactory<String, List<LinkedHashMap<String, String>>> teamCardSummaryEventConsumerFactory(
+    ConsumerFactory<String, List<Map<String, String>>> teamCardSummaryEventConsumerFactory(
             KafkaProperties kafkaProperties) {
         return createConsumerFactory(kafkaProperties, (Class) List.class);
     }
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, List<LinkedHashMap<String, String>>> teamCardSummaryListenerContainerFactory(
-            ConsumerFactory<String, List<LinkedHashMap<String, String>>> teamCardSummaryEventConsumerFactory
+    ConcurrentKafkaListenerContainerFactory<String, List<Map<String, String>>> teamCardSummaryListenerContainerFactory(
+            ConsumerFactory<String, List<Map<String, String>>> teamCardSummaryEventConsumerFactory
     ) {
-        var factory = new ConcurrentKafkaListenerContainerFactory<String, List<LinkedHashMap<String, String>>>();
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, List<Map<String, String>>>();
         factory.setConsumerFactory(teamCardSummaryEventConsumerFactory);
         return factory;
     }
 
     @Bean
-    ConsumerFactory<String, List<LinkedHashMap<String, String>>> teamCardLowGradeSummaryEventConsumerFactory(
+    ConsumerFactory<String, List<Map<String, String>>> teamCardLowGradeSummaryEventConsumerFactory(
             KafkaProperties kafkaProperties) {
         return createConsumerFactory(kafkaProperties, (Class) List.class);
     }
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, List<LinkedHashMap<String, String>>> teamCardLowGradeSummaryListenerContainerFactory(
-            ConsumerFactory<String, List<LinkedHashMap<String, String>>> teamCardLowGradeSummaryEventConsumerFactory
+    ConcurrentKafkaListenerContainerFactory<String, List<Map<String, String>>> teamCardLowGradeSummaryListenerContainerFactory(
+            ConsumerFactory<String, List<Map<String, String>>> teamCardLowGradeSummaryEventConsumerFactory
     ) {
-        var factory = new ConcurrentKafkaListenerContainerFactory<String, List<LinkedHashMap<String, String>>>();
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, List<Map<String, String>>>();
         factory.setConsumerFactory(teamCardLowGradeSummaryEventConsumerFactory);
         return factory;
     }
