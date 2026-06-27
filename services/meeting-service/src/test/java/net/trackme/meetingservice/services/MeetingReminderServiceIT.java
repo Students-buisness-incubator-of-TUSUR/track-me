@@ -39,17 +39,14 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
+@SpringBootTest(
+        classes = MeetingReminderServiceITApp.class,
+        webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
             "app.app-url=http://localhost:8082",
             "spring.liquibase.enabled=false",
             "spring.jpa.hibernate.ddl-auto=create-drop",
-            "spring.kafka.listener.auto-startup=false",
-            "spring.autoconfigure.exclude=" +
-                "org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration," +
-                "org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration," +
-                "org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration," +
-                "org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration"
+            "spring.kafka.listener.auto-startup=false"
         })
 @Testcontainers
 class MeetingReminderServiceIT {
