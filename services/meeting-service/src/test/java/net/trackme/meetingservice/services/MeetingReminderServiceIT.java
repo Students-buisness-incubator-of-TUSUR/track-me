@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -39,15 +40,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(
-        classes = MeetingReminderServiceITApp.class,
-        webEnvironment = SpringBootTest.WebEnvironment.NONE,
-        properties = {
-            "app.app-url=http://localhost:8082",
-            "spring.liquibase.enabled=false",
-            "spring.jpa.hibernate.ddl-auto=create-drop",
-            "spring.kafka.listener.auto-startup=false"
-        })
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ActiveProfiles("reminder-it")
 @Testcontainers
 class MeetingReminderServiceIT {
 
