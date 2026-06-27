@@ -59,12 +59,12 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
     @Test
     void sendTeamCardsSummary_success() {
         // Arrange
-        LinkedHashMap<String, String> meetingSummaryEvent =
-                new LinkedHashMap<>(){{
-                    put("teamCardId", String.valueOf(teamCard.getId()));
-                    put("meetingNumber", "test meeting");
-                    put("meetingLink", "test link");
-                }};
+        Map<String, String> meetingSummaryEvent =
+                new LinkedHashMap<>();
+
+        meetingSummaryEvent.put("teamCardId", String.valueOf(teamCard.getId()));
+        meetingSummaryEvent.put("meetingNumber", "test meeting");
+        meetingSummaryEvent.put("meetingLink", "test link");
 
         List<Map<String, String>> teamCardSummaryEvents =
                 new ArrayList<>(){{
