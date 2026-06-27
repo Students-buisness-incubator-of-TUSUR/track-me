@@ -1,5 +1,6 @@
 package net.trackme.meetingservice.services;
 
+import net.trackme.meetingservice.config.TestSecurityConfig;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
@@ -16,8 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -40,13 +40,17 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// TestSecurityConfig registers @Bean @Primary mocks for ClientRegistrationRepository,
+// OAuth2AuthorizedClientManager, and JwtDecoder during ConfigurationClassPostProcessor —
+// before @ConditionalOnMissingBean in OAuth2ClientAutoConfiguration is evaluated.
+// This prevents OAuth2ClientAutoConfiguration from calling ClientRegistrations.fromIssuerLocation()
+// (OIDC discovery) against localhost:9000 which is unavailable in CI.
+@Import(TestSecurityConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
             "app.app-url=http://localhost:8082",
             "spring.liquibase.enabled=false",
             "spring.jpa.hibernate.ddl-auto=create-drop",
-            // disable the app's own Kafka listeners — they're irrelevant for this test and
-            // their 12 consumer threads (concurrency=3 × 4 topics) overload the broker in CI
             "spring.kafka.listener.auto-startup=false"
         })
 @Testcontainers
@@ -86,15 +90,8 @@ class MeetingReminderServiceIT {
         }
     }
 
-    // With WebEnvironment.NONE, OAuth2ClientAutoConfiguration is skipped (@ConditionalOnWebApplication),
-    // so ClientRegistrationRepository and OAuth2AuthorizedClientManager are not auto-configured.
-    // ServiceClientConfig.authorizedClientManager() would fail without these mocks.
     @MockitoBean
     JwtDecoder jwtDecoder;
-    @MockitoBean
-    ClientRegistrationRepository clientRegistrationRepository;
-    @MockitoBean
-    OAuth2AuthorizedClientManager authorizedClientManager;
 
     @Autowired
     MeetingReminderService meetingReminderService;
