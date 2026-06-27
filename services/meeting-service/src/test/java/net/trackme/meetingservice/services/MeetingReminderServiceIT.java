@@ -40,18 +40,18 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// TestSecurityConfig registers @Bean @Primary mocks for ClientRegistrationRepository,
-// OAuth2AuthorizedClientManager, and JwtDecoder during ConfigurationClassPostProcessor —
-// before @ConditionalOnMissingBean in OAuth2ClientAutoConfiguration is evaluated.
-// This prevents OAuth2ClientAutoConfiguration from calling ClientRegistrations.fromIssuerLocation()
-// (OIDC discovery) against localhost:9000 which is unavailable in CI.
+// Empty issuer-uri prevents OAuth2ClientPropertiesMapper from calling
+// ClientRegistrations.fromIssuerLocation() (OIDC discovery) during context startup.
+// StringUtils.hasText("") == false → fromIssuerLocation is never called → no ConnectException.
 @Import(TestSecurityConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
             "app.app-url=http://localhost:8082",
             "spring.liquibase.enabled=false",
             "spring.jpa.hibernate.ddl-auto=create-drop",
-            "spring.kafka.listener.auto-startup=false"
+            "spring.kafka.listener.auto-startup=false",
+            "spring.security.oauth2.client.provider.trackme-service.issuer-uri=",
+            "spring.security.oauth2.resourceserver.jwt.issuer-uri="
         })
 @Testcontainers
 class MeetingReminderServiceIT {
