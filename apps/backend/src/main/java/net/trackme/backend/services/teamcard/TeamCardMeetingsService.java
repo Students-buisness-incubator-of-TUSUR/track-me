@@ -24,8 +24,9 @@ public interface TeamCardMeetingsService {
      *
      * @param teamCardId идентификатор карточки команды
      * @param meetingId идентификатор встречи
+     * @param status статус удаляемой встречи
      */
-    void handleMeetingDeleted(UUID teamCardId, UUID meetingId);
+    void handleMeetingDeleted(UUID teamCardId, UUID meetingId, MeetingStatus status);
 
     /**
      * Обновляет информацию карточки команды на основе данных встречи.

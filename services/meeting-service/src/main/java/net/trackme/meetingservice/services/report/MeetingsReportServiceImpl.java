@@ -1,11 +1,13 @@
 package net.trackme.meetingservice.services.report;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.filters.Filter;
 import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.stream.IntStream;
 
 import static net.trackme.meetingservice.entities.MeetingSpecification.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MeetingsReportServiceImpl implements MeetingsReportService {
@@ -43,32 +46,39 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
     private final MeetingsReportExcelGenerator excelGenerator;
 
     @Override
+    @Cacheable(value = "meetings-report-all", key = "#streamId.toString() + '-' + #filters.hashCode()")
     public List<MeetingReportRecordDto> getReportRecordsForStream(
             UUID streamId,
             List<Filter> filters
     ) {
         Specification<Meeting> spec = buildBaseSpec(streamId, filters);
-        return meetingRepository.findAll(spec.and(withFetchJoins()), DEFAULT_SORT)
-                .stream()
+        List<Meeting> meetings = meetingRepository.findAll(spec, DEFAULT_SORT);
+        return meetings.stream()
                 .map(meetingMapper::mapToReportDto)
                 .toList();
     }
 
     @Override
+    @Cacheable(value = "meetings-report-page",
+               key = "#streamId.toString() + '-' + #filters.hashCode() + '-' + #pageable.pageNumber")
     public Page<MeetingReportRecordDto> getReportRecordsForStream(
             UUID streamId,
             List<Filter> filters,
             Pageable pageable
     ) {
         Sort effectiveSort = calculateEffectiveSort(pageable.getSort());
-        Pageable effectivePageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), effectiveSort);
         Specification<Meeting> baseSpec = buildBaseSpec(streamId, filters);
 
-        Page<Meeting> idPage = meetingRepository.findAll(baseSpec, effectivePageable);
-        if (idPage.isEmpty()) return Page.empty(pageable);
+        Page<Meeting> meetingPage = meetingRepository.findAll(baseSpec,
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), effectiveSort));
 
-        List<MeetingReportRecordDto> dtos = fetchFullMeetingsAsDtos(idPage.getContent(), effectiveSort);
-        return new PageImpl<>(dtos, pageable, idPage.getTotalElements());
+        if (meetingPage.isEmpty()) return Page.empty(pageable);
+
+        List<MeetingReportRecordDto> dtos = meetingPage.getContent().stream()
+                .map(meetingMapper::mapToReportDto)
+                .toList();
+
+        return new PageImpl<>(dtos, pageable, meetingPage.getTotalElements());
     }
 
     @Override
@@ -88,10 +98,12 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
                 .mapToObj(page -> {
                     Pageable pageable = PageRequest.of(page, fetchPageSize, effectiveSort);
 
-                    var idPage = meetingRepository.findAll(baseSpec, pageable);
-                    if (idPage.isEmpty()) return List.<MeetingReportRecordDto>of();
+                    var meetingPage = meetingRepository.findAll(baseSpec, pageable);
+                    if (meetingPage.isEmpty()) return List.<MeetingReportRecordDto>of();
 
-                    return fetchFullMeetingsAsDtos(idPage.getContent(), effectiveSort);
+                    return meetingPage.getContent().stream()
+                            .map(meetingMapper::mapToReportDto)
+                            .toList();
                 })
                 .takeWhile(batch -> !batch.isEmpty())
                 .flatMap(Collection::stream)
@@ -100,31 +112,14 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
         excelGenerator.generate(streamName, recordStream, outputStream);
     }
 
-    /**
-     * Формирует "умную" сортировку.
-     */
     private Sort calculateEffectiveSort(Sort clientSort) {
         if (clientSort.getOrderFor(DEFAULT_GROUP_BY_SORT_FIELD) != null) {
             return clientSort;
         }
-
         if (clientSort.isUnsorted()) {
             return DEFAULT_SORT;
         }
-
         return DEFAULT_GROUP_BY_SORT.and(clientSort);
-    }
-
-    /**
-     * Вспомогательный метод для загрузки сущностей с JOIN FETCH по списку ID
-     * и преобразования их в DTO.
-     */
-    private List<MeetingReportRecordDto> fetchFullMeetingsAsDtos(List<Meeting> meetingsWithIds, Sort sort) {
-        List<UUID> ids = meetingsWithIds.stream().map(Meeting::getId).toList();
-        return meetingRepository.findAll(withFetchJoins().and(idIn(ids)), sort)
-                .stream()
-                .map(meetingMapper::mapToReportDto)
-                .toList();
     }
 
     private Specification<Meeting> buildBaseSpec(UUID streamId, List<Filter> filters) {

@@ -83,4 +83,24 @@ databaseChangeLog:
         - sql:
             dbms: postgresql
             sql: DROP INDEX CONCURRENTLY IF EXISTS ${db_schema}.idx_meeting_team_id;
-            
+
+  - changeSet:
+      id: add-report-indexes-5
+      author: developer
+      runInTransaction: false
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - indexExists:
+                schemaName: ${db_schema}
+                indexName: idx_stc_team_stream
+      changes:
+        - sql:
+            dbms: postgresql
+            sql: |
+              CREATE INDEX CONCURRENTLY idx_stc_team_stream
+                  ON ${db_schema}.stream_team_card (team_id, stream_id);
+      rollback:
+        - sql:
+            dbms: postgresql
+            sql: DROP INDEX CONCURRENTLY IF EXISTS ${db_schema}.idx_stc_team_stream;

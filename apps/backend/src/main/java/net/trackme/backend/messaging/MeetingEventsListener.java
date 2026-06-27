@@ -62,11 +62,12 @@ public class MeetingEventsListener {
             containerFactory = "meetingDeletedListenerContainerFactory")
     public void onMeetingDeletedEvent(
             ConsumerRecord<String, MeetingDeletedEvent> record) {
-        var meetingDeletedEvent = record.value();
-        log.info("Received meeting deleted event: {}", meetingDeletedEvent);
+        var event = record.value();
+        log.info("Received meeting deleted event: {}", event);
         teamCardMeetingsService.handleMeetingDeleted(
-                meetingDeletedEvent.teamCardId(),
-                meetingDeletedEvent.meetingId());
+                event.teamCardId(),
+                event.meetingId(),
+                event.status());
     }
 
     @KafkaListener(
