@@ -1,6 +1,5 @@
 package net.trackme.meetingservice.services;
 
-import net.trackme.meetingservice.config.TestSecurityConfig;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
@@ -17,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -40,18 +39,17 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// Empty issuer-uri prevents OAuth2ClientPropertiesMapper from calling
-// ClientRegistrations.fromIssuerLocation() (OIDC discovery) during context startup.
-// StringUtils.hasText("") == false → fromIssuerLocation is never called → no ConnectException.
-@Import(TestSecurityConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = {
             "app.app-url=http://localhost:8082",
             "spring.liquibase.enabled=false",
             "spring.jpa.hibernate.ddl-auto=create-drop",
             "spring.kafka.listener.auto-startup=false",
-            "spring.security.oauth2.client.provider.trackme-service.issuer-uri=",
-            "spring.security.oauth2.resourceserver.jwt.issuer-uri="
+            "spring.autoconfigure.exclude=" +
+                "org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration," +
+                "org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration"
         })
 @Testcontainers
 class MeetingReminderServiceIT {
@@ -89,6 +87,9 @@ class MeetingReminderServiceIT {
             }
         }
     }
+
+    @MockitoBean
+    OAuth2AuthorizedClientManager authorizedClientManager;
 
     @MockitoBean
     JwtDecoder jwtDecoder;
