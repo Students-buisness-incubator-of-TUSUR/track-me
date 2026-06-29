@@ -75,8 +75,7 @@ jobs:
             echo "IMAGE_REPO=$IMAGE_REPO" >> .env
             echo "IMAGE_TAG=$IMAGE_TAG" >> .env
 
-            # up -d сам докачивает отсутствующие SHA-образы и пересоздаёт только изменившиеся сервисы;
-            # фронтенд (своя ${FRONTEND_IMAGE}) и инфра (:latest, уже на месте) не трогаются — без down
+            docker compose pull
             docker compose up -d
             docker image prune -f
 
