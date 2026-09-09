@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Напоминание о встрече</title>
+</head>
+<body>
+<div>
+    <h1>Напоминание о встрече</h1>
+
+    <p th:replace="~{email-fragments :: greeting(${fullName})}"></p>
+
+    <p th:if="${daysUntilMeeting != null and daysUntilMeeting == 1}">
+        Напоминаем, что <strong>завтра</strong> запланирована встреча команды
+        <strong th:text="${teamName}"></strong>.
+    </p>
+    <p th:if="${daysUntilMeeting == null or daysUntilMeeting != 1}">
+        Напоминаем, что через <strong th:text="${daysUntilMeeting}"></strong> дня запланирована встреча команды
+        <strong th:text="${teamName}"></strong>.
+    </p>
+
+    <div th:replace="~{email-fragments :: meetingDetails(${meetingDate}, ${meetingLink})}"></div>
+
+    <div th:replace="~{email-fragments :: emailFooter(${appName}, ${supportEmail})}"></div>
+</div>
+</body>
+</html>

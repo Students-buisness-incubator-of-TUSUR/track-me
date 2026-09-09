@@ -33,6 +33,16 @@ public class MeetingEventsProducer {
     private static final String MEETING_DELETED_TOPIC = "meeting-deleted";
 
     /**
+     * Тема события создания встречи для инвайта.
+     */
+    private static final String MEETING_INVITE_TOPIC = "meeting-invite";
+
+    /**
+     * Тема события напоминания о встрече.
+     */
+    private static final String MEETING_REMINDER_TOPIC = "meeting-reminder";
+
+    /**
      * Шаблон Kafka.
      */
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -80,6 +90,22 @@ public class MeetingEventsProducer {
     public void sendMeetingDeletedEvent(MeetingDeletedEvent event) {
         var message = MessageBuilder.withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, MEETING_DELETED_TOPIC)
+                .setHeader(KafkaHeaders.KEY, event.meetingId().toString())
+                .build();
+        kafkaTemplate.send(message);
+    }
+
+    public void sendMeetingInviteEvent(MeetingInviteEvent event) {
+        var message = MessageBuilder.withPayload(event)
+                .setHeader(KafkaHeaders.TOPIC, MEETING_INVITE_TOPIC)
+                .setHeader(KafkaHeaders.KEY, event.meetingId().toString())
+                .build();
+        kafkaTemplate.send(message);
+    }
+
+    public void sendMeetingReminderEvent(MeetingReminderEvent event) {
+        var message = MessageBuilder.withPayload(event)
+                .setHeader(KafkaHeaders.TOPIC, MEETING_REMINDER_TOPIC)
                 .setHeader(KafkaHeaders.KEY, event.meetingId().toString())
                 .build();
         kafkaTemplate.send(message);

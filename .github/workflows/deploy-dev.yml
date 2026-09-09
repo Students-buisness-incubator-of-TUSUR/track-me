@@ -55,6 +55,8 @@ jobs:
           IMAGE_TAG: ${{ steps.image.outputs.tag }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
@@ -62,7 +64,7 @@ jobs:
           proxy_host: bastion.tusur.ru
           proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
           script: |
             set -euo pipefail
             cd "$HOME/track-me-dev"
@@ -71,9 +73,11 @@ jobs:
 
             # Идемпотентно патчим только ссылки на образы; прикладные секреты в .env не трогаем
             touch .env
-            sed -i '/^IMAGE_REPO=/d;/^IMAGE_TAG=/d' .env
+            sed -i '/^IMAGE_REPO=/d;/^IMAGE_TAG=/d;/^GOOGLE_CLIENT_ID=/d;/^GOOGLE_CLIENT_SECRET=/d' .env
             echo "IMAGE_REPO=$IMAGE_REPO" >> .env
             echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+            echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
+            echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
 
             docker compose pull
             docker compose up -d

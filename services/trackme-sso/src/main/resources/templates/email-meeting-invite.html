@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приглашение на встречу</title>
+</head>
+<body>
+<div>
+    <h1>Приглашение на встречу</h1>
+
+    <p th:replace="~{email-fragments :: greeting(${fullName})}"></p>
+
+    <p>Вы приглашены на встречу команды <strong th:text="${teamName}"></strong>.</p>
+
+    <div th:replace="~{email-fragments :: meetingDetails(${meetingDate}, ${meetingLink})}"></div>
+
+    <div th:replace="~{email-fragments :: emailFooter(${appName}, ${supportEmail})}"></div>
+</div>
+</body>
+</html>

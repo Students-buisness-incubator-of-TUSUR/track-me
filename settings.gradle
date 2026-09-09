@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
+        google()
         maven {
             url = uri('https://maven.pkg.github.com/Students-buisness-incubator-of-TUSUR/track-me-platform')
             credentials {

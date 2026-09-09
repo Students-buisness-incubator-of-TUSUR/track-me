@@ -1294,7 +1294,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Stream with old track date")
                 .startDate(now.minusDays(30))
                 .endDate(streamEndDate)
-                .trackStartDate(now.minusDays(8))
+                .trackStartDate(now.with(java.time.DayOfWeek.MONDAY).minusWeeks(2))
                 .build()
         );
 

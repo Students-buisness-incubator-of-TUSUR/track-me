@@ -29,6 +29,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:kafka'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.mapstruct:mapstruct'
 
@@ -71,4 +72,3 @@ sourceSets {
         }
     }
 }
-
