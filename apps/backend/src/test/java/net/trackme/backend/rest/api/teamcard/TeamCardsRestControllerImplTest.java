@@ -1327,7 +1327,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", is(1)))
-                .andExpect(jsonPath("$.content[0].meetingsCountPlan", is(2)));
+                .andExpect(jsonPath("$.content[0].meetingsCountPlan", is(3)));
 
         mockMvc.perform(post("/api/v1/team-cards/reports")
                         .with(csrf())

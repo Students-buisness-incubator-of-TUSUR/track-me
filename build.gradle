@@ -27,8 +27,6 @@ subprojects {
         }
     }
 
-    // Покрытие задаётся на каждом модуле: jacoco-отчёт модуля сопоставляется с его же
-    // исходниками. Модули с jacoco (в т.ч. через java-quality) подхватываются автоматически.
     plugins.withId('jacoco') {
         sonar {
             properties {

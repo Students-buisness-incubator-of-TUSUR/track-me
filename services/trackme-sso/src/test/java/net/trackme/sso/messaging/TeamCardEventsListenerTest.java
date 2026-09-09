@@ -12,7 +12,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -30,10 +29,10 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
     private ConsumerRecord<String, MeetingNotHappenedEvent> meetingNotHappenedRecord;
 
     @Mock
-    private ConsumerRecord<String, List<LinkedHashMap<String, String>>> teamCardSummaryRecord;
+    private ConsumerRecord<String, List<Map<String, String>>> teamCardSummaryRecord;
 
     @Mock
-    private ConsumerRecord<String, List<LinkedHashMap<String, String>>> teamCardLowGradeSummaryRecord;
+    private ConsumerRecord<String, List<Map<String, String>>> teamCardLowGradeSummaryRecord;
 
     @Mock
     private ConsumerRecord<String, MeetingInviteEvent> meetingInviteRecord;
@@ -79,7 +78,7 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
     @Test
     void onTeamCardSummaryEvent() {
         // Arrange
-        List<LinkedHashMap<String, String>> event = new ArrayList<>();
+        List<Map<String, String>> event = new ArrayList<>();
         when(teamCardSummaryRecord.value()).thenReturn(event);
 
         // Act
@@ -91,7 +90,7 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
     @Test
     void onTeamCardLowGradeSummaryEvent() {
-        List<LinkedHashMap<String, String>> event = new ArrayList<>();
+        List<Map<String, String>> event = new ArrayList<>();
         when(teamCardLowGradeSummaryRecord.value()).thenReturn(event);
 
         teamCardEventsListener.onTeamCardLowGradeSummaryEvent(teamCardLowGradeSummaryRecord);

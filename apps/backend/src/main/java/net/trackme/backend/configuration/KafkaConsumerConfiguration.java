@@ -17,6 +17,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Конфигурация Kafka потребителей.
@@ -102,7 +103,7 @@ public class KafkaConsumerConfiguration {
     }
 
     @Bean
-    ConsumerFactory<String, List<LinkedHashMap<String, String>>>
+    ConsumerFactory<String, List<Map<String, String>>>
             meetingSummaryEventConsumerFactory(KafkaProperties kafkaProperties) {
         var props = kafkaProperties.buildConsumerProperties(null);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -116,12 +117,12 @@ public class KafkaConsumerConfiguration {
     }
 
     @Bean
-    ConcurrentKafkaListenerContainerFactory<String, List<LinkedHashMap<String, String>>>
+    ConcurrentKafkaListenerContainerFactory<String, List<Map<String, String>>>
             meetingSummaryListenerContainerFactory(
-                    ConsumerFactory<String, List<LinkedHashMap<String, String>>>
+                    ConsumerFactory<String, List<Map<String, String>>>
                             meetingSummaryEventConsumerFactory) {
         var factory = new ConcurrentKafkaListenerContainerFactory
-                <String, List<LinkedHashMap<String, String>>>();
+                <String, List<Map<String, String>>>();
         factory.setConsumerFactory(meetingSummaryEventConsumerFactory);
         return factory;
     }

@@ -8,7 +8,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,7 +42,7 @@ public class TeamCardEventsListener {
             topics = "team-card-summary",
             containerFactory = "teamCardSummaryListenerContainerFactory")
     public void onTeamCardSummaryEvent(
-            ConsumerRecord<String, List<LinkedHashMap<String, String>>> record) {
+            ConsumerRecord<String, List<Map<String, String>>> record) {
         var teamCardSummaryEvents = record.value();
         log.info("Received team card summary event: {}", teamCardSummaryEvents);
         notificationService.sendTeamCardSummary(teamCardSummaryEvents);
@@ -53,7 +52,7 @@ public class TeamCardEventsListener {
             topics = "team-card-low-grade-summary",
             containerFactory = "teamCardLowGradeSummaryListenerContainerFactory")
     public void onTeamCardLowGradeSummaryEvent(
-            ConsumerRecord<String, List<LinkedHashMap<String, String>>> record) {
+            ConsumerRecord<String, List<Map<String, String>>> record) {
         var teamCardLowGradeSummaryEvents = record.value();
         log.info("Received team card low grade summary event: {}", teamCardLowGradeSummaryEvents);
         notificationService.sendTeamCardLowGradeSummary(teamCardLowGradeSummaryEvents);

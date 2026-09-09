@@ -79,8 +79,7 @@ jobs:
             echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
             echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
 
-            # up -d сам докачивает отсутствующие SHA-образы и пересоздаёт только изменившиеся сервисы;
-            # фронтенд (своя ${FRONTEND_IMAGE}) и инфра (:latest, уже на месте) не трогаются — без down
+            docker compose pull
             docker compose up -d
             docker image prune -f
 
