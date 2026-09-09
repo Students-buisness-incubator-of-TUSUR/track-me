@@ -15,8 +15,7 @@ public interface NotificationService {
 
     void sendTeamCardLowGradeSummary(List<Map<String, String>> teamCardSummaryEvents);
 
-    void sendMeetingEmail(String email,
-                          String fullName,
+    void sendMeetingEmail(EmailRecipient recipient,
                           String teamName,
                           String meetingLink,
                           OffsetDateTime meetingDate,

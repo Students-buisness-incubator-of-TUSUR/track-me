@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.trackme.sso.config.AppProperties;
 import net.trackme.sso.dao.entity.UserEntity;
 import net.trackme.sso.dao.repository.UserRepository;
+import net.trackme.sso.services.EmailRecipient;
 import net.trackme.sso.services.EmailService;
 import net.trackme.sso.services.NotificationService;
 
@@ -238,20 +239,20 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendMeetingEmail(String email, String fullName, String teamName,
+    public void sendMeetingEmail(EmailRecipient recipient, String teamName,
                                  String meetingLink, OffsetDateTime meetingDate,
                                  String templateName, String subject,
                                  Map<String, Object> extraParams) {
         String formattedDate = formatToTomsk(meetingDate);
         Map<String, Object> vars = new java.util.HashMap<>();
-        vars.put(FIELD_FULL_NAME, fullName);
+        vars.put(FIELD_FULL_NAME, recipient.fullName());
         vars.put(FIELD_TEAM_NAME, teamName);
         vars.put(FIELD_MEETING_DATE, formattedDate);
         vars.put(FIELD_MEETING_LINK, meetingLink);
         vars.put(FIELD_APP_NAME, appProperties.getMail().getSubject());
         vars.put(FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom());
         vars.putAll(extraParams);
-        emailService.sendMail(email, appProperties.getMail().getFrom(),
+        emailService.sendMail(recipient.email(), appProperties.getMail().getFrom(),
                 "[" + appProperties.getMail().getSubject() + "] " + subject,
                 templateName, vars);
     }
@@ -267,8 +268,8 @@ public class NotificationServiceImpl implements NotificationService {
                         log.warn("User {} has no email, skipping meeting email", username);
                         return;
                     }
-                    sendMeetingEmail(user.getEmail(),
-                            user.getFullName() != null ? user.getFullName() : username,
+                    sendMeetingEmail(new EmailRecipient(user.getEmail(),
+                            user.getFullName() != null ? user.getFullName() : username),
                             teamName, meetingLink, meetingDate,
                             templateName, subject, extraParams);
                 },

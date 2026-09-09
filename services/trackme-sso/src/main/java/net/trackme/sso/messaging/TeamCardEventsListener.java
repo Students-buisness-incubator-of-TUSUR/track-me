@@ -3,6 +3,7 @@ package net.trackme.sso.messaging;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.trackme.sso.services.EmailRecipient;
 import net.trackme.sso.services.NotificationService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -68,8 +69,8 @@ public class TeamCardEventsListener {
         // Отправляем приглашение тимлиду (TrackerUsername = team card owner = тимлид)
         if (event.trackerEmail() != null && !event.trackerEmail().isBlank()) {
             notificationService.sendMeetingEmail(
-                    event.trackerEmail(),
-                    event.trackerFullName() != null ? event.trackerFullName() : event.trackerUsername(),
+                    new EmailRecipient(event.trackerEmail(),
+                            event.trackerFullName() != null ? event.trackerFullName() : event.trackerUsername()),
                     event.teamName(),
                     event.meetingLink(),
                     event.startDate(),

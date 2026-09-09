@@ -1,6 +1,7 @@
 package net.trackme.sso.messaging;
 
 import net.trackme.sso.AbstractIntegrationTest;
+import net.trackme.sso.services.EmailRecipient;
 import net.trackme.sso.services.NotificationService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
@@ -110,7 +111,7 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
         teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
 
         verify(notificationService).sendMeetingEmail(
-                "tracker@example.com", "Трекер Трекерович", "Test Team",
+                new EmailRecipient("tracker@example.com", "Трекер Трекерович"), "Test Team",
                 "http://meeting.link", startDate, INVITE_TEMPLATE, INVITE_SUBJECT, Map.of());
         verify(notificationService, never()).sendMeetingEmailByUsername(any(), any(), any(), any(), any(), any(), any());
     }
@@ -127,7 +128,7 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
         teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
 
         verify(notificationService).sendMeetingEmail(
-                "tracker@example.com", "Трекер Трекерович", "Test Team",
+                new EmailRecipient("tracker@example.com", "Трекер Трекерович"), "Test Team",
                 "http://meeting.link", startDate, INVITE_TEMPLATE, INVITE_SUBJECT, Map.of());
         verify(notificationService).sendMeetingEmailByUsername(
                 "creator_user", "Test Team", "http://meeting.link", startDate,
@@ -145,7 +146,7 @@ class TeamCardEventsListenerTest extends AbstractIntegrationTest {
 
         teamCardEventsListener.onMeetingInviteEvent(meetingInviteRecord);
 
-        verify(notificationService, never()).sendMeetingEmail(any(), any(), any(), any(), any(), any(), any(), any());
+        verify(notificationService, never()).sendMeetingEmail(any(), any(), any(), any(), any(), any(), any());
         verify(notificationService).sendMeetingEmailByUsername(
                 "creator_user", "Test Team", "http://meeting.link", startDate,
                 INVITE_TEMPLATE, INVITE_SUBJECT, Map.of());

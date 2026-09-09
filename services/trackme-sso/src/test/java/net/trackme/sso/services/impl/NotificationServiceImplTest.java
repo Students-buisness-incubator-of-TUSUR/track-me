@@ -4,6 +4,7 @@ import jakarta.mail.internet.MimeMessage;
 import net.trackme.sso.AbstractIntegrationTest;
 import net.trackme.sso.config.AppProperties;
 import net.trackme.sso.dao.repository.UserRepository;
+import net.trackme.sso.services.EmailRecipient;
 import net.trackme.sso.services.EmailService;
 import net.trackme.sso.services.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -578,8 +579,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
 
         assertDoesNotThrow(() ->
             notificationService.sendMeetingEmail(
-                    "tracker@tracker.com",
-                    "Трекер Трекерович",
+                    new EmailRecipient("tracker@tracker.com", "Трекер Трекерович"),
                     TEST_TEAM_NAME,
                     TEST_MEETING_LINK,
                     OffsetDateTime.now(),
@@ -601,8 +601,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
 
         assertDoesNotThrow(() ->
             notificationService.sendMeetingEmail(
-                    "tracker@tracker.com",
-                    "Трекер",
+                    new EmailRecipient("tracker@tracker.com", "Трекер"),
                     TEST_TEAM_NAME,
                     TEST_MEETING_LINK,
                     null,
