@@ -1,5 +1,7 @@
 package net.trackme.meetingservice.services;
 
+import net.trackme.meetingservice.configuration.AppProperties;
+import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
@@ -16,12 +18,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -40,7 +50,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(classes = MeetingReminderServiceIT.ReminderTestConfiguration.class,
+        webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("reminder-it")
 @Testcontainers
 class MeetingReminderServiceIT {
@@ -79,11 +90,19 @@ class MeetingReminderServiceIT {
         }
     }
 
-    @MockitoBean
-    OAuth2AuthorizedClientManager authorizedClientManager;
-
-    @MockitoBean
-    JwtDecoder jwtDecoder;
+    // Load only the real database, Kafka producer and reminder service under test.
+    // In particular, do not scan the application's OAuth2 clients or scheduled jobs.
+    @Configuration(proxyBeanMethods = false)
+    @Profile("reminder-it")
+    @ImportAutoConfiguration({DataSourceAutoConfiguration.class,
+            HibernateJpaAutoConfiguration.class, TransactionAutoConfiguration.class,
+            KafkaAutoConfiguration.class})
+    @EntityScan(basePackageClasses = Meeting.class)
+    @EnableJpaRepositories(basePackageClasses = MeetingRepository.class)
+    @EnableConfigurationProperties(AppProperties.class)
+    @Import({MeetingReminderService.class, MeetingEventsProducer.class})
+    static class ReminderTestConfiguration {
+    }
 
     @Autowired
     MeetingReminderService meetingReminderService;
