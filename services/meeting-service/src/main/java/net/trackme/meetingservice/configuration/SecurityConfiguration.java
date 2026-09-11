@@ -44,7 +44,9 @@ public class SecurityConfiguration {
                                         "/v3/api-docs/**",
                                         "/v3/api-docs.yaml/**",
                                         "/v3/api-docs.yaml").permitAll()
-                                .requestMatchers("/api/v1/**").hasRole("TRACKER")
+                                .requestMatchers("/api/v1/admin-update/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                                .requestMatchers("/api/v1/super-admin-update/**").hasRole("SUPER_ADMIN")
+                                .requestMatchers("/api/v1/**").hasAnyRole("TRACKER", "ADMIN", "SUPER_ADMIN")
                                 .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

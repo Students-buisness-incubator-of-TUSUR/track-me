@@ -1,30 +1,27 @@
 package net.trackme.meetingservice.services.report;
 
-import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
+import net.trackme.meetingservice.api.dto.TrackerMeetingReportRecordDto;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.PropertyTemplate;
-import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
 @Component
-public class MeetingsReportExcelGenerator {
+public class TrackerMeetingsReportExcelGenerator {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     private static final String[] HEADERS = {
             "Название команды",
             "Дата встречи",
-            "Трекер",
             "Задачи к следующей встрече",
             "Выполнили задачи прошлой встречи или нет, общая информация по команде",
             "Статус команды"
@@ -32,7 +29,7 @@ public class MeetingsReportExcelGenerator {
 
     public void generate(
             String streamName,
-            Stream<MeetingReportRecordDto> records,
+            Stream<TrackerMeetingReportRecordDto> records,
             OutputStream outputStream
     ) throws IOException {
         try (var workbook = new SXSSFWorkbook(500)) {
@@ -42,10 +39,9 @@ public class MeetingsReportExcelGenerator {
 
             sheet.setColumnWidth(0, 25 * 256);
             sheet.setColumnWidth(1, 15 * 256);
-            sheet.setColumnWidth(2, 25 * 256);
-            sheet.setColumnWidth(3, 40 * 256);
-            sheet.setColumnWidth(4, 75 * 256);
-            sheet.setColumnWidth(5, 20 * 256);
+            sheet.setColumnWidth(2, 40 * 256);
+            sheet.setColumnWidth(3, 75 * 256);
+            sheet.setColumnWidth(4, 20 * 256);
 
             var styles = new Styles(workbook);
             writeTitle(sheet, styles, streamName);
@@ -60,7 +56,7 @@ public class MeetingsReportExcelGenerator {
         var row = sheet.createRow(0);
         row.setHeightInPoints(30);
         var cell = row.createCell(0);
-        cell.setCellValue("Отчёт по встречам на потоке: " + streamName);
+        cell.setCellValue("Отчёт трекера по встречам");
         cell.setCellStyle(styles.title);
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, HEADERS.length - 1));
     }
@@ -75,7 +71,7 @@ public class MeetingsReportExcelGenerator {
         }
     }
 
-    private void writeData(Sheet sheet, Stream<MeetingReportRecordDto> records, Styles styles) {
+    private void writeData(Sheet sheet, Stream<TrackerMeetingReportRecordDto> records, Styles styles) {
         final int[] rowTracker = {2};
         final int[] groupStartRow = {2};
         final String[] lastTeamName = {null};
@@ -93,27 +89,20 @@ public class MeetingsReportExcelGenerator {
             CellStyle rowBaseStyle = isNotHappened ? styles.textCancelled : styles.text;
             CellStyle rowWrapStyle = isNotHappened ? styles.textCancelledWrap : styles.textWrap;
 
-            // Название команды
             setString(row, 0, record.teamName(), rowBaseStyle);
 
-            // Дата
             String dateStr = record.startDate() != null ? record.startDate().format(DATE_FORMATTER) : null;
             setString(row, 1, dateStr, rowBaseStyle);
 
-            // Трекер
-            setString(row, 2, record.trackerFullName(), rowBaseStyle);
-
-            // Прочерки для запланированных и несостоявшихся
             if (isScheduled || isNotHappened) {
+                setString(row, 2, "—", rowBaseStyle);
                 setString(row, 3, "—", rowBaseStyle);
-                setString(row, 4, "—", rowBaseStyle);
             } else {
-                setString(row, 3, record.tasksCurrentMeeting(), rowWrapStyle);
-                setString(row, 4, record.tasksNextMeeting(), rowWrapStyle);
+                setString(row, 2, record.tasksCurrentMeeting(), rowWrapStyle);
+                setString(row, 3, record.tasksNextMeeting(), rowWrapStyle);
             }
 
-            // Статус команды
-            var statusCell = row.createCell(5);
+            var statusCell = row.createCell(4);
             if (isScheduled) {
                 statusCell.setCellValue("Запланирована");
                 statusCell.setCellStyle(styles.statusLavender);
@@ -125,7 +114,6 @@ public class MeetingsReportExcelGenerator {
                 statusCell.setCellStyle(getStyleByTeamStatus(record.teamStatus(), styles));
             }
 
-            // Логика группировки (границы)
             if (lastTeamName[0] != null && !Objects.equals(lastTeamName[0], record.teamName())) {
                 applyGroupBorder(pt, groupStartRow[0], currentRowNum - 1);
                 groupStartRow[0] = currentRowNum;
@@ -175,10 +163,6 @@ public class MeetingsReportExcelGenerator {
         final CellStyle statusGreen, statusYellow, statusRed, statusLavender;
 
         Styles(SXSSFWorkbook wb) {
-            Font font = wb.createFont();
-            font.setFontHeightInPoints((short) 10);
-
-            // Заголовок
             title = wb.createCellStyle();
             Font titleFont = wb.createFont();
             titleFont.setBold(true);
@@ -189,7 +173,6 @@ public class MeetingsReportExcelGenerator {
             title.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             setupCentered(title);
 
-            // Шапка
             header = wb.createCellStyle();
             Font boldFont = wb.createFont();
             boldFont.setBold(true);
@@ -199,7 +182,6 @@ public class MeetingsReportExcelGenerator {
             setupCentered(header);
             setupBorders(header, BorderStyle.THIN);
 
-            // Обычные данные
             text = wb.createCellStyle();
             setupCentered(text);
             setupBorders(text, BorderStyle.THIN);
@@ -209,12 +191,10 @@ public class MeetingsReportExcelGenerator {
             setupBorders(textWrap, BorderStyle.THIN);
             textWrap.setWrapText(true);
 
-            // Стили для строки "Не состоялась"
             textCancelled = createColoredStyle(wb, IndexedColors.GREY_25_PERCENT);
             textCancelledWrap = createColoredStyle(wb, IndexedColors.GREY_25_PERCENT);
             textCancelledWrap.setWrapText(true);
 
-            // Цветные статусы
             statusGreen = createColoredStyle(wb, IndexedColors.LIGHT_GREEN);
             statusYellow = createColoredStyle(wb, IndexedColors.LIGHT_YELLOW);
             statusRed = createColoredStyle(wb, IndexedColors.RED);

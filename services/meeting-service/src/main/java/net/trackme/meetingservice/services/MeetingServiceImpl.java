@@ -21,6 +21,7 @@ import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ import net.trackme.meetingservice.entities.Meeting;
 import static net.trackme.meetingservice.entities.MeetingSpecification.meetingIdEquals;
 import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardIdEquals;
 import net.trackme.meetingservice.entities.MeetingStatus;
+import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.mapping.MeetingMapper;
 import net.trackme.meetingservice.messaging.own.MeetingCreatedEvent;
 import net.trackme.meetingservice.messaging.own.MeetingDeletedEvent;
@@ -63,6 +65,15 @@ import org.springframework.security.access.AccessDeniedException;
 @Slf4j
 @Service
 public class MeetingServiceImpl implements MeetingService {
+
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
+    private static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
+    private static final String AUTHORITY_ADMIN = "ADMIN";
+    private static final String AUTHORITY_SUPER_ADMIN = "SUPER_ADMIN";
+    private static final String BACKDATE_CREATE_ERROR = "Нельзя создавать встречи с датой в прошлом";
+    private static final String BACKDATE_UPDATE_ERROR = "Нельзя переносить дату встречи задним числом";
+    private static final String PASSIVE_TEAM_ERROR = "Трекер не может создавать встречи для пассивной команды";
+    private static final String PASSIVE_TEAM_EDIT_ERROR = "Трекер не может редактировать встречи пассивной команды";
 
     /** Маппер для преобразования между сущностями и DTO. */
     private final MeetingMapper meetingMapper;
@@ -117,13 +128,8 @@ public class MeetingServiceImpl implements MeetingService {
     @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public MeetingDto createMeeting(UUID teamCardId, MeetingCreateDto createDto) {
         validateNoMeetingOnSameDay(teamCardId, createDto.startDate(), null);
-
-        var teamDataForCheck = userBackendClient.getTeamCardById(teamCardId);
-        boolean isAdmin = isCurrentUserAdminOrSuperAdmin();
-
-        if (teamDataForCheck.getPassive() != null && teamDataForCheck.getPassive() && !isAdmin) {
-            throw new IllegalStateException("Трекер не может создавать встречи для пассивной команды");
-        }
+        validateTeamCardNotPassive(teamCardId);
+        validateNotCreatingBackdated(createDto);
 
         var meeting = meetingMapper.mapToEntity(createDto);
         var teamData = userBackendClient.getTeamCardById(teamCardId);
@@ -139,19 +145,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         // Denormalize (SSO)
         if (trackerUsername != null) {
-            var tracker = ssoApiClient.getTrackers().stream()
-                    .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
-                    .findFirst();
-
-            if (tracker.isPresent()) {
-                UserDto user = tracker.get();
-                meeting.setTrackerId(user.getId());
-                meeting.setTrackerFullName(user.getFullName());
-            } else {
-                meeting.setTrackerFullName(trackerUsername);
-                log.warn("Tracker with username {} not found in SSO during meeting creation", 
-                        trackerUsername);
-            }
+            setTrackerInfo(meeting, trackerUsername);
         }
 
         var savedMeeting = meetingRepository.saveAndFlush(meeting);
@@ -161,28 +155,7 @@ public class MeetingServiceImpl implements MeetingService {
         var refreshedMeeting = meetingRepository.findById(savedMeeting.getId())
                 .orElseThrow(() -> new MeetingNotFoundException(savedMeeting.getId()));
 
-        var creatorUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        aclService.createAclForUser(refreshedMeeting, creatorUsername);
-
-        // Выдаём трекеру минимально необходимые права (READ + WRITE)
-        if (trackerUsername != null && !trackerUsername.isBlank()
-                && !trackerUsername.equalsIgnoreCase(creatorUsername)) {
-            try {
-                ObjectIdentity oid = new ObjectIdentityImpl(refreshedMeeting);
-                MutableAcl acl = (MutableAcl) mutableAclService.readAclById(oid);
-                aclService.addPermissionsToUser(acl, trackerUsername, List.of(
-                        BasePermission.READ,
-                        BasePermission.WRITE
-                ));
-                log.info("Tracker {} granted READ+WRITE on meeting {}",
-                        trackerUsername, refreshedMeeting.getId());
-            } catch (Exception e) {
-                log.error("Failed to grant ACL to tracker {} for meeting {}: {}. "
-                        + "Tracker will not be able to edit this meeting until ACL is fixed manually.",
-                        trackerUsername, refreshedMeeting.getId(), e.getMessage());
-            }
-        }
+        grantAclPermissions(refreshedMeeting, trackerUsername);
 
         sendMeetingCreatedEvent(refreshedMeeting);
 
@@ -207,80 +180,36 @@ public class MeetingServiceImpl implements MeetingService {
          SecurityContextHolder.getContext().getAuthentication().getName());
         log.info("Authorities: {}",
          SecurityContextHolder.getContext().getAuthentication().getAuthorities());
-        var meeting = meetingRepository.findOne(teamCardIdEquals(teamCardId)
-                        .and(meetingIdEquals(meetingId)))
-                .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
-
-        var teamData = userBackendClient.getTeamCardById(teamCardId);
-        boolean isAdmin = isCurrentUserAdminOrSuperAdmin();
-
-        if (teamData.getPassive() != null && teamData.getPassive() && !isAdmin) {
-            throw new IllegalStateException("Трекер не может редактировать встречи пассивной команды");
-        }
-
-        // Получаем текущего пользователя и проверяем роль
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean isSuperAdmin = authentication != null && authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_SUPER_ADMIN")
-                              || auth.getAuthority().equals("SUPER_ADMIN"));
-
-        // Если НЕ суперадмин и статус завершённый – запрещаем (старая логика)
-        if (!isSuperAdmin && MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
-            throw new MeetingCompletedException(meetingId, teamCardId);
-        }
-
-        // Суперадмин может редактировать любые встречи – дополнительных ограничений не требуется
+        
+        var meeting = findMeeting(meetingId, teamCardId);
+        validateTeamCardNotPassiveForEdit(teamCardId);
+        validateNotCompletedForNonSuperAdmin(meeting, meetingId, teamCardId);
+        validateNotBackdating(meeting, updateDto);
 
         OffsetDateTime oldStartDate = meeting.getStartDate();
-        boolean dateChanged = updateDto.startDate() != null
-                && !updateDto.startDate().equals(oldStartDate);
+        boolean dateChanged = isDateChanged(updateDto, oldStartDate);
 
         if (dateChanged) {
             validateNoMeetingOnSameDay(teamCardId, updateDto.startDate(), meetingId);
         }
 
         var oldStatus = meeting.getStatus();
-        var oldTeamStatus = meeting.getTeamStatus(); // ДОБАВЛЕНО
+        var oldTeamStatus = meeting.getTeamStatus();
 
         // Сохраняем старое значение ДО обновления
         String oldTasksNext = meeting.getTasksNextMeeting();
 
         meetingMapper.updateEntityFromDto(updateDto, meeting);
 
-        // Если встречу завершили как несостоявшуюся — сбрасываем teamStatus
-        if (updateDto.status() == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
-            meeting.setTeamStatus(null);
-        }
+        handleCompletedAsNotHappened(updateDto, meeting);
+        handleTasksNextManualFlag(updateDto, oldTasksNext, meeting);
 
-        // Отслеживаем ручное изменение tasksNextMeeting
-        if (updateDto.tasksNextMeeting() != null) {
-            String newValue = updateDto.tasksNextMeeting();
-            if (!newValue.equals(oldTasksNext)) {
-                meeting.setTasksNextManuallySet(true);
-            }
-            if (newValue.isBlank()) {
-                meeting.setTasksNextManuallySet(false);
-            }
-        }
-
-        var savedMeeting = meetingRepository.saveAndFlush(meeting);
-
-        if (dateChanged) {
-            renumberMeetingsAfterDateChange(teamCardId);
-            meetingRepository.flush();
-            savedMeeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
-        }
-        
+        var savedMeeting = saveAndRenumberIfDateChanged(meeting, dateChanged, teamCardId, meetingId);
         recalculateTasksChain(teamCardId);
 
-       // ИЗМЕНЕНО: отправляем событие при изменении статуса ИЛИ teamStatus
-if (oldStatus != meeting.getStatus()
-        || !Objects.equals(oldTeamStatus, meeting.getTeamStatus())) {
-    sendMeetingUpdatedEvent(savedMeeting, oldStatus);
-}
+        sendUpdateEventIfStatusChanged(savedMeeting, oldStatus, oldTeamStatus);
 
-return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
+        return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
     }
 
     @Override
@@ -295,6 +224,8 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
         var meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
 
+        logAdminDeletion(meetingId, meeting);
+
         UUID teamCardId = meeting.getTeamCardId();
 
         meetingRepository.delete(meeting);
@@ -304,13 +235,7 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
         recalculateTasksChain(teamCardId);
         meetingRepository.flush();
 
-        var event = MeetingDeletedEvent.builder()
-                .meetingId(meetingId)
-                .teamCardId(teamCardId)
-                .startDate(meeting.getStartDate())
-                .status(meeting.getStatus())
-                .build();
-        meetingEventsProducer.sendMeetingDeletedEvent(event);
+        sendMeetingDeletedEvent(meetingId, teamCardId, meeting);
 
         log.debug("Meeting {} deleted successfully", meetingId);
     }
@@ -321,6 +246,206 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') "
                     + "or hasRole('ADMIN')")
     public void addMeetingImage(UUID meetingId, MultipartFile file) {
+        validateImageFile(file);
+
+        var meeting = meetingRepository.getReferenceById(meetingId);
+        try {
+            meeting.setImageBytes(file.getBytes());
+            meetingRepository.save(meeting);
+        } catch (IOException e) {
+            throw new MeetingImageUploadException(meetingId, e);
+        }
+    }
+
+    @Override
+    @PreAuthorize(
+            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') "
+                    + "or hasRole('ADMIN')")
+    public Resource getMeetingImage(UUID meetingId) {
+        var meeting = getMeeting(meetingId);
+        if (meeting.getImageBytes() == null) {
+            throw new MeetingImageNotFoundException(meetingId);
+        }
+        return new ByteArrayResource(meeting.getImageBytes());
+    }
+
+    /**
+     * Обновление встречи администратором.
+     * ADMIN может менять все поля кроме status и teamStatus.
+     * ADMIN может менять startDate (дату встречи), но не задним числом.
+     */
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
+    public MeetingDto updateByAdmin(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
+        log.info("updateByAdmin called by user: {}", 
+            SecurityContextHolder.getContext().getAuthentication().getName());
+        
+        validateCurrentUserIsAdmin();
+        validateAdminNotChangingStatus(updateDto);
+
+        var meeting = findMeeting(meetingId, teamCardId);
+        validateNotBackdating(meeting, updateDto);
+
+        var oldStatus = meeting.getStatus();
+        var oldTeamStatus = meeting.getTeamStatus();
+        String oldTasksNext = meeting.getTasksNextMeeting();
+        OffsetDateTime oldStartDate = meeting.getStartDate();
+
+        boolean dateChanged = isDateChanged(updateDto, oldStartDate);
+
+        if (dateChanged) {
+            validateNoMeetingOnSameDay(teamCardId, updateDto.startDate(), meetingId);
+        }
+
+        meetingMapper.updateEntityFromDtoForAdmin(updateDto, meeting);
+        handleTasksNextManualFlag(updateDto, oldTasksNext, meeting);
+
+        var savedMeeting = saveAndRenumberIfDateChanged(meeting, dateChanged, teamCardId, meetingId);
+        recalculateTasksChain(teamCardId);
+        
+        savedMeeting = refreshMeeting(meetingId);
+
+        sendUpdateEventIfStatusChanged(savedMeeting, oldStatus, oldTeamStatus);
+
+        log.info("Admin {} updated meeting {}", getCurrentUsername(), meetingId);
+        
+        return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
+    public MeetingDto updateBySuperAdmin(UUID meetingId, MeetingUpdateDto updateDto) {
+        validateCurrentUserIsSuperAdmin();
+        
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+
+        if (!meeting.getStatus().isEditableBySuperAdmin()) {
+            throw new IllegalStateException(
+                String.format(
+                    "Невозможно редактировать встречу со статусом '%s'. Разрешены только: '%s' и '%s'.",
+                    meeting.getStatus().getDescription(),
+                    MeetingStatus.FINALLY_COMPLETED.getDescription(),
+                    MeetingStatus.COMPLETED_AS_NOT_HAPPENED.getDescription())
+            );
+        }
+        
+        OffsetDateTime oldStartDate = meeting.getStartDate();
+        boolean dateChanged = isDateChanged(updateDto, oldStartDate);
+        
+        var oldStatus = meeting.getStatus();
+        var oldTeamStatus = meeting.getTeamStatus();
+        
+        meetingMapper.updateEntityFromDto(updateDto, meeting);
+        handleCompletedAsNotHappened(updateDto, meeting);
+        
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        
+        if (dateChanged) {
+            UUID teamCardId = meeting.getTeamCardId();
+            renumberMeetingsAfterDateChange(teamCardId);
+            meetingRepository.flush();
+            savedMeeting = refreshMeeting(meetingId);
+            recalculateTasksChain(teamCardId);
+        }
+        
+        sendUpdateEventIfStatusChanged(savedMeeting, oldStatus, oldTeamStatus);
+        
+        log.info("Super admin {} updated meeting {}", getCurrentUsername(), meetingId);
+        
+        return meetingMapper.mapToDto(savedMeeting);
+    }
+
+
+    private void validateTeamCardNotPassive(UUID teamCardId) {
+        var teamData = userBackendClient.getTeamCardById(teamCardId);
+        if (teamData.getPassive() != null && teamData.getPassive() && !isCurrentUserAdminOrSuperAdmin()) {
+            throw new IllegalStateException(PASSIVE_TEAM_ERROR);
+        }
+    }
+
+    private void validateTeamCardNotPassiveForEdit(UUID teamCardId) {
+        var teamData = userBackendClient.getTeamCardById(teamCardId);
+        if (teamData.getPassive() != null && teamData.getPassive() && !isCurrentUserAdminOrSuperAdmin()) {
+            throw new IllegalStateException(PASSIVE_TEAM_EDIT_ERROR);
+        }
+    }
+
+    /**
+     * TRACKER и ADMIN не могут создавать встречи задним числом.
+     * Только SUPER_ADMIN может.
+     */
+    private void validateNotCreatingBackdated(MeetingCreateDto createDto) {
+        if (isCurrentUserSuperAdmin()) return;
+        
+        if (createDto.startDate() != null 
+                && createDto.startDate().isBefore(OffsetDateTime.now())) {
+            throw new AccessDeniedException(BACKDATE_CREATE_ERROR);
+        }
+    }
+
+    /**
+     * TRACKER и ADMIN не могут переносить дату встречи задним числом.
+     * Только SUPER_ADMIN может.
+     */
+    private void validateNotBackdating(Meeting meeting, MeetingUpdateDto updateDto) {
+        if (updateDto.startDate() == null) return;
+        if (isCurrentUserSuperAdmin()) return;
+        
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime newDate = updateDto.startDate();
+        OffsetDateTime oldDate = meeting.getStartDate();
+        
+        // Если новая дата в прошлом и отличается от старой — запрещено
+        if (newDate.isBefore(now) && !newDate.equals(oldDate)) {
+            throw new AccessDeniedException(BACKDATE_UPDATE_ERROR);
+        }
+    }
+
+    private void validateNotCompletedForNonSuperAdmin(Meeting meeting, UUID meetingId, UUID teamCardId) {
+        if (!isCurrentUserSuperAdmin() && MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
+            throw new MeetingCompletedException(meetingId, teamCardId);
+        }
+    }
+
+    private void validateCurrentUserIsAdmin() {
+        if (!isCurrentUserOnlyAdmin()) {
+            throw new AccessDeniedException("Только администратор может использовать этот метод");
+        }
+    }
+
+    private void validateCurrentUserIsSuperAdmin() {
+        var authentication = getAuthentication();
+        if (authentication == null) {
+            throw new AccessDeniedException("Пользователь не аутентифицирован");
+        }
+        
+        if (!isCurrentUserSuperAdmin()) {
+            throw new AccessDeniedException(
+                "Только суперадминистратор может редактировать встречи со статусами " +
+                "'Окончательно завершена' или 'Завершена как не состоявшаяся'"
+            );
+        }
+    }
+
+    private void validateAdminNotChangingStatus(MeetingUpdateDto updateDto) {
+        if (updateDto.status() != null) {
+            throw new AccessDeniedException(
+                "Администратор не может изменять основной статус встречи (status)"
+            );
+        }
+        
+        if (updateDto.teamStatus() != null) {
+            throw new AccessDeniedException(
+                "Администратор не может изменять статус команды (teamStatus)"
+            );
+        }
+    }
+
+    private void validateImageFile(MultipartFile file) {
         if (file.isEmpty()) {
             throw new MeetingEmptyImageException();
         }
@@ -342,26 +467,150 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
                 throw new MeetingImageExtensionException(ext);
             }
         }
+    }
 
-        var meeting = meetingRepository.getReferenceById(meetingId);
-        try {
-            meeting.setImageBytes(file.getBytes());
-            meetingRepository.save(meeting);
-        } catch (IOException e) {
-            throw new MeetingImageUploadException(meetingId, e);
+    /**
+     * Проверяет, является ли текущий пользователь ADMIN или SUPER_ADMIN.
+     * Смотрит на ВСЕ роли, а не только первую.
+     */
+    private boolean isCurrentUserAdminOrSuperAdmin() {
+        var authentication = getAuthentication();
+        if (authentication == null) return false;
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> {
+                    String auth = a.getAuthority();
+                    return ROLE_ADMIN.equals(auth)
+                            || AUTHORITY_ADMIN.equals(auth)
+                            || ROLE_SUPER_ADMIN.equals(auth)
+                            || AUTHORITY_SUPER_ADMIN.equals(auth);
+                });
+    }
+
+    private boolean isCurrentUserOnlyAdmin() {
+        var authentication = getAuthentication();
+        if (authentication == null) return false;
+        return authentication.getAuthorities().stream()
+                .anyMatch(auth -> ROLE_ADMIN.equals(auth.getAuthority())
+                              || AUTHORITY_ADMIN.equals(auth.getAuthority()));
+    }
+
+    private boolean isCurrentUserSuperAdmin() {
+        var authentication = getAuthentication();
+        if (authentication == null) return false;
+        return authentication.getAuthorities().stream()
+                .anyMatch(auth -> ROLE_SUPER_ADMIN.equals(auth.getAuthority())
+                              || AUTHORITY_SUPER_ADMIN.equals(auth.getAuthority()));
+    }
+
+    private Authentication getAuthentication() {
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    private String getCurrentUsername() {
+        var authentication = getAuthentication();
+        return authentication != null ? authentication.getName() : "unknown";
+    }
+
+    private void setTrackerInfo(Meeting meeting, String trackerUsername) {
+        var tracker = ssoApiClient.getTrackers().stream()
+                .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
+                .findFirst();
+
+        if (tracker.isPresent()) {
+            UserDto user = tracker.get();
+            meeting.setTrackerId(user.getId());
+            meeting.setTrackerFullName(user.getFullName());
+        } else {
+            meeting.setTrackerFullName(trackerUsername);
+            log.warn("Tracker with username {} not found in SSO during meeting creation", 
+                    trackerUsername);
         }
     }
 
-    @Override
-    @PreAuthorize(
-            "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') "
-                    + "or hasRole('ADMIN')")
-    public Resource getMeetingImage(UUID meetingId) {
-        var meeting = getMeeting(meetingId);
-        if (meeting.getImageBytes() == null) {
-            throw new MeetingImageNotFoundException(meetingId);
+    private void grantAclPermissions(Meeting meeting, String trackerUsername) {
+        var creatorUsername = getCurrentUsername();
+        aclService.createAclForUser(meeting, creatorUsername);
+
+        if (trackerUsername != null && !trackerUsername.isBlank()
+                && !trackerUsername.equalsIgnoreCase(creatorUsername)) {
+            try {
+                ObjectIdentity oid = new ObjectIdentityImpl(meeting);
+                MutableAcl acl = (MutableAcl) mutableAclService.readAclById(oid);
+                aclService.addPermissionsToUser(acl, trackerUsername, List.of(
+                        BasePermission.READ,
+                        BasePermission.WRITE
+                ));
+                log.info("Tracker {} granted READ+WRITE on meeting {}",
+                        trackerUsername, meeting.getId());
+            } catch (Exception e) {
+                log.error("Failed to grant ACL to tracker {} for meeting {}: {}. "
+                        + "Tracker will not be able to edit this meeting until ACL is fixed manually.",
+                        trackerUsername, meeting.getId(), e.getMessage());
+            }
         }
-        return new ByteArrayResource(meeting.getImageBytes());
+    }
+
+    private Meeting findMeeting(UUID meetingId, UUID teamCardId) {
+        return meetingRepository.findOne(teamCardIdEquals(teamCardId)
+                        .and(meetingIdEquals(meetingId)))
+                .orElseThrow(() -> new MeetingNotFoundException(meetingId, teamCardId));
+    }
+
+    private boolean isDateChanged(MeetingUpdateDto updateDto, OffsetDateTime oldStartDate) {
+        return updateDto.startDate() != null
+                && !updateDto.startDate().equals(oldStartDate);
+    }
+
+    private void handleCompletedAsNotHappened(MeetingUpdateDto updateDto, Meeting meeting) {
+        if (updateDto.status() == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+            meeting.setTeamStatus(null);
+        }
+    }
+
+    private void handleTasksNextManualFlag(MeetingUpdateDto updateDto, String oldTasksNext, Meeting meeting) {
+        if (updateDto.tasksNextMeeting() != null) {
+            String newValue = updateDto.tasksNextMeeting();
+            if (!newValue.equals(oldTasksNext)) {
+                meeting.setTasksNextManuallySet(true);
+            }
+            if (newValue.isBlank()) {
+                meeting.setTasksNextManuallySet(false);
+            }
+        }
+    }
+
+    private Meeting saveAndRenumberIfDateChanged(Meeting meeting, boolean dateChanged, 
+                                                  UUID teamCardId, UUID meetingId) {
+        var savedMeeting = meetingRepository.saveAndFlush(meeting);
+
+        if (dateChanged) {
+            renumberMeetingsAfterDateChange(teamCardId);
+            meetingRepository.flush();
+            return refreshMeeting(meetingId);
+        }
+        
+        return savedMeeting;
+    }
+
+    private Meeting refreshMeeting(UUID meetingId) {
+        return meetingRepository.findById(meetingId)
+            .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+    }
+
+    private void sendUpdateEventIfStatusChanged(Meeting meeting, MeetingStatus oldStatus, 
+                                                 TeamStatus oldTeamStatus) {
+        if (oldStatus != meeting.getStatus()
+                || !Objects.equals(oldTeamStatus, meeting.getTeamStatus())) {
+            sendMeetingUpdatedEvent(meeting, oldStatus);
+        }
+    }
+
+    private void logAdminDeletion(UUID meetingId, Meeting meeting) {
+        if (isCurrentUserOnlyAdmin()) {
+            log.warn("ADMIN {} is deleting meeting {} (teamCardId={}, startDate={}, status={})", 
+                getCurrentUsername(), meetingId, meeting.getTeamCardId(), 
+                meeting.getStartDate(), meeting.getStatus());
+        }
     }
 
     /**
@@ -464,6 +713,23 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
     }
 
     /**
+     * Отправляет событие об удалении встречи.
+     *
+     * @param meetingId идентификатор встречи
+     * @param teamCardId идентификатор карточки команды
+     * @param meeting сущность встречи
+     */
+    private void sendMeetingDeletedEvent(UUID meetingId, UUID teamCardId, Meeting meeting) {
+        var event = MeetingDeletedEvent.builder()
+                .meetingId(meetingId)
+                .teamCardId(teamCardId)
+                .startDate(meeting.getStartDate())
+                .status(meeting.getStatus())
+                .build();
+        meetingEventsProducer.sendMeetingDeletedEvent(event);
+    }
+
+    /**
      * Получает ссылку на комнату встречи.
      *
      * @param teamCardId идентификатор карточки команды
@@ -512,67 +778,6 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
                 dto.tasksCurrentMeeting(),
                 dto.tasksNextMeeting()
         );
-    }
-
-    @Override
-    @Transactional
-    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
-    public MeetingDto updateBySuperAdmin(UUID meetingId, MeetingUpdateDto updateDto) {
-        
-        // 1. Проверка роли суперадмина
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            throw new AccessDeniedException("Пользователь не аутентифицирован");
-        }
-        
-        boolean isSuperAdmin = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_SUPER_ADMIN")
-                        || authority.getAuthority().equals("SUPER_ADMIN"));
-        
-        if (!isSuperAdmin) {
-            throw new AccessDeniedException(
-                "Только суперадминистратор может редактировать встречи со статусами " +
-                "'Окончательно завершена' или 'Завершена как не состоявшаяся'"
-            );
-        }
-        
-        // 2. Находим встречу
-        Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new MeetingNotFoundException(meetingId));
-        
-        // 3. Проверяем статус (разрешены FINALLY_COMPLETED и COMPLETED_AS_NOT_HAPPENED)
-        if (!meeting.getStatus().isEditableBySuperAdmin()) {
-            throw new IllegalStateException(
-                String.format(
-                    "Невозможно редактировать встречу со статусом '%s'. Разрешены только: '%s' и '%s'.",
-                    meeting.getStatus().getDescription(),
-                    MeetingStatus.FINALLY_COMPLETED.getDescription(),
-                    MeetingStatus.COMPLETED_AS_NOT_HAPPENED.getDescription())
-            );
-        }
-        
-        // Сохраняем старый статус до обновления
-        var oldStatus = meeting.getStatus();
-        var oldTeamStatus = meeting.getTeamStatus();
-        
-        meetingMapper.updateEntityFromDto(updateDto, meeting);
-        
-        // Если встречу завершили как несостоявшуюся — сбрасываем teamStatus
-        if (updateDto.status() == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
-            meeting.setTeamStatus(null);
-        }
-        
-        Meeting savedMeeting = meetingRepository.save(meeting);
-        
-        // Отправляем событие обновления (важно для обновления счётчиков на бэкенде)
-        if (oldStatus != savedMeeting.getStatus()
-                || !Objects.equals(oldTeamStatus, savedMeeting.getTeamStatus())) {
-            sendMeetingUpdatedEvent(savedMeeting, oldStatus);
-        }
-        
-        log.info("Super admin {} updated meeting {}", authentication.getName(), meetingId);
-        
-        return meetingMapper.mapToDto(savedMeeting);
     }
 
     /**
@@ -628,22 +833,5 @@ return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
     private String getNonBlankTasksCurrent(Meeting meeting) {
         String tasks = meeting.getTasksCurrentMeeting();
         return (tasks != null && !tasks.isBlank()) ? tasks : null;
-    }
-
-    /**
-     * Проверяет, является ли текущий пользователь ADMIN или SUPER_ADMIN.
-     * Смотрит на ВСЕ роли, а не только первую.
-     */
-    private boolean isCurrentUserAdminOrSuperAdmin() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) return false;
-        return authentication.getAuthorities().stream()
-                .anyMatch(a -> {
-                    String auth = a.getAuthority();
-                    return "ROLE_ADMIN".equals(auth)
-                            || "ADMIN".equals(auth)
-                            || "ROLE_SUPER_ADMIN".equals(auth)
-                            || "SUPER_ADMIN".equals(auth);
-                });
     }
 }
