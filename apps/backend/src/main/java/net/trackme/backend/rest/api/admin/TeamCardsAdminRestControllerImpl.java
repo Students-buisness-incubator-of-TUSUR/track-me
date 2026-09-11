@@ -65,6 +65,29 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
     return ResponseEntity.ok(teamCardDto);
   }
 
+  /**
+   * изменение только пассивного статуса команды.
+   * Не требует заполнения остальных полей карточки.
+   * Работает как отдельная операция "Отчислить" / "Вернуть".
+   */
+  @Override
+  @Transactional
+  public ResponseEntity<TeamCardDto> updatePassiveStatus(UUID teamCardId,
+                                                          PassiveStatusRequest request) {
+    log.info("Updating passive status for team card {} to {}", 
+        teamCardId, request.passive());
+
+    var teamCard = teamCardsService.getTeamCard(teamCardId);
+    teamCard.setPassive(request.passive());
+    var updated = teamCardsService.updateTeamCard(teamCardId, teamCard);
+    var teamCardDto = teamCardMapper.mapToDto(updated);
+
+    log.info("Passive status for team card {} successfully updated to {}", 
+        teamCardId, teamCardDto.passive());
+
+    return ResponseEntity.ok(teamCardDto);
+  }
+
   @Override
   public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(Pageable pageable,
                                                               FilterRequest filterRequest) {

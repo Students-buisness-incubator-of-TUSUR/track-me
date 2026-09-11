@@ -8,8 +8,10 @@ import net.trackme.meetingservice.api.dto.MeetingDto;
 import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
 import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.services.MeetingService;
+import net.trackme.meetingservice.api.dto.TrackerMeetingReportRecordDto;
 import net.trackme.meetingservice.services.exceptions.MeetingExcelReportException;
 import net.trackme.meetingservice.services.report.MeetingsReportService;
+import net.trackme.meetingservice.services.report.TrackerMeetingsReportService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +38,7 @@ public class MeetingRestControllerImpl implements MeetingRestController {
 
     private final MeetingService meetingService;
     private final MeetingsReportService meetingsReportService;
+    private final TrackerMeetingsReportService trackerMeetingsReportService;
 
     @Override
     public ResponseEntity<MeetingDto> createMeeting(UUID teamCardId,
@@ -132,10 +135,47 @@ public class MeetingRestControllerImpl implements MeetingRestController {
                 .body(responseBody);
     }
 
-    // НОВЫЙ МЕТОД ДЛЯ СУПЕРАДМИНИСТРАТОРА
     @Override
     public ResponseEntity<MeetingDto> updateBySuperAdmin(UUID meetingId,
         MeetingUpdateDto updateDto) {
         return ResponseEntity.ok(meetingService.updateBySuperAdmin(meetingId, updateDto));
+    }
+
+    @Override
+    public ResponseEntity<MeetingDto> updateByAdmin(UUID meetingId, UUID teamCardId,
+        MeetingUpdateDto updateDto) {
+        return ResponseEntity.ok(meetingService.updateByAdmin(meetingId, teamCardId, updateDto));
+    }
+
+    @Override
+    public ResponseEntity<PagedModel<TrackerMeetingReportRecordDto>> getMyTrackerMeetingsReport(
+            FilterRequest filters, Pageable pageable) {
+        var page = trackerMeetingsReportService.getReportRecordsForTracker(filters.filters(), pageable);
+        return ResponseEntity.ok(new PagedModel<>(page));
+    }
+
+    @Override
+    public ResponseEntity<StreamingResponseBody> getMyTrackerMeetingsReportExcel(
+            FilterRequest filters, Pageable pageable) {
+        String filename = "отчёт-трекера-по-встречам-" +
+            LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".xlsx";
+
+        ContentDisposition contentDisposition = ContentDisposition.attachment()
+            .filename(filename, StandardCharsets.UTF_8).build();
+
+        StreamingResponseBody responseBody = outputStream -> {
+            try {
+                trackerMeetingsReportService.streamRecordsToExcel(
+                    filters.filters(), pageable.getSort(), fetchPageSize, exportLimit, outputStream);
+            } catch (Exception e) {
+                log.error("Error during Excel streaming for tracker", e);
+            }
+        };
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .contentType(MediaType.parseMediaType(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(responseBody);
     }
 }

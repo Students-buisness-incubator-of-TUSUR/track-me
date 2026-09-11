@@ -55,7 +55,7 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                             log.info("Increased meeting count for team card {}. Current count: {}. Average grade: {}",
                                     teamCardId, teamCard.getMeetingsCount(), teamCard.getAverageGrade());
                         },
-                        () -> log.warn("Team card {} not found", teamCardId));
+                        () -> log.warn("Team card {} not found or meeting {} already exists", teamCardId, meetingId));
     }
 
     @Override
@@ -66,40 +66,58 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
                                 TeamCardStatus teamCardStatus,
                                 BigDecimal teamGrade,
                                 String meetingLink) {
+        // Обновляем grade в MeetingGrade
         meetingGradeRepository.findByMeetingIdAndTeamCardId(meetingId, teamCardId)
                 .ifPresent(meetingGrade -> {
-                    meetingGrade.setGrade(teamGrade);
-                    meetingGradeRepository.saveAndFlush(meetingGrade);
+                    if (teamGrade != null) {
+                        meetingGrade.setGrade(teamGrade);
+                        meetingGradeRepository.saveAndFlush(meetingGrade);
+                    }
                 });
 
         teamCardsRepository.findById(teamCardId)
                 .ifPresentOrElse(
                         teamCard -> {
+                            // ВАЖНО: Обновляем статус counters только если статус реально изменился
                             updateStatusCounters(teamCard, oldStatus, newStatus, meetingLink);
+
                             if (teamCardStatus != null) {
                                 teamCard.setStatus(teamCardStatus);
                             }
+
+                            // Пересчитываем средний рейтинг ВСЕГДА, если grade изменился
                             if (teamGrade != null) {
                                 calculateAverageGrade(teamCard);
                             }
+
                             teamCardsRepository.saveAndFlush(teamCard);
-                            log.info("Updated team card {}: completed={}, completedAsNotHappened={}",
+                            log.info("Updated team card {}: completed={}, completedAsNotHappened={}, avgGrade={}",
                                     teamCardId,
                                     teamCard.getMeetingsCompletedCount(),
-                                    teamCard.getMeetingsCompletedAsNotHappenedCount());
+                                    teamCard.getMeetingsCompletedAsNotHappenedCount(),
+                                    teamCard.getAverageGrade());
                         },
                         () -> log.warn("Team card {} not found", teamCardId));
     }
 
+    /**
+     * Обновляет счётчики статусов.
+     * ВАЖНО: При изменении статуса НЕ увеличиваем meetingCount,
+     * только пересчитываем счётчики completed/completedAsNotHappened.
+     */
     private void updateStatusCounters(TeamCard teamCard, MeetingStatus oldStatus,
                                     MeetingStatus newStatus, String meetingLink) {
         if (oldStatus == newStatus) {
+            // Статус не изменился - ничего не делаем со счётчиками
             if (newStatus == MeetingStatus.SCHEDULED) {
                 sendMeetingNotHappenedEvent(teamCard, meetingLink);
             }
             return;
         }
+
+        // Уменьшаем счётчик старого статуса
         decrementCounter(teamCard, oldStatus);
+        // Увеличиваем счётчик нового статуса
         incrementCounter(teamCard, newStatus);
     }
 
@@ -115,7 +133,8 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
 
     private void incrementCounter(TeamCard teamCard, MeetingStatus status) {
         if (status == MeetingStatus.COMPLETED) {
-            teamCard.increaseMeetingCompletedCount();
+            teamCard.setMeetingsCompletedCount(
+                teamCard.getMeetingsCompletedCount() + 1);
         } else if (status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
             teamCard.setMeetingsCompletedAsNotHappenedCount(
                 teamCard.getMeetingsCompletedAsNotHappenedCount() + 1);
@@ -130,34 +149,40 @@ public class TeamCardMeetingsServiceImpl implements TeamCardMeetingsService {
 
         // Ищем MeetingGrade через репозиторий
         var meetingGradeOpt = meetingGradeRepository.findByMeetingIdAndTeamCardId(meetingId, teamCardId);
-        
-        if (meetingGradeOpt.isPresent()) {
-            var meetingGrade = meetingGradeOpt.get();
-            
-            // Удаляем из коллекции TeamCard
-            teamCard.getMeetingGrades().remove(meetingGrade);
-            
-            meetingGradeRepository.delete(meetingGrade);
-            
-            teamCard.setMeetingsCount(Math.max(0, teamCard.getMeetingsCount() - 1));
-            
-            if (status == MeetingStatus.COMPLETED) {
-                teamCard.setMeetingsCompletedCount(Math.max(0, teamCard.getMeetingsCompletedCount() - 1));
-            } else if (status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
-                teamCard.setMeetingsCompletedAsNotHappenedCount(
-                    Math.max(0, teamCard.getMeetingsCompletedAsNotHappenedCount() - 1));
-            }
-            
-            calculateAverageGrade(teamCard);
-            
-            // Сохраняем изменения в TeamCard
-            teamCardsRepository.saveAndFlush(teamCard);
-            
-            log.info("Team card {} updated after meeting {} deletion. Status: {}, Remaining: {}",
-                    teamCardId, meetingId, status, teamCard.getMeetingsCount());
-        } else {
-            log.warn("Meeting grade for meeting {} not found in team card {}", meetingId, teamCardId);
+
+        if (meetingGradeOpt.isEmpty()) {
+            log.warn("Meeting grade for meeting {} not found in team card {}, skipping",
+                    meetingId, teamCardId);
+            return;
         }
+
+        var meetingGrade = meetingGradeOpt.get();
+
+        // Удаляем из коллекции TeamCard
+        teamCard.getMeetingGrades().remove(meetingGrade);
+
+        // Удаляем из репозитория
+        meetingGradeRepository.delete(meetingGrade);
+        meetingGradeRepository.flush();
+
+        // Уменьшаем общий счётчик встреч
+        teamCard.setMeetingsCount(Math.max(0, teamCard.getMeetingsCount() - 1));
+
+        // Уменьшаем счётчик соответствующего статуса
+        decrementCounter(teamCard, status);
+
+        // Пересчитываем средний рейтинг
+        calculateAverageGrade(teamCard);
+
+        // Сохраняем изменения в TeamCard
+        teamCardsRepository.saveAndFlush(teamCard);
+
+        log.info("Team card {} updated after meeting {} deletion. Status: {}, meetingsCount: {}, completedCount: {}, notHappenedCount: {}, avgGrade: {}",
+                teamCardId, meetingId, status,
+                teamCard.getMeetingsCount(),
+                teamCard.getMeetingsCompletedCount(),
+                teamCard.getMeetingsCompletedAsNotHappenedCount(),
+                teamCard.getAverageGrade());
     }
 
     private void calculateAverageGrade(TeamCard teamCard) {
