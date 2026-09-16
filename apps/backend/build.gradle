@@ -16,6 +16,7 @@ configurations {
 }
 
 dependencies {
+    developmentOnly platform("net.trackme.platform:platform:${trackmePlatformVersion}")
     implementation platform("net.trackme.platform:platform:${trackmePlatformVersion}")
     implementation 'org.apache.poi:poi-ooxml'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'

@@ -18,17 +18,15 @@ plugins {
 
 rootProject.name = 'trackme'
 
-include ':backend'
-project(':backend').projectDir = file('apps/backend')
+def includeProject = { String projectPath, String projectDir ->
+    if (file(projectDir).isDirectory()) {
+        include projectPath
+        project(projectPath).projectDir = file(projectDir)
+    }
+}
 
-include ':trackme-gateway'
-project(':trackme-gateway').projectDir = file('apps/trackme-gateway')
-
-include ':trackme-sso'
-project(':trackme-sso').projectDir = file('services/trackme-sso')
-
-include ':meeting-service'
-findProject(':meeting-service').projectDir = file('services/meeting-service')
-
-include ':telegram-service'
-project(':telegram-service').projectDir = file('services/telegram-service')
+includeProject(':backend', 'apps/backend')
+includeProject(':trackme-gateway', 'apps/trackme-gateway')
+includeProject(':trackme-sso', 'services/trackme-sso')
+includeProject(':meeting-service', 'services/meeting-service')
+includeProject(':telegram-service', 'services/telegram-service')

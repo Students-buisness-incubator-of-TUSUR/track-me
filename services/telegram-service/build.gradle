@@ -8,6 +8,7 @@ plugins {
 version = '1.0.0'
 
 dependencies {
+    developmentOnly platform("net.trackme.platform:platform:${trackmePlatformVersion}")
     implementation platform("net.trackme.platform:platform:${trackmePlatformVersion}")
 
     implementation 'org.springframework.boot:spring-boot-starter'
