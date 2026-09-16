@@ -1,10 +1,10 @@
 plugins {
-    id 'org.springframework.boot' version '3.4.4'
-    id 'io.freefair.lombok' version '8.14'
-    id 'org.sonarqube' version '7.3.1.8318'
+    id 'org.springframework.boot' version '3.5.16'
+    id 'io.freefair.lombok' version '9.5.0'
+    id 'org.sonarqube' version '7.5.0.8588'
 }
 
-gradle.startParameter.parallelProjectExecutionEnabled = true
+// Параллельное выполнение проектов задаётся org.gradle.parallel=true в gradle.properties.
 
 sonar {
     properties {
