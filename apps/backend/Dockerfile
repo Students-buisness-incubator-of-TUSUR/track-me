@@ -1,5 +1,5 @@
 # 1. Build stage
-FROM gradle:8-jdk21-alpine AS builder
+FROM gradle:9.7.1-jdk25-alpine AS builder
 
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN --mount=type=secret,id=gpr_token \
     gradle :backend:clean :backend:bootJar --no-daemon
 
 # 2. Run stage
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /app
 
