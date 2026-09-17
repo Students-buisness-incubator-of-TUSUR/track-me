@@ -47,24 +47,15 @@ public abstract class AbstractMeetingsReportExcelGenerator {
     protected void writeStatusCell(Row row, int col, TeamStatus teamStatus,
                             MeetingStatus status, Styles styles) {
         var statusCell = row.createCell(col);
-        if (status == null) {
-            statusCell.setCellValue("—");
-            statusCell.setCellStyle(styles.text);
-            return;
-        }
-        switch (status) {
-            case SCHEDULED -> {
-                statusCell.setCellValue("Запланирована");
-                statusCell.setCellStyle(styles.statusLavender);
-            }
-            case COMPLETED_AS_NOT_HAPPENED -> {
-                statusCell.setCellValue("Не состоялась");
-                statusCell.setCellStyle(styles.textCancelled);
-            }
-            default -> {
-                statusCell.setCellValue(mapTeamStatusToText(teamStatus));
-                statusCell.setCellStyle(getStyleByTeamStatus(teamStatus, styles));
-            }
+        if (status == MeetingStatus.SCHEDULED) {
+            statusCell.setCellValue("Запланирована");
+            statusCell.setCellStyle(styles.statusLavender);
+        } else if (status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
+            statusCell.setCellValue("Не состоялась");
+            statusCell.setCellStyle(styles.textCancelled);
+        } else {
+            statusCell.setCellValue(mapTeamStatusToText(teamStatus));
+            statusCell.setCellStyle(getStyleByTeamStatus(teamStatus, styles));
         }
     }
 
