@@ -33,30 +33,55 @@ public abstract class AbstractMeetingsReportExcelGenerator {
 
     /**
      * Записывает общие для обоих отчётов колонки: название команды (0) и дату (1).
+     * Стиль ячеек зависит от статуса встречи: для COMPLETED_AS_NOT_HAPPENED —
+     * "отменённый" (серый), для остальных — обычный.
+     *
+     * @return CellStyle, использованный для общих колонок — чтобы вызывающий код
+     *         мог применить тот же стиль к колонке трекера (в обычном отчёте).
      */
-    protected void writeCommonFirstColumns(Row row, String teamName, OffsetDateTime startDate,
-                                           Styles styles) {
-        setString(row, 0, teamName, styles.text);
+    protected CellStyle writeCommonFirstColumns(Row row, String teamName, OffsetDateTime startDate,
+                                                MeetingStatus status, Styles styles) {
+        CellStyle style = status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED
+                ? styles.textCancelled
+                : styles.text;
+        setString(row, 0, teamName, style);
         String dateStr = startDate != null ? startDate.format(DATE_FORMATTER) : null;
-        setString(row, 1, dateStr, styles.text);
+        setString(row, 1, dateStr, style);
+        return style;
     }
 
     /**
      * Записывает ячейку статуса с учётом MeetingStatus.
+     *
+     * <p>Для {@code status == null} используется статус команды
+     * (аналогично default-ветке).
      */
     protected void writeStatusCell(Row row, int col, TeamStatus teamStatus,
                             MeetingStatus status, Styles styles) {
         var statusCell = row.createCell(col);
-        if (status == MeetingStatus.SCHEDULED) {
-            statusCell.setCellValue("Запланирована");
-            statusCell.setCellStyle(styles.statusLavender);
-        } else if (status == MeetingStatus.COMPLETED_AS_NOT_HAPPENED) {
-            statusCell.setCellValue("Не состоялась");
-            statusCell.setCellStyle(styles.textCancelled);
-        } else {
-            statusCell.setCellValue(mapTeamStatusToText(teamStatus));
-            statusCell.setCellStyle(getStyleByTeamStatus(teamStatus, styles));
+        if (status == null) {
+            writeTeamStatusCell(statusCell, teamStatus, styles);
+            return;
         }
+        switch (status) {
+            case SCHEDULED -> {
+                statusCell.setCellValue("Запланирована");
+                statusCell.setCellStyle(styles.statusLavender);
+            }
+            case COMPLETED_AS_NOT_HAPPENED -> {
+                statusCell.setCellValue("Не состоялась");
+                statusCell.setCellStyle(styles.textCancelled);
+            }
+            default -> writeTeamStatusCell(statusCell, teamStatus, styles);
+        }
+    }
+
+    /**
+     * Записывает статус команды в ячейку (используется в default-ветке и для null status).
+     */
+    private void writeTeamStatusCell(Cell statusCell, TeamStatus teamStatus, Styles styles) {
+        statusCell.setCellValue(mapTeamStatusToText(teamStatus));
+        statusCell.setCellStyle(getStyleByTeamStatus(teamStatus, styles));
     }
 
     /**

@@ -120,8 +120,12 @@ public class MeetingRestControllerImpl implements MeetingRestController {
                     exportLimit,
                     outputStream
                 );
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.error("Error during Excel streaming for streamId={}", streamId, e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unexpected error during Excel streaming for streamId={}", streamId, e);
+                throw new IOException("Ошибка генерации Excel-отчёта", e);
             }
         };
 
@@ -167,8 +171,12 @@ public class MeetingRestControllerImpl implements MeetingRestController {
             try {
                 trackerMeetingsReportService.streamRecordsToExcel(
                     filters.filters(), pageable.getSort(), fetchPageSize, exportLimit, outputStream);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 log.error("Error during Excel streaming for tracker", e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Unexpected error during Excel streaming for tracker", e);
+                throw new IOException("Ошибка генерации Excel-отчёта трекера", e);
             }
         };
 

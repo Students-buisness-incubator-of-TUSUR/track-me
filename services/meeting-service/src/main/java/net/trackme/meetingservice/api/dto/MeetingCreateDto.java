@@ -2,7 +2,6 @@ package net.trackme.meetingservice.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
@@ -20,7 +19,6 @@ public record MeetingCreateDto(
 
         @Schema(description = "Дата начала встречи")
         @NotNull(message = "Дата начала встречи не может быть пустой")
-        @Future(message = "Дата начала встречи должна быть в будущем")
         OffsetDateTime startDate,
 
         @Schema(description = "Задачи на текущую встречу")

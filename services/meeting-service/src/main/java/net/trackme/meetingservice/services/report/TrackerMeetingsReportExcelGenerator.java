@@ -38,7 +38,7 @@ public class TrackerMeetingsReportExcelGenerator extends AbstractMeetingsReportE
         var dto = (TrackerMeetingReportRecordDto) reportRecord;
         MeetingStatus status = dto.status();
 
-        writeCommonFirstColumns(row, dto.teamName(), dto.startDate(), styles);
+        writeCommonFirstColumns(row, dto.teamName(), dto.startDate(), status, styles);
         writeTaskCells(row, status, dto.tasksNextMeeting(), dto.tasksCurrentMeeting(), 2, 3, styles);
         writeStatusCell(row, 4, dto.teamStatus(), status, styles);
     }

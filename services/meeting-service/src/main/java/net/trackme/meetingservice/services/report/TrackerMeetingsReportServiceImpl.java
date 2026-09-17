@@ -61,7 +61,11 @@ public class TrackerMeetingsReportServiceImpl implements TrackerMeetingsReportSe
                 .and(trackerUsernameEquals(username));
         Page<Meeting> meetingPage = meetingRepository.findAll(baseSpec,
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), effectiveSort));
-        if (meetingPage.isEmpty()) return Page.empty(pageable);
+
+        if (meetingPage.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, meetingPage.getTotalElements());
+        }
+
         List<TrackerMeetingReportRecordDto> dtos = meetingPage.getContent().stream()
                 .map(meetingMapper::mapToTrackerReportDto).toList();
         return new PageImpl<>(dtos, pageable, meetingPage.getTotalElements());

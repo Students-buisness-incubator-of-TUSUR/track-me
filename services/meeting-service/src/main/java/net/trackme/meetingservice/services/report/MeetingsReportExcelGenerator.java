@@ -2,6 +2,7 @@ package net.trackme.meetingservice.services.report;
 
 import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
 import net.trackme.meetingservice.entities.MeetingStatus;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.PropertyTemplate;
@@ -39,8 +40,9 @@ public class MeetingsReportExcelGenerator extends AbstractMeetingsReportExcelGen
         var dto = (MeetingReportRecordDto) reportRecord;
         MeetingStatus status = dto.status();
 
-        writeCommonFirstColumns(row, dto.teamName(), dto.startDate(), styles);
-        setString(row, 2, dto.trackerFullName(), styles.text);
+        CellStyle commonStyle = writeCommonFirstColumns(
+                row, dto.teamName(), dto.startDate(), status, styles);
+        setString(row, 2, dto.trackerFullName(), commonStyle);
         writeTaskCells(row, status, dto.tasksNextMeeting(), dto.tasksCurrentMeeting(), 3, 4, styles);
         writeStatusCell(row, 5, dto.teamStatus(), status, styles);
     }

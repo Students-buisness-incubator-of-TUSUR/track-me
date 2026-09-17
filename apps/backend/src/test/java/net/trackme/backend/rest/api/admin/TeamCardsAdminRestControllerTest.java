@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
+
     @Autowired
     private TeamCardsService teamCardsService;
 
@@ -226,9 +228,183 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // Проверяем, что команда перешла новому пользователю
         var updatedTeams = teamCardsService.getTeamCardsByUser("newuser");
         assertThat(updatedTeams).hasSize(1);
         assertThat(updatedTeams.get(0).getName()).isEqualTo("Team to Reassign");
+    }
+
+    // ============================================================
+    // Тесты для updatePassiveStatus (проблема №2)
+    // ============================================================
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void updatePassiveStatus_setTrue_success() throws Exception {
+        var teamCard = teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Passive candidate")
+                        .meetingRoomLink("meetingRoom@link.com")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                "tracker1");
+
+        assertThat(teamCard.getPassive()).isFalse();
+
+        mockMvc.perform(patch("/api/v1/admin/team-card/passive")
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "passive": true
+                                }
+                                """)
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
+                .andExpect(jsonPath("$.passive", is(true)));
+
+        var updated = teamCardsRepository.findById(teamCard.getId()).orElseThrow();
+        assertThat(updated.getPassive()).isTrue();
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void updatePassiveStatus_setFalse_success() throws Exception {
+        var teamCard = teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Active candidate")
+                        .meetingRoomLink("meetingRoom@link.com")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .passive(true)
+                        .build(),
+                "tracker1");
+
+        mockMvc.perform(patch("/api/v1/admin/team-card/passive")
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "passive": false
+                                }
+                                """)
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.passive", is(false)));
+
+        var updated = teamCardsRepository.findById(teamCard.getId()).orElseThrow();
+        assertThat(updated.getPassive()).isFalse();
+    }
+
+    /**
+     * ADMIN (без ACL-записи) должен мочь изменить passive-статус.
+     * Ключевой тест для проблемы №2: раньше вызов шёл через generic updateTeamCard
+     * с @PreAuthorize("hasPermission(..., WRITE)") → 403. Теперь используется
+     * admin-версия с @PreAuthorize("hasRole('ADMIN')").
+     */
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void updatePassiveStatus_adminWithoutAcl_success() throws Exception {
+        var teamCard = teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Admin-managed team")
+                        .meetingRoomLink("meetingRoom@link.com")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                "tracker1");
+
+        mockMvc.perform(patch("/api/v1/admin/team-card/passive")
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "passive": true
+                                }
+                                """)
+                        .with(user("some-admin").roles("ADMIN"))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(teamCard.getId().toString())))
+                .andExpect(jsonPath("$.passive", is(true)));
+
+        var updated = teamCardsRepository.findById(teamCard.getId()).orElseThrow();
+        assertThat(updated.getPassive()).isTrue();
+    }
+
+    /**
+     * TRACKER не может менять passive-статус — ожидаем 403.
+     */
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void updatePassiveStatus_trackerForbidden() throws Exception {
+        var teamCard = teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Tracker cannot toggle")
+                        .meetingRoomLink("meetingRoom@link.com")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                BaseApplicationTest.USER);
+
+        mockMvc.perform(patch("/api/v1/admin/team-card/passive")
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"passive\": true}")
+                        .with(user("tracker1").roles("TRACKER"))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+
+        var unchanged = teamCardsRepository.findById(teamCard.getId()).orElseThrow();
+        assertThat(unchanged.getPassive()).isFalse();
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void updatePassiveStatus_missingPassiveField_badRequest() throws Exception {
+        var teamCard = teamCardsService.createTeamCard(
+                TeamCard.builder()
+                        .status(TeamCardStatus.OK)
+                        .ntiMarkets(List.of(ntiMarket))
+                        .name("Missing passive")
+                        .meetingRoomLink("meetingRoom@link.com")
+                        .readinessLevel(ReadinessLevel.LEVEL_1)
+                        .build(),
+                "tracker1");
+
+        mockMvc.perform(patch("/api/v1/admin/team-card/passive")
+                        .param("teamCardId", teamCard.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void updatePassiveStatus_teamCardNotFound_notFound() throws Exception {
+        var randomId = UUID.randomUUID();
+
+        mockMvc.perform(patch("/api/v1/admin/team-card/passive")
+                        .param("teamCardId", randomId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "passive": true
+                                }
+                                """)
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 }

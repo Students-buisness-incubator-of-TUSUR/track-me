@@ -334,6 +334,14 @@ public class MeetingServiceImpl implements MeetingService {
         OffsetDateTime oldStartDate = meeting.getStartDate();
         boolean dateChanged = isDateChanged(updateDto, oldStartDate);
         
+        if (dateChanged) {
+            validateNoMeetingOnSameDay(
+                    meeting.getTeamCardId(),
+                    updateDto.startDate(),
+                    meetingId
+            );
+        }
+
         var oldStatus = meeting.getStatus();
         var oldTeamStatus = meeting.getTeamStatus();
         
