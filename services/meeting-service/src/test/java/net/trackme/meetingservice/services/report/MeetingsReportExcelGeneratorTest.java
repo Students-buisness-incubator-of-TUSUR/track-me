@@ -26,7 +26,7 @@ class MeetingsReportExcelGeneratorTest {
         String streamName = "Тестовый Поток 2024";
         UUID teamId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
 
-        var record = new MeetingReportRecordDto(
+        var reportRecord = new MeetingReportRecordDto(
                 teamId,
                 "Команда А",
                 OffsetDateTime.parse("2024-05-10T10:00:00Z"),
@@ -39,7 +39,7 @@ class MeetingsReportExcelGeneratorTest {
         );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        generator.generate(streamName, Stream.of(record), out);
+        generator.generate(streamName, Stream.of(reportRecord), out);
 
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         try (Workbook workbook = new XSSFWorkbook(in)) {
@@ -60,8 +60,8 @@ class MeetingsReportExcelGeneratorTest {
             assertEquals("Команда А", dataRow.getCell(0).getStringCellValue());
             assertEquals("10.05.2024", dataRow.getCell(1).getStringCellValue());
             assertEquals("Иван Трекеров", dataRow.getCell(2).getStringCellValue());
-            assertEquals("Выполнено", dataRow.getCell(4).getStringCellValue());
-            assertEquals("Не выполнено", dataRow.getCell(3).getStringCellValue());
+            assertEquals("Выполнено", dataRow.getCell(3).getStringCellValue());
+            assertEquals("Не выполнено", dataRow.getCell(4).getStringCellValue());
             assertEquals("Всё ок", dataRow.getCell(5).getStringCellValue());
         }
     }
@@ -70,7 +70,7 @@ class MeetingsReportExcelGeneratorTest {
     void generate_handlesCancelledMeetingsCorrectly() throws Exception {
         UUID teamId = UUID.fromString("123e4567-e89b-12d3-a456-426614174001");
 
-        var record = new MeetingReportRecordDto(
+        var reportRecord = new MeetingReportRecordDto(
                 teamId,
                 "Команда",
                 OffsetDateTime.parse("2024-05-10T10:00:00Z"),
@@ -83,7 +83,7 @@ class MeetingsReportExcelGeneratorTest {
         );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        generator.generate("Test", Stream.of(record), out);
+        generator.generate("Test", Stream.of(reportRecord), out);
 
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         try (Workbook workbook = new XSSFWorkbook(in)) {
@@ -153,7 +153,7 @@ class MeetingsReportExcelGeneratorTest {
     void generate_withNullFields_handlesGracefully() throws Exception {
         UUID teamId = UUID.randomUUID();
 
-        var record = new MeetingReportRecordDto(
+        var reportRecord = new MeetingReportRecordDto(
                 teamId,
                 null,
                 null,
@@ -166,7 +166,7 @@ class MeetingsReportExcelGeneratorTest {
         );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        generator.generate("Test", Stream.of(record), out);
+        generator.generate("Test", Stream.of(reportRecord), out);
 
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         try (Workbook workbook = new XSSFWorkbook(in)) {
@@ -182,7 +182,7 @@ class MeetingsReportExcelGeneratorTest {
     void generate_handlesScheduledStatus() throws Exception {
         UUID teamId = UUID.randomUUID();
 
-        var record = new MeetingReportRecordDto(
+        var reportRecord = new MeetingReportRecordDto(
                 teamId,
                 "Команда",
                 OffsetDateTime.parse("2024-05-10T10:00:00Z"),
@@ -195,7 +195,7 @@ class MeetingsReportExcelGeneratorTest {
         );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        generator.generate("Test", Stream.of(record), out);
+        generator.generate("Test", Stream.of(reportRecord), out);
 
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
         try (Workbook workbook = new XSSFWorkbook(in)) {

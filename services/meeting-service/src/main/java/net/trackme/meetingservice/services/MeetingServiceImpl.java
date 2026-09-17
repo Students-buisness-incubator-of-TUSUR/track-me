@@ -15,11 +15,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,8 +57,6 @@ import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
-
-import org.springframework.security.access.AccessDeniedException;
 
 /**
  * Реализация сервиса для управления встречами.
@@ -282,7 +281,6 @@ public class MeetingServiceImpl implements MeetingService {
         log.info("updateByAdmin called by user: {}", 
             SecurityContextHolder.getContext().getAuthentication().getName());
         
-        validateCurrentUserIsAdmin();
         validateAdminNotChangingStatus(updateDto);
 
         var meeting = findMeeting(meetingId, teamCardId);
@@ -302,10 +300,10 @@ public class MeetingServiceImpl implements MeetingService {
         meetingMapper.updateEntityFromDtoForAdmin(updateDto, meeting);
         handleTasksNextManualFlag(updateDto, oldTasksNext, meeting);
 
-        var savedMeeting = saveAndRenumberIfDateChanged(meeting, dateChanged, teamCardId, meetingId);
+        saveAndRenumberIfDateChanged(meeting, dateChanged, teamCardId, meetingId);
         recalculateTasksChain(teamCardId);
-        
-        savedMeeting = refreshMeeting(meetingId);
+
+        var savedMeeting = refreshMeeting(meetingId);
 
         sendUpdateEventIfStatusChanged(savedMeeting, oldStatus, oldTeamStatus);
 
@@ -408,12 +406,6 @@ public class MeetingServiceImpl implements MeetingService {
     private void validateNotCompletedForNonSuperAdmin(Meeting meeting, UUID meetingId, UUID teamCardId) {
         if (!isCurrentUserSuperAdmin() && MeetingStatus.COMPLETED_STATUSES.contains(meeting.getStatus())) {
             throw new MeetingCompletedException(meetingId, teamCardId);
-        }
-    }
-
-    private void validateCurrentUserIsAdmin() {
-        if (!isCurrentUserOnlyAdmin()) {
-            throw new AccessDeniedException("Только администратор может использовать этот метод");
         }
     }
 

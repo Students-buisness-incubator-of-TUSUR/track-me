@@ -6,7 +6,6 @@ import net.trackme.meetingservice.api.dto.TrackerMeetingReportRecordDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.mapping.MeetingMapper;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,8 +44,6 @@ public class TrackerMeetingsReportServiceImpl implements TrackerMeetingsReportSe
     private final TrackerMeetingsReportExcelGenerator excelGenerator;
 
     @Override
-    @Cacheable(value = "tracker-meetings-report-all-my",
-               key = "#filters.hashCode() + '-' + authentication.name")
     public List<TrackerMeetingReportRecordDto> getReportRecordsForTracker(List<Filter> filters) {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         Specification<Meeting> spec = withFilters(filters)
@@ -56,8 +53,6 @@ public class TrackerMeetingsReportServiceImpl implements TrackerMeetingsReportSe
     }
 
     @Override
-    @Cacheable(value = "tracker-meetings-report-page-my",
-               key = "#filters.hashCode() + '-' + #pageable.pageNumber + '-' + authentication.name")
     public Page<TrackerMeetingReportRecordDto> getReportRecordsForTracker(
             List<Filter> filters, Pageable pageable) {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -93,7 +88,7 @@ public class TrackerMeetingsReportServiceImpl implements TrackerMeetingsReportSe
                 .flatMap(Collection::stream)
                 .limit(exportLimit);
 
-        excelGenerator.generate("tracker-report", recordStream, outputStream);
+        excelGenerator.generate(recordStream, outputStream);
     }
 
     private Sort calculateEffectiveSort(Sort clientSort) {
