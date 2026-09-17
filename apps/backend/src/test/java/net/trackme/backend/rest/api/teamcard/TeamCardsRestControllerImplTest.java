@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.time.DayOfWeek.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.containsString;
@@ -1287,6 +1288,10 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
     void getTeamCardsReport_shouldReturnCorrectMeetingsCountPlan() throws Exception {
         var now = LocalDate.now();
+        // План встреч считается целыми календарными неделями от trackStartDate
+        // (TeamCard#calculateMeetingsPlan), поэтому якорь — понедельник: иначе ожидание
+        // зависело бы от дня недели, в который запускаются тесты.
+        var currentMonday = now.with(MONDAY);
         var streamEndDate = now.plusDays(60);
 
         // Arrange
@@ -1294,7 +1299,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
                 .name("Stream with old track date")
                 .startDate(now.minusDays(30))
                 .endDate(streamEndDate)
-                .trackStartDate(now.with(java.time.DayOfWeek.MONDAY).minusWeeks(2))
+                .trackStartDate(currentMonday.minusWeeks(2))
                 .build()
         );
 

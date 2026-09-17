@@ -6,6 +6,9 @@ import net.trackme.backend.models.TeamCardStatus;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Getter
@@ -122,26 +125,26 @@ public class TeamCard {
     }
 
     private Integer calculateMeetingsPlan(Stream stream) {
-        java.time.LocalDate now = java.time.LocalDate.now();
-        java.time.LocalDate start = stream.getTrackStartDate();
+        var now = LocalDate.now();
+        var start = stream.getTrackStartDate();
 
         if (start == null || now.isBefore(start)) {
             return 0;
         }
 
-        java.time.LocalDate calculationEnd = stream.getEndDate() != null 
-                && stream.getEndDate().isBefore(now) 
-                ? stream.getEndDate() 
+        var calculationEnd = stream.getEndDate() != null
+                && stream.getEndDate().isBefore(now)
+                ? stream.getEndDate()
                 : now;
 
         // Считаем номер календарной недели от даты старта
-        java.time.LocalDate firstMonday = start.with(java.time.DayOfWeek.MONDAY);
-        java.time.LocalDate currentMonday = calculationEnd.with(java.time.DayOfWeek.MONDAY);
-        long weeksBetween = java.time.temporal.ChronoUnit.WEEKS.between(firstMonday, currentMonday);
-        int weekNumber = (int) weeksBetween + 1;
+        var firstMonday = start.with(DayOfWeek.MONDAY);
+        var currentMonday = calculationEnd.with(DayOfWeek.MONDAY);
+        var weeksBetween = ChronoUnit.WEEKS.between(firstMonday, currentMonday);
+        var weekNumber = (int) weeksBetween + 1;
 
-        Integer maxMeetings = stream.getMeetingsCount();
-        return Math.min(weekNumber, maxMeetings != null ? maxMeetings : Integer.MAX_VALUE);
+        var maxMeetings = Objects.requireNonNullElse(stream.getMeetingsCount(), Integer.MAX_VALUE);
+        return Math.min(weekNumber, maxMeetings);
     }
 
     public void addStream(Stream stream) {
