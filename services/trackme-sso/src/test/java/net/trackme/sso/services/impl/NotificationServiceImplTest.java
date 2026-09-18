@@ -4,6 +4,7 @@ import jakarta.mail.internet.MimeMessage;
 import net.trackme.sso.AbstractIntegrationTest;
 import net.trackme.sso.config.AppProperties;
 import net.trackme.sso.dao.repository.UserRepository;
+import net.trackme.sso.services.EmailRecipient;
 import net.trackme.sso.services.EmailService;
 import net.trackme.sso.services.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,11 +62,11 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         NotificationService notificationService = new NotificationServiceImpl(
                 userRepository, appProperties, emailService);
 
-        assertDoesNotThrow(() -> 
+        assertDoesNotThrow(() ->
             notificationService.sendMeetingNotHappenedNotification(
                 "tracker", TEST_TEAM_NAME, TEST_STREAM_NAME, TEST_MEETING_LINK, "Петров Петр Петрович")
         );
-        
+
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
@@ -93,7 +95,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
             notificationService.sendMeetingNotHappenedNotification(
                 "admin", TEST_TEAM_NAME, TEST_STREAM_NAME, TEST_MEETING_LINK, null)
         );
-        
+
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
@@ -109,7 +111,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
             notificationService.sendMeetingNotHappenedNotification(
                 "superadmin", TEST_TEAM_NAME, TEST_STREAM_NAME, TEST_MEETING_LINK, "")
         );
-        
+
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
@@ -125,7 +127,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
             notificationService.sendMeetingNotHappenedNotification(
                 "superadmin", TEST_TEAM_NAME, TEST_STREAM_NAME, TEST_MEETING_LINK, "   ")
         );
-        
+
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
@@ -141,13 +143,13 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
             notificationService.sendMeetingNotHappenedNotification(
                 "superadmin", TEST_TEAM_NAME, TEST_STREAM_NAME, TEST_MEETING_LINK, "Иванов")
         );
-        
+
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
     void sendTeamCardSummary_success() {
-        LinkedHashMap<String, String> event1 = new LinkedHashMap<>();
+        Map<String, String> event1 = new LinkedHashMap<>();
         event1.put("streamName", "Поток 1");
         event1.put("teamCardName", "Команда 1");
         event1.put("trackerFullName", "Иванов Иван Иванович");
@@ -165,7 +167,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardSummary(teamCardSummaryEvents)
         );
-        
+
         // Может быть несколько получателей
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
@@ -197,7 +199,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardSummary(events)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
@@ -212,7 +214,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardSummary(List.of())
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
@@ -235,20 +237,20 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardSummary(events)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
     @Test
     void sendTeamCardSummary_withEnglishAndRussianNames_sortedCorrectly() {
-        LinkedHashMap<String, String> event1 = new LinkedHashMap<>();
+        Map<String, String> event1 = new LinkedHashMap<>();
         event1.put("streamName", "Test Stream");
         event1.put("teamCardName", "Яндекс");
         event1.put("trackerFullName", "Иванов Иван");
         event1.put("meetingNumber", "2");
         event1.put("meetingLink", "http://example.com/2");
 
-        LinkedHashMap<String, String> event2 = new LinkedHashMap<>();
+        Map<String, String> event2 = new LinkedHashMap<>();
         event2.put("streamName", "Test Stream");
         event2.put("teamCardName", "Apple");
         event2.put("trackerFullName", "John Doe");
@@ -273,20 +275,20 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardSummary(events)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
     @Test
     void sendTeamCardSummary_withMultipleStreamsAndVariousNames() {
-        LinkedHashMap<String, String> event1 = new LinkedHashMap<>();
+        Map<String, String> event1 = new LinkedHashMap<>();
         event1.put("streamName", "Поток 1");
         event1.put("teamCardName", "BBB");
         event1.put("trackerFullName", "Иванов Иван Иванович");
         event1.put("meetingNumber", "2");
         event1.put("meetingLink", "http://example.com/2");
 
-        LinkedHashMap<String, String> event2 = new LinkedHashMap<>();
+        Map<String, String> event2 = new LinkedHashMap<>();
         event2.put("streamName", "Поток 1");
         event2.put("teamCardName", "AAA");
         event2.put("trackerFullName", "Петров Петр Петрович");
@@ -311,7 +313,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardSummary(events)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
@@ -333,13 +335,13 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardSummary(events)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
     @Test
     void sendTeamCardLowGradeSummary_success() {
-        LinkedHashMap<String, String> event1 = new LinkedHashMap<>();
+        Map<String, String> event1 = new LinkedHashMap<>();
         event1.put("streamName", "Поток 1");
         event1.put("teamCardName", "Команда 1");
         event1.put("trackerFullName", "Иванов Иван Иванович");
@@ -356,7 +358,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardLowGradeSummary(teamCardLowGradeSummaryEvents)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
@@ -371,19 +373,19 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardLowGradeSummary(List.of())
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
     @Test
     void sendTeamCardLowGradeSummary_withEnglishAndRussianNames_sortedCorrectly() {
-        LinkedHashMap<String, String> event1 = new LinkedHashMap<>();
+        Map<String, String> event1 = new LinkedHashMap<>();
         event1.put("streamName", "Stream");
         event1.put("teamCardName", "Zebra");
         event1.put("trackerFullName", null);
         event1.put("averageGrade", "0.5");
 
-        LinkedHashMap<String, String> event2 = new LinkedHashMap<>();
+        Map<String, String> event2 = new LinkedHashMap<>();
         event2.put("streamName", "Stream");
         event2.put("teamCardName", "Якорь");
         event2.put("trackerFullName", "Иванов Иван");
@@ -400,19 +402,19 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardLowGradeSummary(events)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
     @Test
     void sendTeamCardLowGradeSummary_withMultipleStreamsAndVariousNames() {
-        LinkedHashMap<String, String> event1 = new LinkedHashMap<>();
+        Map<String, String> event1 = new LinkedHashMap<>();
         event1.put("streamName", "Поток A");
         event1.put("teamCardName", "Команда 2");
         event1.put("trackerFullName", "Иванов Иван");
         event1.put("averageGrade", "0.3");
 
-        LinkedHashMap<String, String> event2 = new LinkedHashMap<>();
+        Map<String, String> event2 = new LinkedHashMap<>();
         event2.put("streamName", "Поток A");
         event2.put("teamCardName", "Команда 1");
         event2.put("trackerFullName", null);
@@ -435,7 +437,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardLowGradeSummary(events)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
@@ -458,7 +460,7 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
         assertDoesNotThrow(() ->
             notificationService.sendTeamCardLowGradeSummary(events)
         );
-        
+
         verify(javaMailSender, atLeastOnce()).send(any(MimeMessage.class));
     }
 
@@ -568,15 +570,132 @@ class NotificationServiceImplTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void sendMeetingEmail_invite_success() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingEmail(
+                    new EmailRecipient("tracker@tracker.com", "Трекер Трекерович"),
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    OffsetDateTime.now(),
+                    "email-meeting-invite.html",
+                    "Приглашение на встречу",
+                    Map.of())
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingEmail_reminder_withNullDate_usesEmptyString() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingEmail(
+                    new EmailRecipient("tracker@tracker.com", "Трекер"),
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    null,
+                    "email-meeting-reminder.html",
+                    "Напоминание о встрече",
+                    Map.of("daysUntilMeeting", 3))
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingEmailByUsername_invite_success() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingEmailByUsername(
+                    "superadmin",
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    OffsetDateTime.now().plusDays(1),
+                    "email-meeting-invite.html",
+                    "Приглашение на встречу",
+                    Map.of())
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingEmailByUsername_reminder_success() {
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        assertDoesNotThrow(() ->
+            notificationService.sendMeetingEmailByUsername(
+                    "superadmin",
+                    TEST_TEAM_NAME,
+                    TEST_MEETING_LINK,
+                    OffsetDateTime.now().plusDays(3),
+                    "email-meeting-reminder.html",
+                    "Напоминание: встреча через 3 дня",
+                    Map.of("daysUntilMeeting", 3))
+        );
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    @Transactional
+    void sendMeetingEmailByUsername_userHasNoEmail_noEmailSent() {
+        var user = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
+        user.setEmail("");
+        userRepository.saveAndFlush(user);
+
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        notificationService.sendMeetingEmailByUsername(
+                "superadmin", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now(),
+                "email-meeting-invite.html", "Приглашение", Map.of());
+
+        verify(javaMailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void sendMeetingEmailByUsername_userNotFound_noEmailSent() {
+        NotificationService notificationService = new NotificationServiceImpl(
+                userRepository, appProperties, emailService);
+
+        notificationService.sendMeetingEmailByUsername(
+                "nonexistent_user_xyz", TEST_TEAM_NAME, TEST_MEETING_LINK, OffsetDateTime.now(),
+                "email-meeting-invite.html", "Приглашение", Map.of());
+
+        verify(javaMailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
     void compareNamesAlphabetically_withNullNames_handled() {
         // Покрывает compareNamesAlphabetically с null значениями
-        LinkedHashMap<String, String> event1 = new LinkedHashMap<>();
+        Map<String, String> event1 = new LinkedHashMap<>();
         event1.put("streamName", "Stream");
         event1.put("trackerFullName", "Test");
         event1.put("meetingLink", "http://example.com/1");
         // teamCardName отсутствует (null)
 
-        LinkedHashMap<String, String> event2 = new LinkedHashMap<>();
+        Map<String, String> event2 = new LinkedHashMap<>();
         event2.put("streamName", "Stream");
         event2.put("teamCardName", "AAA");
         event2.put("trackerFullName", "Test");

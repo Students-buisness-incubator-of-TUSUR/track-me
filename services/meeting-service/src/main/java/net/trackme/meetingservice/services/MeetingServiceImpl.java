@@ -27,6 +27,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.acl.AclService;
@@ -40,9 +41,11 @@ import static net.trackme.meetingservice.entities.MeetingSpecification.teamCardI
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.configuration.AppProperties;
 import net.trackme.meetingservice.messaging.own.MeetingCreatedEvent;
 import net.trackme.meetingservice.messaging.own.MeetingDeletedEvent;
 import net.trackme.meetingservice.messaging.own.MeetingEventsProducer;
+import net.trackme.meetingservice.messaging.own.MeetingInviteEvent;
 import net.trackme.meetingservice.messaging.own.MeetingUpdatedEvent;
 import net.trackme.meetingservice.services.exceptions.MeetingAlreadyExistsInSameDayException;
 import net.trackme.meetingservice.services.exceptions.MeetingCompletedException;
@@ -73,6 +76,8 @@ public class MeetingServiceImpl implements MeetingService {
     private static final String BACKDATE_UPDATE_ERROR = "Нельзя переносить дату встречи задним числом";
     private static final String PASSIVE_TEAM_ERROR = "Трекер не может создавать встречи для пассивной команды";
     private static final String PASSIVE_TEAM_EDIT_ERROR = "Трекер не может редактировать встречи пассивной команды";
+
+    private final AppProperties appProperties;
 
     /** Маппер для преобразования между сущностями и DTO. */
     private final MeetingMapper meetingMapper;
@@ -111,7 +116,8 @@ public class MeetingServiceImpl implements MeetingService {
             MeetingEventsProducer meetingEventsProducer,
             @Qualifier("userBackendApiClient") BackendApiClient userBackendClient,
             SsoApiClient ssoApiClient,
-            MutableAclService mutableAclService) {
+            MutableAclService mutableAclService,
+            AppProperties appProperties) {
 
         this.meetingMapper = meetingMapper;
         this.meetingRepository = meetingRepository;
@@ -120,6 +126,7 @@ public class MeetingServiceImpl implements MeetingService {
         this.userBackendClient = userBackendClient;
         this.ssoApiClient = ssoApiClient;
         this.mutableAclService = mutableAclService;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -142,9 +149,10 @@ public class MeetingServiceImpl implements MeetingService {
         meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
         meeting.setTrackerUsername(trackerUsername);
 
+        String trackerEmail = null;
         // Denormalize (SSO)
         if (trackerUsername != null) {
-            setTrackerInfo(meeting, trackerUsername);
+            trackerEmail = setTrackerInfo(meeting, trackerUsername);
         }
 
         var savedMeeting = meetingRepository.saveAndFlush(meeting);
@@ -158,7 +166,21 @@ public class MeetingServiceImpl implements MeetingService {
 
         sendMeetingCreatedEvent(refreshedMeeting);
 
-        return enrichWithRoomLink(meetingMapper.mapToDto(refreshedMeeting), teamCardId);
+        meetingEventsProducer.sendMeetingInviteEvent(
+            MeetingInviteEvent.builder()
+                .meetingId(refreshedMeeting.getId())
+                .teamName(refreshedMeeting.getTeamName())
+                .trackerUsername(refreshedMeeting.getTrackerUsername())
+                .trackerFullName(refreshedMeeting.getTrackerFullName())
+                .trackerEmail(trackerEmail)
+                .creatorUsername(getCurrentUsername())
+                .startDate(refreshedMeeting.getStartDate())
+                .meetingLink(getMeetingLink(refreshedMeeting))
+                .build());
+
+        return enrichWithRoomLink(
+            meetingMapper.mapToDto(refreshedMeeting),
+            teamCardId);
     }
 
     @Override
@@ -179,7 +201,7 @@ public class MeetingServiceImpl implements MeetingService {
          SecurityContextHolder.getContext().getAuthentication().getName());
         log.info("Authorities: {}",
          SecurityContextHolder.getContext().getAuthentication().getAuthorities());
-        
+
         var meeting = findMeeting(meetingId, teamCardId);
         validateTeamCardNotPassiveForEdit(teamCardId);
         validateNotCompletedForNonSuperAdmin(meeting, meetingId, teamCardId);
@@ -219,7 +241,7 @@ public class MeetingServiceImpl implements MeetingService {
     @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public void deleteMeeting(UUID meetingId) {
         log.debug("Deleting meeting: {}", meetingId);
-        
+
         var meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
 
@@ -278,9 +300,9 @@ public class MeetingServiceImpl implements MeetingService {
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public MeetingDto updateByAdmin(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
-        log.info("updateByAdmin called by user: {}", 
+        log.info("updateByAdmin called by user: {}",
             SecurityContextHolder.getContext().getAuthentication().getName());
-        
+
         validateAdminNotChangingStatus(updateDto);
 
         var meeting = findMeeting(meetingId, teamCardId);
@@ -308,7 +330,7 @@ public class MeetingServiceImpl implements MeetingService {
         sendUpdateEventIfStatusChanged(savedMeeting, oldStatus, oldTeamStatus);
 
         log.info("Admin {} updated meeting {}", getCurrentUsername(), meetingId);
-        
+
         return enrichWithRoomLink(meetingMapper.mapToDto(savedMeeting), teamCardId);
     }
 
@@ -317,13 +339,13 @@ public class MeetingServiceImpl implements MeetingService {
     @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public MeetingDto updateBySuperAdmin(UUID meetingId, MeetingUpdateDto updateDto) {
         validateCurrentUserIsSuperAdmin();
-        
+
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
-        
+
         OffsetDateTime oldStartDate = meeting.getStartDate();
         boolean dateChanged = isDateChanged(updateDto, oldStartDate);
-        
+
         if (dateChanged) {
             validateNoMeetingOnSameDay(
                     meeting.getTeamCardId(),
@@ -334,12 +356,12 @@ public class MeetingServiceImpl implements MeetingService {
 
         var oldStatus = meeting.getStatus();
         var oldTeamStatus = meeting.getTeamStatus();
-        
+
         meetingMapper.updateEntityFromDto(updateDto, meeting);
         handleCompletedAsNotHappened(updateDto, meeting);
-        
+
         Meeting savedMeeting = meetingRepository.save(meeting);
-        
+
         if (dateChanged) {
             UUID teamCardId = meeting.getTeamCardId();
             renumberMeetingsAfterDateChange(teamCardId);
@@ -347,11 +369,11 @@ public class MeetingServiceImpl implements MeetingService {
             savedMeeting = refreshMeeting(meetingId);
             recalculateTasksChain(teamCardId);
         }
-        
+
         sendUpdateEventIfStatusChanged(savedMeeting, oldStatus, oldTeamStatus);
-        
+
         log.info("Super admin {} updated meeting {}", getCurrentUsername(), meetingId);
-        
+
         return meetingMapper.mapToDto(savedMeeting);
     }
 
@@ -376,8 +398,8 @@ public class MeetingServiceImpl implements MeetingService {
      */
     private void validateNotCreatingBackdated(MeetingCreateDto createDto) {
         if (isCurrentUserSuperAdmin()) return;
-        
-        if (createDto.startDate() != null 
+
+        if (createDto.startDate() != null
                 && createDto.startDate().isBefore(OffsetDateTime.now())) {
             throw new AccessDeniedException(BACKDATE_CREATE_ERROR);
         }
@@ -390,11 +412,11 @@ public class MeetingServiceImpl implements MeetingService {
     private void validateNotBackdating(Meeting meeting, MeetingUpdateDto updateDto) {
         if (updateDto.startDate() == null) return;
         if (isCurrentUserSuperAdmin()) return;
-        
+
         OffsetDateTime now = OffsetDateTime.now();
         OffsetDateTime newDate = updateDto.startDate();
         OffsetDateTime oldDate = meeting.getStartDate();
-        
+
         // Если новая дата в прошлом и отличается от старой — запрещено
         if (newDate.isBefore(now) && !newDate.equals(oldDate)) {
             throw new AccessDeniedException(BACKDATE_UPDATE_ERROR);
@@ -412,7 +434,7 @@ public class MeetingServiceImpl implements MeetingService {
         if (authentication == null) {
             throw new AccessDeniedException("Пользователь не аутентифицирован");
         }
-        
+
         if (!isCurrentUserSuperAdmin()) {
             throw new AccessDeniedException(
                 "Только суперадминистратор может редактировать встречи со статусами " +
@@ -427,7 +449,7 @@ public class MeetingServiceImpl implements MeetingService {
                 "Администратор не может изменять основной статус встречи (status)"
             );
         }
-        
+
         if (updateDto.teamStatus() != null) {
             throw new AccessDeniedException(
                 "Администратор не может изменять статус команды (teamStatus)"
@@ -501,7 +523,7 @@ public class MeetingServiceImpl implements MeetingService {
         return authentication != null ? authentication.getName() : "unknown";
     }
 
-    private void setTrackerInfo(Meeting meeting, String trackerUsername) {
+    private String setTrackerInfo(Meeting meeting, String trackerUsername) {
         var tracker = ssoApiClient.getTrackers().stream()
                 .filter(u -> trackerUsername.equalsIgnoreCase(u.getUsername()))
                 .findFirst();
@@ -510,11 +532,13 @@ public class MeetingServiceImpl implements MeetingService {
             UserDto user = tracker.get();
             meeting.setTrackerId(user.getId());
             meeting.setTrackerFullName(user.getFullName());
+            return user.getEmail();
         } else {
             meeting.setTrackerFullName(trackerUsername);
-            log.warn("Tracker with username {} not found in SSO during meeting creation", 
+            log.warn("Tracker with username {} not found in SSO during meeting creation",
                     trackerUsername);
         }
+        return null;
     }
 
     private void grantAclPermissions(Meeting meeting, String trackerUsername) {
@@ -569,7 +593,7 @@ public class MeetingServiceImpl implements MeetingService {
         }
     }
 
-    private Meeting saveAndRenumberIfDateChanged(Meeting meeting, boolean dateChanged, 
+    private Meeting saveAndRenumberIfDateChanged(Meeting meeting, boolean dateChanged,
                                                   UUID teamCardId, UUID meetingId) {
         var savedMeeting = meetingRepository.saveAndFlush(meeting);
 
@@ -578,7 +602,7 @@ public class MeetingServiceImpl implements MeetingService {
             meetingRepository.flush();
             return refreshMeeting(meetingId);
         }
-        
+
         return savedMeeting;
     }
 
@@ -587,7 +611,7 @@ public class MeetingServiceImpl implements MeetingService {
             .orElseThrow(() -> new MeetingNotFoundException(meetingId));
     }
 
-    private void sendUpdateEventIfStatusChanged(Meeting meeting, MeetingStatus oldStatus, 
+    private void sendUpdateEventIfStatusChanged(Meeting meeting, MeetingStatus oldStatus,
                                                  TeamStatus oldTeamStatus) {
         if (oldStatus != meeting.getStatus()
                 || !Objects.equals(oldTeamStatus, meeting.getTeamStatus())) {
@@ -597,8 +621,8 @@ public class MeetingServiceImpl implements MeetingService {
 
     private void logAdminDeletion(UUID meetingId, Meeting meeting) {
         if (isCurrentUserOnlyAdmin()) {
-            log.warn("ADMIN {} is deleting meeting {} (teamCardId={}, startDate={}, status={})", 
-                getCurrentUsername(), meetingId, meeting.getTeamCardId(), 
+            log.warn("ADMIN {} is deleting meeting {} (teamCardId={}, startDate={}, status={})",
+                getCurrentUsername(), meetingId, meeting.getTeamCardId(),
                 meeting.getStartDate(), meeting.getStatus());
         }
     }
@@ -759,6 +783,7 @@ public class MeetingServiceImpl implements MeetingService {
         return new MeetingDto(
                 dto.id(),
                 dto.recordLink(),
+                dto.googleCalendarLink(),
                 roomLink,
                 dto.number(),
                 dto.startDate(),
@@ -781,17 +806,17 @@ public class MeetingServiceImpl implements MeetingService {
             teamCardIdEquals(teamCardId),
             Sort.by(Sort.Direction.ASC, "startDate")
         );
-        
+
         if (meetings.isEmpty()) {
             return;
         }
-        
+
         clearFirstMeetingIfNeeded(meetings.get(0));
-        
+
         for (int i = 1; i < meetings.size(); i++) {
             updateTasksNextIfNotManual(meetings.get(i), meetings, i);
         }
-        
+
         meetingRepository.saveAllAndFlush(meetings);
     }
 
@@ -805,7 +830,7 @@ public class MeetingServiceImpl implements MeetingService {
         if (current.isTasksNextManuallySet()) {
             return;
         }
-        
+
         String newValue = findTasksFromLastHappenedMeeting(allMeetings, currentIndex);
         current.setTasksNextMeeting(newValue);
     }
@@ -823,5 +848,13 @@ public class MeetingServiceImpl implements MeetingService {
     private String getNonBlankTasksCurrent(Meeting meeting) {
         String tasks = meeting.getTasksCurrentMeeting();
         return (tasks != null && !tasks.isBlank()) ? tasks : null;
+    }
+
+    String getMeetingLink(Meeting meeting) {
+        var httpUrl = appProperties.getAppUrl() + "/meeting/{meetingId}";
+        return UriComponentsBuilder.fromUriString(httpUrl, UriComponentsBuilder.ParserType.WHAT_WG)
+                .queryParam("teamId", "{teamId}")
+                .build(meeting.getId(), meeting.getTeamCardId())
+                .toString();
     }
 }

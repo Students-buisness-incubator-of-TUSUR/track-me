@@ -64,7 +64,6 @@ public class DefaultRegistrationService implements RegistrationService {
 
     RegistrationToken registrationToken = tokenStore.generateToken();
     var tokenHash = registrationToken.tokenHash();
-    var token = registrationToken.token();
 
     try {
       registrationStore.saveToRegistration(requestDto, tokenHash);
@@ -72,7 +71,7 @@ public class DefaultRegistrationService implements RegistrationService {
       throw InformationException.builder("$happened.unexpected.error").build();
     }
 
-    log.info("Registration token = {}. Hash = {}", token, tokenHash);
+    log.debug("Registration confirmation email requested");
 
     emailService.sendMail(
         requestDto.email(),
@@ -105,7 +104,6 @@ public class DefaultRegistrationService implements RegistrationService {
 
     RegistrationToken registrationToken = tokenStore.generateToken();
     var tokenHash = registrationToken.tokenHash();
-    var token = registrationToken.token();
 
     try {
       registrationStore.saveToRecovery(requestDto, tokenHash);
@@ -113,7 +111,7 @@ public class DefaultRegistrationService implements RegistrationService {
       throw InformationException.builder("$happened.unexpected.error").build();
     }
 
-    log.info("Recovery password token = {}. Hash = {}", token, tokenHash);
+    log.debug("Password recovery email requested");
     emailService.sendMail(
             requestDto.email(),
             appProperties.getMail().getFrom(),

@@ -25,11 +25,14 @@ spring:
     properties:
       mail:
         smtp:
-          auth: true
+          auth: ${MAIL_AUTH_ENABLED:true}
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
           starttls:
-            enable: true
+            enable: ${MAIL_STARTTLS_ENABLED:false}
           ssl:
-            enable: true
+            enable: ${MAIL_SSL_ENABLED:true}
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}

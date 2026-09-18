@@ -1,6 +1,8 @@
 package net.trackme.sso.config;
 
+import net.trackme.sso.messaging.MeetingInviteEvent;
 import net.trackme.sso.messaging.MeetingNotHappenedEvent;
+import net.trackme.sso.messaging.MeetingReminderEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -8,11 +10,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.util.backoff.FixedBackOff;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,6 +73,42 @@ public class KafkaConsumerConfiguration {
     ) {
         var factory = new ConcurrentKafkaListenerContainerFactory<String, List<Map<String, String>>>();
         factory.setConsumerFactory(teamCardSummaryEventConsumerFactory);
+        return factory;
+    }
+
+    @Bean
+    ConsumerFactory<String, MeetingInviteEvent> meetingInviteEventConsumerFactory(
+            KafkaProperties kafkaProperties) {
+        return createConsumerFactory(kafkaProperties, MeetingInviteEvent.class);
+    }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, MeetingInviteEvent> meetingInviteListenerContainerFactory(
+            ConsumerFactory<String, MeetingInviteEvent> meetingInviteEventConsumerFactory
+    ) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, MeetingInviteEvent>();
+        factory.setConsumerFactory(meetingInviteEventConsumerFactory);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(
+                new FixedBackOff(5000L, FixedBackOff.UNLIMITED_ATTEMPTS)));
+        return factory;
+    }
+
+    @Bean
+    ConsumerFactory<String, MeetingReminderEvent> meetingReminderEventConsumerFactory(
+            KafkaProperties kafkaProperties) {
+        return createConsumerFactory(kafkaProperties, MeetingReminderEvent.class);
+    }
+
+    @Bean
+    ConcurrentKafkaListenerContainerFactory<String, MeetingReminderEvent> meetingReminderListenerContainerFactory(
+            ConsumerFactory<String, MeetingReminderEvent> meetingReminderEventConsumerFactory
+    ) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, MeetingReminderEvent>();
+        factory.setConsumerFactory(meetingReminderEventConsumerFactory);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
+        factory.setCommonErrorHandler(new DefaultErrorHandler(
+                new FixedBackOff(5000L, FixedBackOff.UNLIMITED_ATTEMPTS)));
         return factory;
     }
 
