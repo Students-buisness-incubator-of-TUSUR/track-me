@@ -23,7 +23,6 @@ concurrency:
 
 jobs:
   deploy:
-    # Ручной запуск — всегда; workflow_run — только успешный CI от push (не PR, не master/tag)
     if: >-
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
@@ -55,6 +54,10 @@ jobs:
           IMAGE_TAG: ${{ steps.image.outputs.tag }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          YANDEX_CLIENT_ID: ${{ secrets.YANDEX_CLIENT_ID }}
+          YANDEX_CLIENT_SECRET: ${{ secrets.YANDEX_CLIENT_SECRET }}
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
@@ -62,18 +65,36 @@ jobs:
           proxy_host: bastion.tusur.ru
           proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,YANDEX_CLIENT_ID,YANDEX_CLIENT_SECRET
           script: |
             set -euo pipefail
             cd "$HOME/track-me-dev"
 
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
-            # Идемпотентно патчим только ссылки на образы; прикладные секреты в .env не трогаем
             touch .env
-            sed -i '/^IMAGE_REPO=/d;/^IMAGE_TAG=/d' .env
-            echo "IMAGE_REPO=$IMAGE_REPO" >> .env
-            echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+            chmod 600 .env
+
+            set_env_var() {
+              key="$1"
+              value="$2"
+              if [ -z "$value" ]; then
+                echo "::warning::$key не задан в секретах GitHub — прежнее значение в .env сохранено"
+                return 0
+              fi
+              grep -v "^${key}=" .env > .env.tmp || true
+              cp .env.tmp .env   # cp, а не mv: сохраняем права на .env
+              rm -f .env.tmp
+              printf '%s=%s\n' "$key" "$value" >> .env
+            }
+
+            set_env_var IMAGE_REPO "$IMAGE_REPO"
+            set_env_var IMAGE_TAG "$IMAGE_TAG"
+
+            set_env_var GOOGLE_CLIENT_ID "${GOOGLE_CLIENT_ID:-}"
+            set_env_var GOOGLE_CLIENT_SECRET "${GOOGLE_CLIENT_SECRET:-}"
+            set_env_var YANDEX_CLIENT_ID "${YANDEX_CLIENT_ID:-}"
+            set_env_var YANDEX_CLIENT_SECRET "${YANDEX_CLIENT_SECRET:-}"
 
             docker compose pull
             docker compose up -d
@@ -90,6 +111,7 @@ jobs:
           proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
           script: |
             set -e
+            cd "$HOME/track-me-dev"
             check() {
               for i in $(seq 1 24); do
                 if curl -sf "$2" > /dev/null; then
@@ -100,7 +122,9 @@ jobs:
                 sleep 5
               done
               echo "$1 failed healthcheck" >&2
+              docker compose logs --tail=50 "$3" >&2 || true
               return 1
             }
-            check backend http://localhost:8080/actuator/health
-            check sso http://localhost:9000/actuator/health
+            check backend http://localhost:8080/actuator/health trackme-backend
+            check sso http://localhost:9000/actuator/health trackme-sso
+            check gateway http://localhost:8081/actuator/health trackme-client-gateway
