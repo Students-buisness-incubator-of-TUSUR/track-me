@@ -108,6 +108,11 @@ public record MeetingSpecification(List<Filter> filters) implements Specificatio
                 criteriaBuilder.equal(root.get("id"), meetingId);
     }
 
+    public static Specification<Meeting> trackerUsernameEquals(String username) {
+    return (root, query, cb) ->
+            cb.equal(root.get(TRACKER_USERNAME_FIELD), username);
+    }
+
     @Override
     public Predicate toPredicate(
             Root<Meeting> root,

@@ -7,6 +7,8 @@ import net.trackme.commons.filters.FilterFieldNotAllowedException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,11 +17,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.security.auth.login.AccountLockedException;
-import java.nio.file.AccessDeniedException;
 
 @Slf4j
 @RestControllerAdvice
 public class DefaultExceptionHandler {
+
   @ResponseBody
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   @ExceptionHandler({AuthenticationException.class, AccountLockedException.class})
@@ -89,9 +91,21 @@ public class DefaultExceptionHandler {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(restError);
   }
 
+  /**
+   * Обрабатывает отказы в доступе на уровне методов ({@code @PreAuthorize})
+   * и HTTP-запросов.
+   *
+   * <p>Spring Security 6.x может выбрасывать как
+   * {@link org.springframework.security.access.AccessDeniedException},
+   * так и {@link org.springframework.security.authorization.AuthorizationDeniedException}
+   * (наследник) — обрабатываем оба.
+   */
   @ResponseBody
   @ResponseStatus(HttpStatus.FORBIDDEN)
-  @ExceptionHandler(AccessDeniedException.class)
+  @ExceptionHandler({
+      AccessDeniedException.class,
+      AuthorizationDeniedException.class
+  })
   public ResponseEntity<RestError> handleAccessDeniedException(AccessDeniedException ex) {
     var restError = RestError.builder()
         .code(HttpStatus.FORBIDDEN.toString())

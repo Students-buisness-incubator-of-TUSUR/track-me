@@ -15,6 +15,8 @@ import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
 import net.trackme.meetingservice.services.report.MeetingsReportService;
+import net.trackme.meetingservice.services.report.TrackerMeetingsReportService;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +44,8 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -743,7 +747,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(roles = "SUPER_ADMIN")
-    void updateBySuperAdmin_notEditableStatus_shouldReturnError() throws Exception {
+    void updateBySuperAdmin_anyStatus_shouldSucceed() throws Exception {
         var meeting = Meeting.builder()
                 .teamCardId(TEAM_CARD_ID)
                 .status(MeetingStatus.SCHEDULED)
@@ -760,6 +764,187 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                         .with(csrf())
                         .content(objectMapper.writeValueAsString(updateDto)))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
+    }
+
+    // ============================================================
+    // Тесты для tracker-отчётов (getMyTrackerMeetingsReport*)
+    // ============================================================
+
+    @MockitoBean
+    private TrackerMeetingsReportService trackerMeetingsReportService;
+
+    @Test
+    @WithMockUser(value = "tracker_user", roles = {"TRACKER"})
+    void getMyTrackerMeetingsReport_success() throws Exception {
+        when(trackerMeetingsReportService.getReportRecordsForTracker(anyList(), any()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        mockMvc.perform(post("/api/v1/tracker/meetings/reports/my")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\":[]}")
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    @WithMockUser(value = "tracker_user", roles = {"TRACKER"})
+    void getMyTrackerMeetingsReportExcel_streamsFile() throws Exception {
+        doAnswer(invocation -> {
+            java.io.OutputStream out = invocation.getArgument(4);
+            out.write("fake-tracker-excel".getBytes());
+            return null;
+        }).when(trackerMeetingsReportService).streamRecordsToExcel(
+                any(), any(), anyInt(), anyInt(), any());
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/tracker/meetings/reports/my/excel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\":[]}")
+                        .with(csrf()))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(header().exists(HttpHeaders.CONTENT_DISPOSITION))
+                .andExpect(content().contentType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .andExpect(content().bytes("fake-tracker-excel".getBytes()));
+
+        verify(trackerMeetingsReportService, times(1))
+                .streamRecordsToExcel(any(), any(), anyInt(), anyInt(), any());
+    }
+
+    // ============================================================
+    // Тесты обработки ошибок стриминга (проблема №4)
+    // ============================================================
+
+    @Test
+    void getMeetingsReportExcel_errorDuringStreaming_propagatesException() throws Exception {
+        UUID streamId = UUID.randomUUID();
+
+        // Стриминг падает с IOException
+        doAnswer(invocation -> {
+            throw new java.io.IOException("Simulated streaming failure");
+        }).when(reportService).streamRecordsToExcelForStream(
+                any(), any(), any(), anyInt(), anyInt(), any());
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/meetings/reports/excel")
+                        .param("streamId", streamId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\":[]}")
+                        .with(csrf()))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        // asyncDispatch должен выбросить исключение (IOException)
+        Assertions.assertThrows(Exception.class, () ->
+                mockMvc.perform(asyncDispatch(mvcResult)).andReturn());
+    }
+
+    @Test
+    @WithMockUser(value = "tracker_user", roles = {"TRACKER"})
+    void getMyTrackerMeetingsReportExcel_errorDuringStreaming_propagatesException() throws Exception {
+        doAnswer(invocation -> {
+            throw new java.io.IOException("Simulated tracker streaming failure");
+        }).when(trackerMeetingsReportService).streamRecordsToExcel(
+                any(), any(), anyInt(), anyInt(), any());
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/tracker/meetings/reports/my/excel")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\":[]}")
+                        .with(csrf()))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        Assertions.assertThrows(Exception.class, () ->
+                mockMvc.perform(asyncDispatch(mvcResult)).andReturn());
+    }
+
+    // ============================================================
+    // Тесты для updateByAdmin (endpoint /admin-update)
+    // ============================================================
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateByAdmin_success() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.SCHEDULED)
+                .recordLink("https://example.com/old")
+                .number("500")
+                .startDate(OffsetDateTime.now().plusDays(5))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .recordLink("https://example.com/new")
+                .number("501")
+                .tasksNextMeeting("new tasks")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/admin-update/" + meeting.getId())
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.recordLink").value("https://example.com/new"))
+                .andExpect(jsonPath("$.number").value("501"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateByAdmin_cannotChangeStatus() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.SCHEDULED)
+                .recordLink("https://example.com/old")
+                .number("502")
+                .startDate(OffsetDateTime.now().plusDays(5))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .recordLink("https://example.com/new")
+                .status(MeetingStatus.COMPLETED)  // ← ADMIN не может менять status
+                .build();
+
+        mockMvc.perform(patch("/api/v1/admin-update/" + meeting.getId())
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "TRACKER")
+    void updateByAdmin_trackerForbidden() throws Exception {
+        var meeting = Meeting.builder()
+                .teamCardId(TEAM_CARD_ID)
+                .status(MeetingStatus.SCHEDULED)
+                .number("503")
+                .startDate(OffsetDateTime.now().plusDays(5))
+                .build();
+        meeting = meetingRepository.save(meeting);
+
+        var updateDto = MeetingUpdateDto.builder()
+                .recordLink("https://example.com/new")
+                .build();
+
+        mockMvc.perform(patch("/api/v1/admin-update/" + meeting.getId())
+                        .param("teamCardId", TEAM_CARD_ID.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(updateDto)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 }

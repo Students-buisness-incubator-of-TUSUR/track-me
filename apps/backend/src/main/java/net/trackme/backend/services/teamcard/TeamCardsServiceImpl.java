@@ -75,7 +75,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
             teamCardId,
             teamCard.getName(),
             teamCard.getUsername(),
-            teamCard.getTrackerFullName()
+            teamCard.getTrackerFullName(),
+            teamCard.getPassive()
         ));
 
         return teamCard;
@@ -142,7 +143,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
             teamCardId,
             teamCard.getName(),
             teamCard.getUsername(),
-            teamCard.getTrackerFullName()
+            teamCard.getTrackerFullName(),
+            teamCard.getPassive()
         ));
 
         return teamCard;
@@ -273,7 +275,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
                 team.getId(),
                 team.getName(),
                 toUsername,
-                newTrackerFullName
+                newTrackerFullName,
+                team.getPassive()
             ));
             
             log.debug("Reassigned team '{}': {} -> {}, fullName: '{}' -> '{}'", 

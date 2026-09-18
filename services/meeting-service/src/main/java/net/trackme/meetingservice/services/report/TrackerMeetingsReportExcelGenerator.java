@@ -1,8 +1,7 @@
 package net.trackme.meetingservice.services.report;
 
-import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
+import net.trackme.meetingservice.api.dto.TrackerMeetingReportRecordDto;
 import net.trackme.meetingservice.entities.MeetingStatus;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.PropertyTemplate;
@@ -14,12 +13,11 @@ import java.io.OutputStream;
 import java.util.stream.Stream;
 
 @Component
-public class MeetingsReportExcelGenerator extends AbstractMeetingsReportExcelGenerator {
+public class TrackerMeetingsReportExcelGenerator extends AbstractMeetingsReportExcelGenerator {
 
     private static final String[] HEADERS = {
             "Название команды",
             "Дата встречи",
-            "Трекер",
             "Задачи к следующей встрече",
             "Выполнили задачи прошлой встречи или нет, общая информация по команде",
             "Статус команды"
@@ -32,27 +30,24 @@ public class MeetingsReportExcelGenerator extends AbstractMeetingsReportExcelGen
 
     @Override
     protected String getTitleText(String streamName) {
-        return "Отчёт по встречам на потоке: " + streamName;
+        return "Отчёт трекера по встречам";
     }
 
     @Override
     protected void writeRecordRow(Row row, Object reportRecord, Styles styles) {
-        var dto = (MeetingReportRecordDto) reportRecord;
+        var dto = (TrackerMeetingReportRecordDto) reportRecord;
         MeetingStatus status = dto.status();
 
-        CellStyle commonStyle = writeCommonFirstColumns(
-                row, dto.teamName(), dto.startDate(), status, styles);
-        setString(row, 2, dto.trackerFullName(), commonStyle);
-        //   Соответствие как в UI (MeetingReportPage.js):
-        //   колонка 3 «Задачи к следующей встрече» ← tasksCurrentMeeting
-        //   колонка 4 «Выполнили задачи прошлой встречи» ← tasksNextMeeting
-        writeTaskCells(row, status, dto.tasksCurrentMeeting(), dto.tasksNextMeeting(), 3, 4, styles);
-        writeStatusCell(row, 5, dto.teamStatus(), status, styles);
+        writeCommonFirstColumns(row, dto.teamName(), dto.startDate(), status, styles);
+        //   Соответствие как в UI:
+        //   колонка 2 «Задачи к следующей встрече» ← tasksCurrentMeeting
+        //   колонка 3 «Выполнили задачи прошлой встречи» ← tasksNextMeeting
+        writeTaskCells(row, status, dto.tasksCurrentMeeting(), dto.tasksNextMeeting(), 2, 3, styles);
+        writeStatusCell(row, 4, dto.teamStatus(), status, styles);
     }
 
     public void generate(
-            String streamName,
-            Stream<MeetingReportRecordDto> records,
+            Stream<TrackerMeetingReportRecordDto> records,
             OutputStream outputStream
     ) throws IOException {
         try (var workbook = new SXSSFWorkbook(500)) {
@@ -61,7 +56,7 @@ public class MeetingsReportExcelGenerator extends AbstractMeetingsReportExcelGen
             prepareSheet(sheet);
             var styles = new Styles(workbook);
 
-            writeTitle(sheet, styles, streamName);
+            writeTitle(sheet, styles, null);
             writeHeaders(sheet, styles);
             writeData(sheet, records, styles);
 
@@ -69,7 +64,7 @@ public class MeetingsReportExcelGenerator extends AbstractMeetingsReportExcelGen
         }
     }
 
-    private void writeData(Sheet sheet, Stream<MeetingReportRecordDto> records, Styles styles) {
+    private void writeData(Sheet sheet, Stream<TrackerMeetingReportRecordDto> records, Styles styles) {
         final int[] rowTracker = {2};
         final int[] groupStartRow = {2};
         final String[] lastTeamName = {null};
@@ -92,9 +87,8 @@ public class MeetingsReportExcelGenerator extends AbstractMeetingsReportExcelGen
     private void prepareSheet(Sheet sheet) {
         sheet.setColumnWidth(0, 25 * 256);
         sheet.setColumnWidth(1, 15 * 256);
-        sheet.setColumnWidth(2, 25 * 256);
-        sheet.setColumnWidth(3, 40 * 256);
-        sheet.setColumnWidth(4, 75 * 256);
-        sheet.setColumnWidth(5, 20 * 256);
+        sheet.setColumnWidth(2, 40 * 256);
+        sheet.setColumnWidth(3, 75 * 256);
+        sheet.setColumnWidth(4, 20 * 256);
     }
 }

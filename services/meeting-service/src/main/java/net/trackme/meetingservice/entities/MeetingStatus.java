@@ -20,14 +20,6 @@ public enum MeetingStatus {
         this.description = description;
     }
 
-    /**
-     * Проверяет, может ли суперадминистратор редактировать встречу с данным статусом.
-     * @return true если статус FINALLY_COMPLETED или COMPLETED_AS_NOT_HAPPENED
-     */
-    public boolean isEditableBySuperAdmin() {
-        return this == FINALLY_COMPLETED || this == COMPLETED_AS_NOT_HAPPENED;
-    }
-
     @Override
     public String toString() {
         return name();
