@@ -81,16 +81,21 @@ public class TeamCardsUseCase {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") ||
                         a.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
-        //Изменять пассивный статус может только ADMIN/SUPER_ADMIN
-        if (createOrUpdateDto.passive() != null && !isAdmin) {
+        // Изменять пассивный статус может только ADMIN/SUPER_ADMIN.
+        boolean passiveChanged = createOrUpdateDto.passive() != null
+                && !createOrUpdateDto.passive().equals(existingTeamCard.getPassive());
+
+        if (passiveChanged && !isAdmin) {
             throw new org.springframework.security.access.AccessDeniedException(
                     "Только администратор может изменять пассивный статус команды.");
         }
+
         // Если команда уже пассивна — редактировать её может только ADMIN/SUPER_ADMIN
         if (Boolean.TRUE.equals(existingTeamCard.getPassive()) && !isAdmin) {
             throw new org.springframework.security.access.AccessDeniedException(
                     "Нельзя редактировать пассивную команду.");
         }
+
         var ntiMarketIds = createOrUpdateDto.ntiMarketIds();
         var teamCard = teamCardMapper.mapToEntity(createOrUpdateDto);
         var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);

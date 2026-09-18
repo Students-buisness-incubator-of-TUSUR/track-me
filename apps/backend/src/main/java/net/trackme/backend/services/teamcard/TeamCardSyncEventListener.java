@@ -42,7 +42,8 @@ public class TeamCardSyncEventListener {
             internalEvent.teamCardId(),
             internalEvent.newName(),
             internalEvent.newUsername(),
-            internalEvent.trackerFullName()
+            internalEvent.trackerFullName(),
+            internalEvent.newPassive()
         );
 
         kafkaProducer.sendTeamCardUpdatedEvent(TeamCardUpdatedEvent.builder()
@@ -50,6 +51,7 @@ public class TeamCardSyncEventListener {
                 .newName(internalEvent.newName())
                 .newUsername(internalEvent.newUsername())
                 .trackerFullName(internalEvent.trackerFullName())
+                .newPassive(internalEvent.newPassive())
                 .build());
     }
 

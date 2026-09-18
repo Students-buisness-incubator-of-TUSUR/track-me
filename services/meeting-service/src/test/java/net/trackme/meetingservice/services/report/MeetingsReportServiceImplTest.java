@@ -22,6 +22,9 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -162,7 +165,7 @@ class MeetingsReportServiceImplTest {
 
         doAnswer(invocation -> {
             Stream<MeetingReportRecordDto> stream = invocation.getArgument(1);
-            stream.forEach(record -> {});
+            stream.forEach(reportRecord -> {});
             return null;
         }).when(excelGenerator).generate(anyString(), any(), any());
 
