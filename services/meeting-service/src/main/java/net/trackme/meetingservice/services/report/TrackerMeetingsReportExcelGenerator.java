@@ -39,7 +39,10 @@ public class TrackerMeetingsReportExcelGenerator extends AbstractMeetingsReportE
         MeetingStatus status = dto.status();
 
         writeCommonFirstColumns(row, dto.teamName(), dto.startDate(), status, styles);
-        writeTaskCells(row, status, dto.tasksNextMeeting(), dto.tasksCurrentMeeting(), 2, 3, styles);
+        //   Соответствие как в UI:
+        //   колонка 2 «Задачи к следующей встрече» ← tasksCurrentMeeting
+        //   колонка 3 «Выполнили задачи прошлой встречи» ← tasksNextMeeting
+        writeTaskCells(row, status, dto.tasksCurrentMeeting(), dto.tasksNextMeeting(), 2, 3, styles);
         writeStatusCell(row, 4, dto.teamStatus(), status, styles);
     }
 

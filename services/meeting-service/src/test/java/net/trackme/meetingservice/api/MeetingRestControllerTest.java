@@ -747,7 +747,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
 
     @Test
     @WithMockUser(roles = "SUPER_ADMIN")
-    void updateBySuperAdmin_notEditableStatus_shouldReturnError() throws Exception {
+    void updateBySuperAdmin_anyStatus_shouldSucceed() throws Exception {
         var meeting = Meeting.builder()
                 .teamCardId(TEAM_CARD_ID)
                 .status(MeetingStatus.SCHEDULED)
@@ -764,7 +764,8 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                         .with(csrf())
                         .content(objectMapper.writeValueAsString(updateDto)))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("COMPLETED"));
     }
 
     // ============================================================

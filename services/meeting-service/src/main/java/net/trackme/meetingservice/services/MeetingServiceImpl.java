@@ -320,16 +320,6 @@ public class MeetingServiceImpl implements MeetingService {
         
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
-
-        if (!meeting.getStatus().isEditableBySuperAdmin()) {
-            throw new IllegalStateException(
-                String.format(
-                    "Невозможно редактировать встречу со статусом '%s'. Разрешены только: '%s' и '%s'.",
-                    meeting.getStatus().getDescription(),
-                    MeetingStatus.FINALLY_COMPLETED.getDescription(),
-                    MeetingStatus.COMPLETED_AS_NOT_HAPPENED.getDescription())
-            );
-        }
         
         OffsetDateTime oldStartDate = meeting.getStartDate();
         boolean dateChanged = isDateChanged(updateDto, oldStartDate);

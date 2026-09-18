@@ -64,8 +64,8 @@ class TrackerMeetingsReportExcelGeneratorTest {
             assertNotNull(dataRow);
             assertEquals("Команда А", dataRow.getCell(0).getStringCellValue());
             assertEquals("10.05.2024", dataRow.getCell(1).getStringCellValue());
-            assertEquals("Выполнено", dataRow.getCell(2).getStringCellValue());
-            assertEquals("Не выполнено", dataRow.getCell(3).getStringCellValue());
+            assertEquals("Не выполнено", dataRow.getCell(2).getStringCellValue());
+            assertEquals("Выполнено", dataRow.getCell(3).getStringCellValue());
             assertEquals("Всё ок", dataRow.getCell(4).getStringCellValue());
         }
     }
