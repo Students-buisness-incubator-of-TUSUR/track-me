@@ -8,7 +8,7 @@ import org.springframework.session.web.server.session.SpringSessionWebSessionSto
 import org.springframework.web.server.session.WebSessionStore;
 
 @Configuration
-@EnableRedisWebSession
+@EnableRedisWebSession(maxInactiveIntervalInSeconds = 3600)
 public class RedisSessionConfiguration {
 
     @Bean

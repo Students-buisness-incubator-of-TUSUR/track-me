@@ -18,7 +18,7 @@ public class SecurityConfigurationUtility {
   OAuth2AuthorizationService redisOAuth2AuthorizationService(
       RedisTemplate<String, OAuth2Authorization> redisTemplate) {
     return new RedisOAuth2AuthorizationService(redisTemplate,
-        Duration.ofHours(1));
+        Duration.ofHours(2));
   }
 
   @Bean

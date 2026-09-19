@@ -1,6 +1,12 @@
 package net.trackme.cliengateway.config;
 
 import jakarta.annotation.PostConstruct;
+import java.time.Clock;
+import net.trackme.cliengateway.UserActivityWebFilter;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -62,6 +68,10 @@ public class OAuth2ClientConfiguration {
                         oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler);
                 })
                 .oauth2Client(withDefaults())
+                .exceptionHandling(errors -> errors.defaultAuthenticationEntryPointFor(
+                        new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED),
+                        new PathPatternParserServerWebExchangeMatcher("/session/**")))
+                .addFilterAfter(new UserActivityWebFilter(Clock.systemUTC()), SecurityWebFiltersOrder.AUTHORIZATION)
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutSuccessHandler))
@@ -144,6 +154,7 @@ public class OAuth2ClientConfiguration {
         this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
             String registrationId = extractRegistrationId(authentication);
             return webFilterExchange.getExchange().getSession().flatMap(session -> {
+                session.getAttributes().put(UserActivityWebFilter.LAST_ACTIVITY, Clock.systemUTC().millis());
                 String target = resolveRedirectTarget(session, authentication, registrationId);
                 return new RedirectServerAuthenticationSuccessHandler(target)
                         .onAuthenticationSuccess(webFilterExchange, authentication);
