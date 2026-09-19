@@ -39,7 +39,7 @@ spring:
     redis:
       namespace: "trackme:gateway:session"
       flush-mode: immediate
-    timeout: 30m
+    timeout: 60m
   cloud:
     gateway:
       routes:
