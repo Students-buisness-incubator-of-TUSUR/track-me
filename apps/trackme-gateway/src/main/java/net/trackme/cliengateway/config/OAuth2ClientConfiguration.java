@@ -21,6 +21,8 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.DelegatingServerAuthenticationEntryPoint;
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
@@ -55,6 +57,11 @@ public class OAuth2ClientConfiguration {
 
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        var entryPoint = new DelegatingServerAuthenticationEntryPoint(
+                new DelegatingServerAuthenticationEntryPoint.DelegateEntry(
+                        new PathPatternParserServerWebExchangeMatcher("/session/**"),
+                        new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)));
+        entryPoint.setDefaultEntryPoint(new RedirectServerAuthenticationEntryPoint("/login"));
         return http
                 .cors(withDefaults()) // Enable CORS support
                 .authorizeExchange(exchange ->
@@ -68,9 +75,7 @@ public class OAuth2ClientConfiguration {
                         oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler);
                 })
                 .oauth2Client(withDefaults())
-                .exceptionHandling(errors -> errors.defaultAuthenticationEntryPointFor(
-                        new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED),
-                        new PathPatternParserServerWebExchangeMatcher("/session/**")))
+                .exceptionHandling(errors -> errors.authenticationEntryPoint(entryPoint))
                 .addFilterAfter(new UserActivityWebFilter(Clock.systemUTC()), SecurityWebFiltersOrder.AUTHORIZATION)
                 .logout(logout -> logout
                         .logoutUrl("/logout")
