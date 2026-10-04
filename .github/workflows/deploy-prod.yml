@@ -1,10 +1,5 @@
 name: Deploy to PROD
 
-# Релиз на prod = публикация GitHub Release с тегом vX.Y.Z (образы :vX.Y.Z собирает
-# build-artifacts из ветки main). Выкатка идёт через окружение `production` с обязательным
-# ручным апрувом — он же гарантирует, что к моменту деплоя образы уже собраны.
-# workflow_dispatch со входом tag — для повторной выкатки/отката на любой релизный тег.
-
 on:
   release:
     types: [ published ]
@@ -60,7 +55,7 @@ jobs:
           proxy_host: bastion.tusur.ru
           proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          source: "docker/docker-compose.prod.yaml,docker/nginx/nginx.conf,database/init_schemas.sql"
+          source: "docker/docker-compose.prod.yaml,database/init_schemas.sql"
           target: track-me-prod
           overwrite: true
 
@@ -71,6 +66,10 @@ jobs:
           IMAGE_TAG: ${{ steps.image.outputs.tag }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          YANDEX_CLIENT_ID: ${{ secrets.YANDEX_CLIENT_ID }}
+          YANDEX_CLIENT_SECRET: ${{ secrets.YANDEX_CLIENT_SECRET }}
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
           username: ${{ secrets.SBI_SSH_USERNAME }}
@@ -78,23 +77,43 @@ jobs:
           proxy_host: bastion.tusur.ru
           proxy_username: ${{ secrets.SBI_SSH_USERNAME }}
           proxy_key: ${{ secrets.SBI_SSH_PRIVATE_KEY }}
-          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN
+          envs: IMAGE_REPO,IMAGE_TAG,GHCR_USER,GHCR_TOKEN,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,YANDEX_CLIENT_ID,YANDEX_CLIENT_SECRET
           script: |
             set -euo pipefail
             cd "$HOME/track-me-prod"
 
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 
-            # Идемпотентно патчим только ссылки на образы; прикладные секреты в .env не трогаем
             touch .env
-            sed -i '/^IMAGE_REPO=/d;/^IMAGE_TAG=/d' .env
-            echo "IMAGE_REPO=$IMAGE_REPO" >> .env
-            echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+            chmod 600 .env
 
-            # Отдельный проект track-me-prod изолирует контейнеры/сеть/volume'ы от dev на том же хосте.
-            # pull заранее — подстраховка, если образ ещё докачивается; up -d пересоздаёт только изменившееся.
-            docker compose -p track-me-prod -f docker-compose.prod.yaml pull
-            docker compose -p track-me-prod -f docker-compose.prod.yaml up -d
+            # Идемпотентно патчим только ссылки на образы и OAuth-ключи; остальные секреты в .env не трогаем
+            set_env_var() {
+              key="$1"
+              value="$2"
+              if [ -z "$value" ]; then
+                echo "::warning::$key не задан в секретах GitHub — прежнее значение в .env сохранено"
+                return 0
+              fi
+              grep -v "^${key}=" .env > .env.tmp || true
+              cp .env.tmp .env   # cp, а не mv: сохраняем права на .env
+              rm -f .env.tmp
+              printf '%s=%s\n' "$key" "$value" >> .env
+            }
+
+            set_env_var IMAGE_REPO "$IMAGE_REPO"
+            set_env_var IMAGE_TAG "$IMAGE_TAG"
+
+            set_env_var GOOGLE_CLIENT_ID "${GOOGLE_CLIENT_ID:-}"
+            set_env_var GOOGLE_CLIENT_SECRET "${GOOGLE_CLIENT_SECRET:-}"
+            set_env_var YANDEX_CLIENT_ID "${YANDEX_CLIENT_ID:-}"
+            set_env_var YANDEX_CLIENT_SECRET "${YANDEX_CLIENT_SECRET:-}"
+
+            # scp сохраняет пути: compose-файл лежит в docker/, а .env и database/ — в корне каталога,
+            # поэтому --project-directory . Отдельный проект track-me-prod изолирует prod от dev на том же хосте.
+            compose() { docker compose -p track-me-prod --project-directory . -f docker/docker-compose.prod.yaml "$@"; }
+            compose pull
+            compose up -d --remove-orphans
             docker image prune -f
 
       - name: Healthcheck
@@ -109,18 +128,23 @@ jobs:
           script: |
             set -e
             cd "$HOME/track-me-prod"
-            # Порты сервисов наружу не публикуются — проверяем изнутри prod-проекта через compose exec.
+            compose() { docker compose -p track-me-prod --project-directory . -f docker/docker-compose.prod.yaml "$@"; }
+            # sso/gateway/frontend опубликованы на 127.0.0.1 хоста; backend наружу не торчит — проверяем через exec.
             check() {
+              name="$1"; shift
               for i in $(seq 1 24); do
-                if docker compose -p track-me-prod -f docker-compose.prod.yaml exec -T "$1" curl -sf "$2" > /dev/null; then
-                  echo "$1 is up"
+                if "$@" > /dev/null 2>&1; then
+                  echo "$name is up"
                   return 0
                 fi
-                echo "Waiting for $1... ($i/24)"
+                echo "Waiting for $name... ($i/24)"
                 sleep 5
               done
-              echo "$1 failed healthcheck" >&2
+              echo "$name failed healthcheck" >&2
+              compose logs --tail=50 "$name" >&2 || true
               return 1
             }
-            check trackme-backend http://localhost:8080/actuator/health
-            check trackme-sso http://localhost:9000/actuator/health
+            check trackme-sso curl -sf http://127.0.0.1:19000/actuator/health
+            check trackme-client-gateway curl -sf http://127.0.0.1:18081/actuator/health
+            check trackme-backend compose exec -T trackme-backend curl -sf http://localhost:8080/actuator/health
+            check trackme-frontend curl -sf http://127.0.0.1:13000
