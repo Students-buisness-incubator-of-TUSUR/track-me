@@ -22,6 +22,9 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,7 +58,7 @@ class MeetingsReportServiceImplTest {
 
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        verify(meetingRepository).findAll(any(Specification.class), any(Sort.class));
+        verify(meetingRepository, times(1)).findAll(any(Specification.class), any(Sort.class));
     }
 
     @Test
@@ -65,16 +68,18 @@ class MeetingsReportServiceImplTest {
         List<Filter> filters = List.of(statusFilter);
         Pageable pageable = Pageable.ofSize(10);
 
+        Meeting meeting = new Meeting();
+        meeting.setId(UUID.randomUUID());
+
         when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(new Meeting())));
-        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
-                .thenReturn(List.of(new Meeting()));
+                .thenReturn(new PageImpl<>(List.of(meeting), pageable, 1));
         when(meetingMapper.mapToReportDto(any())).thenReturn(MeetingReportRecordDto.builder().build());
 
         Page<MeetingReportRecordDto> result = reportService.getReportRecordsForStream(streamId, filters, pageable);
 
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
+        verify(meetingRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
     }
 
     @Test
@@ -85,9 +90,7 @@ class MeetingsReportServiceImplTest {
         meeting.setId(UUID.randomUUID());
 
         when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(meeting)));
-        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
-                .thenReturn(List.of(meeting));
+                .thenReturn(new PageImpl<>(List.of(meeting), pageable, 1));
         when(meetingMapper.mapToReportDto(any())).thenReturn(MeetingReportRecordDto.builder().build());
 
         reportService.getReportRecordsForStream(streamId, List.of(), pageable);
@@ -125,10 +128,6 @@ class MeetingsReportServiceImplTest {
 
         when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(meeting), pageable, 1));
-
-        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
-                .thenReturn(List.of(meeting));
-
         when(meetingMapper.mapToReportDto(any(Meeting.class))).thenReturn(dto);
 
         Page<MeetingReportRecordDto> result = reportService.getReportRecordsForStream(streamId, List.of(), pageable);
@@ -136,6 +135,7 @@ class MeetingsReportServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
         assertEquals("Team Page", result.getContent().get(0).teamName());
+        verify(meetingRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
     }
 
     @Test
@@ -151,7 +151,6 @@ class MeetingsReportServiceImplTest {
         assertTrue(result.isEmpty());
         assertEquals(0, result.getTotalElements());
         verify(meetingRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
-        verify(meetingRepository, never()).findAll(any(Specification.class), any(Sort.class));
     }
 
     @Test
@@ -166,16 +165,13 @@ class MeetingsReportServiceImplTest {
 
         doAnswer(invocation -> {
             Stream<MeetingReportRecordDto> stream = invocation.getArgument(1);
-            stream.forEach(record -> {});
+            stream.forEach(reportRecord -> {});
             return null;
         }).when(excelGenerator).generate(anyString(), any(), any());
 
         when(meetingRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(meeting1, meeting2)))
                 .thenReturn(new PageImpl<>(List.of()));
-
-        when(meetingRepository.findAll(any(Specification.class), any(Sort.class)))
-                .thenReturn(List.of(meeting1, meeting2));
 
         when(meetingMapper.mapToReportDto(any(Meeting.class)))
                 .thenReturn(MeetingReportRecordDto.builder().teamName("Test").build());

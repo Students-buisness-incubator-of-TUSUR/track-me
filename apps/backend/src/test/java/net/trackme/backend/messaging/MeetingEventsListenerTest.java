@@ -1,5 +1,6 @@
 package net.trackme.backend.messaging;
 
+import net.trackme.backend.models.MeetingStatus;
 import net.trackme.backend.services.teamcard.TeamCardMeetingsService;
 import net.trackme.backend.services.teamcard.TeamCardSummaryService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -13,6 +14,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.Mockito.verify;
@@ -31,8 +33,8 @@ class MeetingEventsListenerTest {
 
     @Test
     void onMeetingSummaryEvent() {
-        List<LinkedHashMap<String, String>> event = new ArrayList<>();
-        ConsumerRecord<String, List<LinkedHashMap<String, String>>> summaryRecord =
+        List<Map<String, String>> event = new ArrayList<>();
+        ConsumerRecord<String, List<Map<String, String>>> summaryRecord =
                 new ConsumerRecord<>("meeting-summary", 0, 0L, "key", event);
 
         meetingEventsListener.onMeetingSummaryEvent(summaryRecord);
@@ -45,13 +47,13 @@ class MeetingEventsListenerTest {
         UUID meetingId = UUID.randomUUID();
         UUID teamCardId = UUID.randomUUID();
         MeetingDeletedEvent event = new MeetingDeletedEvent(
-                meetingId, teamCardId, OffsetDateTime.now());
+                meetingId, teamCardId, OffsetDateTime.now(), MeetingStatus.COMPLETED);
 
         ConsumerRecord<String, MeetingDeletedEvent> deletedRecord =
                 new ConsumerRecord<>("meeting-deleted", 0, 0L, "key", event);
 
         meetingEventsListener.onMeetingDeletedEvent(deletedRecord);
 
-        verify(teamCardMeetingsService).handleMeetingDeleted(teamCardId, meetingId);
+        verify(teamCardMeetingsService).handleMeetingDeleted(teamCardId, meetingId, MeetingStatus.COMPLETED);
     }
 }

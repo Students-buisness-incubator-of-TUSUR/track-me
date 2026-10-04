@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import net.trackme.commons.filters.FilterRequest;
+import net.trackme.meetingservice.api.dto.TrackerMeetingReportRecordDto;
 import net.trackme.meetingservice.api.dto.MeetingCreateDto;
 import net.trackme.meetingservice.api.dto.MeetingDto;
 import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
@@ -121,4 +122,40 @@ public interface MeetingRestController {
     ResponseEntity<MeetingDto> updateBySuperAdmin(
             @PathVariable UUID meetingId,
             @Valid @RequestBody MeetingUpdateDto updateDto);
+
+    @Operation(summary =
+        "Обновление встречи администратором (без изменения status и teamStatus)")
+    @PatchMapping("/admin-update/{meetingId}")
+    ResponseEntity<MeetingDto> updateByAdmin(
+            @PathVariable UUID meetingId,
+            @RequestParam UUID teamCardId,
+            @Valid @RequestBody MeetingUpdateDto updateDto);
+
+    @PostMapping(
+        value = "tracker/meetings/reports/my",
+        produces = "application/json"
+    )
+    @Operation(
+        summary = "Получение отчета о встречах для трекера (все потоки)",
+        description = "Возвращает пагинированный список встреч текущего трекера по всем его командам"
+    )
+    @ApiResponse(responseCode = "200", description = "Отчет успешно сформирован")
+    ResponseEntity<PagedModel<TrackerMeetingReportRecordDto>> getMyTrackerMeetingsReport(
+            @Parameter(description = "Фильтры для поиска записей отчета")
+            @RequestBody @Valid FilterRequest filters,
+
+            @ParameterObject
+            @PageableDefault(size = 20)
+            Pageable pageable
+    );
+
+    @PostMapping(
+        value = "tracker/meetings/reports/my/excel",
+        produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    @Operation(summary = "Получение Excel-отчета о встречах для трекера (все потоки)")
+    ResponseEntity<StreamingResponseBody> getMyTrackerMeetingsReportExcel(
+            @RequestBody @Valid FilterRequest filters,
+            @ParameterObject @PageableDefault(size = 20) Pageable pageable
+    );
 }

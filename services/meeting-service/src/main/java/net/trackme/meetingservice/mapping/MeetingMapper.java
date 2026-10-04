@@ -5,6 +5,7 @@ import net.trackme.meetingservice.api.dto.MeetingDto;
 import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
 import net.trackme.meetingservice.api.dto.MeetingUpdateDto;
 import net.trackme.meetingservice.entities.Meeting;
+import net.trackme.meetingservice.api.dto.TrackerMeetingReportRecordDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -34,4 +35,13 @@ public interface MeetingMapper {
     @Mapping(target = "id", ignore = true)
     void updateEntityFromDto(MeetingUpdateDto updateDto, @MappingTarget Meeting meeting);
 
+    @Mapping(target = "teamId", source = "teamCardId")
+    TrackerMeetingReportRecordDto mapToTrackerReportDto(Meeting meeting);
+
+    @Mapping(target = "teamCardId", ignore = true)
+    @Mapping(target = "imageBytes", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "teamStatus", ignore = true)
+    void updateEntityFromDtoForAdmin(MeetingUpdateDto updateDto, @MappingTarget Meeting meeting);
 }

@@ -1,6 +1,9 @@
 package net.trackme.sso.services.impl;
 
 import java.text.Collator;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.trackme.sso.config.AppProperties;
 import net.trackme.sso.dao.entity.UserEntity;
 import net.trackme.sso.dao.repository.UserRepository;
+import net.trackme.sso.services.EmailRecipient;
 import net.trackme.sso.services.EmailService;
 import net.trackme.sso.services.NotificationService;
 
@@ -28,6 +32,12 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String FIELD_TRACKER_FULL_NAME = "trackerFullName";
     private static final String FIELD_MEETING_LINK = "meetingLink";
     private static final String FIELD_AVERAGE_GRADE = "averageGrade";
+    private static final String FIELD_MEETING_NUMBER = "meetingNumber";
+    private static final String FIELD_FULL_NAME = "fullName";
+    private static final String FIELD_TEAM_NAME = "teamName";
+    private static final String FIELD_MEETING_DATE = "meetingDate";
+    private static final String FIELD_APP_NAME = "appName";
+    private static final String FIELD_SUPPORT_EMAIL = "supportEmail";
 
     private static final Collator RUSSIAN_COLLATOR = Collator.getInstance(Locale.of("ru", "RU"));
 
@@ -46,9 +56,9 @@ public class NotificationServiceImpl implements NotificationService {
         var emailTo = userRepository.findByUsername(teamCardUsername)
                 .orElseThrow();
 
-        String fullName = (trackerFullName != null && !trackerFullName.isBlank()) 
-        ? getShortName(trackerFullName) 
-        : emailTo.getFullName();        
+        String fullName = (trackerFullName != null && !trackerFullName.isBlank())
+        ? getShortName(trackerFullName)
+        : emailTo.getFullName();
 
         emailService.sendMail(
                 emailTo.getEmail(),
@@ -57,9 +67,9 @@ public class NotificationServiceImpl implements NotificationService {
                 "email-meeting-not-happened.html",
                 Map.of(
                         "email", emailTo,
-                        "fullName", fullName,
-                        "appName", appProperties.getMail().getSubject(),
-                        "supportEmail", appProperties.getMail().getFrom(),
+                        FIELD_FULL_NAME, fullName,
+                        FIELD_APP_NAME, appProperties.getMail().getSubject(),
+                        FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom(),
                         FIELD_TEAM_CARD_NAME, teamCardName,
                         FIELD_STREAM_NAME, streamName,
                         FIELD_MEETING_LINK, meetingLink));
@@ -67,21 +77,21 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendTeamCardSummary(
-            List<LinkedHashMap<String, String>> teamCardSummaryEvents) {
+            List<Map<String, String>> teamCardSummaryEvents) {
         // Группируем по потокам
-        Map<String, List<LinkedHashMap<String, String>>> groupedByStream = groupAndSortByStream(teamCardSummaryEvents);
-        
+        Map<String, List<Map<String, String>>> groupedByStream = groupAndSortByStream(teamCardSummaryEvents);
+
         List<String> infos = new ArrayList<>();
-        
+
         for (var entry : groupedByStream.entrySet()) {
             String streamName = entry.getKey();
-            List<LinkedHashMap<String, String>> streamEvents = entry.getValue();
-            
+            List<Map<String, String>> streamEvents = entry.getValue();
+
             int meetingNumber = 1; // Нумерация встреч начинается с 1 для каждого потока
-            
+
             for (var event : streamEvents) {
                 String trackerInfo = getShortName(event.getOrDefault(FIELD_TRACKER_FULL_NAME, NOT_ASSIGNED));
-                
+
                 var info = String.format("%d. Поток: %s - Команда: %s - Трекер: %s - Встреча: %d<br>Ссылка на встречу: %s",
                         meetingNumber,
                         streamName,
@@ -104,21 +114,21 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendTeamCardLowGradeSummary(
-            List<LinkedHashMap<String, String>> teamCardLowGradeSummaryEvents) {
+            List<Map<String, String>> teamCardLowGradeSummaryEvents) {
         // Группируем по потокам
-        Map<String, List<LinkedHashMap<String, String>>> groupedByStream = groupAndSortByStream(teamCardLowGradeSummaryEvents);
-        
+        Map<String, List<Map<String, String>>> groupedByStream = groupAndSortByStream(teamCardLowGradeSummaryEvents);
+
         List<String> infos = new ArrayList<>();
-        
+
         for (var entry : groupedByStream.entrySet()) {
             String streamName = entry.getKey();
-            List<LinkedHashMap<String, String>> streamEvents = entry.getValue();
+            List<Map<String, String>> streamEvents = entry.getValue();
 
             int count = 1;
-            
+
             for (var event : streamEvents) {
                 String trackerInfo = getShortName(event.getOrDefault(FIELD_TRACKER_FULL_NAME, NOT_ASSIGNED));
-                
+
                 var info = String.format("%d. Поток: %s - Команда: %s - Трекер: %s - Рейтинг: %s",
                         count,
                         streamName,
@@ -142,27 +152,27 @@ public class NotificationServiceImpl implements NotificationService {
      * Группирует события по потокам и сортирует команды внутри потока по алфавиту
      * (сначала английские названия, потом русские).
      */
-    private Map<String, List<LinkedHashMap<String, String>>> groupAndSortByStream(
-            List<LinkedHashMap<String, String>> events) {
-        
+    private Map<String, List<Map<String, String>>> groupAndSortByStream(
+            List<Map<String, String>> events) {
+
         // Группируем по streamName, сохраняя порядок потоков
-        Map<String, List<LinkedHashMap<String, String>>> grouped = new LinkedHashMap<>();
-        
+        Map<String, List<Map<String, String>>> grouped = new LinkedHashMap<>();
+
         for (var event : events) {
             String streamName = event.get(FIELD_STREAM_NAME);
             grouped.computeIfAbsent(streamName, k -> new ArrayList<>()).add(event);
         }
-        
+
         // Сортируем команды внутри каждого потока
         for (var entry : grouped.entrySet()) {
-            List<LinkedHashMap<String, String>> streamTeams = entry.getValue();
+            List<Map<String, String>> streamTeams = entry.getValue();
             streamTeams.sort((a, b) -> {
                 String nameA = a.getOrDefault(FIELD_TEAM_CARD_NAME, "");
                 String nameB = b.getOrDefault(FIELD_TEAM_CARD_NAME, "");
                 return compareNamesAlphabetically(nameA, nameB);
             });
         }
-        
+
         return grouped;
     }
 
@@ -172,10 +182,10 @@ public class NotificationServiceImpl implements NotificationService {
     private int compareNamesAlphabetically(String name1, String name2) {
         if (name1 == null) return 1;
         if (name2 == null) return -1;
-        
+
         boolean isEnglish1 = name1.matches("^[A-Za-z].*");
         boolean isEnglish2 = name2.matches("^[A-Za-z].*");
-        
+
         if (isEnglish1 && !isEnglish2) {
             return -1; // Английское перед русским
         } else if (!isEnglish1 && isEnglish2) {
@@ -212,11 +222,59 @@ public class NotificationServiceImpl implements NotificationService {
                     templateName,
                     Map.of(
                             "email", emailTo.getEmail(),
-                            "fullName", emailTo.getFullName(),
-                            "appName", appProperties.getMail().getSubject(),
-                            "supportEmail", appProperties.getMail().getFrom(),
+                            FIELD_FULL_NAME, emailTo.getFullName(),
+                            FIELD_APP_NAME, appProperties.getMail().getSubject(),
+                            FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom(),
                             "summary", summary));
         }
+    }
+
+    private static final ZoneId TOMSK_ZONE = ZoneId.of("Asia/Tomsk");
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
+    private String formatToTomsk(OffsetDateTime dateTime) {
+        if (dateTime == null) return "";
+        return dateTime.atZoneSameInstant(TOMSK_ZONE).format(DATE_FORMATTER);
+    }
+
+    @Override
+    public void sendMeetingEmail(EmailRecipient recipient, String teamName,
+                                 String meetingLink, OffsetDateTime meetingDate,
+                                 String templateName, String subject,
+                                 Map<String, Object> extraParams) {
+        String formattedDate = formatToTomsk(meetingDate);
+        Map<String, Object> vars = new java.util.HashMap<>();
+        vars.put(FIELD_FULL_NAME, recipient.fullName());
+        vars.put(FIELD_TEAM_NAME, teamName);
+        vars.put(FIELD_MEETING_DATE, formattedDate);
+        vars.put(FIELD_MEETING_LINK, meetingLink);
+        vars.put(FIELD_APP_NAME, appProperties.getMail().getSubject());
+        vars.put(FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom());
+        vars.putAll(extraParams);
+        emailService.sendMail(recipient.email(), appProperties.getMail().getFrom(),
+                "[" + appProperties.getMail().getSubject() + "] " + subject,
+                templateName, vars);
+    }
+
+    @Override
+    public void sendMeetingEmailByUsername(String username, String teamName,
+                                           String meetingLink, OffsetDateTime meetingDate,
+                                           String templateName, String subject,
+                                           Map<String, Object> extraParams) {
+        userRepository.findByUsername(username).ifPresentOrElse(
+                user -> {
+                    if (user.getEmail() == null || user.getEmail().isBlank()) {
+                        log.warn("User {} has no email, skipping meeting email", username);
+                        return;
+                    }
+                    sendMeetingEmail(new EmailRecipient(user.getEmail(),
+                            user.getFullName() != null ? user.getFullName() : username),
+                            teamName, meetingLink, meetingDate,
+                            templateName, subject, extraParams);
+                },
+                () -> log.warn("User {} not found in SSO, skipping meeting email", username)
+        );
     }
 
     private String getShortName(String fullName) {
@@ -229,4 +287,5 @@ public class NotificationServiceImpl implements NotificationService {
         }
         return fullName;
     }
+
 }

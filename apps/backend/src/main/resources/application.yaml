@@ -1,6 +1,10 @@
 spring:
   profiles:
     active: development
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
   mail:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:465}
@@ -28,6 +32,10 @@ spring:
         pool:
           max-active: 16
           max-idle: 8
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
   datasource:
     driver-class-name: org.postgresql.Driver
     password: ${DB_PASSWORD:project-place}

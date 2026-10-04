@@ -163,8 +163,7 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
         teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId1);
         teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId2);
 
-        // Act
-        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), meetingId1);
+        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), meetingId1, MeetingStatus.COMPLETED);
 
         // Assert
         var updatedTeamCard = teamCardsService.getTeamCard(teamCard.getId());
@@ -190,11 +189,120 @@ class TeamCardMeetingsServiceImplTest extends BaseApplicationTest {
         // Увеличиваем счётчик через правильный метод
         teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId1);
 
-        // Act
-        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), nonExistentMeetingId);
+        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), nonExistentMeetingId, MeetingStatus.COMPLETED);
 
         // Assert
         var updatedTeamCard = teamCardsService.getTeamCard(teamCard.getId());
         Assertions.assertEquals(1, updatedTeamCard.getMeetingsCount());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void updateTeamCardInfo_completedToNotHappened_shouldSwapCounters() {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var meetingId1 = UUID.randomUUID();
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Test team card")
+                .ntiMarkets(List.of(ntiMarket))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
+                .build());
+        teamCard.addMeetingGrade(meetingId1);
+        teamCard.setMeetingsCompletedCount(3);
+        teamCard.setMeetingsCompletedAsNotHappenedCount(0);
+        teamCardsRepository.save(teamCard);
+
+        teamCardMeetingsService.updateTeamCardInfo(
+                teamCard.getId(),
+                meetingId1,
+                MeetingStatus.COMPLETED_AS_NOT_HAPPENED,
+                MeetingStatus.COMPLETED,
+                null, null, null);
+
+        var updated = teamCardsService.getTeamCard(teamCard.getId());
+        Assertions.assertEquals(2, updated.getMeetingsCompletedCount());
+        Assertions.assertEquals(1, updated.getMeetingsCompletedAsNotHappenedCount());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void updateTeamCardInfo_notHappenedToCompleted_shouldSwapCounters() {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var meetingId1 = UUID.randomUUID();
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Test team card")
+                .ntiMarkets(List.of(ntiMarket))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
+                .build());
+        teamCard.addMeetingGrade(meetingId1);
+        teamCard.setMeetingsCompletedCount(1);
+        teamCard.setMeetingsCompletedAsNotHappenedCount(2);
+        teamCardsRepository.save(teamCard);
+
+        teamCardMeetingsService.updateTeamCardInfo(
+                teamCard.getId(),
+                meetingId1,
+                MeetingStatus.COMPLETED,
+                MeetingStatus.COMPLETED_AS_NOT_HAPPENED,
+                null, null, null);
+
+        var updated = teamCardsService.getTeamCard(teamCard.getId());
+        Assertions.assertEquals(2, updated.getMeetingsCompletedCount());
+        Assertions.assertEquals(1, updated.getMeetingsCompletedAsNotHappenedCount());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void handleMeetingDeleted_completed_shouldDecreaseCompletedCount() {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var meetingId1 = UUID.randomUUID();
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Test team card")
+                .ntiMarkets(List.of(ntiMarket))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
+                .build());
+
+        teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId1);
+        teamCard.setMeetingsCompletedCount(1);
+        teamCardsRepository.save(teamCard);
+
+        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), meetingId1, MeetingStatus.COMPLETED);
+
+        var updated = teamCardsService.getTeamCard(teamCard.getId());
+        Assertions.assertEquals(0, updated.getMeetingsCount());
+        Assertions.assertEquals(0, updated.getMeetingsCompletedCount());
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "TRACKER")
+    void handleMeetingDeleted_completedAsNotHappened_shouldDecreaseCompletedAsNotHappenedCount() {
+        var ntiMarket = ntiMarketRepository.findAll().getFirst();
+        var meetingId1 = UUID.randomUUID();
+        var teamCard = teamCardsService.createTeamCard(TeamCard.builder()
+                .status(TeamCardStatus.OK)
+                .name("Test team card")
+                .ntiMarkets(List.of(ntiMarket))
+                .username(BaseApplicationTest.USER)
+                .readinessLevel(ReadinessLevel.LEVEL_1)
+                .meetingRoomLink("meetingRoom@link.com")
+                .build());
+
+        teamCardMeetingsService.increaseMeetingCount(teamCard.getId(), meetingId1);
+        teamCard.setMeetingsCompletedAsNotHappenedCount(1);
+        teamCardsRepository.save(teamCard);
+
+        teamCardMeetingsService.handleMeetingDeleted(teamCard.getId(), meetingId1, MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
+
+        var updated = teamCardsService.getTeamCard(teamCard.getId());
+        Assertions.assertEquals(0, updated.getMeetingsCount());
+        Assertions.assertEquals(0, updated.getMeetingsCompletedAsNotHappenedCount());
     }
 }

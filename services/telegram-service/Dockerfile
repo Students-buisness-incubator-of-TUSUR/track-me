@@ -1,4 +1,4 @@
-FROM gradle:8-jdk21-alpine AS builder
+FROM gradle:9.7.1-jdk25-alpine AS builder
 
 RUN apk add --no-cache nodejs npm
 
@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.gradle --mount=type=secret,id=gpr_token \
     GITHUB_ACTOR=docker GITHUB_TOKEN=$(cat /run/secrets/gpr_token) \
     gradle :telegram-service:bootJar -Pprod
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /app
 

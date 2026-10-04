@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardUpdateDto;
@@ -40,6 +41,14 @@ public interface TeamCardsAdminRestController {
       String toUserFullName
   ) {}
 
+  /**
+   * DTO для запроса изменения пассивного статуса команды.
+   */
+  record PassiveStatusRequest(
+      @NotNull(message = "passive не может быть null")
+      Boolean passive
+  ) {}
+
   @PostMapping(value = "team-card",
                consumes = "application/json",
                produces = "application/json")
@@ -57,6 +66,19 @@ public interface TeamCardsAdminRestController {
                                              @RequestParam(required = false) String username,
                                              @RequestParam(required = false) UUID streamId,
                                              @Valid @RequestBody TeamCardUpdateDto teamCardDto);
+
+  /**
+   * изменение только пассивного статуса команды.
+   * Не требует заполнения остальных полей карточки.
+   */
+  @PatchMapping(value = "team-card/passive",
+                consumes = "application/json",
+                produces = "application/json")
+  @Operation(summary = "Изменение пассивного статуса команды (отчислить/вернуть)",
+             description = "Меняет только флаг passive. Не требует заполнения остальных полей.")
+  ResponseEntity<TeamCardDto> updatePassiveStatus(
+      @RequestParam UUID teamCardId,
+      @Valid @RequestBody PassiveStatusRequest request);
 
   @PostMapping(value = "team-cards",
                produces = "application/json")

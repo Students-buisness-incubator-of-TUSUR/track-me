@@ -1,6 +1,22 @@
 server:
   port: 8082
 spring:
+  data:
+    redis:
+      client-type: lettuce
+      database: 0
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_USER_PASSWORD:trackme-redis-pass}
+      username: ${REDIS_USER:trackme-redis}
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
   servlet:
     multipart:
       max-file-size: 100MB

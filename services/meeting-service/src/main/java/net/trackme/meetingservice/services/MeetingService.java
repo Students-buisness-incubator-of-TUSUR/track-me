@@ -28,4 +28,6 @@ public interface MeetingService {
 
     // НОВЫЙ МЕТОД
     MeetingDto updateBySuperAdmin(UUID meetingId, MeetingUpdateDto updateDto);
+
+    MeetingDto updateByAdmin(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto);
 }

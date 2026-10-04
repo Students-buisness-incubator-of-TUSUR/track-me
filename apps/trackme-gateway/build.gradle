@@ -1,12 +1,12 @@
 plugins {
     id 'java'
     id 'org.springframework.boot'
-    id 'jacoco'
     id 'io.spring.dependency-management'
+    id 'net.trackme.java-quality' version '1.2.0'
 }
 
 ext {
-    springCloudVersion = "2024.0.1"
+    springCloudVersion = "2025.0.3"
 }
 
 dependencies {
@@ -32,19 +32,14 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    finalizedBy jacocoTestReport
-}
-
-jacocoTestReport {
-    dependsOn test
-    reports {
-        xml.required = true
-        html.required = true
-    }
 }
 
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
     }
+}
+
+tasks.compileJava {
+    options.errorprone.error("NonApiType")
 }

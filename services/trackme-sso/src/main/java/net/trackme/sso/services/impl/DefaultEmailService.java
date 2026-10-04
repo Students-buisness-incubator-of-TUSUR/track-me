@@ -39,6 +39,7 @@ public class DefaultEmailService implements EmailService {
       log.info("Email успешно отправлен на адрес: {}", emailTo);
     } catch (Exception e) {
       log.error("Ошибка при отправке emailTo на адрес: {}", emailTo, e);
+      throw new org.springframework.mail.MailSendException("Email delivery failed", e);
     }
   }
 

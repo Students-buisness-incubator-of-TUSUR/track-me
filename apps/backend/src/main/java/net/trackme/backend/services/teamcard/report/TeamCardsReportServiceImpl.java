@@ -8,6 +8,7 @@ import net.trackme.backend.repos.TeamCardsRepository;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
 import net.trackme.commons.filters.Filter;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +26,6 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 import static net.trackme.backend.domain.spec.TeamCardSpecification.*;
-import static net.trackme.backend.domain.spec.TeamCardSpecification.hasStream;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +37,7 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
     private final TeamCardMapper teamCardMapper;
 
     @Override
+    @Cacheable(value = "team-cards-report-all", key = "#filters.hashCode()")
     public List<TeamCardReportRecordDto> getReportRecords(List<Filter> filters) {
         var queryContext = prepareReportQueryContext(filters);
         var allCards = teamCardsRepository.findAll(queryContext.fetchSpec());
@@ -44,22 +45,22 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
     }
 
     @Override
+    @Cacheable(value = "team-cards-report-page",
+               key = "#filters.hashCode() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<TeamCardReportRecordDto> getReportRecords(List<Filter> filters, Pageable pageable) {
         var queryContext = prepareReportQueryContext(filters);
 
-        Page<TeamCard> idPage = teamCardsRepository.findAll(queryContext.baseSpec(), pageable);
-        if (idPage.isEmpty()) {
+        Page<TeamCard> cardPage = teamCardsRepository.findAll(
+                queryContext.fetchSpec(),
+                pageable
+        );
+
+        if (cardPage.isEmpty()) {
             return Page.empty(pageable);
         }
 
-        var ids = idPage.getContent().stream().map(TeamCard::getId).toList();
-        var teamCards = teamCardsRepository.findAll(
-                queryContext.fetchSpec().and(idIn(ids)),
-                pageable.getSort()
-        );
-
-        var enrichedContent = mapAndEnrichToDto(teamCards, queryContext.gradeByUser());
-        return new PageImpl<>(enrichedContent, pageable, idPage.getTotalElements());
+        var enrichedContent = mapAndEnrichToDto(cardPage.getContent(), queryContext.gradeByUser());
+        return new PageImpl<>(enrichedContent, pageable, cardPage.getTotalElements());
     }
 
     @Override
@@ -72,18 +73,14 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
         var queryContext = prepareReportQueryContext(filters);
         var recordStream = IntStream.iterate(0, i -> i + 1)
                 .mapToObj(page -> {
-                    var idPage = teamCardsRepository.findAll(queryContext.baseSpec(), PageRequest.of(page, fetchPageSize));
-                    if (idPage.isEmpty()) {
+                    var cardPage = teamCardsRepository.findAll(
+                            queryContext.fetchSpec(),
+                            PageRequest.of(page, fetchPageSize)
+                    );
+                    if (cardPage.isEmpty()) {
                         return List.<TeamCardReportRecordDto>of();
                     }
-
-                    var ids = idPage.getContent().stream().map(TeamCard::getId).toList();
-                    var fullTeamCards = teamCardsRepository.findAll(
-                            queryContext.fetchSpec().and(idIn(ids)),
-                            idPage.getSort()
-                    );
-
-                    return mapAndEnrichToDto(fullTeamCards, queryContext.gradeByUser());
+                    return mapAndEnrichToDto(cardPage.getContent(), queryContext.gradeByUser());
                 })
                 .takeWhile(batch -> !batch.isEmpty())
                 .flatMap(Collection::stream)

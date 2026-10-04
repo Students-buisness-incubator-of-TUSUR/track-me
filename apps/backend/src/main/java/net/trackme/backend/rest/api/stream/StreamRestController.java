@@ -24,7 +24,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/streams")
 public interface StreamRestController {
 
-  Integer MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+  Integer MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 
   @Operation(summary = "Получить активные потоки",
              description = "Возвращает активные потоки")
