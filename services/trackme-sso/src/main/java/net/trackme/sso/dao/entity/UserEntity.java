@@ -52,6 +52,9 @@ public class UserEntity extends VersionedBusinessEntity<UUID> {
   @Column(name = "avatar_url")
   private String avatarUrl;
 
+  @Column(name = "yandex_id", unique = true, length = 128)
+  private String yandexId;
+
   @NotNull
   @ColumnDefault("false")
   @Column(name = "active", nullable = false)

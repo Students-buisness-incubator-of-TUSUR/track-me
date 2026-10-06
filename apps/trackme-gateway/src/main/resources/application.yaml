@@ -2,6 +2,8 @@ server:
   port: 8081
   forward-headers-strategy: framework
 app:
+  yandex:
+    enabled: ${YANDEX_LOGIN_ENABLED:false}
   after-login-url: ${AFTER_LOGIN_URL:http://127.0.0.1:8081}
   after-logout-uri: ${AFTER_LOGOUT_URI:http://127.0.0.1:8081}
   logout-uri: ${LOGOUT_URI:http://localhost:9000/connect/logout}
