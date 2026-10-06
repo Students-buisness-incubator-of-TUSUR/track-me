@@ -29,18 +29,18 @@ class UserActivityWebFilterTest {
     void pollingDoesNotCountAsUserActivity() {
         var session = session();
         var chain = chain();
-        StepVerifier.create(filterAt(START + 59 * 60000L).filter(
+        StepVerifier.create(filterAt(START + 79 * 60000L).filter(
                 exchange(session, false), chain)).verifyComplete();
         assertEquals(START, (Long) session.getAttribute(UserActivityWebFilter.LAST_ACTIVITY));
         verify(chain).filter(any());
     }
 
     @Test
-    void expiresExactlyAtOneHourAndDoesNotReviveOnLateActivity() {
+    void expiresExactlyAtEightyMinutesAndDoesNotReviveOnLateActivity() {
         var session = session();
         var chain = chain();
         var exchange = exchange(session, true);
-        StepVerifier.create(filterAt(START + 60 * 60000L).filter(exchange, chain)).verifyComplete();
+        StepVerifier.create(filterAt(START + 80 * 60000L).filter(exchange, chain)).verifyComplete();
         assertEquals(HttpStatus.UNAUTHORIZED, exchange.getResponse().getStatusCode());
         assertFalse(session.isStarted());
         verify(chain, never()).filter(any());

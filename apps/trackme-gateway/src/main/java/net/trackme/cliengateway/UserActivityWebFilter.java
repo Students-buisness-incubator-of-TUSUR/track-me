@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 /** Enforces user inactivity independently of background HTTP traffic. */
 public final class UserActivityWebFilter implements WebFilter {
     public static final String LAST_ACTIVITY = "trackme.lastUserActivity";
-    public static final Duration IDLE_TIMEOUT = Duration.ofMinutes(60);
+    public static final Duration IDLE_TIMEOUT = Duration.ofMinutes(80);
     private final Clock clock;
 
     public UserActivityWebFilter(Clock clock) {
