@@ -39,6 +39,9 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 @EnableConfigurationProperties({AppProperties.class})
 public class OAuth2ClientConfiguration {
+    @org.springframework.beans.factory.annotation.Value("${app.yandex.enabled:false}")
+    private boolean yandexSsoEnabled;
+
     private static final String ATTR_EMAIL = "email";
 
     private final ReactiveClientRegistrationRepository clientRegistrationRepository;
@@ -58,7 +61,7 @@ public class OAuth2ClientConfiguration {
                                 .anyExchange().authenticated())
                 .oauth2Login(oauth2Login -> {
                         oauth2Login.authorizationRequestResolver(
-                                new CustomAuthorizationRequestResolver(clientRegistrationRepository));
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, yandexSsoEnabled));
                         oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler);
                 })
                 .oauth2Client(withDefaults())

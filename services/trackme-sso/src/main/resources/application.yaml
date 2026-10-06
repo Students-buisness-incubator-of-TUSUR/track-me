@@ -53,6 +53,8 @@ springdoc:
   paths-to-exclude: /client/**, /api/csrf
 
 app:
+  yandex:
+    enabled: ${YANDEX_LOGIN_ENABLED:false}
   swagger:
     auth-types:
       auth-header-enabled: true

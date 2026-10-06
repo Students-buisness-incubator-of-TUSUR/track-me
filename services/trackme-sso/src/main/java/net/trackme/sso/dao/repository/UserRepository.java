@@ -12,6 +12,10 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID>, JpaSpec
 
     Optional<UserEntity> findByEmail(String email);
 
+    Optional<UserEntity> findByYandexId(String yandexId);
+
+    boolean existsByEmailIgnoreCase(String email);
+
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
