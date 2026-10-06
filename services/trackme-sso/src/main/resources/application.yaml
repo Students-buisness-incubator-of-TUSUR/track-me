@@ -93,3 +93,12 @@ management:
   health:
     mail:
       enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+logging:
+  level:
+    org.springframework.security: info
