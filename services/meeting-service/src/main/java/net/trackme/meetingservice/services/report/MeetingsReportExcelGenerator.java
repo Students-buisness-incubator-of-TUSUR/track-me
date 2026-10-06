@@ -41,7 +41,7 @@ public class MeetingsReportExcelGenerator extends AbstractMeetingsReportExcelGen
         MeetingStatus status = dto.status();
 
         CellStyle commonStyle = writeCommonFirstColumns(
-                row, dto.teamName(), dto.startDate(), status, styles);
+                row, formatTeamName(dto.teamName(), dto.passive()), dto.startDate(), status, styles);
         setString(row, 2, dto.trackerFullName(), commonStyle);
         //   Соответствие как в UI (MeetingReportPage.js):
         //   колонка 3 «Задачи к следующей встрече» ← tasksCurrentMeeting
