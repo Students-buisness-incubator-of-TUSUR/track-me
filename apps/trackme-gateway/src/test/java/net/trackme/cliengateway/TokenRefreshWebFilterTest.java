@@ -1,6 +1,7 @@
 package net.trackme.cliengateway;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.server.MockWebSession;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,6 +50,7 @@ class TokenRefreshWebFilterTest {
 
     ServerWebExchange exchange = mock(ServerWebExchange.class);
     when(exchange.getPrincipal()).thenReturn(Mono.just(authenticationToken));
+    when(exchange.getSession()).thenReturn(Mono.just(new MockWebSession()));
 
     var mockAuthorizedClient = mock(OAuth2AuthorizedClient.class);
     when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class))).thenReturn(Mono.just(
@@ -101,6 +103,7 @@ class TokenRefreshWebFilterTest {
 
     ServerWebExchange exchange = mock(ServerWebExchange.class);
     when(exchange.getPrincipal()).thenReturn(Mono.just(authenticationToken));
+    when(exchange.getSession()).thenReturn(Mono.just(new MockWebSession()));
 
     when(authorizedClientManager.authorize(any(OAuth2AuthorizeRequest.class))).thenReturn(Mono.empty());
     when(mockFilterChain.filter(exchange)).thenReturn(Mono.empty());
@@ -116,4 +119,31 @@ class TokenRefreshWebFilterTest {
     verifyNoInteractions(authorizedClientRepository);
     verify(mockFilterChain).filter(exchange);
   }
+  @Test
+  void concurrentRequestsShareRefreshAndSaveBothSessions() {
+    var principal = mock(OAuth2AuthenticationToken.class);
+    when(principal.getAuthorizedClientRegistrationId()).thenReturn("track-me-client");
+    var session = new MockWebSession();
+    var first = mock(ServerWebExchange.class);
+    var second = mock(ServerWebExchange.class);
+    when(first.getPrincipal()).thenReturn(Mono.just(principal));
+    when(second.getPrincipal()).thenReturn(Mono.just(principal));
+    when(first.getSession()).thenReturn(Mono.just(session));
+    when(second.getSession()).thenReturn(Mono.just(session));
+    var client = mock(OAuth2AuthorizedClient.class);
+    var result = reactor.core.publisher.Sinks.<OAuth2AuthorizedClient>one();
+    when(authorizedClientManager.authorize(any())).thenReturn(result.asMono());
+    when(authorizedClientRepository.saveAuthorizedClient(any(), any(), any())).thenReturn(Mono.empty());
+    when(mockFilterChain.filter(any())).thenReturn(Mono.empty());
+
+    StepVerifier.create(Mono.when(tokenRefreshWebFilter.filter(first, mockFilterChain),
+            tokenRefreshWebFilter.filter(second, mockFilterChain)))
+        .then(() -> result.tryEmitValue(client))
+        .verifyComplete();
+
+    verify(authorizedClientManager, times(1)).authorize(any());
+    verify(authorizedClientRepository).saveAuthorizedClient(client, principal, first);
+    verify(authorizedClientRepository).saveAuthorizedClient(client, principal, second);
+  }
+
 }

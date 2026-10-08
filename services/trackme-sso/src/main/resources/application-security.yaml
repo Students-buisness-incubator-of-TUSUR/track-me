@@ -7,6 +7,8 @@ spring:
           track-me-client:
             token:
               access-token-time-to-live: 15m
+              refresh-token-time-to-live: 2h
+              reuse-refresh-tokens: false
             registration:
               client-name: TrackMe SSO
               authorization-grant-types:
