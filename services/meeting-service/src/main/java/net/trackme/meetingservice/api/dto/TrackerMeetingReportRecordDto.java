@@ -30,5 +30,8 @@ public record TrackerMeetingReportRecordDto(
         TeamStatus teamStatus,
 
         @Schema(description = "Статус встречи")
-        MeetingStatus status
+        MeetingStatus status,
+
+        @Schema(description = "Признак отчисленной (пассивной) команды")
+        Boolean passive
 ) {}
