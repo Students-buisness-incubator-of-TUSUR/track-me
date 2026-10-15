@@ -38,7 +38,7 @@ public class TrackerMeetingsReportExcelGenerator extends AbstractMeetingsReportE
         var dto = (TrackerMeetingReportRecordDto) reportRecord;
         MeetingStatus status = dto.status();
 
-        writeCommonFirstColumns(row, dto.teamName(), dto.startDate(), status, styles);
+        writeCommonFirstColumns(row, formatTeamName(dto.teamName(), dto.passive()), dto.startDate(), status, styles);
         //   Соответствие как в UI:
         //   колонка 2 «Задачи к следующей встрече» ← tasksCurrentMeeting
         //   колонка 3 «Выполнили задачи прошлой встречи» ← tasksNextMeeting
