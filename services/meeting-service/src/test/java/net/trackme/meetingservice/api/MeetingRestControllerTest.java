@@ -947,4 +947,94 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
+
+    // ============================================================
+    // Тесты прав трекера на встречи команды (наследование от команды)
+    // ============================================================
+
+    @Test
+    @WithMockUser(value = "tracker_user", roles = {"TRACKER"})
+    void updateMeeting_trackerOfTeam_success() throws Exception {
+    // Встреча с trackerUsername = tracker_user (как после передачи команды)
+    var meeting = meetingRepository.findAll().getFirst();
+    meeting.setTrackerUsername("tracker_user");
+    meetingRepository.save(meeting);
+
+    var dto = MeetingUpdateDto.builder()
+            .recordLink("https://example.com/tracker-edited")
+            .build();
+
+    mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                    .param("teamCardId", TEAM_CARD_ID.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.recordLink").value("https://example.com/tracker-edited"));
+    }
+
+    @Test
+    @WithMockUser(value = "other_tracker", roles = {"TRACKER"})
+    void updateMeeting_trackerOfOtherTeam_forbidden() throws Exception {
+    var meeting = meetingRepository.findAll().getFirst();
+    meeting.setTrackerUsername("tracker_user"); // чужая команда
+    meetingRepository.save(meeting);
+
+    var dto = MeetingUpdateDto.builder()
+            .recordLink("https://example.com/hacked")
+            .build();
+
+    mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                    .param("teamCardId", TEAM_CARD_ID.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andDo(print())
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(value = "tracker_user", roles = {"TRACKER"})
+    void updateMeeting_trackerReassigned_oldTrackerLosesAccess() throws Exception {
+    var meeting = meetingRepository.findAll().getFirst();
+    meeting.setTrackerUsername("tracker_user");
+    meetingRepository.save(meeting);
+
+    // Симулируем передачу команды другому трекеру
+    meeting.setTrackerUsername("new_tracker");
+    meetingRepository.save(meeting);
+
+    var dto = MeetingUpdateDto.builder()
+            .recordLink("https://example.com/old-tracker")
+            .build();
+
+    mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                    .param("teamCardId", TEAM_CARD_ID.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andDo(print())
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(value = "new_tracker", roles = {"TRACKER"})
+    void updateMeeting_trackerReassigned_newTrackerGetsAccess() throws Exception {
+    var meeting = meetingRepository.findAll().getFirst();
+    meeting.setTrackerUsername("new_tracker");
+    meetingRepository.save(meeting);
+
+    var dto = MeetingUpdateDto.builder()
+            .recordLink("https://example.com/new-tracker")
+            .build();
+
+    mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                    .param("teamCardId", TEAM_CARD_ID.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andDo(print())
+            .andExpect(status().isOk());
+    }
 }
