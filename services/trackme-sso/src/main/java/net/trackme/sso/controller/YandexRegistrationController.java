@@ -29,25 +29,54 @@ public class YandexRegistrationController {
     private final YandexAccountService accounts;
     private final YandexLoginHandler login;
 
+    @org.springframework.beans.factory.annotation.Value("${FRONTEND_URI:http://localhost}")
+    private String frontendUri;
+
     @GetMapping("/client/yandex/complete")
     public String form(HttpServletRequest request, Model model) {
-        var session = request.getSession();
-        Object error = session.getAttribute(ERROR);
-        session.removeAttribute(ERROR);
-        if (error == null && request.getParameter("error") != null) {
-            error = "Яндекс не подтвердил вход. Повторите попытку.";
+        if (request.getParameter("error") != null) {
+            request.getSession().setAttribute(ERROR, "Яндекс не подтвердил вход. Повторите попытку.");
         }
-        model.addAttribute("error", error);
-        Object fields = session.getAttribute(FIELD_ERRORS);
-        Object values = session.getAttribute(FORM_VALUES);
-        session.removeAttribute(FIELD_ERRORS);
-        session.removeAttribute(FORM_VALUES);
-        model.addAttribute("fieldErrors", fields instanceof Map ? fields : Map.of());
-        model.addAttribute("values", values instanceof Map ? values : Map.of());
-        Object pending = session.getAttribute(YandexLoginHandler.PENDING);
-        model.addAttribute("profile", pending instanceof YandexProfile profile
-                && java.time.Instant.now().isBefore(profile.expiresAt()) ? profile : null);
-        return "yandex-registration";
+        return "redirect:" + frontendUri.replaceAll("/+$", "") + "/yandex-registration";
+    }
+
+    @GetMapping("/client/yandex/profile")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public Map<String, Object> profile(HttpServletRequest request,
+            org.springframework.security.web.csrf.CsrfToken csrf) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("csrfToken", csrf.getToken());
+        result.put("csrfHeader", csrf.getHeaderName());
+        Object error = request.getSession().getAttribute(ERROR);
+        if (error != null) result.put("message", error);
+        Object value = request.getSession().getAttribute(YandexLoginHandler.PENDING);
+        boolean valid = value instanceof YandexProfile profile
+                && java.time.Instant.now().isBefore(profile.expiresAt());
+        result.put("pending", valid);
+        if (valid) result.put("email", ((YandexProfile) value).email());
+        return result;
+    }
+
+    public record Registration(String username, String role, boolean licenseAccepted,
+                               boolean policyAccepted, boolean consent) {}
+
+    @PostMapping("/client/yandex/registration")
+    @org.springframework.web.bind.annotation.ResponseBody
+    public org.springframework.http.ResponseEntity<Map<String, Object>> registration(
+            HttpServletRequest request,
+            @org.springframework.web.bind.annotation.RequestBody Registration body) {
+        // The same validation is shared by API and legacy POST; all identity data stays in the session.
+        register(request, body.username() == null ? "" : body.username(),
+                body.role() == null ? "" : body.role(), body.licenseAccepted(), body.policyAccepted(), body.consent());
+        Object fields = request.getSession().getAttribute(FIELD_ERRORS);
+        if (fields != null) {
+            request.getSession().removeAttribute(FIELD_ERRORS);
+            return org.springframework.http.ResponseEntity.badRequest().body(Map.of("fieldErrors", fields));
+        }
+        Object message = request.getSession().getAttribute(ERROR);
+        boolean registered = Boolean.TRUE.equals(request.getAttribute("yandex.registered"));
+        return org.springframework.http.ResponseEntity.status(registered ? 201 : 400)
+                .body(Map.of("registered", registered, "message", message == null ? "Повторите вход через Яндекс." : message));
     }
 
     @PostMapping("/client/yandex/register")
@@ -56,6 +85,9 @@ public class YandexRegistrationController {
                            @RequestParam(defaultValue = "false") boolean licenseAccepted,
                            @RequestParam(defaultValue = "false") boolean policyAccepted,
                            @RequestParam(defaultValue = "false") boolean consent) {
+        request.removeAttribute("yandex.registered");
+        request.getSession().removeAttribute(FIELD_ERRORS);
+        request.getSession().removeAttribute(ERROR);
         username = YandexAccountService.normalizeUsername(username);
         Map<String, String> fields = new LinkedHashMap<>();
         if (!username.matches("[a-zA-Z0-9._-]{6,100}")) {
@@ -72,6 +104,7 @@ public class YandexRegistrationController {
         }
         try {
             accounts.register(pending(request), username, role);
+            request.setAttribute("yandex.registered", true);
             request.getSession().removeAttribute(YandexLoginHandler.PENDING);
             request.getSession().setAttribute(ERROR,
                     "Регистрация завершена. После активации аккаунта администратором вы сможете входить через Яндекс.");

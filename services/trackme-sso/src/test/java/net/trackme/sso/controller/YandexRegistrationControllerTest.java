@@ -15,6 +15,9 @@ class YandexRegistrationControllerTest {
     private final YandexRegistrationController controller = new YandexRegistrationController(accounts, login);
     private final YandexProfile profile = new YandexProfile("123", "test@yandex.ru", "Test", Instant.now().plusSeconds(600));
 
+    @org.junit.jupiter.api.BeforeEach
+    void configureFrontend() { org.springframework.test.util.ReflectionTestUtils.setField(controller, "frontendUri", "http://localhost"); }
+
     private MockHttpServletRequest pending() {
         var request = new MockHttpServletRequest();
         request.getSession().setAttribute(YandexLoginHandler.PENDING, profile);
@@ -23,14 +26,41 @@ class YandexRegistrationControllerTest {
     }
 
     @Test
-    void formConsumesMessageAndShowsVerifiedProfile() {
+    void completionRedirectsToConfiguredFrontend() {
+        org.springframework.test.util.ReflectionTestUtils.setField(controller, "frontendUri", "https://trackme.example");
+        assertEquals("redirect:https://trackme.example/yandex-registration", controller.form(pending(), new ExtendedModelMap()));
+    }
+
+    private org.springframework.security.web.csrf.CsrfToken csrf() {
+        return new org.springframework.security.web.csrf.DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-csrf");
+    }
+
+    @Test
+    void profileOnlyExposesConfirmedEmailAndCsrf() {
+        var result = controller.profile(pending(), csrf());
+        assertEquals("test@yandex.ru", result.get("email"));
+        assertEquals("test-csrf", result.get("csrfToken"));
+        assertFalse(result.containsKey("id"));
+    }
+
+    @Test
+    void apiRejectsMissingProfileAndIncompleteConsents() {
+        var body = new YandexRegistrationController.Registration("newuser", "TRACKER", true, true, true);
+        assertEquals(400, controller.registration(new MockHttpServletRequest(), body).getStatusCode().value());
+        var invalid = new YandexRegistrationController.Registration("newuser", "TRACKER", false, true, true);
+        assertEquals(400, controller.registration(pending(), invalid).getStatusCode().value());
+        verifyNoInteractions(accounts);
+    }
+
+    @Test
+    void apiCreatesInactiveAccountAndCannotBeReplayed() {
         var request = pending();
-        request.getSession().setAttribute("trackme.yandex.error", "message");
-        var model = new ExtendedModelMap();
-        assertEquals("yandex-registration", controller.form(request, model));
-        assertEquals("message", model.get("error"));
-        assertSame(profile, model.get("profile"));
-        assertNull(request.getSession().getAttribute("trackme.yandex.error"));
+        var body = new YandexRegistrationController.Registration("@newuser", "ADMIN", true, true, true);
+        assertEquals(201, controller.registration(request, body).getStatusCode().value());
+        assertNull(request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        request.removeAttribute("yandex.registered");
+        assertEquals(400, controller.registration(request, body).getStatusCode().value());
+        verify(accounts, times(1)).register(profile, "newuser", "ADMIN");
     }
 
     @Test
@@ -51,7 +81,7 @@ class YandexRegistrationControllerTest {
         controller.register(request, "", "SUPER_ADMIN", false, false, false);
         var model = new ExtendedModelMap();
         controller.form(request, model);
-        var fields = (java.util.Map<?, ?>) model.get("fieldErrors");
+        var fields = (java.util.Map<?, ?>) request.getSession().getAttribute("trackme.yandex.fieldErrors");
         assertEquals(5, fields.size());
         assertTrue(fields.containsKey("username"));
         assertTrue(fields.containsKey("role"));
@@ -96,8 +126,8 @@ class YandexRegistrationControllerTest {
         request.setParameter("error", "");
         var model = new ExtendedModelMap();
         controller.form(request, model);
-        assertNull(model.get("profile"));
-        assertNotNull(model.get("error"));
+        assertEquals(false, controller.profile(request, csrf()).get("pending"));
+        assertNotNull(request.getSession().getAttribute("trackme.yandex.error"));
         controller.register(request, "newuser", "TRACKER", true, true, true);
         verifyNoInteractions(accounts);
     }

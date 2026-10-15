@@ -38,8 +38,17 @@ public class YandexLoginConfiguration {
 
     @Bean
     @Order(3)
-    SecurityFilterChain yandexLoginChain(HttpSecurity http, YandexLoginHandler handler) throws Exception {
+    SecurityFilterChain yandexLoginChain(HttpSecurity http, YandexLoginHandler handler,
+            @Value("${FRONTEND_URI:http://localhost}") String frontendUri) throws Exception {
         return http.securityMatcher("/oauth2/authorization/yandex", "/login/oauth2/code/yandex", "/client/yandex/**")
+                .cors(cors -> cors.configurationSource(request -> {
+                    var configuration = new org.springframework.web.cors.CorsConfiguration();
+                    configuration.setAllowedOrigins(java.util.List.of(frontendOrigin(frontendUri)));
+                    configuration.setAllowedMethods(java.util.List.of("GET", "POST", "OPTIONS"));
+                    configuration.setAllowedHeaders(java.util.List.of("Content-Type", "X-CSRF-TOKEN"));
+                    configuration.setAllowCredentials(true);
+                    return configuration;
+                }))
                 .authorizeHttpRequests(requests -> requests.anyRequest().permitAll())
                 .oauth2Login(login -> login.loginPage(SecurityConfiguration.LOGIN_PAGE)
                         .successHandler(handler).failureHandler((request, response, exception) -> {
@@ -47,5 +56,13 @@ public class YandexLoginConfiguration {
                             response.sendRedirect(request.getContextPath() + "/client/yandex/complete?error");
                         }))
                 .build();
+    }
+    static String frontendOrigin(String value) {
+        var uri = java.net.URI.create(value);
+        var builder = org.springframework.web.util.UriComponentsBuilder.fromUri(uri).replacePath(null)
+                .replaceQuery(null).fragment(null);
+        if (("http".equals(uri.getScheme()) && uri.getPort() == 80)
+                || ("https".equals(uri.getScheme()) && uri.getPort() == 443)) builder.port(-1);
+        return builder.build().toUriString();
     }
 }

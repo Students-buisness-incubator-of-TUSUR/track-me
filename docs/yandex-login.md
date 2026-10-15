@@ -25,3 +25,20 @@ Liquibase добавляет nullable уникальный `sso.users.yandex_id`
 Настройки прод-сервера этой задачей не меняются. Полный OAuth-проход с реальным Яндекс ID требует проверки в браузере после настройки callback и секретов.
 
 Для Docker-стенда с внутренним issuer `host.docker.internal` задайте у SSO `YANDEX_REDIRECT_URI=http://localhost:9000/login/oauth2/code/yandex`. Эта настройка меняет только callback Яндекса; браузерный адрес SSO и callback должны использовать один hostname, чтобы сохранялась сессионная cookie.
+
+## Разделение репозиториев
+
+Форма находится в track-me-frontend, маршрут `/yandex-registration`. В SSO нет HTML/CSS/JS формы.
+После ответа Яндекса SSO перенаправляет незавершённую регистрацию на `${FRONTEND_URI}/yandex-registration`.
+Укажите FRONTEND_URI без пути, с точным origin фронтенда (для локального nginx: http://localhost).
+
+Публичный GET gateway `/oauth2/yandex/config` возвращает `ssoUri`: origin YANDEX_REDIRECT_URI, если он задан, иначе SSO_URI.
+Для локального стенда с внутренним SSO_URI задайте YANDEX_REDIRECT_URI=http://localhost:9000/login/oauth2/code/yandex
+также у gateway. В рабочем окружении оба сервиса должны видеть публичный callback SSO.
+GET SSO `/client/yandex/profile` возвращает pending, email, csrfToken, csrfHeader и message.
+POST SSO `/client/yandex/registration` принимает JSON: username, role, licenseAccepted, policyAccepted, consent.
+Идентификатор Яндекса и email не принимаются из JSON: берутся исключительно из сессии SSO.
+Запросы выполняются с credentials=include; POST требует CSRF заголовок из profile.
+Успех: 201 с registered=true и сообщением об активации; ошибки: 400 с fieldErrors или message.
+CORS разрешён только точному FRONTEND_URI, cookie SSO не передаются через gateway.
+Выкладывать нужно оба ПР: фронтенд с новым маршрутом, затем SSO и gateway с новым API.

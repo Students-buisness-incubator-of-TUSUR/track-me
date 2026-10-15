@@ -57,7 +57,7 @@ public class OAuth2ClientConfiguration {
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
-                                .pathMatchers("/csrf").permitAll()
+                                .pathMatchers("/csrf", "/oauth2/yandex/config").permitAll()
                                 .anyExchange().authenticated())
                 .oauth2Login(oauth2Login -> {
                         oauth2Login.authorizationRequestResolver(
