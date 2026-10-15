@@ -115,6 +115,7 @@ public interface MeetingRestController {
             Pageable pageable
     );
 
+    // НОВЫЙ ЭНДПОЙНТ ДЛЯ СУПЕРАДМИНИСТРАТОРА
     @Operation(summary =
         "Обновление встречи суперадминистратором (только для статусов FINALLY_COMPLETED и COMPLETED_AS_NOT_HAPPENED)")
     @PutMapping("/super-admin-update/{meetingId}")

@@ -228,6 +228,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
+        // Проверяем, что команда перешла новому пользователю
         var updatedTeams = teamCardsService.getTeamCardsByUser("newuser");
         assertThat(updatedTeams).hasSize(1);
         assertThat(updatedTeams.get(0).getName()).isEqualTo("Team to Reassign");
