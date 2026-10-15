@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 
 public class CustomAuthorizationRequestResolver implements ServerOAuth2AuthorizationRequestResolver {
 
+    private static final String YANDEX = "yandex";
     static final String SESSION_KEY = "post_login_redirect_uri";
 
     private final DefaultServerOAuth2AuthorizationRequestResolver delegate;
@@ -26,7 +27,7 @@ public class CustomAuthorizationRequestResolver implements ServerOAuth2Authoriza
     @Override
     public Mono<OAuth2AuthorizationRequest> resolve(ServerWebExchange exchange) {
         if (yandexSsoEnabled && "/oauth2/authorization/yandex".equals(exchange.getRequest().getPath().value())) {
-            return resolve(exchange, "yandex");
+            return resolve(exchange, YANDEX);
         }
         return delegate.resolve(exchange)
                 .flatMap(request -> saveRedirectUri(exchange, request));
@@ -34,10 +35,10 @@ public class CustomAuthorizationRequestResolver implements ServerOAuth2Authoriza
 
     @Override
     public Mono<OAuth2AuthorizationRequest> resolve(ServerWebExchange exchange, String clientRegistrationId) {
-        if (yandexSsoEnabled && "yandex".equals(clientRegistrationId)) {
+        if (yandexSsoEnabled && YANDEX.equals(clientRegistrationId)) {
             return delegate.resolve(exchange, "track-me-client")
                     .map(request -> OAuth2AuthorizationRequest.from(request)
-                            .additionalParameters(parameters -> parameters.put("login_hint", "yandex"))
+                            .additionalParameters(parameters -> parameters.put("login_hint", YANDEX))
                             .build())
                     .flatMap(request -> saveRedirectUri(exchange, request));
         }

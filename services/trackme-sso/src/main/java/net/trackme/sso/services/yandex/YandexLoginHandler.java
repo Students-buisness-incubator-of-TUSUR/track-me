@@ -11,7 +11,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.DefaultSavedRequest;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 
@@ -53,9 +57,24 @@ public class YandexLoginHandler implements AuthenticationSuccessHandler {
         SecurityContextHolder.setContext(context);
         contexts.saveContext(context, request, response);
         request.getSession().removeAttribute(PENDING);
-        var success = new SavedRequestAwareAuthenticationSuccessHandler();
-        success.setDefaultTargetUrl("/client/login");
-        success.onAuthenticationSuccess(request, response, authentication);
+        var cache = new HttpSessionRequestCache();
+        var saved = cache.getRequest(request, response);
+        cache.removeRequest(request, response);
+        // Resume only our authorization endpoint, never the cached host or redirect URL.
+        if (!(saved instanceof DefaultSavedRequest original) || !"GET".equals(original.getMethod())
+                || !"/oauth2/authorize".equals(original.getRequestURI())) {
+            response.sendRedirect("/client/login");
+            return;
+        }
+        var parameters = new ArrayList<String>();
+        saved.getParameterMap().forEach((name, values) -> {
+            for (String value : values) {
+                parameters.add(URLEncoder.encode(name, StandardCharsets.UTF_8) + "="
+                        + URLEncoder.encode(value, StandardCharsets.UTF_8));
+            }
+        });
+        // All query data is encoded; the authorization server validates client redirect_uri.
+        response.sendRedirect("/oauth2/authorize?" + String.join("&", parameters));
     }
 
     private void clear(HttpServletRequest request, HttpServletResponse response) {

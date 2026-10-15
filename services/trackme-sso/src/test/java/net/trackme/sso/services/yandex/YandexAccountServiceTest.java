@@ -41,7 +41,7 @@ class YandexAccountServiceTest {
         role.setCode(roleCode);
         when(roles.findByCode(roleCode)).thenReturn(Optional.of(role));
         when(passwords.encode(any())).thenReturn("random-password-hash");
-        service.register(profile, "newuser", "+79001234567", roleCode);
+        service.register(profile, "newuser", roleCode);
         var saved = ArgumentCaptor.forClass(UserEntity.class);
         verify(users).saveAndFlush(saved.capture());
         assertFalse(saved.getValue().getActive());
@@ -51,8 +51,15 @@ class YandexAccountServiceTest {
     }
 
     @Test
+    void normalizesTelegramUsername() {
+        assertEquals("newuser", YandexAccountService.normalizeUsername(" @newuser "));
+        assertEquals("newuser", YandexAccountService.normalizeUsername("newuser"));
+        assertEquals("", YandexAccountService.normalizeUsername(null));
+    }
+
+    @Test
     void cannotSelectSuperAdminOrUseExpiredProfile() {
-        assertThrows(IllegalArgumentException.class, () -> service.register(profile, "newuser", "+79001234567", "SUPER_ADMIN"));
+        assertThrows(IllegalArgumentException.class, () -> service.register(profile, "newuser", "SUPER_ADMIN"));
         var expired = new YandexProfile("12345", "person@yandex.ru", "Name", Instant.EPOCH);
         assertThrows(IllegalArgumentException.class, () -> service.login(expired));
         verify(users, never()).saveAndFlush(any());
@@ -61,7 +68,7 @@ class YandexAccountServiceTest {
     @Test
     void existingEmailRequiresExplicitLinking() {
         when(users.existsByEmailIgnoreCase(profile.email())).thenReturn(true);
-        assertThrows(IllegalArgumentException.class, () -> service.register(profile, "newuser", "+79001234567", "TRACKER"));
+        assertThrows(IllegalArgumentException.class, () -> service.register(profile, "newuser", "TRACKER"));
         verify(users, never()).saveAndFlush(any());
     }
 
@@ -81,13 +88,49 @@ class YandexAccountServiceTest {
     void linkingRequiresPasswordAndPreservesRoleAndEmail() {
         var user = user();
         when(users.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
-        assertThrows(IllegalArgumentException.class, () -> service.link(profile, user.getUsername(), "wrong"));
+        String username = user.getUsername();
+        assertThrows(IllegalArgumentException.class, () -> service.link(profile, username, "wrong"));
         assertNull(user.getYandexId());
         when(passwords.matches("correct", "hash")).thenReturn(true);
         assertEquals(user.getUsername(), service.link(profile, user.getUsername(), "correct").getUsername());
         assertEquals("12345", user.getYandexId());
         assertEquals("old@example.org", user.getEmail());
         assertTrue(user.getRoles().isEmpty());
+    }
+
+    @Test
+    void rejectsExistingProviderIdentityAndUsername() {
+        when(users.findByYandexId(profile.id())).thenReturn(Optional.of(user()));
+        assertThrows(IllegalArgumentException.class, () -> service.register(profile, "newuser", "TRACKER"));
+        when(users.findByYandexId(profile.id())).thenReturn(Optional.empty());
+        when(users.existsByUsername("newuser")).thenReturn(true);
+        assertThrows(IllegalArgumentException.class, () -> service.register(profile, "newuser", "TRACKER"));
+        verify(users, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void rejectsInvalidRegistrationFieldsAndMissingRole() {
+        assertThrows(IllegalArgumentException.class, () -> service.register(profile, "bad", "TRACKER"));
+        assertThrows(IllegalArgumentException.class, () -> service.register(profile, null, "TRACKER"));
+        assertThrows(IllegalArgumentException.class, () -> service.register(profile, "newuser", ""));
+        verify(users, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void linkingRejectsUnknownOrAlreadyLinkedAccount() {
+        assertThrows(IllegalArgumentException.class, () -> service.link(profile, "missing", "password"));
+        var user = user();
+        when(users.findByUsername("existing-user")).thenReturn(Optional.of(user));
+        user.setPasswordHash(null);
+        assertThrows(IllegalArgumentException.class, () -> service.link(profile, "existing-user", "password"));
+        user.setPasswordHash("hash");
+        when(passwords.matches("password", "hash")).thenReturn(true);
+        user.setYandexId("other");
+        assertThrows(IllegalArgumentException.class, () -> service.link(profile, "existing-user", "password"));
+        user.setYandexId(null);
+        when(users.findByYandexId(profile.id())).thenReturn(Optional.of(user()));
+        assertThrows(IllegalArgumentException.class, () -> service.link(profile, "existing-user", "password"));
+        verify(users, never()).saveAndFlush(any());
     }
 
     private UserEntity user() {

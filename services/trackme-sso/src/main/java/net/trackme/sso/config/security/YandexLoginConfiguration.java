@@ -21,12 +21,14 @@ public class YandexLoginConfiguration {
     ClientRegistrationRepository yandexClientRegistrations(
             @Value("${YANDEX_CLIENT_ID}") String clientId,
             @Value("${YANDEX_CLIENT_SECRET}") String clientSecret,
-            @Value("${spring.security.oauth2.authorizationserver.issuer}") String issuer) {
+            @Value("${spring.security.oauth2.authorizationserver.issuer}") String issuer,
+            @Value("${YANDEX_REDIRECT_URI:}") String redirectUri) {
         return new InMemoryClientRegistrationRepository(ClientRegistration.withRegistrationId("yandex")
                 .clientId(clientId).clientSecret(clientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri(issuer.replaceAll("/+$", "") + "/login/oauth2/code/yandex")
+                .redirectUri(redirectUri.isBlank()
+                        ? org.springframework.util.StringUtils.trimTrailingCharacter(issuer, '/') + "/login/oauth2/code/yandex" : redirectUri)
                 .authorizationUri("https://oauth.yandex.ru/authorize")
                 .tokenUri("https://oauth.yandex.ru/token")
                 .userInfoUri("https://login.yandex.ru/info?format=json")

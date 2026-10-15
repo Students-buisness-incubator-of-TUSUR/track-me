@@ -66,7 +66,36 @@ class YandexLoginHandlerTest {
 
     @Test
     void profileRequiresEmailFromProvider() {
-        assertThrows(IllegalArgumentException.class, () -> YandexProfile.from(Map.of("id", "123")));
+        Map<String, Object> attributes = Map.of("id", "123");
+        assertThrows(IllegalArgumentException.class, () -> YandexProfile.from(attributes));
+    }
+
+    @Test
+    void resumesAuthorizationOnLocalPathAndEncodesParameters() throws Exception {
+        var request = new MockHttpServletRequest("GET", "/oauth2/authorize");
+        request.setServerName("attacker.example");
+        request.addParameter("state", "a&b=1\r\nLocation: https://attacker.example");
+        request.addParameter("client_id", "track-me-client");
+        var response = new MockHttpServletResponse();
+        new org.springframework.security.web.savedrequest.HttpSessionRequestCache().saveRequest(request, response);
+        var user = new AuthorizedUser("local-user", "hash", true, true, true, true, List.of());
+        handler.complete(request, response, user);
+        String target = response.getRedirectedUrl();
+        assertTrue(target.startsWith("/oauth2/authorize?"));
+        assertTrue(target.contains("state=a%26b%3D1%0D%0ALocation%3A+https%3A%2F%2Fattacker.example"));
+        assertFalse(target.contains("\r"));
+        assertNull(request.getSession().getAttribute("SPRING_SECURITY_SAVED_REQUEST"));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"//attacker.example", "/client/yandex/link", "/oauth2/authorize/../other"})
+    void doesNotResumeUnrelatedSavedPaths(String path) throws Exception {
+        var request = new MockHttpServletRequest("GET", path);
+        var response = new MockHttpServletResponse();
+        new org.springframework.security.web.savedrequest.HttpSessionRequestCache().saveRequest(request, response);
+        var user = new AuthorizedUser("local-user", "hash", true, true, true, true, List.of());
+        handler.complete(request, response, user);
+        assertEquals("/client/login", response.getRedirectedUrl());
     }
 
     private OAuth2AuthenticationToken external() {

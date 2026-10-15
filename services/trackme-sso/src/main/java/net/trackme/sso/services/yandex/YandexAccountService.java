@@ -27,12 +27,12 @@ public class YandexAccountService {
     }
 
     @Transactional
-    public void register(YandexProfile profile, String username, String phone, String role) {
+    public void register(YandexProfile profile, String username, String role) {
         profile.requireValid();
-        if (!Set.of("TRACKER", "ADMIN").contains(role)
-                || !username.matches("[a-zA-Z0-9._-]{6,100}")
-                || !phone.matches("\\+?\\d{10,15}")) {
-            throw new IllegalArgumentException("Проверьте логин, телефон и роль.");
+        username = normalizeUsername(username);
+        if (role == null || !Set.of("TRACKER", "ADMIN").contains(role)
+                || !username.matches("[a-zA-Z0-9._-]{6,100}")) {
+            throw new IllegalArgumentException("Проверьте имя пользователя и роль.");
         }
         if (users.findByYandexId(profile.id()).isPresent() || users.existsByUsername(username)
                 || users.existsByEmailIgnoreCase(profile.email())) {
@@ -42,7 +42,6 @@ public class YandexAccountService {
         user.setUsername(username);
         user.setEmail(profile.email());
         user.setFullName(profile.name());
-        user.setPhoneNumber(phone);
         user.setYandexId(profile.id());
         // A non-guessable password hash keeps existing password-based code compatible.
         user.setPasswordHash(passwords.encode(UUID.randomUUID().toString()));
@@ -74,6 +73,12 @@ public class YandexAccountService {
             throw new IllegalArgumentException("Аккаунт ожидает активации или заблокирован. Обратитесь к администратору.");
         }
         return AuthorizedUserMapper.map(user);
+    }
+
+    public static String normalizeUsername(String username) {
+        if (username == null) return "";
+        String value = username.trim();
+        return value.startsWith("@") ? value.substring(1) : value;
     }
 
     private static IllegalArgumentException invalidLogin() {
