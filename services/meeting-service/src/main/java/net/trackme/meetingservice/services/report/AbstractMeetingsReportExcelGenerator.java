@@ -51,6 +51,19 @@ public abstract class AbstractMeetingsReportExcelGenerator {
     }
 
     /**
+     * Формирует название команды с пометкой об отчислении.
+     * Используется в Excel-выгрузках, чтобы визуально отличать пассивные команды.
+     *
+     * @param teamName название команды
+     * @param passive  флаг пассивности (может быть null)
+     * @return название с суффиксом " (отчислена)" для пассивных команд
+     */
+    protected String formatTeamName(String teamName, Boolean passive) {
+        if (teamName == null) return null;
+        return Boolean.TRUE.equals(passive) ? teamName + " (отчислена)" : teamName;
+    }
+
+    /**
      * Записывает ячейку статуса с учётом MeetingStatus.
      *
      * <p>Для {@code status == null} используется статус команды
