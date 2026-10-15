@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -24,7 +23,6 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -42,6 +40,9 @@ import static net.trackme.sso.config.security.SecurityConfiguration.PERMIT_ALL_P
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 public class OAuth2AuthorizationServerConfig {
+
+    @org.springframework.beans.factory.annotation.Value("${app.yandex.enabled:false}")
+    private boolean yandexSsoEnabled;
 
     private static KeyPair generateRsaKey() {
         KeyPair keyPair;
@@ -102,9 +103,11 @@ public class OAuth2AuthorizationServerConfig {
                                 .requestMatchers(PERMIT_ALL_PATTERNS).permitAll()
                                 .anyRequest().authenticated()
                 )
-                .exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(
-                        new LoginUrlAuthenticationEntryPoint(LOGIN_PAGE),
-                        new MediaTypeRequestMatcher(MediaType.APPLICATION_JSON)
+                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(
+                        (request, response, exception) -> new LoginUrlAuthenticationEntryPoint(
+                                yandexSsoEnabled && "yandex".equals(request.getParameter("login_hint"))
+                                        ? "/oauth2/authorization/yandex" : LOGIN_PAGE)
+                                .commence(request, response, exception)
                 ))
                 .build();
     }
