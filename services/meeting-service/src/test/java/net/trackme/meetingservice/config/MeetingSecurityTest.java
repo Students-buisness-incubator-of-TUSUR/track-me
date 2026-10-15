@@ -1,5 +1,6 @@
-package net.trackme.meetingservice.configuration;
+package net.trackme.meetingservice.config;
 
+import net.trackme.meetingservice.configuration.MeetingSecurity; 
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import org.junit.jupiter.api.Test;
