@@ -1,6 +1,5 @@
 package net.trackme.sso.services.yandex;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -28,7 +27,7 @@ public class YandexLoginHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                        Authentication authentication) throws IOException {
         // An external identity alone must never authorize calls to TrackMe APIs.
         clear(request, response);
         request.getSession().removeAttribute(PENDING);
@@ -49,7 +48,7 @@ public class YandexLoginHandler implements AuthenticationSuccessHandler {
     }
 
     public void complete(HttpServletRequest request, HttpServletResponse response, AuthorizedUser user)
-            throws IOException, ServletException {
+            throws IOException {
         request.changeSessionId();
         var authentication = UsernamePasswordAuthenticationToken.authenticated(user, null, user.getAuthorities());
         var context = SecurityContextHolder.createEmptyContext();

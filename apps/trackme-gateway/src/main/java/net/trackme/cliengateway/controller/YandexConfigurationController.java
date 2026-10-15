@@ -13,8 +13,8 @@ public class YandexConfigurationController {
 
     public YandexConfigurationController(@Value("${SSO_URI:http://localhost:9000}") String issuer,
             @Value("${YANDEX_REDIRECT_URI:}") String callback) {
-        this.ssoUri = callback.isBlank() ? issuer.replaceAll("/+$", "")
-                : java.net.URI.create(callback).resolve("/").toString().replaceAll("/+$", "");
+        this.ssoUri = callback.isBlank() ? org.springframework.util.StringUtils.trimTrailingCharacter(issuer, '/')
+                : org.springframework.util.StringUtils.trimTrailingCharacter(java.net.URI.create(callback).resolve("/").toString(), '/');
     }
 
     @GetMapping("/oauth2/yandex/config")

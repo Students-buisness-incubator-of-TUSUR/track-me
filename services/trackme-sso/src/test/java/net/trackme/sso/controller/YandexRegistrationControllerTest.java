@@ -131,4 +131,36 @@ class YandexRegistrationControllerTest {
         controller.register(request, "newuser", "TRACKER", true, true, true);
         verifyNoInteractions(accounts);
     }
+    @Test
+    void apiReportsDuplicateAccountWithoutConsumingPendingIdentity() {
+        var request = pending();
+        doThrow(new org.springframework.dao.DataIntegrityViolationException("duplicate"))
+                .when(accounts).register(profile, "newuser", "TRACKER");
+        var result = controller.registration(request,
+                new YandexRegistrationController.Registration("newuser", "TRACKER", true, true, true));
+        assertEquals(400, result.getStatusCode().value());
+        assertEquals(false, result.getBody().get("registered"));
+        assertSame(profile, request.getSession().getAttribute(YandexLoginHandler.PENDING));
+    }
+
+    @Test
+    void apiRejectsNullFieldsAndReturnsFieldErrors() {
+        var result = controller.registration(pending(),
+                new YandexRegistrationController.Registration(null, null, false, false, false));
+        assertEquals(400, result.getStatusCode().value());
+        assertEquals(5, ((java.util.Map<?, ?>) result.getBody().get("fieldErrors")).size());
+        verifyNoInteractions(accounts);
+    }
+
+    @Test
+    void profileIncludesMessageButNeverExpiredIdentity() {
+        var request = pending();
+        request.getSession().setAttribute("trackme.yandex.error", "Повторите вход");
+        request.getSession().setAttribute(YandexLoginHandler.PENDING,
+                new YandexProfile("123", "test@yandex.ru", "Test", Instant.EPOCH));
+        var result = controller.profile(request, csrf());
+        assertEquals("Повторите вход", result.get("message"));
+        assertEquals(false, result.get("pending"));
+        assertFalse(result.containsKey("email"));
+    }
 }

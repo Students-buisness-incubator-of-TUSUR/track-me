@@ -1,6 +1,5 @@
 package net.trackme.sso.controller;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -23,6 +22,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "app.yandex.enabled", havingValue = "true")
 public class YandexRegistrationController {
+    private static final String COMPLETE_REDIRECT = "redirect:/client/yandex/complete";
+    private static final String REGISTERED = "yandex.registered";
+    private static final String USERNAME = "username";
     private static final String ERROR = "trackme.yandex.error";
     private static final String FIELD_ERRORS = "trackme.yandex.fieldErrors";
     private static final String FORM_VALUES = "trackme.yandex.formValues";
@@ -37,7 +39,7 @@ public class YandexRegistrationController {
         if (request.getParameter("error") != null) {
             request.getSession().setAttribute(ERROR, "Яндекс не подтвердил вход. Повторите попытку.");
         }
-        return "redirect:" + frontendUri.replaceAll("/+$", "") + "/yandex-registration";
+        return "redirect:" + org.springframework.util.StringUtils.trimTrailingCharacter(frontendUri, '/') + "/yandex-registration";
     }
 
     @GetMapping("/client/yandex/profile")
@@ -74,7 +76,7 @@ public class YandexRegistrationController {
             return org.springframework.http.ResponseEntity.badRequest().body(Map.of("fieldErrors", fields));
         }
         Object message = request.getSession().getAttribute(ERROR);
-        boolean registered = Boolean.TRUE.equals(request.getAttribute("yandex.registered"));
+        boolean registered = Boolean.TRUE.equals(request.getAttribute(REGISTERED));
         return org.springframework.http.ResponseEntity.status(registered ? 201 : 400)
                 .body(Map.of("registered", registered, "message", message == null ? "Повторите вход через Яндекс." : message));
     }
@@ -85,13 +87,13 @@ public class YandexRegistrationController {
                            @RequestParam(defaultValue = "false") boolean licenseAccepted,
                            @RequestParam(defaultValue = "false") boolean policyAccepted,
                            @RequestParam(defaultValue = "false") boolean consent) {
-        request.removeAttribute("yandex.registered");
+        request.removeAttribute(REGISTERED);
         request.getSession().removeAttribute(FIELD_ERRORS);
         request.getSession().removeAttribute(ERROR);
         username = YandexAccountService.normalizeUsername(username);
         Map<String, String> fields = new LinkedHashMap<>();
         if (!username.matches("[a-zA-Z0-9._-]{6,100}")) {
-            fields.put("username", "Введите от 6 до 100 символов: латинские буквы, цифры, _, . или -.");
+            fields.put(USERNAME, "Введите от 6 до 100 символов: латинские буквы, цифры, _, . или -.");
         }
         if (!Set.of("TRACKER", "ADMIN").contains(role)) fields.put("role", "Выберите роль.");
         if (!licenseAccepted) fields.put("licenseAccepted", "Примите условия лицензионного соглашения.");
@@ -99,25 +101,25 @@ public class YandexRegistrationController {
         if (!consent) fields.put("consent", "Необходимо согласие на обработку персональных данных.");
         if (!fields.isEmpty()) {
             request.getSession().setAttribute(FIELD_ERRORS, fields);
-            request.getSession().setAttribute(FORM_VALUES, Map.of("username", username, "role", role));
-            return "redirect:/client/yandex/complete";
+            request.getSession().setAttribute(FORM_VALUES, Map.of(USERNAME, username, "role", role));
+            return COMPLETE_REDIRECT;
         }
         try {
             accounts.register(pending(request), username, role);
-            request.setAttribute("yandex.registered", true);
+            request.setAttribute(REGISTERED, true);
             request.getSession().removeAttribute(YandexLoginHandler.PENDING);
             request.getSession().setAttribute(ERROR,
                     "Регистрация завершена. После активации аккаунта администратором вы сможете входить через Яндекс.");
         } catch (IllegalArgumentException | DataIntegrityViolationException exception) {
-            request.getSession().setAttribute(FORM_VALUES, Map.of("username", username, "role", role));
+            request.getSession().setAttribute(FORM_VALUES, Map.of(USERNAME, username, "role", role));
             error(request, exception);
         }
-        return "redirect:/client/yandex/complete";
+        return COMPLETE_REDIRECT;
     }
 
     @PostMapping("/client/yandex/link")
     public String link(HttpServletRequest request, HttpServletResponse response,
-                       @RequestParam String username, @RequestParam String password) throws IOException, ServletException {
+                       @RequestParam String username, @RequestParam String password) throws IOException {
         try {
             var profile = pending(request);
             Integer attempts = (Integer) request.getSession().getAttribute("trackme.yandex.linkAttempts");
@@ -130,7 +132,7 @@ public class YandexRegistrationController {
             return null;
         } catch (IllegalArgumentException | DataIntegrityViolationException exception) {
             error(request, exception);
-            return "redirect:/client/yandex/complete";
+            return COMPLETE_REDIRECT;
         }
     }
 
