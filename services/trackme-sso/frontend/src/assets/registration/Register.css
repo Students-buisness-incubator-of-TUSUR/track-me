@@ -2,12 +2,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
+    box-sizing: border-box;
+    padding: 16px;
     background-color: #f5f5f5;
     font-family: 'Montserrat', sans-serif;
 }
 
 .register-box {
+    box-sizing: border-box;
     text-align: center;
     background: #8338EB;
     padding: 40px;
@@ -84,11 +87,14 @@
 }
 
 .modal-content {
+    box-sizing: border-box;
     background: white;
     padding: 24px;
     border-radius: 8px;
     width: 90%;
     max-width: 500px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -109,6 +115,27 @@
 .modal-buttons .disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.policy-agreements {
+    display: grid;
+    gap: 10px;
+    color: #333;
+    text-align: left;
+}
+
+.policy-agreement {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.policy-agreement input {
+    flex: none;
+    margin-top: 3px;
+    accent-color: #8338EB;
 }
 
 .terms-text {

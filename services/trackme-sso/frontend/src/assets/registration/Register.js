@@ -13,6 +13,7 @@ const Register = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [acceptedPolicy, setAcceptedPolicy] = useState(false);
+    const [acceptedPersonalData, setAcceptedPersonalData] = useState(false);
     const termsText = `1. ОБЩИЕ ПОЛОЖЕНИЯ
 1.1. Настоящее пользовательское соглашение (далее – Соглашение) относится к использованию веб-сервиса TrackMe (далее – Сервис) и заключается между федеральным государственным автономным образовательным учреждением высшего образования «Томский государственный университет систем управления и радиоэлектроники» (далее – ТУСУР, ИНН 7021000043, ОГРН 1027000867068, зарегистрирован по адресу: 634050, г. Томск, пр. Ленина, д. 40), являющимся правообладателем Сервиса с одной стороны, и физическим лицом (далее – Пользователь), использующим данный сервис с другой стороны.
 1.2 Соглашение является публичной офертой. Используя Сервис, в том числе, путем просмотра страниц и материалов, Пользователь подтверждает, что ознакомлен и согласен с Правовой информацией Сервиса и настоящим Соглашением и безоговорочно принимает все условия Соглашения.
@@ -87,7 +88,7 @@ const Register = () => {
     };
 
     const handleModalSubmit = () => {
-        if (!acceptedPolicy) return;
+        if (!acceptedPolicy || !acceptedPersonalData) return;
 
         const userData = { username, password, fullName, email, phoneNumber, role };
         LoginAPI.register(userData)
@@ -137,6 +138,7 @@ const Register = () => {
                 <form className="register-form" onSubmit={handleRegister}>
                     <InputBox
                         type="text"
+                        name="username"
                         placeholder="Имя пользователя в Telegram (без @)"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
@@ -146,6 +148,7 @@ const Register = () => {
                     />
                     <InputBox
                         type="password"
+                        name="password"
                         placeholder="Пароль"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -156,6 +159,7 @@ const Register = () => {
                     />
                     <InputBox
                         type="text"
+                        name="fullName"
                         placeholder="ФИО"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
@@ -163,6 +167,7 @@ const Register = () => {
                     />
                     <InputBox
                         type="email"
+                        name="email"
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -171,6 +176,7 @@ const Register = () => {
                     />
                     <InputBox
                         type="tel"
+                        name="phoneNumber"
                         placeholder="Номер телефона"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
@@ -204,14 +210,24 @@ const Register = () => {
                             </div>
                         </div>
 
-                        <label className="policy-agreement">
-                            <input
-                                type="checkbox"
-                                checked={acceptedPolicy}
-                                onChange={() => setAcceptedPolicy(!acceptedPolicy)}
-                            />
-                            Я даю согласие на обработку персональных данных
-                        </label>
+                        <div className="policy-agreements">
+                            <label className="policy-agreement">
+                                <input
+                                    type="checkbox"
+                                    checked={acceptedPolicy}
+                                    onChange={(event) => setAcceptedPolicy(event.target.checked)}
+                                />
+                                <span>Я ознакомился с политикой в отношении обработки данных.</span>
+                            </label>
+                            <label className="policy-agreement">
+                                <input
+                                    type="checkbox"
+                                    checked={acceptedPersonalData}
+                                    onChange={(event) => setAcceptedPersonalData(event.target.checked)}
+                                />
+                                <span>Я даю согласие на обработку персональных данных.</span>
+                            </label>
+                        </div>
 
                         <div className="modal-buttons">
                             <button
@@ -221,9 +237,9 @@ const Register = () => {
                                 Назад
                             </button>
                             <button
-                                className={`register-button ${acceptedPolicy ? "" : "disabled"}`}
-                                onClick={acceptedPolicy ? handleModalSubmit : undefined}
-                                disabled={!acceptedPolicy}
+                                className={`register-button ${acceptedPolicy && acceptedPersonalData ? "" : "disabled"}`}
+                                onClick={handleModalSubmit}
+                                disabled={!acceptedPolicy || !acceptedPersonalData}
                             >
                                 Принимаю
                             </button>
