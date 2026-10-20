@@ -59,4 +59,26 @@ class SocialProfileTest {
         assertEquals("old123", profile.id());
         assertNull(SocialProfile.pending("invalid"));
     }
+    @Test
+    void yandexPhoneIsReadFromNestedProviderProfileAndNormalized() {
+        var profile = SocialProfile.from(Map.of("id", "123", "default_email", "test@yandex.ru",
+                "default_phone", Map.of("number", "+7 (913) 123-45-67")));
+        assertEquals("+79131234567", profile.phoneNumber());
+        assertEquals("yandex", profile.provider());
+    }
+
+    @ParameterizedTest
+    @MethodSource("missingOrMalformedPhones")
+    void missingOrMalformedYandexPhoneDoesNotBlockRegistration(Object phone) {
+        var profile = SocialProfile.from(Map.of("id", "123", "default_email", "test@yandex.ru",
+                "default_phone", phone));
+        assertEquals("", profile.phoneNumber());
+        assertEquals("test@yandex.ru", profile.email());
+    }
+
+    static Stream<Object> missingOrMalformedPhones() {
+        return Stream.of(Map.of(), "invalid", Map.of("number", 123), Map.of("number", "bad"),
+                Map.of("number", "1".repeat(40)));
+    }
+
 }

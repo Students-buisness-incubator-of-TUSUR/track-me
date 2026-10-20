@@ -33,7 +33,7 @@ class SocialLoginConfigurationTest {
     void bothProvidersShareSsoButHaveSeparateCallbacks() {
         var registrations = new SocialLoginConfiguration().socialClientRegistrations(true, true,
                 "yandex-client", "test-secret", "google-client", "test-secret", "https://sso.example",
-                "", "", true);
+                "", "", true, false);
         var google = registrations.findByRegistrationId("google");
         assertEquals("https://sso.example/login/oauth2/code/google", google.getRedirectUri());
         org.junit.jupiter.api.Assertions.assertTrue(google.getScopes().contains(
@@ -44,9 +44,17 @@ class SocialLoginConfigurationTest {
     @Test
     void phonePermissionCanBeDisabledWithoutDisablingGoogleLogin() {
         var registrations = new SocialLoginConfiguration().socialClientRegistrations(false, true,
-                "", "", "google-client", "test-secret", "https://sso.example", "", "", false);
+                "", "", "google-client", "test-secret", "https://sso.example", "", "", false, false);
         org.junit.jupiter.api.Assertions.assertFalse(registrations.findByRegistrationId("google").getScopes().contains(
                 net.trackme.sso.services.social.GooglePhoneService.PHONE_SCOPE));
         org.junit.jupiter.api.Assertions.assertNull(registrations.findByRegistrationId("yandex"));
     }
+    @Test
+    void yandexPhonePermissionIsRequestedOnlyWhenEnabled() {
+        var registrations = new SocialLoginConfiguration().socialClientRegistrations(true, false,
+                "yandex-client", "test-secret", "", "", "https://sso.example", "", "", false, true);
+        assertEquals(java.util.Set.of("login:info", "login:email", "login:default_phone"),
+                registrations.findByRegistrationId("yandex").getScopes());
+    }
+
 }

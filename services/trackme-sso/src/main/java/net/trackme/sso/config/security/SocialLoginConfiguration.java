@@ -25,9 +25,10 @@ public class SocialLoginConfiguration {
             @Value("${spring.security.oauth2.authorizationserver.issuer}") String issuer,
             @Value("${YANDEX_REDIRECT_URI:}") String yandexCallback,
             @Value("${GOOGLE_REDIRECT_URI:}") String googleCallback,
-            @Value("${GOOGLE_PHONE_ENABLED:false}") boolean phoneEnabled) {
+            @Value("${GOOGLE_PHONE_ENABLED:false}") boolean phoneEnabled,
+            @Value("${YANDEX_PHONE_ENABLED:false}") boolean yandexPhoneEnabled) {
         var registrations = new java.util.ArrayList<ClientRegistration>();
-        if (yandexEnabled) registrations.add(yandexClientRegistrations(yandexId, yandexSecret, issuer, yandexCallback)
+        if (yandexEnabled) registrations.add(yandexClientRegistrations(yandexId, yandexSecret, issuer, yandexCallback, yandexPhoneEnabled)
                 .findByRegistrationId("yandex"));
         if (googleEnabled) {
             var scopes = new java.util.ArrayList<>(java.util.List.of("openid", "email", "profile"));
@@ -46,6 +47,13 @@ public class SocialLoginConfiguration {
             @Value("${YANDEX_CLIENT_SECRET}") String clientSecret,
             @Value("${spring.security.oauth2.authorizationserver.issuer}") String issuer,
             @Value("${YANDEX_REDIRECT_URI:}") String redirectUri) {
+        return yandexClientRegistrations(clientId, clientSecret, issuer, redirectUri, false);
+    }
+
+    ClientRegistrationRepository yandexClientRegistrations(String clientId, String clientSecret,
+            String issuer, String redirectUri, boolean phoneEnabled) {
+        var scopes = new java.util.ArrayList<>(java.util.List.of("login:info", "login:email"));
+        if (phoneEnabled) scopes.add("login:default_phone");
         return new InMemoryClientRegistrationRepository(ClientRegistration.withRegistrationId("yandex")
                 .clientId(clientId).clientSecret(clientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
@@ -55,7 +63,7 @@ public class SocialLoginConfiguration {
                 .authorizationUri("https://oauth.yandex.ru/authorize")
                 .tokenUri("https://oauth.yandex.ru/token")
                 .userInfoUri("https://login.yandex.ru/info?format=json")
-                .userNameAttributeName("id").scope("login:info", "login:email")
+                .userNameAttributeName("id").scope(scopes)
                 .clientName("Яндекс").build());
     }
 

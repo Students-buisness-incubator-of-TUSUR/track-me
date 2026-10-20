@@ -41,4 +41,24 @@ class GooglePhoneServiceTest {
         assertEquals("", new GooglePhoneService(builder.build()).find("test-token", Set.of(GooglePhoneService.PHONE_SCOPE)));
         server.verify();
     }
+
+    @Test
+    void grantedPermissionDoesNotGuaranteeAContactPhoneNumber() {
+        var builder = RestClient.builder();
+        var server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://people.googleapis.com/v1/people/me?personFields=phoneNumbers"))
+                .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+        assertEquals("", new GooglePhoneService(builder.build()).find("test-token", Set.of(GooglePhoneService.PHONE_SCOPE)));
+        server.verify();
+    }
+
+    @Test
+    void usesCanonicalContactNumberWhenPrimaryFlagIsMissing() {
+        var builder = RestClient.builder();
+        var server = MockRestServiceServer.bindTo(builder).build();
+        server.expect(requestTo("https://people.googleapis.com/v1/people/me?personFields=phoneNumbers"))
+                .andRespond(withSuccess("{\"phoneNumbers\":[{\"canonicalForm\":\"+79131234567\"}]}", MediaType.APPLICATION_JSON));
+        assertEquals("+79131234567", new GooglePhoneService(builder.build()).find("test-token", Set.of(GooglePhoneService.PHONE_SCOPE)));
+        server.verify();
+    }
 }

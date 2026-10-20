@@ -45,7 +45,16 @@ public record SocialProfile(String id, String email, String name, Instant expire
             throw new IllegalArgumentException("Яндекс не предоставил корректный идентификатор или email. Повторите вход с доступом к почте.");
         }
         Object name = attributes.get("real_name");
-        return new SocialProfile(id, email, name instanceof String value ? value.substring(0, Math.min(value.length(), 255)) : "", Instant.now().plusSeconds(600));
+        return new SocialProfile(id, email, name instanceof String value ? value.substring(0, Math.min(value.length(), 255)) : "",
+                Instant.now().plusSeconds(600), "yandex", yandexPhone(attributes.get("default_phone")));
+    }
+
+    private static String yandexPhone(Object value) {
+        if (value instanceof Map<?, ?> phone && phone.get("number") instanceof String number) {
+            String normalized = number.replaceAll("[\\s()-]", "");
+            if (normalized.matches("\\+?\\d{10,15}")) return normalized;
+        }
+        return "";
     }
 
     public void requireValid() {
