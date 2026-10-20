@@ -5,6 +5,8 @@ spring:
   kafka:
     listener:
       auto-startup: false
+  cache:
+    type: none
   jpa:
     show-sql: true
     properties:

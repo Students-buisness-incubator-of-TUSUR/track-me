@@ -27,7 +27,7 @@ import static net.trackme.meetingservice.entities.MeetingSpecification.*;
 public class MeetingsReportServiceImpl implements MeetingsReportService {
     private static final String DEFAULT_GROUP_BY_SORT_FIELD = "teamName";
     private static final Sort.Direction DEFAULT_GROUP_BY_SORT_DIRECTION = Sort.Direction.ASC;
-    private static final Sort  DEFAULT_GROUP_BY_SORT = Sort.by(
+    private static final Sort DEFAULT_GROUP_BY_SORT = Sort.by(
         DEFAULT_GROUP_BY_SORT_DIRECTION,
         DEFAULT_GROUP_BY_SORT_FIELD
     );
@@ -59,8 +59,6 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
     }
 
     @Override
-    @Cacheable(value = "meetings-report-page",
-               key = "#streamId.toString() + '-' + #filters.hashCode() + '-' + #pageable.pageNumber")
     public Page<MeetingReportRecordDto> getReportRecordsForStream(
             UUID streamId,
             List<Filter> filters,
@@ -72,7 +70,9 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
         Page<Meeting> meetingPage = meetingRepository.findAll(baseSpec,
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), effectiveSort));
 
-        if (meetingPage.isEmpty()) return Page.empty(pageable);
+        if (meetingPage.isEmpty()) {
+            return Page.empty(pageable);
+        }
 
         List<MeetingReportRecordDto> dtos = meetingPage.getContent().stream()
                 .map(meetingMapper::mapToReportDto)
@@ -99,7 +99,9 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
                     Pageable pageable = PageRequest.of(page, fetchPageSize, effectiveSort);
 
                     var meetingPage = meetingRepository.findAll(baseSpec, pageable);
-                    if (meetingPage.isEmpty()) return List.<MeetingReportRecordDto>of();
+                    if (meetingPage.isEmpty()) {
+                        return List.<MeetingReportRecordDto>of();
+                    }
 
                     return meetingPage.getContent().stream()
                             .map(meetingMapper::mapToReportDto)

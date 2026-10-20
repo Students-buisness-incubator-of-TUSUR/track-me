@@ -3,6 +3,7 @@ package net.trackme.backend.services.teamcard;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.messaging.*;
+import net.trackme.backend.configuration.KafkaTopicsConfiguration;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
@@ -25,6 +26,7 @@ public class TeamCardEventsProducer {
     private static final String TEAM_CARD_STREAM_ADDED_TOPIC = "team-card-stream-added";
     private static final String TEAM_CARD_STREAM_REMOVED_TOPIC = "team-card-stream-removed";
     private static final String TEAM_CARD_LOW_GRADE_SUMMARY_TOPIC = "team-card-low-grade-summary";
+    private static final String TEAM_CARD_DELETED_TOPIC = "team-card-deleted";
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -102,6 +104,28 @@ public class TeamCardEventsProducer {
 
         var message = MessageBuilder.withPayload(event)
                 .setHeader(KafkaHeaders.TOPIC, TEAM_CARD_UPDATED_TOPIC)
+                .setHeader(KafkaHeaders.KEY, event.teamCardId().toString())
+                .build();
+
+        kafkaTemplate.send(message);
+    }
+
+    /**
+     * Публикует событие удаления карточки команды.
+     * Потребители (meeting-service) должны удалить связанные встречи.
+     *
+     * @param event данные об удалённой карточке команды.
+     */
+    public void sendTeamCardDeletedEvent(TeamCardDeletedEvent event) {
+        if (event.teamCardId() == null) {
+            log.error("[Kafka] Ошибка отправки события удаления: teamCardId равен null");
+            return;
+        }
+
+        log.debug("[Kafka] Отправка события удаления карточки. Команда: {}", event.teamCardId());
+
+        var message = MessageBuilder.withPayload(event)
+                .setHeader(KafkaHeaders.TOPIC, TEAM_CARD_DELETED_TOPIC)
                 .setHeader(KafkaHeaders.KEY, event.teamCardId().toString())
                 .build();
 

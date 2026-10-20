@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.domain.TeamCard;
+import net.trackme.backend.messaging.TeamCardDeletedEvent;
 import net.trackme.backend.messaging.internal.TeamCardChangedInternalEvent;
 import net.trackme.backend.messaging.internal.TeamCardStreamAddedInternalEvent;
 import net.trackme.backend.models.TeamCardStatus;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.UUID;
-import java.util.List;  
+import java.util.List;
 
 @Slf4j
 @Service
@@ -49,6 +50,11 @@ public class TeamCardsServiceImpl implements TeamCardsService {
      * Публикатор внутренних системных ивентов.
      */
     private final ApplicationEventPublisher eventPublisher;
+
+    /**
+     * Продюсер Kafka-событий для team-card.
+     */
+    private final TeamCardEventsProducer eventsProducer;
 
     @Override
     @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
@@ -98,6 +104,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public void deleteTeamCard(UUID id) {
         teamCardsRepository.deleteById(id);
+        eventsProducer.sendTeamCardDeletedEvent(
+            TeamCardDeletedEvent.builder().teamCardId(id).build());
     }
 
     @Override
@@ -168,6 +176,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         var teamCard = get(id, username);
         aclService.deleteAcl(teamCard);
         teamCardsRepository.deleteByIdAndUsername(id, username);
+        eventsProducer.sendTeamCardDeletedEvent(
+            TeamCardDeletedEvent.builder().teamCardId(id).build());
     }
 
     @Override
@@ -253,23 +263,23 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     public void reassignTeams(String fromUsername, String toUsername, String toUserFullName) {
         List<TeamCard> teams = teamCardsRepository.findByUsername(fromUsername);
         log.info("Reassigning {} teams from '{}' to '{}'", teams.size(), fromUsername, toUsername);
-    
+
         // Используем полное имя нового трекера, если не предоставлено - используем username
-        String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank()) 
-            ? toUserFullName 
+        String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank())
+            ? toUserFullName
             : toUsername;
-        
+
         for (TeamCard team : teams) {
             String oldUsername = team.getUsername();
             String oldFullName = team.getTrackerFullName();
-            
+
             // Обновляем оба поля для консистентности
             team.setUsername(toUsername);
             team.setTrackerFullName(newTrackerFullName);
-            
+
             // Обновляем ACL владельца
             aclService.updateAclOwner(team, toUsername);
-            
+
             // Публикуем событие с обновленными данными
             eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
                 team.getId(),
@@ -278,8 +288,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
                 newTrackerFullName,
                 team.getPassive()
             ));
-            
-            log.debug("Reassigned team '{}': {} -> {}, fullName: '{}' -> '{}'", 
+
+            log.debug("Reassigned team '{}': {} -> {}, fullName: '{}' -> '{}'",
                 team.getId(), oldUsername, toUsername, oldFullName, newTrackerFullName);
         }
 
