@@ -1,4 +1,4 @@
-package net.trackme.sso.services.yandex;
+package net.trackme.sso.services.social;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,16 +15,16 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-class YandexAccountServiceTest {
+class SocialAccountServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final RoleRepository roles = mock(RoleRepository.class);
     private final PasswordEncoder passwords = mock(PasswordEncoder.class);
-    private final YandexAccountService service = new YandexAccountService(users, roles, passwords);
-    private YandexProfile profile;
+    private final SocialAccountService service = new SocialAccountService(users, roles, passwords);
+    private SocialProfile profile;
 
     @BeforeEach
     void setUp() {
-        profile = new YandexProfile("12345", "person@yandex.ru", "Имя", Instant.now().plusSeconds(600));
+        profile = new SocialProfile("12345", "person@yandex.ru", "Имя", Instant.now().plusSeconds(600));
     }
 
     @Test
@@ -52,15 +52,15 @@ class YandexAccountServiceTest {
 
     @Test
     void normalizesTelegramUsername() {
-        assertEquals("newuser", YandexAccountService.normalizeUsername(" @newuser "));
-        assertEquals("newuser", YandexAccountService.normalizeUsername("newuser"));
-        assertEquals("", YandexAccountService.normalizeUsername(null));
+        assertEquals("newuser", SocialAccountService.normalizeUsername(" @newuser "));
+        assertEquals("newuser", SocialAccountService.normalizeUsername("newuser"));
+        assertEquals("", SocialAccountService.normalizeUsername(null));
     }
 
     @Test
     void cannotSelectSuperAdminOrUseExpiredProfile() {
         assertThrows(IllegalArgumentException.class, () -> service.register(profile, "newuser", "SUPER_ADMIN"));
-        var expired = new YandexProfile("12345", "person@yandex.ru", "Name", Instant.EPOCH);
+        var expired = new SocialProfile("12345", "person@yandex.ru", "Name", Instant.EPOCH);
         assertThrows(IllegalArgumentException.class, () -> service.login(expired));
         verify(users, never()).saveAndFlush(any());
     }
@@ -141,5 +141,27 @@ class YandexAccountServiceTest {
         user.setActive(true);
         user.setAccountNonLocked(true);
         return user;
+    }
+    @Test
+    void googleRegistrationStoresGoogleIdentityAndPhoneWithoutLinkingYandex() {
+        var google = SocialProfile.google(java.util.Map.of("sub", "12345", "email", "person@gmail.com", "email_verified", true), "+79001234567");
+        var role = new RoleEntity(); role.setCode("TRACKER");
+        when(roles.findByCode("TRACKER")).thenReturn(Optional.of(role));
+        when(passwords.encode(any())).thenReturn("random-hash");
+        service.register(google, "newuser", "TRACKER");
+        var saved = ArgumentCaptor.forClass(UserEntity.class);
+        verify(users).saveAndFlush(saved.capture());
+        assertEquals("12345", saved.getValue().getGoogleId());
+        assertNull(saved.getValue().getYandexId());
+        assertEquals("+79001234567", saved.getValue().getPhoneNumber());
+        assertFalse(saved.getValue().getActive());
+    }
+
+    @Test
+    void googleIdCannotAuthenticateThroughYandexIdentity() {
+        var google = SocialProfile.google(java.util.Map.of("sub", "12345", "email", "person@gmail.com", "email_verified", true), "");
+        assertTrue(service.login(google).isEmpty());
+        verify(users).findByGoogleId("12345");
+        verify(users, never()).findByYandexId(any());
     }
 }

@@ -1,4 +1,4 @@
-package net.trackme.sso.services.yandex;
+package net.trackme.sso.services.social;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,9 +20,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class YandexLoginHandler implements AuthenticationSuccessHandler {
+public class SocialLoginHandler implements AuthenticationSuccessHandler {
     public static final String PENDING = "trackme.yandex.pending";
-    private final YandexAccountService accounts;
+    private final SocialAccountService accounts;
     private final HttpSessionSecurityContextRepository contexts = new HttpSessionSecurityContextRepository();
 
     @Override
@@ -31,8 +31,15 @@ public class YandexLoginHandler implements AuthenticationSuccessHandler {
         // An external identity alone must never authorize calls to TrackMe APIs.
         clear(request, response);
         request.getSession().removeAttribute(PENDING);
+        request.getSession().removeAttribute("trackme.yandex.error");
+        request.getSession().removeAttribute("trackme.yandex.fieldErrors");
+        request.getSession().removeAttribute("trackme.yandex.formValues");
         try {
-            var profile = YandexProfile.from(((OAuth2User) authentication.getPrincipal()).getAttributes());
+            var attributes = ((OAuth2User) authentication.getPrincipal()).getAttributes();
+            boolean google = authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken oauth
+                    && "google".equals(oauth.getAuthorizedClientRegistrationId());
+            var profile = google ? SocialProfile.google(attributes, (String) attributes.get("trackme_phone"))
+                    : SocialProfile.from(attributes);
             var user = accounts.login(profile);
             if (user.isPresent()) {
                 complete(request, response, user.get());

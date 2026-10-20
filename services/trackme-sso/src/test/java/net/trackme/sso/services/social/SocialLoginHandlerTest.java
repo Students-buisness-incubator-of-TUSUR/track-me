@@ -1,4 +1,4 @@
-package net.trackme.sso.services.yandex;
+package net.trackme.sso.services.social;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,9 +18,9 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
-class YandexLoginHandlerTest {
-    private final YandexAccountService accounts = mock(YandexAccountService.class);
-    private final YandexLoginHandler handler = new YandexLoginHandler(accounts);
+class SocialLoginHandlerTest {
+    private final SocialAccountService accounts = mock(SocialAccountService.class);
+    private final SocialLoginHandler handler = new SocialLoginHandler(accounts);
 
     @AfterEach
     void clear() { SecurityContextHolder.clearContext(); }
@@ -30,6 +30,7 @@ class YandexLoginHandlerTest {
         var request = new MockHttpServletRequest();
         var response = new MockHttpServletResponse();
         var authentication = external();
+        request.getSession().setAttribute("trackme.yandex.error", "Previous provider failure");
         SecurityContextHolder.getContext().setAuthentication(authentication);
         request.getSession().setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 SecurityContextHolder.getContext());
@@ -37,8 +38,9 @@ class YandexLoginHandlerTest {
         handler.onAuthenticationSuccess(request, response, authentication);
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         assertNull(request.getSession().getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY));
-        assertInstanceOf(YandexProfile.class, request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        assertInstanceOf(SocialProfile.class, request.getSession().getAttribute(SocialLoginHandler.PENDING));
         assertEquals("/client/yandex/complete", response.getRedirectedUrl());
+        assertNull(request.getSession().getAttribute("trackme.yandex.error"));
     }
 
     @Test
@@ -52,7 +54,7 @@ class YandexLoginHandlerTest {
         assertNotEquals(oldId, request.getSession().getId());
         assertSame(user, SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         assertNotNull(request.getSession().getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY));
-        assertNull(request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        assertNull(request.getSession().getAttribute(SocialLoginHandler.PENDING));
     }
 
     @Test
@@ -61,13 +63,13 @@ class YandexLoginHandlerTest {
         var request = new MockHttpServletRequest();
         handler.onAuthenticationSuccess(request, new MockHttpServletResponse(), external());
         assertNull(SecurityContextHolder.getContext().getAuthentication());
-        assertNull(request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        assertNull(request.getSession().getAttribute(SocialLoginHandler.PENDING));
     }
 
     @Test
     void profileRequiresEmailFromProvider() {
         Map<String, Object> attributes = Map.of("id", "123");
-        assertThrows(IllegalArgumentException.class, () -> YandexProfile.from(attributes));
+        assertThrows(IllegalArgumentException.class, () -> SocialProfile.from(attributes));
     }
 
     @Test
@@ -102,5 +104,27 @@ class YandexLoginHandlerTest {
         var authority = new SimpleGrantedAuthority("OAUTH2_USER");
         var user = new DefaultOAuth2User(List.of(authority), Map.of("id", "123", "default_email", "test@yandex.ru"), "id");
         return new OAuth2AuthenticationToken(user, List.of(authority), "yandex");
+    }
+    @Test
+    void googleLoginCreatesPendingProfileForSameFormWithoutAuthorizingTrackme() throws Exception {
+        var principal = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority("USER")),
+                Map.of("sub", "google123", "email", "person@gmail.com", "email_verified", true,
+                        "trackme_phone", "+79001234567"), "sub");
+        var authentication = new OAuth2AuthenticationToken(principal, principal.getAuthorities(), "google");
+        when(accounts.login(any())).thenReturn(Optional.empty());
+        var request = new MockHttpServletRequest();
+        var response = new MockHttpServletResponse();
+        request.getSession().setAttribute("trackme.yandex.error", "Previous provider failure");
+        request.getSession().setAttribute("trackme.yandex.fieldErrors", Map.of("username", "Old error"));
+        request.getSession().setAttribute("trackme.yandex.formValues", Map.of("username", "old-user"));
+        handler.onAuthenticationSuccess(request, response, authentication);
+        assertNull(request.getSession().getAttribute("trackme.yandex.error"));
+        assertNull(request.getSession().getAttribute("trackme.yandex.fieldErrors"));
+        assertNull(request.getSession().getAttribute("trackme.yandex.formValues"));
+        var profile = (SocialProfile) request.getSession().getAttribute(SocialLoginHandler.PENDING);
+        assertEquals("google", profile.provider());
+        assertEquals("+79001234567", profile.phoneNumber());
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        assertEquals("/client/yandex/complete", response.getRedirectedUrl());
     }
 }

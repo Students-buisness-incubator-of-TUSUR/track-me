@@ -3,24 +3,24 @@ package net.trackme.sso.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import java.time.Instant;
-import net.trackme.sso.services.yandex.*;
+import net.trackme.sso.services.social.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.ui.ExtendedModelMap;
 
-class YandexRegistrationControllerTest {
-    private final YandexAccountService accounts = mock(YandexAccountService.class);
-    private final YandexLoginHandler login = mock(YandexLoginHandler.class);
-    private final YandexRegistrationController controller = new YandexRegistrationController(accounts, login);
-    private final YandexProfile profile = new YandexProfile("123", "test@yandex.ru", "Test", Instant.now().plusSeconds(600));
+class SocialRegistrationControllerTest {
+    private final SocialAccountService accounts = mock(SocialAccountService.class);
+    private final SocialLoginHandler login = mock(SocialLoginHandler.class);
+    private final SocialRegistrationController controller = new SocialRegistrationController(accounts, login);
+    private final SocialProfile profile = new SocialProfile("123", "test@yandex.ru", "Test", Instant.now().plusSeconds(600));
 
     @org.junit.jupiter.api.BeforeEach
     void configureFrontend() { org.springframework.test.util.ReflectionTestUtils.setField(controller, "frontendUri", "http://localhost"); }
 
     private MockHttpServletRequest pending() {
         var request = new MockHttpServletRequest();
-        request.getSession().setAttribute(YandexLoginHandler.PENDING, profile);
+        request.getSession().setAttribute(SocialLoginHandler.PENDING, profile);
         request.getSession().setAttribute("trackme.yandex.linkAttempts", 0);
         return request;
     }
@@ -28,7 +28,7 @@ class YandexRegistrationControllerTest {
     @Test
     void completionRedirectsToConfiguredFrontend() {
         org.springframework.test.util.ReflectionTestUtils.setField(controller, "frontendUri", "https://trackme.example");
-        assertEquals("redirect:https://trackme.example/yandex-registration", controller.form(pending(), new ExtendedModelMap()));
+        assertEquals("redirect:https://trackme.example/social-registration", controller.form(pending(), new ExtendedModelMap()));
     }
 
     private org.springframework.security.web.csrf.CsrfToken csrf() {
@@ -45,9 +45,9 @@ class YandexRegistrationControllerTest {
 
     @Test
     void apiRejectsMissingProfileAndIncompleteConsents() {
-        var body = new YandexRegistrationController.Registration("newuser", "TRACKER", true, true, true);
+        var body = new SocialRegistrationController.Registration("newuser", "TRACKER", true, true, true);
         assertEquals(400, controller.registration(new MockHttpServletRequest(), body).getStatusCode().value());
-        var invalid = new YandexRegistrationController.Registration("newuser", "TRACKER", false, true, true);
+        var invalid = new SocialRegistrationController.Registration("newuser", "TRACKER", false, true, true);
         assertEquals(400, controller.registration(pending(), invalid).getStatusCode().value());
         verifyNoInteractions(accounts);
     }
@@ -55,9 +55,9 @@ class YandexRegistrationControllerTest {
     @Test
     void apiCreatesInactiveAccountAndCannotBeReplayed() {
         var request = pending();
-        var body = new YandexRegistrationController.Registration("@newuser", "ADMIN", true, true, true);
+        var body = new SocialRegistrationController.Registration("@newuser", "ADMIN", true, true, true);
         assertEquals(201, controller.registration(request, body).getStatusCode().value());
-        assertNull(request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        assertNull(request.getSession().getAttribute(SocialLoginHandler.PENDING));
         request.removeAttribute("yandex.registered");
         assertEquals(400, controller.registration(request, body).getStatusCode().value());
         verify(accounts, times(1)).register(profile, "newuser", "ADMIN");
@@ -72,7 +72,7 @@ class YandexRegistrationControllerTest {
         verifyNoInteractions(accounts);
         controller.register(request, "newuser", "TRACKER", true, true, true);
         verify(accounts).register(profile, "newuser", "TRACKER");
-        assertNull(request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        assertNull(request.getSession().getAttribute(SocialLoginHandler.PENDING));
     }
 
     @Test
@@ -89,7 +89,7 @@ class YandexRegistrationControllerTest {
         assertTrue(fields.containsKey("policyAccepted"));
         assertTrue(fields.containsKey("consent"));
         verifyNoInteractions(accounts);
-        assertSame(profile, request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        assertSame(profile, request.getSession().getAttribute(SocialLoginHandler.PENDING));
     }
 
     @org.junit.jupiter.params.ParameterizedTest
@@ -116,13 +116,13 @@ class YandexRegistrationControllerTest {
         }
         verify(accounts, times(5)).link(profile, "existing", "wrong");
         verifyNoInteractions(login);
-        assertNull(request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        assertNull(request.getSession().getAttribute(SocialLoginHandler.PENDING));
     }
 
     @Test
     void expiredProfileIsNotDisplayedOrAccepted() {
         var request = pending();
-        request.getSession().setAttribute(YandexLoginHandler.PENDING, new YandexProfile("123", "test@yandex.ru", "Test", Instant.EPOCH));
+        request.getSession().setAttribute(SocialLoginHandler.PENDING, new SocialProfile("123", "test@yandex.ru", "Test", Instant.EPOCH));
         request.setParameter("error", "");
         var model = new ExtendedModelMap();
         controller.form(request, model);
@@ -137,16 +137,16 @@ class YandexRegistrationControllerTest {
         doThrow(new org.springframework.dao.DataIntegrityViolationException("duplicate"))
                 .when(accounts).register(profile, "newuser", "TRACKER");
         var result = controller.registration(request,
-                new YandexRegistrationController.Registration("newuser", "TRACKER", true, true, true));
+                new SocialRegistrationController.Registration("newuser", "TRACKER", true, true, true));
         assertEquals(400, result.getStatusCode().value());
         assertEquals(false, result.getBody().get("registered"));
-        assertSame(profile, request.getSession().getAttribute(YandexLoginHandler.PENDING));
+        assertSame(profile, request.getSession().getAttribute(SocialLoginHandler.PENDING));
     }
 
     @Test
     void apiRejectsNullFieldsAndReturnsFieldErrors() {
         var result = controller.registration(pending(),
-                new YandexRegistrationController.Registration(null, null, false, false, false));
+                new SocialRegistrationController.Registration(null, null, false, false, false));
         assertEquals(400, result.getStatusCode().value());
         assertEquals(5, ((java.util.Map<?, ?>) result.getBody().get("fieldErrors")).size());
         verifyNoInteractions(accounts);
@@ -156,11 +156,29 @@ class YandexRegistrationControllerTest {
     void profileIncludesMessageButNeverExpiredIdentity() {
         var request = pending();
         request.getSession().setAttribute("trackme.yandex.error", "Повторите вход");
-        request.getSession().setAttribute(YandexLoginHandler.PENDING,
-                new YandexProfile("123", "test@yandex.ru", "Test", Instant.EPOCH));
+        request.getSession().setAttribute(SocialLoginHandler.PENDING,
+                new SocialProfile("123", "test@yandex.ru", "Test", Instant.EPOCH));
         var result = controller.profile(request, csrf());
         assertEquals("Повторите вход", result.get("message"));
         assertEquals(false, result.get("pending"));
         assertFalse(result.containsKey("email"));
+    }
+    @Test
+    void socialProfileReturnsGooglePhoneForCommonForm() {
+        var request = pending();
+        request.getSession().setAttribute(SocialLoginHandler.PENDING,
+                SocialProfile.google(java.util.Map.of("sub", "g123", "email", "person@gmail.com", "email_verified", true), "+79001234567"));
+        var result = controller.profile(request, csrf());
+        assertEquals("google", result.get("provider"));
+        assertEquals("+79001234567", result.get("phoneNumber"));
+    }
+
+    @Test
+    void invalidPhoneCannotBypassServerValidation() {
+        var result = controller.registration(pending(),
+                new SocialRegistrationController.Registration("newuser", "TRACKER", true, true, true, "bad"));
+        assertEquals(400, result.getStatusCode().value());
+        assertTrue(((java.util.Map<?, ?>) result.getBody().get("fieldErrors")).containsKey("phoneNumber"));
+        verifyNoInteractions(accounts);
     }
 }

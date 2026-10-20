@@ -14,18 +14,27 @@ public class CustomAuthorizationRequestResolver implements ServerOAuth2Authoriza
 
     private final DefaultServerOAuth2AuthorizationRequestResolver delegate;
     private final boolean yandexSsoEnabled;
+    private final boolean googleSsoEnabled;
 
     public CustomAuthorizationRequestResolver(ReactiveClientRegistrationRepository repository) {
         this(repository, false);
     }
 
     public CustomAuthorizationRequestResolver(ReactiveClientRegistrationRepository repository, boolean enabled) {
+        this(repository, enabled, false);
+    }
+
+    public CustomAuthorizationRequestResolver(ReactiveClientRegistrationRepository repository, boolean enabled, boolean googleEnabled) {
+        this.googleSsoEnabled = googleEnabled;
         this.delegate = new DefaultServerOAuth2AuthorizationRequestResolver(repository);
         this.yandexSsoEnabled = enabled;
     }
 
     @Override
     public Mono<OAuth2AuthorizationRequest> resolve(ServerWebExchange exchange) {
+        if (googleSsoEnabled && "/oauth2/authorization/google".equals(exchange.getRequest().getPath().value())) {
+            return resolve(exchange, "google");
+        }
         if (yandexSsoEnabled && "/oauth2/authorization/yandex".equals(exchange.getRequest().getPath().value())) {
             return resolve(exchange, YANDEX);
         }
@@ -35,10 +44,10 @@ public class CustomAuthorizationRequestResolver implements ServerOAuth2Authoriza
 
     @Override
     public Mono<OAuth2AuthorizationRequest> resolve(ServerWebExchange exchange, String clientRegistrationId) {
-        if (yandexSsoEnabled && YANDEX.equals(clientRegistrationId)) {
+        if ((yandexSsoEnabled && YANDEX.equals(clientRegistrationId)) || (googleSsoEnabled && "google".equals(clientRegistrationId))) {
             return delegate.resolve(exchange, "track-me-client")
                     .map(request -> OAuth2AuthorizationRequest.from(request)
-                            .additionalParameters(parameters -> parameters.put("login_hint", YANDEX))
+                            .additionalParameters(parameters -> parameters.put("login_hint", clientRegistrationId))
                             .build())
                     .flatMap(request -> saveRedirectUri(exchange, request));
         }

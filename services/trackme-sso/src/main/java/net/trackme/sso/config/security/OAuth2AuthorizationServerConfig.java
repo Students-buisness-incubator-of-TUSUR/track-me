@@ -44,6 +44,9 @@ public class OAuth2AuthorizationServerConfig {
     @org.springframework.beans.factory.annotation.Value("${app.yandex.enabled:false}")
     private boolean yandexSsoEnabled;
 
+    @org.springframework.beans.factory.annotation.Value("${app.google.enabled:false}")
+    private boolean googleSsoEnabled;
+
     private static KeyPair generateRsaKey() {
         KeyPair keyPair;
         try {
@@ -105,11 +108,16 @@ public class OAuth2AuthorizationServerConfig {
                 )
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(
                         (request, response, exception) -> new LoginUrlAuthenticationEntryPoint(
-                                yandexSsoEnabled && "yandex".equals(request.getParameter("login_hint"))
-                                        ? "/oauth2/authorization/yandex" : LOGIN_PAGE)
+                                providerLoginPage(request.getParameter("login_hint")))
                                 .commence(request, response, exception)
                 ))
                 .build();
+    }
+
+    private String providerLoginPage(String provider) {
+        if (googleSsoEnabled && "google".equals(provider)) return "/oauth2/authorization/google";
+        if (yandexSsoEnabled && "yandex".equals(provider)) return "/oauth2/authorization/yandex";
+        return LOGIN_PAGE;
     }
 
     @Bean

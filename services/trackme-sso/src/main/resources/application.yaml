@@ -53,6 +53,8 @@ springdoc:
   paths-to-exclude: /client/**, /api/csrf
 
 app:
+  google:
+    enabled: ${GOOGLE_LOGIN_ENABLED:false}
   yandex:
     enabled: ${YANDEX_LOGIN_ENABLED:false}
   swagger:

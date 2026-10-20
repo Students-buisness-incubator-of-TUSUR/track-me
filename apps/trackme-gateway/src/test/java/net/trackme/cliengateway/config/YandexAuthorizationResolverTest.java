@@ -30,4 +30,24 @@ class YandexAuthorizationResolverTest {
         assertNotNull(request.getState());
         assertEquals("https://web.example.org/after-login", exchange.getSession().block().getAttribute(CustomAuthorizationRequestResolver.SESSION_KEY));
     }
+    @Test
+    void googleButtonStartsSharedSsoWithProviderHint() {
+        var client = ClientRegistration.withRegistrationId("track-me-client")
+                .clientId("track-me-client").clientSecret("test")
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .authorizationUri("https://sso.example.org/oauth2/authorize")
+                .tokenUri("https://sso.example.org/oauth2/token").scope("openid", "profile").build();
+        var resolver = new CustomAuthorizationRequestResolver(new InMemoryReactiveClientRegistrationRepository(client), true, true);
+        var exchange = MockServerWebExchange.from(MockServerHttpRequest.get(
+                "https://api.example.org/oauth2/authorization/google?redirect_uri=https://web.example.org/after-login"));
+        var request = resolver.resolve(exchange).block();
+        assertNotNull(request);
+        assertEquals("https://sso.example.org/oauth2/authorize", request.getAuthorizationUri());
+        assertEquals("google", request.getAdditionalParameters().get("login_hint"));
+        assertEquals("track-me-client", request.getAttribute("registration_id"));
+        assertTrue(request.getRedirectUri().endsWith("/login/oauth2/code/track-me-client"));
+        assertNotNull(request.getState());
+        assertEquals("https://web.example.org/after-login", exchange.getSession().block().getAttribute(CustomAuthorizationRequestResolver.SESSION_KEY));
+    }
 }

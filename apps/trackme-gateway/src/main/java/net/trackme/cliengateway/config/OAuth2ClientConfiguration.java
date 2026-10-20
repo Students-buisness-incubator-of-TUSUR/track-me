@@ -48,6 +48,9 @@ public class OAuth2ClientConfiguration {
     @org.springframework.beans.factory.annotation.Value("${app.yandex.enabled:false}")
     private boolean yandexSsoEnabled;
 
+    @org.springframework.beans.factory.annotation.Value("${app.google.enabled:false}")
+    private boolean googleSsoEnabled;
+
     private static final String ATTR_EMAIL = "email";
 
     private final ReactiveClientRegistrationRepository clientRegistrationRepository;
@@ -77,11 +80,11 @@ public class OAuth2ClientConfiguration {
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
-                                .pathMatchers("/csrf", "/oauth2/yandex/config").permitAll()
+                                .pathMatchers("/csrf", "/oauth2/yandex/config", "/oauth2/social/config").permitAll()
                                 .anyExchange().authenticated())
                 .oauth2Login(oauth2Login -> {
                         oauth2Login.authorizationRequestResolver(
-                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, yandexSsoEnabled));
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, yandexSsoEnabled, googleSsoEnabled));
                         oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler);
                 })
                 .oauth2Client(withDefaults())
