@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class SocialAccountService {
+    private static final String GOOGLE = "google";
     private final UserRepository users;
     private final RoleRepository roles;
     private final PasswordEncoder passwords;
@@ -28,11 +29,15 @@ public class SocialAccountService {
 
     @Transactional
     public void register(SocialProfile profile, String username, String role) {
-        register(profile, username, role, profile.phoneNumber());
+        registerAccount(profile, username, role, profile.phoneNumber());
     }
 
     @Transactional
     public void register(SocialProfile profile, String username, String role, String phoneNumber) {
+        registerAccount(profile, username, role, phoneNumber);
+    }
+
+    private void registerAccount(SocialProfile profile, String username, String role, String phoneNumber) {
         profile.requireValid();
         username = normalizeUsername(username);
         if (role == null || !Set.of("TRACKER", "ADMIN").contains(role)
@@ -48,7 +53,7 @@ public class SocialAccountService {
         user.setEmail(profile.email());
         user.setFullName(profile.name());
         if (phoneNumber != null && !phoneNumber.isBlank()) {
-            if (!phoneNumber.matches("\\+?[0-9]{10,15}")) throw new IllegalArgumentException("Проверьте номер телефона.");
+            if (!phoneNumber.matches("\\+?\\d{10,15}")) throw new IllegalArgumentException("Проверьте номер телефона.");
             user.setPhoneNumber(phoneNumber);
         }
         assignIdentity(user, profile);
@@ -78,15 +83,15 @@ public class SocialAccountService {
     }
 
     private Optional<UserEntity> findIdentity(SocialProfile profile) {
-        return "google".equals(profile.provider()) ? users.findByGoogleId(profile.id()) : users.findByYandexId(profile.id());
+        return GOOGLE.equals(profile.provider()) ? users.findByGoogleId(profile.id()) : users.findByYandexId(profile.id());
     }
 
     private String identity(UserEntity user, SocialProfile profile) {
-        return "google".equals(profile.provider()) ? user.getGoogleId() : user.getYandexId();
+        return GOOGLE.equals(profile.provider()) ? user.getGoogleId() : user.getYandexId();
     }
 
     private void assignIdentity(UserEntity user, SocialProfile profile) {
-        if ("google".equals(profile.provider())) user.setGoogleId(profile.id());
+        if (GOOGLE.equals(profile.provider())) user.setGoogleId(profile.id());
         else user.setYandexId(profile.id());
     }
 

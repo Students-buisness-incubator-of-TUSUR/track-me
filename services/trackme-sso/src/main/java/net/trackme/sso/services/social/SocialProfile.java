@@ -13,8 +13,8 @@ public record SocialProfile(String id, String email, String name, Instant expire
 
     public static SocialProfile pending(Object value) {
         if (value instanceof SocialProfile profile) return profile;
-        if (value instanceof net.trackme.sso.services.yandex.YandexProfile legacy) {
-            return new SocialProfile(legacy.id(), legacy.email(), legacy.name(), legacy.expiresAt());
+        if (value instanceof net.trackme.sso.services.yandex.YandexProfile(var id, var email, var name, var expiresAt)) {
+            return new SocialProfile(id, email, name, expiresAt);
         }
         return null;
     }

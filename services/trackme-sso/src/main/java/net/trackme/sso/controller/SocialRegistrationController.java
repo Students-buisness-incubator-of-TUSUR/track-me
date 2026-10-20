@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import net.trackme.sso.services.social.SocialAccountService;
 import net.trackme.sso.services.social.SocialLoginHandler;
 import net.trackme.sso.services.social.SocialProfile;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -111,7 +110,7 @@ public class SocialRegistrationController {
         if (!licenseAccepted) fields.put("licenseAccepted", "Примите условия лицензионного соглашения.");
         if (!policyAccepted) fields.put("policyAccepted", "Подтвердите ознакомление с политикой.");
         if (!consent) fields.put("consent", "Необходимо согласие на обработку персональных данных.");
-        if (phoneNumber != null && !phoneNumber.isBlank() && !phoneNumber.matches("\\+?[0-9]{10,15}")) {
+        if (phoneNumber != null && !phoneNumber.isBlank() && !phoneNumber.matches("\\+?\\d{10,15}")) {
             fields.put("phoneNumber", "Введите от 10 до 15 цифр; в начале допустим +.");
         }
         if (!fields.isEmpty()) {

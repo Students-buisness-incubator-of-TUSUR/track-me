@@ -30,12 +30,12 @@ public class GooglePhoneService {
             for (var phone : person.path("phoneNumbers")) {
                 String raw = phone.path("canonicalForm").asText(phone.path("value").asText(""));
                 String number = raw.replaceAll("[^+0-9]", "");
-                if (!number.matches("\\+?[0-9]{10,15}")) continue;
+                if (!number.matches("\\+?\\d{10,15}")) continue;
                 if (phone.path("metadata").path("primary").asBoolean()) return number;
                 if (fallback.isEmpty()) fallback = number;
             }
             return fallback;
-        } catch (RestClientException exception) {
+        } catch (RestClientException _) {
             // This optional profile field must not break authentication or leak token/response data.
             return "";
         }

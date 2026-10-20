@@ -47,8 +47,8 @@ class SocialProfileTest {
         var profile = SocialProfile.google(attributes, "+79001234567");
         assertEquals("google", profile.provider());
         assertEquals("+79001234567", profile.phoneNumber());
-        assertThrows(IllegalArgumentException.class, () -> SocialProfile.google(
-                Map.of("sub", "123", "email", "test@gmail.com", "email_verified", false), ""));
+        var unverified = Map.<String, Object>of("sub", "123", "email", "test@gmail.com", "email_verified", false);
+        assertThrows(IllegalArgumentException.class, () -> SocialProfile.google(unverified, ""));
     }
     @Test
     void pendingYandexProfilesSurviveSharedFormMigration() {
