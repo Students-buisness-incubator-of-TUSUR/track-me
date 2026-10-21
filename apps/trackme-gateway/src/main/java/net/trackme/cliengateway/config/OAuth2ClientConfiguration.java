@@ -21,8 +21,6 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.DefaultReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.DelegatingServerAuthenticationEntryPoint;
-import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
@@ -47,6 +45,12 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 @EnableConfigurationProperties({AppProperties.class})
 public class OAuth2ClientConfiguration {
+    @org.springframework.beans.factory.annotation.Value("${app.yandex.enabled:false}")
+    private boolean yandexSsoEnabled;
+
+    @org.springframework.beans.factory.annotation.Value("${app.google.enabled:false}")
+    private boolean googleSsoEnabled;
+
     private static final String ATTR_EMAIL = "email";
 
     private final ReactiveClientRegistrationRepository clientRegistrationRepository;
@@ -56,26 +60,34 @@ public class OAuth2ClientConfiguration {
     private ServerAuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Bean
+    @org.springframework.core.annotation.Order(-1)
+    SecurityWebFilterChain sessionSecurityFilterChain(ServerHttpSecurity http) {
+        return http
+                .securityMatcher(new PathPatternParserServerWebExchangeMatcher("/session/**"))
+                .cors(withDefaults())
+                .authorizeExchange(exchange -> exchange.pathMatchers(OPTIONS, "/**").permitAll()
+                        .anyExchange().authenticated())
+                .exceptionHandling(errors -> errors.authenticationEntryPoint(
+                        new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .addFilterAfter(new UserActivityWebFilter(Clock.systemUTC()), SecurityWebFiltersOrder.AUTHORIZATION)
+                .build();
+    }
+
+    @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        var entryPoint = new DelegatingServerAuthenticationEntryPoint(
-                new DelegatingServerAuthenticationEntryPoint.DelegateEntry(
-                        new PathPatternParserServerWebExchangeMatcher("/session/**"),
-                        new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)));
-        entryPoint.setDefaultEntryPoint(new RedirectServerAuthenticationEntryPoint("/login"));
         return http
                 .cors(withDefaults()) // Enable CORS support
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
-                                .pathMatchers("/csrf").permitAll()
+                                .pathMatchers("/csrf", "/oauth2/yandex/config", "/oauth2/social/config").permitAll()
                                 .anyExchange().authenticated())
                 .oauth2Login(oauth2Login -> {
                         oauth2Login.authorizationRequestResolver(
-                                new CustomAuthorizationRequestResolver(clientRegistrationRepository));
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, yandexSsoEnabled, googleSsoEnabled));
                         oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler);
                 })
                 .oauth2Client(withDefaults())
-                .exceptionHandling(errors -> errors.authenticationEntryPoint(entryPoint))
                 .addFilterAfter(new UserActivityWebFilter(Clock.systemUTC()), SecurityWebFiltersOrder.AUTHORIZATION)
                 .logout(logout -> logout
                         .logoutUrl("/logout")

@@ -8,3 +8,9 @@ databaseChangeLog:
   - include:
       file: release-1.0.0/release.changelog.yaml
       relativeToChangelogFile: true
+  - include:
+      file: yandex-identity.sql
+      relativeToChangelogFile: true
+  - include:
+      file: google-identity.sql
+      relativeToChangelogFile: true

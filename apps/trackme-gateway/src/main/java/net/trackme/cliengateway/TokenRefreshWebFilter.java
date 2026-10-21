@@ -26,6 +26,11 @@ public class TokenRefreshWebFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        String path = exchange.getRequest().getPath().value();
+        // Public registration settings must remain available even with an expired OAuth session.
+        if ("/oauth2/social/config".equals(path) || "/oauth2/yandex/config".equals(path)) {
+            return chain.filter(exchange);
+        }
         return exchange.getPrincipal().ofType(OAuth2AuthenticationToken.class)
                 .flatMap(principal -> exchange.getSession().flatMap(session -> {
                     String key = session.getId() + ":" + principal.getAuthorizedClientRegistrationId();

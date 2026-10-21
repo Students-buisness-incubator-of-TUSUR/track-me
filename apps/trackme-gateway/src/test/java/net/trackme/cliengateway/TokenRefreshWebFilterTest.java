@@ -1,6 +1,10 @@
 package net.trackme.cliengateway;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.mock.web.server.MockWebSession;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +53,7 @@ class TokenRefreshWebFilterTest {
     when(authenticationToken.getAuthorizedClientRegistrationId()).thenReturn("test-registration-id");
 
     ServerWebExchange exchange = mock(ServerWebExchange.class);
+    when(exchange.getRequest()).thenReturn(MockServerHttpRequest.get("/backend/profile").build());
     when(exchange.getPrincipal()).thenReturn(Mono.just(authenticationToken));
     when(exchange.getSession()).thenReturn(Mono.just(new MockWebSession()));
 
@@ -80,6 +85,7 @@ class TokenRefreshWebFilterTest {
   @Test
   void filter_whenPrincipalIsNotOAuth2AuthenticationToken() {
     // Arrange
+    when(mockExchange.getRequest()).thenReturn(MockServerHttpRequest.get("/backend/profile").build());
     when(mockExchange.getPrincipal()).thenReturn(Mono.empty());
     when(mockFilterChain.filter(mockExchange)).thenReturn(Mono.empty());
 
@@ -102,6 +108,7 @@ class TokenRefreshWebFilterTest {
     when(authenticationToken.getAuthorizedClientRegistrationId()).thenReturn("test-registration-id");
 
     ServerWebExchange exchange = mock(ServerWebExchange.class);
+    when(exchange.getRequest()).thenReturn(MockServerHttpRequest.get("/backend/profile").build());
     when(exchange.getPrincipal()).thenReturn(Mono.just(authenticationToken));
     when(exchange.getSession()).thenReturn(Mono.just(new MockWebSession()));
 
@@ -126,6 +133,8 @@ class TokenRefreshWebFilterTest {
     var session = new MockWebSession();
     var first = mock(ServerWebExchange.class);
     var second = mock(ServerWebExchange.class);
+    when(first.getRequest()).thenReturn(MockServerHttpRequest.get("/backend/profile").build());
+    when(second.getRequest()).thenReturn(MockServerHttpRequest.get("/backend/profile").build());
     when(first.getPrincipal()).thenReturn(Mono.just(principal));
     when(second.getPrincipal()).thenReturn(Mono.just(principal));
     when(first.getSession()).thenReturn(Mono.just(session));
@@ -144,6 +153,20 @@ class TokenRefreshWebFilterTest {
     verify(authorizedClientManager, times(1)).authorize(any());
     verify(authorizedClientRepository).saveAuthorizedClient(client, principal, first);
     verify(authorizedClientRepository).saveAuthorizedClient(client, principal, second);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"/oauth2/social/config", "/oauth2/yandex/config"})
+  void publicRegistrationConfigurationDoesNotTriggerOAuthReauthorization(String path) {
+    var legacyGoogleSession = mock(OAuth2AuthenticationToken.class);
+    var exchange = MockServerWebExchange.from(MockServerHttpRequest.get(path)).mutate()
+        .principal(Mono.just(legacyGoogleSession)).build();
+    when(mockFilterChain.filter(exchange)).thenReturn(Mono.empty());
+
+    StepVerifier.create(tokenRefreshWebFilter.filter(exchange, mockFilterChain)).verifyComplete();
+
+    verifyNoInteractions(authorizedClientManager, authorizedClientRepository);
+    verify(mockFilterChain).filter(exchange);
   }
 
 }
