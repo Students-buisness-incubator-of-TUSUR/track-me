@@ -55,7 +55,7 @@ public interface TeamCardsAdminRestController {
   @Operation(summary = "Создание карточки команды")
   ResponseEntity<TeamCardDto> createTeamCard(
       @Valid @RequestBody TeamCardCreateDto teamCardDto,
-      @RequestParam(required = false) UUID streamId,
+      @RequestParam UUID streamId,
       @RequestParam String username);
 
   @PatchMapping(value = "team-card",

@@ -50,6 +50,49 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
         teamCardsRepository.deleteAll();
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"ADMIN", "SUPER_ADMIN"})
+    void cannotCreateTeamWithoutStream(String role) throws Exception {
+        long count = teamCardsRepository.count();
+        mockMvc.perform(post("/api/v1/admin/team-card")
+                .with(user(BaseApplicationTest.USER).roles(role)).with(csrf())
+                .param("username", "tracker1").contentType(MediaType.APPLICATION_JSON)
+                .content(validCreateJson()))
+            .andExpect(status().isBadRequest());
+        assertThat(teamCardsRepository.count()).isEqualTo(count);
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void cannotCreateTeamWithUnknownStream() throws Exception {
+        long count = teamCardsRepository.count();
+        mockMvc.perform(post("/api/v1/admin/team-card").with(csrf())
+                .param("username", "tracker1").param("streamId", UUID.randomUUID().toString())
+                .contentType(MediaType.APPLICATION_JSON).content(validCreateJson()))
+            .andExpect(status().is4xxClientError());
+        assertThat(teamCardsRepository.count()).isEqualTo(count);
+    }
+
+    @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void canCreateTeamWithExistingStream() throws Exception {
+        mockMvc.perform(post("/api/v1/admin/team-card").with(csrf())
+                .param("username", "tracker1").param("streamId", stream.getId().toString())
+                .contentType(MediaType.APPLICATION_JSON).content(validCreateJson()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.streams[0].id").value(stream.getId().toString()));
+        assertThat(teamCardsRepository.findAll()).singleElement()
+            .satisfies(team -> assertThat(team.getStreams()).extracting(net.trackme.backend.domain.Stream::getId)
+                .containsExactly(stream.getId()));
+    }
+
+    private String validCreateJson() {
+        return """
+            {"name":"New team","meetingRoomLink":"https://example.com/room",
+             "readinessLevel":"0-2","ntiMarketIds":["%s"]}
+            """.formatted(ntiMarket.getId());
+    }
+
     @Test
     @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
     void testUpdateTeamCardOwner() throws Exception {
@@ -127,7 +170,7 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 TeamCard.builder()
                         .status(TeamCardStatus.OK)
                         .ntiMarkets(List.of(ntiMarket))
-                        .name("Team card 1")
+                        .name("Team card 1").streams(java.util.Set.of(stream))
                         .meetingRoomLink("meetingRoom@link.com")
                         .readinessLevel(ReadinessLevel.LEVEL_1)
                         .build(),
@@ -137,11 +180,15 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 TeamCard.builder()
                         .status(TeamCardStatus.OK)
                         .ntiMarkets(List.of(ntiMarket))
-                        .name("Team card 2")
+                        .name("Team card 2").streams(java.util.Set.of(stream))
                         .meetingRoomLink("meetingRoom@link.com")
                         .readinessLevel(ReadinessLevel.LEVEL_1)
                         .build(),
                 BaseApplicationTest.USER);
+
+        teamCardsRepository.save(TeamCard.builder().name("Orphaned legacy team").status(TeamCardStatus.OK)
+                .username(BaseApplicationTest.USER).meetingRoomLink("https://example.com")
+                .readinessLevel(ReadinessLevel.LEVEL_1).build());
 
         mockMvc.perform(post("/api/v1/admin/team-cards")
                         .with(csrf())

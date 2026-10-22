@@ -95,7 +95,8 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   @Override
   public ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(Pageable pageable,
                                                               FilterRequest filterRequest) {
-    var specs = TeamCardSpecification.withFilters(filterRequest.filters());
+    var specs = TeamCardSpecification.withFilters(filterRequest.filters())
+        .and(TeamCardSpecification.hasStream());
     var page = teamCardsService.findAll(specs, pageable)
         .map(teamCardMapper::mapToDto);
     return ResponseEntity.ok(new PagedModel<>(page));
