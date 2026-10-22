@@ -1,6 +1,12 @@
 package net.trackme.cliengateway.config;
 
 import jakarta.annotation.PostConstruct;
+import java.time.Clock;
+import net.trackme.cliengateway.UserActivityWebFilter;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +45,12 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 @EnableConfigurationProperties({AppProperties.class})
 public class OAuth2ClientConfiguration {
+    @org.springframework.beans.factory.annotation.Value("${app.yandex.enabled:false}")
+    private boolean yandexSsoEnabled;
+
+    @org.springframework.beans.factory.annotation.Value("${app.google.enabled:false}")
+    private boolean googleSsoEnabled;
+
     private static final String ATTR_EMAIL = "email";
 
     private final ReactiveClientRegistrationRepository clientRegistrationRepository;
@@ -48,20 +60,35 @@ public class OAuth2ClientConfiguration {
     private ServerAuthenticationSuccessHandler authenticationSuccessHandler;
 
     @Bean
+    @org.springframework.core.annotation.Order(-1)
+    SecurityWebFilterChain sessionSecurityFilterChain(ServerHttpSecurity http) {
+        return http
+                .securityMatcher(new PathPatternParserServerWebExchangeMatcher("/session/**"))
+                .cors(withDefaults())
+                .authorizeExchange(exchange -> exchange.pathMatchers(OPTIONS, "/**").permitAll()
+                        .anyExchange().authenticated())
+                .exceptionHandling(errors -> errors.authenticationEntryPoint(
+                        new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .addFilterAfter(new UserActivityWebFilter(Clock.systemUTC()), SecurityWebFiltersOrder.AUTHORIZATION)
+                .build();
+    }
+
+    @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
                 .cors(withDefaults()) // Enable CORS support
                 .authorizeExchange(exchange ->
                         exchange.pathMatchers(OPTIONS, "/**").permitAll()
                                 .pathMatchers("/actuator/**").permitAll()
-                                .pathMatchers("/csrf").permitAll()
+                                .pathMatchers("/csrf", "/oauth2/yandex/config", "/oauth2/social/config").permitAll()
                                 .anyExchange().authenticated())
                 .oauth2Login(oauth2Login -> {
                         oauth2Login.authorizationRequestResolver(
-                                new CustomAuthorizationRequestResolver(clientRegistrationRepository));
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, yandexSsoEnabled, googleSsoEnabled));
                         oauth2Login.authenticationSuccessHandler(authenticationSuccessHandler);
                 })
                 .oauth2Client(withDefaults())
+                .addFilterAfter(new UserActivityWebFilter(Clock.systemUTC()), SecurityWebFiltersOrder.AUTHORIZATION)
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutSuccessHandler))
@@ -144,6 +171,7 @@ public class OAuth2ClientConfiguration {
         this.authenticationSuccessHandler = (webFilterExchange, authentication) -> {
             String registrationId = extractRegistrationId(authentication);
             return webFilterExchange.getExchange().getSession().flatMap(session -> {
+                session.getAttributes().put(UserActivityWebFilter.LAST_ACTIVITY, Clock.systemUTC().millis());
                 String target = resolveRedirectTarget(session, authentication, registrationId);
                 return new RedirectServerAuthenticationSuccessHandler(target)
                         .onAuthenticationSuccess(webFilterExchange, authentication);

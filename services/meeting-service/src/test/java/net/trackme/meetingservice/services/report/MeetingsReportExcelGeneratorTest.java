@@ -35,7 +35,8 @@ class MeetingsReportExcelGeneratorTest {
                 "Выполнено",
                 "Не выполнено",
                 TeamStatus.OK,
-                MeetingStatus.COMPLETED
+                MeetingStatus.COMPLETED,
+                false
         );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -79,7 +80,8 @@ class MeetingsReportExcelGeneratorTest {
                 null,
                 null,
                 null,
-                MeetingStatus.COMPLETED_AS_NOT_HAPPENED
+                MeetingStatus.COMPLETED_AS_NOT_HAPPENED,
+                false
         );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -107,7 +109,8 @@ class MeetingsReportExcelGeneratorTest {
                 "Задача 1",
                 "Задача 2",
                 TeamStatus.OK,
-                MeetingStatus.COMPLETED
+                MeetingStatus.COMPLETED,
+                false
         );
 
         var record2 = new MeetingReportRecordDto(
@@ -119,7 +122,8 @@ class MeetingsReportExcelGeneratorTest {
                 "Задача 3",
                 "Задача 4",
                 TeamStatus.WITH_ISSUES,
-                MeetingStatus.COMPLETED
+                MeetingStatus.COMPLETED,
+                false
         );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -162,6 +166,7 @@ class MeetingsReportExcelGeneratorTest {
                 null,
                 null,
                 null,
+                null,
                 null
         );
 
@@ -191,7 +196,8 @@ class MeetingsReportExcelGeneratorTest {
                 null,
                 null,
                 null,
-                MeetingStatus.SCHEDULED
+                MeetingStatus.SCHEDULED,
+                false
         );
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -203,6 +209,33 @@ class MeetingsReportExcelGeneratorTest {
             assertEquals("—", dataRow.getCell(3).getStringCellValue());
             assertEquals("—", dataRow.getCell(4).getStringCellValue());
             assertEquals("Запланирована", dataRow.getCell(5).getStringCellValue());
+        }
+    }
+
+    @Test
+    void generate_withPassiveTeam_addsMarkToTeamName() throws Exception {
+        UUID teamId = UUID.randomUUID();
+
+        var reportRecord = new MeetingReportRecordDto(
+                teamId,
+                "Отчисленная команда",
+                OffsetDateTime.parse("2024-05-10T10:00:00Z"),
+                "tracker",
+                "Трекер",
+                "Задачи",
+                "Задачи",
+                TeamStatus.OK,
+                MeetingStatus.COMPLETED,
+                true
+        );
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        generator.generate("Test", Stream.of(reportRecord), out);
+
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        try (Workbook workbook = new XSSFWorkbook(in)) {
+            Row dataRow = workbook.getSheetAt(0).getRow(2);
+            assertEquals("Отчисленная команда (отчислена)", dataRow.getCell(0).getStringCellValue());
         }
     }
 }

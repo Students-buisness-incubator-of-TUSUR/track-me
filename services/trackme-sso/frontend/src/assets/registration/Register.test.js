@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Register from './Register';
+import LoginAPI from '../../services/login-service';
 
 // Мокаем API сервис, чтобы не дергать реальный бэкенд
 jest.mock('../../services/login-service', () => ({
@@ -51,4 +52,47 @@ test('preserves literal plus and percent characters from OAuth registration para
   } finally {
     window.history.replaceState({}, '', originalUrl);
   }
+});
+
+test('requires both consents before submitting registration', () => {
+  LoginAPI.register.mockImplementation(() => new Promise(() => {}));
+  render(<Register />);
+
+  fireEvent.change(screen.getByLabelText('Имя пользователя в Telegram (без @)'), {
+    target: { value: 'tester123' },
+  });
+  fireEvent.change(screen.getByLabelText('Пароль'), {
+    target: { value: 'Abc123@' },
+  });
+  fireEvent.change(screen.getByLabelText('ФИО'), {
+    target: { value: 'Иван Иванов' },
+  });
+  fireEvent.change(screen.getByLabelText('Email'), {
+    target: { value: 'example@email.ru' },
+  });
+  fireEvent.change(screen.getByLabelText('Номер телефона'), {
+    target: { value: '+79001234567' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'Зарегистрироваться' }));
+
+  const policy = screen.getByRole('checkbox', {
+    name: 'Я ознакомился с политикой в отношении обработки данных.',
+  });
+  const personalData = screen.getByRole('checkbox', {
+    name: 'Я даю согласие на обработку персональных данных.',
+  });
+  const accept = screen.getByRole('button', { name: 'Принимаю' });
+
+  expect(accept).toBeDisabled();
+  fireEvent.click(policy);
+  expect(accept).toBeDisabled();
+  expect(LoginAPI.register).not.toHaveBeenCalled();
+  fireEvent.click(personalData);
+  expect(accept).toBeEnabled();
+  fireEvent.click(accept);
+
+  expect(LoginAPI.register).toHaveBeenCalledWith(expect.objectContaining({
+    username: 'tester123',
+    email: 'example@email.ru',
+  }));
 });
