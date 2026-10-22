@@ -37,7 +37,7 @@ public interface MeetingMapper {
     void updateEntityFromDto(MeetingUpdateDto updateDto, @MappingTarget Meeting meeting);
 
     @Mapping(target = "teamId", source = "teamCardId")
-    @Mapping(target = "passive", source = "teamCardPassive") 
+    @Mapping(target = "passive", source = "teamCardPassive")
     TrackerMeetingReportRecordDto mapToTrackerReportDto(Meeting meeting);
 
     @Mapping(target = "teamCardId", ignore = true)
