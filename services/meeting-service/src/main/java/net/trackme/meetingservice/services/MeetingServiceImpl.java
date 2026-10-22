@@ -194,6 +194,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Transactional
     @PreAuthorize(
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') "
+                    + "or @meetingSecurity.isTrackerOfMeeting(#meetingId, authentication) "
                     + "or hasRole('ADMIN')")
     @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public MeetingDto updateMeeting(UUID meetingId, UUID teamCardId, MeetingUpdateDto updateDto) {
@@ -237,6 +238,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Transactional
     @PreAuthorize(
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') "
+                    + "or @meetingSecurity.isTrackerOfMeeting(#meetingId, authentication) "
                     + "or hasRole('ADMIN')")
     @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     public void deleteMeeting(UUID meetingId) {
@@ -265,6 +267,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Transactional
     @PreAuthorize(
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'WRITE') "
+                    + "or @meetingSecurity.isTrackerOfMeeting(#meetingId, authentication) "
                     + "or hasRole('ADMIN')")
     public void addMeetingImage(UUID meetingId, MultipartFile file) {
         validateImageFile(file);
@@ -281,6 +284,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     @PreAuthorize(
             "hasPermission(#meetingId,'net.trackme.meetingservice.entities.Meeting', 'READ') "
+                    + "or @meetingSecurity.isTrackerOfMeeting(#meetingId, authentication) "
                     + "or hasRole('ADMIN')")
     public Resource getMeetingImage(UUID meetingId) {
         var meeting = getMeeting(meetingId);

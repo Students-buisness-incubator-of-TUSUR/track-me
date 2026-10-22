@@ -552,14 +552,12 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @Test
     @WithMockUser(value = "superadmin", roles = {"SUPER_ADMIN"})
     void createMeeting_recalculateTasksChain() throws Exception {
-        // Первая встреча - без tasksNextMeeting
         var meeting1 = meetingRepository.findAll().getFirst();
         meeting1.setTasksCurrentMeeting("Tasks from meeting 1");
         meeting1.setTasksNextMeeting(null);
         meeting1.setTasksNextManuallySet(false);
         meetingRepository.save(meeting1);
 
-        // Вторая встреча — у неё должен появиться tasksNextMeeting после пересчёта
         var meeting2 = meetingRepository.findAll().stream()
                 .filter(m -> !m.getId().equals(meeting1.getId()))
                 .findFirst().orElseThrow();
@@ -567,7 +565,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         meeting2.setTasksNextManuallySet(false);
         meetingRepository.save(meeting2);
 
-        // Создаём новую встречу позже
         var createDto = MeetingCreateDto.builder()
                 .startDate(OffsetDateTime.now().plusDays(5))
                 .build();
@@ -580,7 +577,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        // Проверяем что у второй встречи появился tasksNextMeeting
         var updatedMeeting2 = meetingRepository.findById(meeting2.getId()).orElseThrow();
         Assertions.assertEquals("Tasks from meeting 1", updatedMeeting2.getTasksNextMeeting());
     }
@@ -669,7 +665,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
     @Test
     @WithMockUser(roles = "SUPER_ADMIN")
     void createMeetingForPassiveTeamSuperAdminShouldSucceed() throws Exception {
-        // Создаём пассивную команду
         var passiveTeamCardId = UUID.randomUUID();
         var mockPassiveTeamCard = TeamCardDto.builder()
                 .id(passiveTeamCardId)
@@ -677,7 +672,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .username("tracker_user")
                 .streams(List.of(new StreamDto(UUID.randomUUID())))
                 .meetingRoomLink("https://zoom.us/j/123")
-                .passive(true)  // Пассивная команда
+                .passive(true)
                 .build();
 
         when(userBackendApiClient.getTeamCardById(passiveTeamCardId)).thenReturn(mockPassiveTeamCard);
@@ -768,9 +763,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.status").value("COMPLETED"));
     }
 
-    // ============================================================
-    // Тесты для tracker-отчётов (getMyTrackerMeetingsReport*)
-    // ============================================================
 
     @MockitoBean
     private TrackerMeetingsReportService trackerMeetingsReportService;
@@ -819,15 +811,11 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .streamRecordsToExcel(any(), any(), anyInt(), anyInt(), any());
     }
 
-    // ============================================================
-    // Тесты обработки ошибок стриминга (проблема №4)
-    // ============================================================
 
     @Test
     void getMeetingsReportExcel_errorDuringStreaming_propagatesException() throws Exception {
         UUID streamId = UUID.randomUUID();
 
-        // Стриминг падает с IOException
         doAnswer(invocation -> {
             throw new java.io.IOException("Simulated streaming failure");
         }).when(reportService).streamRecordsToExcelForStream(
@@ -841,7 +829,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                 .andExpect(request().asyncStarted())
                 .andReturn();
 
-        // asyncDispatch должен выбросить исключение (IOException)
         Assertions.assertThrows(Exception.class, () ->
                 mockMvc.perform(asyncDispatch(mvcResult)).andReturn());
     }
@@ -864,10 +851,6 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
         Assertions.assertThrows(Exception.class, () ->
                 mockMvc.perform(asyncDispatch(mvcResult)).andReturn());
     }
-
-    // ============================================================
-    // Тесты для updateByAdmin (endpoint /admin-update)
-    // ============================================================
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -912,7 +895,7 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
 
         var updateDto = MeetingUpdateDto.builder()
                 .recordLink("https://example.com/new")
-                .status(MeetingStatus.COMPLETED)  // ← ADMIN не может менять status
+                .status(MeetingStatus.COMPLETED)
                 .build();
 
         mockMvc.perform(patch("/api/v1/admin-update/" + meeting.getId())
@@ -946,5 +929,89 @@ class MeetingRestControllerTest extends AbstractIntegrationTest {
                         .content(objectMapper.writeValueAsString(updateDto)))
                 .andDo(print())
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(value = "tracker_user", roles = {"TRACKER"})
+    void updateMeeting_trackerOfTeam_success() throws Exception {
+    var meeting = meetingRepository.findAll().getFirst();
+    meeting.setTrackerUsername("tracker_user");
+    meetingRepository.save(meeting);
+
+    var dto = MeetingUpdateDto.builder()
+            .recordLink("https://example.com/tracker-edited")
+            .build();
+
+    mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                    .param("teamCardId", TEAM_CARD_ID.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.recordLink").value("https://example.com/tracker-edited"));
+    }
+
+    @Test
+    @WithMockUser(value = "other_tracker", roles = {"TRACKER"})
+    void updateMeeting_trackerOfOtherTeam_forbidden() throws Exception {
+    var meeting = meetingRepository.findAll().getFirst();
+    meeting.setTrackerUsername("tracker_user");
+    meetingRepository.save(meeting);
+
+    var dto = MeetingUpdateDto.builder()
+            .recordLink("https://example.com/hacked")
+            .build();
+
+    mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                    .param("teamCardId", TEAM_CARD_ID.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andDo(print())
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(value = "tracker_user", roles = {"TRACKER"})
+    void updateMeeting_trackerReassigned_oldTrackerLosesAccess() throws Exception {
+    var meeting = meetingRepository.findAll().getFirst();
+    meeting.setTrackerUsername("tracker_user");
+    meetingRepository.save(meeting);
+
+    meeting.setTrackerUsername("new_tracker");
+    meetingRepository.save(meeting);
+
+    var dto = MeetingUpdateDto.builder()
+            .recordLink("https://example.com/old-tracker")
+            .build();
+
+    mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                    .param("teamCardId", TEAM_CARD_ID.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andDo(print())
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(value = "new_tracker", roles = {"TRACKER"})
+    void updateMeeting_trackerReassigned_newTrackerGetsAccess() throws Exception {
+    var meeting = meetingRepository.findAll().getFirst();
+    meeting.setTrackerUsername("new_tracker");
+    meetingRepository.save(meeting);
+
+    var dto = MeetingUpdateDto.builder()
+            .recordLink("https://example.com/new-tracker")
+            .build();
+
+    mockMvc.perform(patch("/api/v1/update-meeting/" + meeting.getId())
+                    .param("teamCardId", TEAM_CARD_ID.toString())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsString(dto)))
+            .andDo(print())
+            .andExpect(status().isOk());
     }
 }

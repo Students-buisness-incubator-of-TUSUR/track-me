@@ -16,6 +16,7 @@ public class KafkaTopicsConfiguration {
     public static final String MEETING_NOT_HAPPENED_TOPIC = "meeting-not-happened";
     public static final String TEAM_CARD_SUMMARY_TOPIC = "team-card-summary";
     public static final String TEAM_CARD_LOW_GRADE_SUMMARY_TOPIC = "team-card-low-grade-summary";
+    public static final String TEAM_CARD_DELETED_TOPIC = "team-card-deleted";
 
     @Bean
     NewTopic meetingNotHappenedTopic() {
@@ -40,6 +41,16 @@ public class KafkaTopicsConfiguration {
     @Bean
     NewTopic teamCardLowGradeSummaryTopic() {
         return new NewTopic(TEAM_CARD_LOW_GRADE_SUMMARY_TOPIC, 3, (short) 1)
+                .configs(Map.of(
+                        // Пример настроек: хранить 7 дней
+                        "retention.ms", String.valueOf(7L * 24 * 60 * 60 * 1000),
+                        "cleanup.policy", "delete"
+                ));
+    }
+
+    @Bean
+    NewTopic teamCardDeletedTopic() {
+        return new NewTopic(TEAM_CARD_DELETED_TOPIC, 3, (short) 1)
                 .configs(Map.of(
                         // Пример настроек: хранить 7 дней
                         "retention.ms", String.valueOf(7L * 24 * 60 * 60 * 1000),

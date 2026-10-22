@@ -89,6 +89,7 @@ spring:
           net.trackme.backend.messaging.TeamCardUpdatedEvent:net.trackme.meetingservice.messaging.backend.TeamCardUpdatedEvent,
           net.trackme.backend.messaging.TeamCardStreamAddedEvent:net.trackme.meetingservice.messaging.backend.TeamCardStreamAddedEvent,
           net.trackme.backend.messaging.TeamCardStreamRemovedEvent:net.trackme.meetingservice.messaging.backend.TeamCardStreamRemovedEvent,
+          net.trackme.backend.messaging.TeamCardDeletedEvent:net.trackme.meetingservice.messaging.backend.TeamCardDeletedEvent,
           net.trackme.sso.messaging.UserUpdatedEvent:net.trackme.meetingservice.messaging.sso.UserUpdatedEvent
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer

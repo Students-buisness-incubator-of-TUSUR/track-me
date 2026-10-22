@@ -6,13 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.trackme.meetingservice.dao.MeetingMetadataRepository;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Потребитель событий TeamCard из Kafka.
- * Обрабатывает обновления карточек команд и привязку к потокам.
+ * Обрабатывает обновления карточек команд, привязку к потокам и удаление команд.
  */
 @Slf4j
 @Service
@@ -36,6 +37,7 @@ public class TeamCardEventConsumer {
      * @param event событие обновления карточки команды, содержащее новое название и данные трекера
      */
     @Transactional
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     @KafkaListener(topics = "team-card-updated")
     public void handleTeamCardUpdated(TeamCardUpdatedEvent event) {
         log.info("[Kafka] Обновление метаданных для команды {}. Новое название: {}, новый трекер: {}, ФИО: {}",
@@ -82,6 +84,7 @@ public class TeamCardEventConsumer {
      * @param event событие добавления потока, содержащее ID потока и ID карточки команды
      */
     @Transactional
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     @KafkaListener(topics = "team-card-stream-added")
     public void handleStreamAdded(TeamCardStreamAddedEvent event) {
         log.debug("[Kafka] Добавление стрима {} команде {}", event.streamId(), event.teamCardId());
@@ -94,9 +97,29 @@ public class TeamCardEventConsumer {
      * @param event событие удаления потока, содержащее ID потока и ID карточки команды
      */
     @Transactional
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
     @KafkaListener(topics = "team-card-stream-removed")
     public void handleStreamRemoved(TeamCardStreamRemovedEvent event) {
         log.debug("[Kafka] Удаление стрима {} у команды {}", event.streamId(), event.teamCardId());
         metadataRepository.removeStreamFromTeamMeetings(event.teamCardId(), event.streamId());
+    }
+
+    /**
+     * Обрабатывает удаление карточки команды.
+     * Удаляет все встречи этой команды из meeting-service и сбрасывает кэш отчётов.
+     *
+     * @param event событие удаления карточки команды
+     */
+    @Transactional
+    @CacheEvict(value = {"meetings-report-all", "meetings-report-page"}, allEntries = true)
+    @KafkaListener(topics = "team-card-deleted")
+    public void handleTeamCardDeleted(TeamCardDeletedEvent event) {
+        log.info("[Kafka] Удаление встреч для удалённой команды {}", event.teamCardId());
+
+        metadataRepository.deleteMeetingStreamsByTeamCardId(event.teamCardId());
+
+        metadataRepository.deleteAllByTeamCardId(event.teamCardId());
+
+        log.info("[Kafka] Встречи для команды {} успешно удалены", event.teamCardId());
     }
 }
