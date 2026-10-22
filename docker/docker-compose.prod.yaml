@@ -74,7 +74,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     container_name: trackme-kafka
-    image: apache/kafka:latest
+    image: apache/kafka:4.1.0
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -90,15 +90,16 @@ services:
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
     volumes:
-      - kafka_data:/bitnami/kafka
+      - kafka_data:/var/lib/kafka/data
     networks:
       - trackme-net
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1" ]
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null 2>&1" ]
       interval: 30s
       timeout: 10s
       retries: 10
+      start_period: 30s
 
   trackme-backend:
     image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/backend:${IMAGE_TAG:-latest}
