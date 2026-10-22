@@ -264,7 +264,6 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         List<TeamCard> teams = teamCardsRepository.findByUsername(fromUsername);
         log.info("Reassigning {} teams from '{}' to '{}'", teams.size(), fromUsername, toUsername);
 
-        // Используем полное имя нового трекера, если не предоставлено - используем username
         String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank())
             ? toUserFullName
             : toUsername;
@@ -273,14 +272,11 @@ public class TeamCardsServiceImpl implements TeamCardsService {
             String oldUsername = team.getUsername();
             String oldFullName = team.getTrackerFullName();
 
-            // Обновляем оба поля для консистентности
             team.setUsername(toUsername);
             team.setTrackerFullName(newTrackerFullName);
 
-            // Обновляем ACL владельца
             aclService.updateAclOwner(team, toUsername);
 
-            // Публикуем событие с обновленными данными
             eventPublisher.publishEvent(new TeamCardChangedInternalEvent(
                 team.getId(),
                 team.getName(),

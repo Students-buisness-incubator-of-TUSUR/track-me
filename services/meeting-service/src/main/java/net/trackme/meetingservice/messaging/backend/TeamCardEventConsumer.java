@@ -14,17 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Потребитель событий TeamCard из Kafka.
  * Обрабатывает обновления карточек команд, привязку к потокам и удаление команд.
- *
- * <p>Десериализация полагается на {@code spring.json.type.mapping} в
- * {@code application.yml}, где backend-классы {@code net.trackme.backend.messaging.*}
- * сопоставлены с соответствующими классами meeting-service
- * {@code net.trackme.meetingservice.messaging.backend.*}. Поэтому на каждом
- * listener'е достаточно указать только {@code topics} — без {@code properties}
- * с {@code default.type} / {@code use.type.headers}.
- *
- * <p>При любом изменении данных, влияющих на отчёт по встречам (название команды,
- * трекер, привязка к потоку, удаление команды), сбрасывается кэш отчёта
- * ({@code meetings-report-all} и {@code meetings-report-page}).
  */
 @Slf4j
 @Service
@@ -127,10 +116,8 @@ public class TeamCardEventConsumer {
     public void handleTeamCardDeleted(TeamCardDeletedEvent event) {
         log.info("[Kafka] Удаление встреч для удалённой команды {}", event.teamCardId());
 
-        // Сначала чистим связи meeting_stream (на случай отсутствия ON DELETE CASCADE)
         metadataRepository.deleteMeetingStreamsByTeamCardId(event.teamCardId());
 
-        // Затем сами встречи
         metadataRepository.deleteAllByTeamCardId(event.teamCardId());
 
         log.info("[Kafka] Встречи для команды {} успешно удалены", event.teamCardId());
