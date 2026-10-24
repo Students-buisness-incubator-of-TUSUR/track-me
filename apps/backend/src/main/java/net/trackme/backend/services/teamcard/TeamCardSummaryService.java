@@ -107,6 +107,7 @@ public class TeamCardSummaryService {
         List<TeamCardLowGradeSummaryEvent> teamCardLowGradeSummaryEvents = new ArrayList<>();
 
         var teamCards = teamCardsRepository.findAll().stream()
+                .filter(teamCard -> !Boolean.TRUE.equals(teamCard.getPassive()))
                 .filter(teamCard -> teamCard.getAverageGrade()
                         .compareTo(BigDecimal.valueOf(LOW_GRADE)) <= 0)
                 .toList();
