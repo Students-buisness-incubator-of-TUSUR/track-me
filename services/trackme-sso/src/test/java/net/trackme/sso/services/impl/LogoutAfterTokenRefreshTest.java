@@ -105,15 +105,47 @@ class LogoutAfterTokenRefreshTest {
         assertThrows(OAuth2AuthenticationException.class, () -> provider.authenticate(request));
     }
 
+    @Test
+    void migratesAuthorizationStoredBeforeInitialTokenRetentionWasAdded() {
+        Instant now = Instant.now();
+        var legacy = originalAuthorization(now);
+        storage.put("oauth2_authorization_complete:" + legacy.getId(), legacy);
+
+        service.save(OAuth2Authorization.from(legacy)
+                .token(idToken("latest-id-token", now, now.plusSeconds(900))).build());
+
+        assertTrue(provider.authenticate(request("original-id-token")).isAuthenticated());
+    }
+
+    @Test
+    void initialIdTokenDoesNotRestoreOldAccessTokenOrReplaceCurrentOne() {
+        var authorization = saveAndRefresh();
+
+        var byAccessToken = service.findByToken("current-access-token", OAuth2TokenType.ACCESS_TOKEN);
+        var byInitialIdToken = service.findByToken("original-id-token", null);
+
+        assertEquals(authorization.getId(), byAccessToken.getId());
+        assertEquals("latest-id-token", byAccessToken.getToken(OidcIdToken.class).getToken().getTokenValue());
+        assertEquals("original-id-token", byInitialIdToken.getToken(OidcIdToken.class).getToken().getTokenValue());
+        assertNull(service.findByToken("original-id-token", OAuth2TokenType.ACCESS_TOKEN));
+        assertNull(service.findByToken("old-access-token", null));
+    }
+
+    @Test
+    void nonOidcAuthorizationStillResolvesByAccessToken() {
+        Instant now = Instant.now();
+        var authorization = OAuth2Authorization.withRegisteredClient(client).id("non-oidc")
+                .principalName("tracker").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .accessToken(new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER,
+                        "non-oidc-access", now, now.plusSeconds(900))).build();
+        service.save(authorization);
+
+        assertSame(authorization, service.findByToken("non-oidc-access", null));
+    }
+
     private OAuth2Authorization saveAndRefresh() {
         Instant now = Instant.now();
-        var original = OAuth2Authorization.withRegisteredClient(client).id("authorization")
-                .principalName("tracker").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .attribute(Principal.class.getName(), principal())
-                .accessToken(new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "old-access-token",
-                        now.minusSeconds(3600), now.minusSeconds(1800)))
-                .token(idToken("original-id-token", now.minusSeconds(3600), now.minusSeconds(1800)))
-                .build();
+        var original = originalAuthorization(now);
         service.save(original);
         for (String value : List.of("refreshed-id-token", "latest-id-token")) {
             var current = service.findById(original.getId());
@@ -123,6 +155,16 @@ class LogoutAfterTokenRefreshTest {
                     .token(idToken(value, now, now.plusSeconds(900))).build());
         }
         return service.findById(original.getId());
+    }
+
+    private OAuth2Authorization originalAuthorization(Instant now) {
+        return OAuth2Authorization.withRegisteredClient(client).id("authorization")
+                .principalName("tracker").authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .attribute(Principal.class.getName(), principal())
+                .accessToken(new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "old-access-token",
+                        now.minusSeconds(3600), now.minusSeconds(1800)))
+                .token(idToken("original-id-token", now.minusSeconds(3600), now.minusSeconds(1800)))
+                .build();
     }
 
     private OidcIdToken idToken(String value, Instant issued, Instant expires) {

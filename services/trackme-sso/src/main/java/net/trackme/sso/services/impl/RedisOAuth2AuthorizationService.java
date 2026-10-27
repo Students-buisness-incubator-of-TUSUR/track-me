@@ -110,7 +110,7 @@ public final class RedisOAuth2AuthorizationService implements OAuth2Authorizatio
                 authorization.getToken(OidcIdToken.class);
         OidcIdToken initialIdToken = authorization.getAttribute(INITIAL_ID_TOKEN);
         return idToken != null && (idToken.getToken().getTokenValue().equals(token)
-                || initialIdToken != null && initialIdToken.getTokenValue().equals(token));
+                || (initialIdToken != null && initialIdToken.getTokenValue().equals(token)));
     }
 
     private static boolean matchesDeviceCode(OAuth2Authorization authorization, String token) {
