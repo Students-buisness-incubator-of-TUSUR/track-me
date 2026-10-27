@@ -48,7 +48,7 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Deploy to DEV
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1
         env:
           IMAGE_REPO: ${{ steps.image.outputs.repo }}
           IMAGE_TAG: ${{ steps.image.outputs.tag }}
@@ -101,7 +101,7 @@ jobs:
             docker image prune -f
 
       - name: Healthcheck
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1
         with:
           host: ${{ secrets.SBI_SSH_HOST }}
           username: ${{ secrets.SBI_SSH_USERNAME }}

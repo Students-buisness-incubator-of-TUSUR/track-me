@@ -47,7 +47,7 @@ public class AccessTokenRedisValidationFilter extends OncePerRequestFilter {
           response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has been revoked");
           return;
         }
-      } catch (Exception ex) {
+      } catch (Exception _) {
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
         return;
       }

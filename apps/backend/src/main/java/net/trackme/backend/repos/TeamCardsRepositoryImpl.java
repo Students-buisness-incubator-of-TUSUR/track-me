@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TeamCardsRepositoryImpl implements TeamCardsRepositoryCustom {
+    private static final String USERNAME_FIELD = "username";
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -24,7 +25,7 @@ public class TeamCardsRepositoryImpl implements TeamCardsRepositoryCustom {
         Root<TeamCard> root = query.from(TeamCard.class);
 
         query.multiselect(
-                root.get("username").alias("username"),
+                root.get(USERNAME_FIELD).alias(USERNAME_FIELD),
                 cb.avg(root.get("averageGrade")).alias("avgGrade")
         );
 
@@ -35,13 +36,13 @@ public class TeamCardsRepositoryImpl implements TeamCardsRepositoryCustom {
             }
         }
 
-        query.groupBy(root.get("username"));
+        query.groupBy(root.get(USERNAME_FIELD));
 
         return entityManager.createQuery(query)
                 .getResultList()
                 .stream()
                 .collect(Collectors.toMap(
-                        tuple -> tuple.get("username", String.class),
+                        tuple -> tuple.get(USERNAME_FIELD, String.class),
                         tuple -> {
                             Double avg = tuple.get("avgGrade", Double.class);
                             return avg != null ? avg : 0.0;

@@ -7,6 +7,10 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
+import static org.apache.kafka.common.config.TopicConfig.CLEANUP_POLICY_CONFIG;
+import static org.apache.kafka.common.config.TopicConfig.CLEANUP_POLICY_DELETE;
+import static org.apache.kafka.common.config.TopicConfig.RETENTION_MS_CONFIG;
+
 /**
  * Объявление Kafka-топиков.
  */
@@ -23,8 +27,8 @@ public class KafkaTopicsConfiguration {
         return new NewTopic(MEETING_NOT_HAPPENED_TOPIC, 3, (short) 1)
                 .configs(Map.of(
                         // Пример настроек: хранить 7 дней
-                        "retention.ms", String.valueOf(7L * 24 * 60 * 60 * 1000),
-                        "cleanup.policy", "delete"
+                        RETENTION_MS_CONFIG, String.valueOf(7L * 24 * 60 * 60 * 1000),
+                        CLEANUP_POLICY_CONFIG, CLEANUP_POLICY_DELETE
                 ));
     }
 
@@ -33,8 +37,8 @@ public class KafkaTopicsConfiguration {
         return new NewTopic(TEAM_CARD_SUMMARY_TOPIC, 3, (short) 1)
                 .configs(Map.of(
                         // Пример настроек: хранить 7 дней
-                        "retention.ms", String.valueOf(7L * 24 * 60 * 60 * 1000),
-                        "cleanup.policy", "delete"
+                        RETENTION_MS_CONFIG, String.valueOf(7L * 24 * 60 * 60 * 1000),
+                        CLEANUP_POLICY_CONFIG, CLEANUP_POLICY_DELETE
                 ));
     }
 
@@ -43,8 +47,8 @@ public class KafkaTopicsConfiguration {
         return new NewTopic(TEAM_CARD_LOW_GRADE_SUMMARY_TOPIC, 3, (short) 1)
                 .configs(Map.of(
                         // Пример настроек: хранить 7 дней
-                        "retention.ms", String.valueOf(7L * 24 * 60 * 60 * 1000),
-                        "cleanup.policy", "delete"
+                        RETENTION_MS_CONFIG, String.valueOf(7L * 24 * 60 * 60 * 1000),
+                        CLEANUP_POLICY_CONFIG, CLEANUP_POLICY_DELETE
                 ));
     }
 
@@ -53,8 +57,8 @@ public class KafkaTopicsConfiguration {
         return new NewTopic(TEAM_CARD_DELETED_TOPIC, 3, (short) 1)
                 .configs(Map.of(
                         // Пример настроек: хранить 7 дней
-                        "retention.ms", String.valueOf(7L * 24 * 60 * 60 * 1000),
-                        "cleanup.policy", "delete"
+                        RETENTION_MS_CONFIG, String.valueOf(7L * 24 * 60 * 60 * 1000),
+                        CLEANUP_POLICY_CONFIG, CLEANUP_POLICY_DELETE
                 ));
     }
 }

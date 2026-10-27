@@ -24,6 +24,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class DefaultRegistrationService implements RegistrationService {
+  private static final String UNEXPECTED_ERROR = "$happened.unexpected.error";
 
   /**
    * Сервис пользователей.
@@ -67,8 +68,8 @@ public class DefaultRegistrationService implements RegistrationService {
 
     try {
       registrationStore.saveToRegistration(requestDto, tokenHash);
-    } catch (Exception e) {
-      throw InformationException.builder("$happened.unexpected.error").build();
+    } catch (Exception _) {
+      throw InformationException.builder(UNEXPECTED_ERROR).build();
     }
 
     log.debug("Registration confirmation email requested");
@@ -89,7 +90,7 @@ public class DefaultRegistrationService implements RegistrationService {
   @Override
   public void confirm(String token, HttpServletRequest request) {
     if (!tokenStore.isTokenValid(token)) {
-      throw InformationException.builder("$happened.unexpected.error").build();
+      throw InformationException.builder(UNEXPECTED_ERROR).build();
     }
     registrationStore.takeToRegistration(token)
         .ifPresentOrElse(userService::saveUser,
@@ -107,8 +108,8 @@ public class DefaultRegistrationService implements RegistrationService {
 
     try {
       registrationStore.saveToRecovery(requestDto, tokenHash);
-    } catch (Exception e) {
-      throw InformationException.builder("$happened.unexpected.error").build();
+    } catch (Exception _) {
+      throw InformationException.builder(UNEXPECTED_ERROR).build();
     }
 
     log.debug("Password recovery email requested");
@@ -127,7 +128,7 @@ public class DefaultRegistrationService implements RegistrationService {
   @Override
   public void resetPassword(String token, ResetPasswordRequestDto requestDto) {
     if (!tokenStore.isTokenValid(token)) {
-      throw InformationException.builder("$happened.unexpected.error").build();
+      throw InformationException.builder(UNEXPECTED_ERROR).build();
     }
     registrationStore.takeToRecovery(token)
       .ifPresentOrElse(dto ->

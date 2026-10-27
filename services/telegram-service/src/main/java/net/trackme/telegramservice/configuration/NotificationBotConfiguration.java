@@ -23,7 +23,7 @@ public class NotificationBotConfiguration {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
             telegramBotsApi.registerBot(notificationBot);
             log.info("Telegram bot API registered notification bot.");
-        } catch (TelegramApiException e) {
+        } catch (TelegramApiException _) {
             log.error("Telegram bot API could not register notification bot.");
         }
     }

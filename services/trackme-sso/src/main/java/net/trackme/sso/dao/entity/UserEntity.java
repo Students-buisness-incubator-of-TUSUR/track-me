@@ -23,7 +23,7 @@ public class UserEntity extends VersionedBusinessEntity<UUID> {
              joinColumns = @JoinColumn(name = "user_id"),
              inverseJoinColumns = @JoinColumn(name = "role_id")
   )
-  public Set<RoleEntity> roles = new HashSet<>();
+  private Set<RoleEntity> roles = new HashSet<>();
 
   @Id
   @Column(name = "user_id", nullable = false)

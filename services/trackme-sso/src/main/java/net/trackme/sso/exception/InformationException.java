@@ -5,10 +5,9 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Getter
-@Setter
 public class InformationException extends RuntimeException {
 
-  private String description;
+  private final String description;
 
   public InformationException(String description, Throwable cause) {
     super(cause != null ? cause.getMessage() : description, cause);

@@ -5,6 +5,7 @@ import net.trackme.meetingservice.config.TestSecurityConfig;
 import net.trackme.meetingservice.services.integration.backend.UserBackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
 import net.trackme.meetingservice.services.integration.backend.exceptions.TeamCardNotFoundException;
+import net.trackme.meetingservice.services.integration.exceptions.IntegrationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +74,19 @@ public class BackendApiClientImplTest {
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
         Assertions.assertThrows(TeamCardNotFoundException.class, () -> client.getTeamCardById(id));
+        server.verify();
+    }
+
+    @Test
+    void getTeamCardById_backendFailurePreservesServiceAndCause() {
+        UUID id = UUID.randomUUID();
+        server.expect(requestTo(containsString("/api/v1/team-card")))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        var error = Assertions.assertThrows(IntegrationException.class, () -> client.getTeamCardById(id));
+
+        Assertions.assertEquals("trackme-backend", error.getServiceName());
+        Assertions.assertInstanceOf(org.springframework.web.client.HttpServerErrorException.class, error.getCause());
         server.verify();
     }
 }
