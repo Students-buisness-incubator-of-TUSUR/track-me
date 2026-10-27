@@ -58,13 +58,13 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
           userService.unlockUser(TRACKER);
         }
       }
-    } catch (UsernameNotFoundException e) {
+    } catch (UsernameNotFoundException _) {
       // Пользователь tracker не найден в тестовой БД — OK
     }
 
     try {
       userService.findByUsername(RONIN);
-    } catch (UsernameNotFoundException e) {
+    } catch (UsernameNotFoundException _) {
       var dto = RegistrationRequestDto.builder()
           .username(RONIN)
           .password("RoninPass@123")

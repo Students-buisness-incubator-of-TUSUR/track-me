@@ -24,14 +24,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 
-// TODO: Выпилить при гарантии согласованности данных. (или хотя бы перенести в ApplicationRunnable/SheduledTask).
-
 /**
  * Сервис для восстановления и аудита денормализованных данных во встречах.
  * <p>
- * <b>ВНИМАНИЕ:</b> Данный класс является временным костылем для обеспечения
- * консистентности данных между микросервисами (Backend, SSO и Meeting Service) в условиях отсутствия
- * гарантированной доставки событий об изменении сущностей.
+ * Запускается асинхронно из {@code SecurityPropagationInterceptor} после первого
+ * подходящего авторизованного запроса. Его токен нужен для обращения к Backend и SSO,
+ * поэтому запуск при старте приложения или по таймеру без служебной авторизации не подходит.
+ * Флаг завершения ограничивает синхронизацию одним успешным запуском, а при ошибке
+ * разрешает повторную попытку. Восстановление дополняет обработку событий для записей
+ * с неполными или устаревшими метаданными.
  * </p>
  */
 @Component
@@ -137,35 +138,9 @@ public class MeetingDataBackfiller {
 
         boolean isChanged = false;
         for (Meeting m : meetings) {
-            boolean meetingUpdated = false;
-
-            if (!Objects.equals(m.getTeamName(), teamData.getName())) {
-                log.trace("[{}] Team name mismatch for meeting {}: '{}' -> '{}'", mode, m.getId(), m.getTeamName(), teamData.getName());
-                m.setTeamName(teamData.getName());
-                meetingUpdated = true;
+            if (syncMeeting(m, teamData, username, fullName, trackerId, streamIds, mode)) {
+                isChanged = true;
             }
-
-            if (!Objects.equals(m.getTrackerUsername(), username) || !Objects.equals(m.getTrackerFullName(), fullName)) {
-                log.trace("[{}] Tracker mismatch for meeting {}: '{}' -> '{}'", mode, m.getId(), m.getTrackerUsername(), username);
-                m.setTrackerUsername(username);
-                m.setTrackerId(trackerId);
-                m.setTrackerFullName(fullName);
-                meetingUpdated = true;
-            }
-
-            if (!Objects.equals(m.getStreamIds(), streamIds)) {
-                m.setStreamIds(streamIds);
-                meetingUpdated = true;
-            }
-
-            BigDecimal oldWeight = m.getTeamStatusValue();
-            m.updateTeamStatusValue();
-
-            if (oldWeight == null || oldWeight.compareTo(m.getTeamStatusValue()) != 0) {
-                meetingUpdated = true;
-            }
-
-            if (meetingUpdated) isChanged = true;
         }
 
         if (isChanged) {
@@ -174,6 +149,33 @@ public class MeetingDataBackfiller {
         } else {
             log.debug("[{}] Team '{}' is already up to date.", mode, teamData.getName());
         }
+    }
+
+    private boolean syncMeeting(Meeting meeting, TeamCardDto teamData, String username,
+                                String fullName, String trackerId, Set<UUID> streamIds, String mode) {
+        boolean updated = false;
+        if (!Objects.equals(meeting.getTeamName(), teamData.getName())) {
+            log.trace("[{}] Team name mismatch for meeting {}: '{}' -> '{}'",
+                    mode, meeting.getId(), meeting.getTeamName(), teamData.getName());
+            meeting.setTeamName(teamData.getName());
+            updated = true;
+        }
+        if (!Objects.equals(meeting.getTrackerUsername(), username)
+                || !Objects.equals(meeting.getTrackerFullName(), fullName)) {
+            log.trace("[{}] Tracker mismatch for meeting {}: '{}' -> '{}'",
+                    mode, meeting.getId(), meeting.getTrackerUsername(), username);
+            meeting.setTrackerUsername(username);
+            meeting.setTrackerId(trackerId);
+            meeting.setTrackerFullName(fullName);
+            updated = true;
+        }
+        if (!Objects.equals(meeting.getStreamIds(), streamIds)) {
+            meeting.setStreamIds(streamIds);
+            updated = true;
+        }
+        BigDecimal oldWeight = meeting.getTeamStatusValue();
+        meeting.updateTeamStatusValue();
+        return oldWeight == null || oldWeight.compareTo(meeting.getTeamStatusValue()) != 0 || updated;
     }
 
     private void setupSystemSecurityContext(String tokenValue) {

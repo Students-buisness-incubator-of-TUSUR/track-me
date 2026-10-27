@@ -65,7 +65,7 @@ public class NotificationBot extends TelegramLongPollingBot {
 
         try {
             execute(message);
-        } catch (TelegramApiException e) {
+        } catch (TelegramApiException _) {
             log.error("Bot could not send a message.");
         }
     }
@@ -77,7 +77,7 @@ public class NotificationBot extends TelegramLongPollingBot {
 
         try {
             execute(message);
-        } catch (TelegramApiException e) {
+        } catch (TelegramApiException _) {
             log.error("Bot could not delete a message.");
         }
     }

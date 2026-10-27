@@ -79,7 +79,7 @@ class RedisOAuth2AuthorizationServiceTest {
     assertDoesNotThrow(() -> {
       try {
         service.save(null);
-      } catch (IllegalArgumentException ex) {
+      } catch (IllegalArgumentException _) {
         // Expected behavior
       }
     });

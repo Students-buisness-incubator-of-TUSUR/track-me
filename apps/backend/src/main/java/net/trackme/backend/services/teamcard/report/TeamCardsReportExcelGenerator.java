@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 @Component
 public class TeamCardsReportExcelGenerator {
+    private static final String FONT_NAME = "Arial";
     private static final String SHEET_NAME = "Отчёт по командам";
     private static final String[] HEADERS = {
             "Поток",
@@ -166,18 +167,18 @@ public class TeamCardsReportExcelGenerator {
 
         Styles(SXSSFWorkbook wb) {
             var titleFont = wb.createFont();
-            titleFont.setFontName("Arial");
+            titleFont.setFontName(FONT_NAME);
             titleFont.setBold(true);
             titleFont.setFontHeightInPoints((short) 14);
             titleFont.setColor(IndexedColors.WHITE.getIndex());
 
             var headerFont = wb.createFont();
-            headerFont.setFontName("Arial");
+            headerFont.setFontName(FONT_NAME);
             headerFont.setBold(true);
             headerFont.setFontHeightInPoints((short) 11);
 
             var regularFont = wb.createFont();
-            regularFont.setFontName("Arial");
+            regularFont.setFontName(FONT_NAME);
             regularFont.setFontHeightInPoints((short) 11);
 
             title = wb.createCellStyle();
