@@ -1,6 +1,8 @@
 package net.trackme.backend.repos;
 
 import net.trackme.backend.domain.TeamCard;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -20,4 +22,6 @@ public interface TeamCardsRepository extends
   Integer countByStreamsIdIn(Collection<UUID> streams);
 
   List<TeamCard> findByUsername(String username);
+
+  Slice<TeamCard> findAllBy(Pageable pageable);
 }
