@@ -1,6 +1,7 @@
 package net.trackme.meetingservice.messaging;
 
 import net.trackme.meetingservice.dao.MeetingMetadataRepository;
+import net.trackme.meetingservice.messaging.backend.TeamCardDeletedEvent;
 import net.trackme.meetingservice.messaging.backend.TeamCardEventConsumer;
 import net.trackme.meetingservice.messaging.backend.TeamCardStreamAddedEvent;
 import net.trackme.meetingservice.messaging.backend.TeamCardStreamRemovedEvent;
@@ -16,6 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -125,5 +129,33 @@ class TeamCardEventConsumerTest {
         teamCardEventConsumer.handleStreamRemoved(event);
 
         verify(metadataRepository).removeStreamFromTeamMeetings(teamId, streamId);
+    }
+
+    @Test
+    void handleTeamCardDeleted_shouldDeleteStreamsAndMeetings() {
+        UUID teamCardId = UUID.randomUUID();
+        var event = TeamCardDeletedEvent.builder()
+                .teamCardId(teamCardId)
+                .build();
+
+        teamCardEventConsumer.handleTeamCardDeleted(event);
+
+        verify(metadataRepository).deleteMeetingStreamsByTeamCardId(teamCardId);
+        verify(metadataRepository).deleteAllByTeamCardId(teamCardId);
+    }
+
+    @Test
+    void handleTeamCardDeleted_shouldCallDeleteInCorrectOrder() {
+        UUID teamCardId = UUID.randomUUID();
+        var event = TeamCardDeletedEvent.builder()
+                .teamCardId(teamCardId)
+                .build();
+
+        var inOrder = inOrder(metadataRepository);
+
+        teamCardEventConsumer.handleTeamCardDeleted(event);
+
+        inOrder.verify(metadataRepository).deleteMeetingStreamsByTeamCardId(teamCardId);
+        inOrder.verify(metadataRepository).deleteAllByTeamCardId(teamCardId);
     }
 }

@@ -123,14 +123,27 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
     @Query("UPDATE Meeting m SET m.trackerFullName = :fullName WHERE m.trackerUsername = :username")
     void updateTrackerFullNameByUsername(@Param("username") String username, @Param("fullName") String fullName);
 
-    /**
-     * Обновляет флаг пассивного статуса для всех встреч указанной команды.
-     * Используется при изменении статуса пассивности карточки команды.
-     *
-     * @param teamId идентификатор карточки команды
-     * @param passive новое значение пассивного статуса (true/false)
-     */
     @Modifying(clearAutomatically = true)
     @Query("UPDATE Meeting m SET m.teamCardPassive = :passive WHERE m.teamCardId = :teamId")
     void updatePassiveFlag(@Param("teamId") UUID teamId, @Param("passive") boolean passive);
+
+    /**
+     * Удаляет связи meeting_stream для всех встреч указанной команды.
+     * Вызывается перед {@link #deleteAllByTeamCardId(UUID)}, если нет ON DELETE CASCADE.
+     */
+    @Modifying(clearAutomatically = true)
+    @Query(value = """
+        DELETE FROM meeting_stream
+        WHERE meeting_id IN (SELECT id FROM meeting WHERE team_card_id = :teamId)
+    """, nativeQuery = true)
+    void deleteMeetingStreamsByTeamCardId(@Param("teamId") UUID teamId);
+
+    /**
+     * Удаляет все встречи указанной команды (при удалении карточки команды).
+     *
+     * @param teamId идентификатор карточки команды
+     */
+    @Modifying(clearAutomatically = true)
+    @Query(value = "DELETE FROM meeting WHERE team_card_id = :teamId", nativeQuery = true)
+    void deleteAllByTeamCardId(@Param("teamId") UUID teamId);
 }
