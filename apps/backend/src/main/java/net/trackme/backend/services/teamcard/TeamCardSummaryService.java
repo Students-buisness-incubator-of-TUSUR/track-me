@@ -1,5 +1,6 @@
 package net.trackme.backend.services.teamcard;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.domain.Stream;
@@ -8,6 +9,9 @@ import net.trackme.backend.services.exceptions.TeamCardNotFoundException;
 import net.trackme.backend.messaging.TeamCardLowGradeSummaryEvent;
 import net.trackme.backend.messaging.TeamCardSummaryEvent;
 import net.trackme.backend.repos.TeamCardsRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +37,11 @@ public class TeamCardSummaryService {
     private static final double LOW_GRADE = 0.25;
 
     /**
+     * Количество команд на странице сводки.
+     */
+    private static final int SUMMARY_PAGE_SIZE = 10;
+
+    /**
      * Сервис карточек команд.
      */
     private final TeamCardsService teamCardsService;
@@ -48,9 +57,14 @@ public class TeamCardSummaryService {
     private final TeamCardEventsProducer teamCardEventsProducer;
 
     /**
+     * Контекст загруженных сущностей, освобождаемый после каждой страницы.
+     */
+    private final EntityManager entityManager;
+
+    /**
      * Сообщить о командах с низким рейтингом.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     @Scheduled(cron = "0 0 9 * * 1", zone = "Asia/Tomsk")
     public void reportAboutTeamCardLowGrades() {
         log.info("Scheduled team card low grade summary started");
@@ -104,9 +118,27 @@ public class TeamCardSummaryService {
      * Отправляет сводку о командах с низким рейтингом.
      */
     private void sendTeamCardLowGradeSummary() {
+        var pageRequest = PageRequest.of(0, SUMMARY_PAGE_SIZE, Sort.by("id"));
+        Slice<TeamCard> teamCards;
+
+        do {
+            teamCards = teamCardsRepository.findAllBy(pageRequest);
+            sendTeamCardLowGradeSummary(teamCards.getContent());
+            entityManager.clear();
+            pageRequest = pageRequest.next();
+        } while (teamCards.hasNext());
+    }
+
+    /**
+     * Отправляет сводку о командах с низким рейтингом для одной страницы.
+     *
+     * @param batch страница команд
+     */
+    private void sendTeamCardLowGradeSummary(List<TeamCard> batch) {
         List<TeamCardLowGradeSummaryEvent> teamCardLowGradeSummaryEvents = new ArrayList<>();
 
-        var teamCards = teamCardsRepository.findAll().stream()
+        var teamCards = batch.stream()
+                .filter(teamCard -> !Boolean.TRUE.equals(teamCard.getPassive()))
                 .filter(teamCard -> teamCard.getAverageGrade()
                         .compareTo(BigDecimal.valueOf(LOW_GRADE)) <= 0)
                 .toList();
