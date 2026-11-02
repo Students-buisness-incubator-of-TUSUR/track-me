@@ -58,7 +58,9 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 .with(user(BaseApplicationTest.USER).roles(role)).with(csrf())
                 .param("username", "tracker1").contentType(MediaType.APPLICATION_JSON)
                 .content(validCreateJson()))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors", org.hamcrest.Matchers.hasItem(
+                    org.hamcrest.Matchers.containsString("Привяжите команду к потоку акселератора."))));
         assertThat(teamCardsRepository.count()).isEqualTo(count);
     }
 
@@ -70,6 +72,20 @@ class TeamCardsAdminRestControllerTest extends BaseApplicationTest {
                 .param("username", "tracker1").param("streamId", UUID.randomUUID().toString())
                 .contentType(MediaType.APPLICATION_JSON).content(validCreateJson()))
             .andExpect(status().is4xxClientError());
+        assertThat(teamCardsRepository.count()).isEqualTo(count);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"", " ", "\t"})
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "SUPER_ADMIN")
+    void cannotCreateTeamWithBlankTracker(String username) throws Exception {
+        long count = teamCardsRepository.count();
+        mockMvc.perform(post("/api/v1/admin/team-card").with(csrf())
+                .param("username", username).param("streamId", stream.getId().toString())
+                .contentType(MediaType.APPLICATION_JSON).content(validCreateJson()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors", org.hamcrest.Matchers.hasItem(
+                    org.hamcrest.Matchers.containsString("Укажите трекера команды."))));
         assertThat(teamCardsRepository.count()).isEqualTo(count);
     }
 

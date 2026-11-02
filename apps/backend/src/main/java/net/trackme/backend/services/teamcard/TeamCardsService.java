@@ -1,5 +1,7 @@
 package net.trackme.backend.services.teamcard;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import net.trackme.backend.domain.TeamCard;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,7 +95,9 @@ public interface TeamCardsService {
      * @param username Имя пользователя
      * @return Карточка команды
      */
-    TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username);
+    TeamCard createTeamCard(TeamCard teamCard,
+                            @NotNull(message = "Привяжите команду к потоку акселератора.") UUID streamId,
+                            @NotBlank(message = "Укажите трекера команды.") String username);
 
     /**
      * Получить количество команд в потоке.
