@@ -1,6 +1,9 @@
 package net.trackme.telegramservice.configuration;
 
 public class MessageTemplates {
+    private MessageTemplates() {
+    }
+
     /**
      * Шаблон начального сообщения.
      */

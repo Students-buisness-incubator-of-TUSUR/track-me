@@ -50,7 +50,7 @@ class DefaultUserServiceTest extends AbstractIntegrationTest {
         // Создаём ronin если его нет в тестовой БД
         try {
             userService.findByUsername(RONIN);
-        } catch (Exception e) {
+        } catch (Exception _) {
             var dto = RegistrationRequestDto.builder()
                 .username(RONIN)
                 .password("RoninPass@123")

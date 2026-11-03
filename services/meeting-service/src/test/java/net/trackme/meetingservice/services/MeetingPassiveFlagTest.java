@@ -9,7 +9,7 @@ import net.trackme.meetingservice.mapping.MeetingMapper;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.TeamCardDto;
-import net.trackme.meetingservice.api.dto.MeetingDto;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Collections;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 
 import java.time.OffsetDateTime;
@@ -70,6 +69,11 @@ class MeetingPassiveFlagTest {
         meetingId = UUID.randomUUID();
         now = OffsetDateTime.now();
         SecurityContextHolder.setContext(securityContext);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
