@@ -33,6 +33,8 @@ public final class RedisOAuth2AuthorizationService implements OAuth2Authorizatio
      */
     private static final String INIT_KEY_PREFIX = "oauth2_authorization_init:";
 
+    private static final String INITIAL_ID_TOKEN = "trackme.initialIdToken";
+
     private final RedisTemplate<String, OAuth2Authorization> redisTemplate;
 
     private final ValueOperations<String, OAuth2Authorization> valueOperations;
@@ -106,7 +108,9 @@ public final class RedisOAuth2AuthorizationService implements OAuth2Authorizatio
     private static boolean matchesIdToken(OAuth2Authorization authorization, String token) {
         OAuth2Authorization.Token<OidcIdToken> idToken =
                 authorization.getToken(OidcIdToken.class);
-        return idToken != null && idToken.getToken().getTokenValue().equals(token);
+        OidcIdToken initialIdToken = authorization.getAttribute(INITIAL_ID_TOKEN);
+        return idToken != null && (idToken.getToken().getTokenValue().equals(token)
+                || (initialIdToken != null && initialIdToken.getTokenValue().equals(token)));
     }
 
     private static boolean matchesDeviceCode(OAuth2Authorization authorization, String token) {
@@ -124,6 +128,7 @@ public final class RedisOAuth2AuthorizationService implements OAuth2Authorizatio
     @Override
     public void save(OAuth2Authorization authorization) {
         Assert.notNull(authorization, "authorization must not be null");
+        authorization = retainInitialIdToken(authorization);
         String key;
         if (isCompleted(authorization)) {
             key = COMPLETE_KEY_PREFIX + authorization.getId();
@@ -137,6 +142,22 @@ public final class RedisOAuth2AuthorizationService implements OAuth2Authorizatio
             key = INIT_KEY_PREFIX + authorization.getId();
         }
         this.valueOperations.set(key, authorization, timeToLive);
+    }
+
+    private OAuth2Authorization retainInitialIdToken(OAuth2Authorization authorization) {
+        var currentToken = authorization.getToken(OidcIdToken.class);
+        if (currentToken == null || authorization.getAttribute(INITIAL_ID_TOKEN) != null) {
+            return authorization;
+        }
+        var previous = findById(authorization.getId());
+        OidcIdToken initial = previous == null ? null : previous.getAttribute(INITIAL_ID_TOKEN);
+        if (initial == null && previous != null && previous.getToken(OidcIdToken.class) != null) {
+            initial = previous.getToken(OidcIdToken.class).getToken();
+        }
+        // The client's login principal retains this token after access-token refreshes.
+        return OAuth2Authorization.from(authorization)
+                .attribute(INITIAL_ID_TOKEN, initial == null ? currentToken.getToken() : initial)
+                .build();
     }
 
     @Override
@@ -175,10 +196,27 @@ public final class RedisOAuth2AuthorizationService implements OAuth2Authorizatio
         var keys = redisTemplate.keys(completeKeyPrefix + "*");
         for (String key : keys) {
             var authorization = this.valueOperations.get(key);
-            if (hasToken(authorization, token, tokenType)) {
-                return authorization;
+            if (authorization != null && hasToken(authorization, token, tokenType)) {
+                return authorizationForToken(authorization, token, tokenType);
             }
         }
         return null;
+    }
+
+    private static OAuth2Authorization authorizationForToken(OAuth2Authorization authorization,
+                                                             String token, OAuth2TokenType tokenType) {
+        if (tokenType != null && !OidcParameterNames.ID_TOKEN.equals(tokenType.getValue())) {
+            return authorization;
+        }
+        OidcIdToken initial = authorization.getAttribute(INITIAL_ID_TOKEN);
+        var current = authorization.getToken(OidcIdToken.class);
+        if (initial == null || current == null || !initial.getTokenValue().equals(token)) {
+            return authorization;
+        }
+        // Preserve revocation metadata; only select the ID token supplied to logout.
+        return OAuth2Authorization.from(authorization).token(initial, metadata -> {
+            metadata.putAll(current.getMetadata());
+            metadata.put(OAuth2Authorization.Token.CLAIMS_METADATA_NAME, initial.getClaims());
+        }).build();
     }
 }

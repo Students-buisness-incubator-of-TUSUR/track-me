@@ -59,8 +59,8 @@ class TeamCardsRepositoryTest extends AbstractIntegrationTest {
 
         // Assert
         assertThat(results).hasSize(2);
-        assertThat(results.get("tracker1")).isEqualTo(4.5);
-        assertThat(results.get("tracker2")).isEqualTo(3.0);
+        assertThat(results).containsEntry("tracker1", 4.5);
+        assertThat(results).containsEntry("tracker2", 3.0);
     }
 
     @Test
@@ -76,8 +76,8 @@ class TeamCardsRepositoryTest extends AbstractIntegrationTest {
         // Act
         Map<String, Double> results = teamCardsRepository.getAverageGradesByUser(spec);
 
-        assertThat(results.get("tracker1")).isEqualTo(5.0);
-        assertThat(results.get("tracker2")).isEqualTo(4.0);
+        assertThat(results).containsEntry("tracker1", 5.0);
+        assertThat(results).containsEntry("tracker2", 4.0);
         assertThat(results).hasSize(2);
     }
 
@@ -99,7 +99,7 @@ class TeamCardsRepositoryTest extends AbstractIntegrationTest {
         Map<String, Double> results = teamCardsRepository.getAverageGradesByUser(null);
 
         // Assert
-        assertThat(results.get("tracker1")).isEqualTo(0.0);
+        assertThat(results).containsEntry("tracker1", 0.0);
     }
 
     @Test
@@ -111,22 +111,22 @@ class TeamCardsRepositoryTest extends AbstractIntegrationTest {
 
         // Act & Assert
         Map<String, Double> allTimeGrades = teamCardsRepository.getAverageGradesByUser(null);
-        assertThat(allTimeGrades.get("ivanov")).isEqualTo(4.0);
-        assertThat(allTimeGrades.get("petrov")).isEqualTo(4.0);
+        assertThat(allTimeGrades).containsEntry("ivanov", 4.0);
+        assertThat(allTimeGrades).containsEntry("petrov", 4.0);
 
         Specification<TeamCard> spec2024 = (root, query, cb) ->
                 cb.equal(root.join("streams").get("name"), "Поток 2024");
 
         Map<String, Double> grades2024 = teamCardsRepository.getAverageGradesByUser(spec2024);
-        assertThat(grades2024.get("ivanov")).isEqualTo(5.0);
-        assertThat(grades2024.get("petrov")).isEqualTo(4.0);
+        assertThat(grades2024).containsEntry("ivanov", 5.0);
+        assertThat(grades2024).containsEntry("petrov", 4.0);
 
         Specification<TeamCard> spec2025 = (root, query, cb) ->
                 cb.equal(root.join("streams").get("name"), "Поток 2025");
 
         Map<String, Double> grades2025 = teamCardsRepository.getAverageGradesByUser(spec2025);
-        assertThat(grades2025.get("ivanov")).isEqualTo(3.0);
-        assertThat(grades2025.containsKey("petrov")).isFalse();
+        assertThat(grades2025).containsEntry("ivanov", 3.0);
+        assertThat(grades2025).doesNotContainKey("petrov");
     }
 
     private void saveTeamCard(String username, String teamName, Double grade, Stream stream) {

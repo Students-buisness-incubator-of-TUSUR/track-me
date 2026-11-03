@@ -15,7 +15,6 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +25,7 @@ import java.util.Map;
 @Configuration
 @ConditionalOnProperty(prefix = "kafka", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaConsumerConfiguration {
+    private static final String MESSAGING_PACKAGE = "net.trackme.backend.messaging";
 
     @Bean
     ConsumerFactory<String, MeetingCreatedEvent> meetingCreatedEventConsumerFactory(
@@ -33,7 +33,7 @@ public class KafkaConsumerConfiguration {
         var props = kafkaProperties.buildConsumerProperties(null);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "net.trackme.backend.messaging");
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, MESSAGING_PACKAGE);
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, MeetingCreatedEvent.class);
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaConsumerFactory<>(
@@ -58,7 +58,7 @@ public class KafkaConsumerConfiguration {
         var props = kafkaProperties.buildConsumerProperties(null);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "net.trackme.backend.messaging");
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, MESSAGING_PACKAGE);
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, MeetingUpdatedEvent.class);
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaConsumerFactory<>(
@@ -83,7 +83,7 @@ public class KafkaConsumerConfiguration {
         var props = kafkaProperties.buildConsumerProperties(null);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "net.trackme.backend.messaging");
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, MESSAGING_PACKAGE);
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, MeetingDeletedEvent.class);
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaConsumerFactory<>(

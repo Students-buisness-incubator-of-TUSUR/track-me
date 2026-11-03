@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
@@ -15,6 +16,9 @@ import java.util.UUID;
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class AuthorizedUser extends User implements OAuth2User {
+
+  @Serial
+  private static final long serialVersionUID = 8698478391007675627L;
 
   private UUID id;
 
@@ -28,7 +32,7 @@ public class AuthorizedUser extends User implements OAuth2User {
 
   private Boolean accountNonLocked;
 
-  private Map<String, Object> oauthAttributes;
+  private transient Map<String, Object> oauthAttributes;
 
   public AuthorizedUser(
       String username,

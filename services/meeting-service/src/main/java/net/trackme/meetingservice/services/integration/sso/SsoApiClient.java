@@ -4,7 +4,6 @@ import net.trackme.meetingservice.services.integration.exceptions.IntegrationExc
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Клиент для взаимодействия с сервисом trackme-sso.
