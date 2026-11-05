@@ -83,7 +83,9 @@ public interface TeamCardsAdminRestController {
 
   @PostMapping(value = "team-cards",
                produces = "application/json")
-  @Operation(summary = "Получение списка карточек команд")
+  @Operation(summary = "Получение списка карточек команд",
+      description = "sort=streamEndDate,desc группирует команды по потокам с убыванием даты окончания; "
+          + "внутри потока — рейтинг по убыванию, кириллические и затем латинские названия по алфавиту.")
   ResponseEntity<PagedModel<TeamCardDto>> getTeamCards(
       @ParameterObject
       @PageableDefault
