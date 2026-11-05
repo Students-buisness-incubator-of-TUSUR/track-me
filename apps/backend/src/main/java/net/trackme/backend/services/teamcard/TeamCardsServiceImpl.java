@@ -20,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Validated
 @Transactional
 @RequiredArgsConstructor
 public class TeamCardsServiceImpl implements TeamCardsService {
@@ -185,10 +187,8 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
-        if (streamId != null) {
-            var stream = streamService.getById(streamId);
-            teamCard.addStream(stream);
-        }
+        var stream = streamService.getById(streamId);
+        teamCard.addStream(stream);
         return createTeamCard(teamCard, username);
     }
 

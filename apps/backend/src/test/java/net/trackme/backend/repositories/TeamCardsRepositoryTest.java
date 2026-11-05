@@ -38,6 +38,28 @@ class TeamCardsRepositoryTest extends AbstractIntegrationTest {
     private Stream stream2024;
     private Stream stream2025;
 
+    @Test
+    void streamRequirementExcludesOrphansBeforePaginationWithoutDuplicatingTeams() {
+        saveTeamCard("tracker1", "Orphan", 1.0);
+        saveTeamCard("tracker1", "Linked", 2.0, stream2024);
+        var both = TeamCard.builder().username("tracker1").name("Multiple streams").status(TeamCardStatus.OK)
+            .meetingRoomLink("https://example.com").readinessLevel(ReadinessLevel.LEVEL_1)
+            .streams(Set.of(stream2024, stream2025)).build();
+        teamCardsRepository.saveAndFlush(both);
+
+        var firstPage = teamCardsRepository.findAll(
+            net.trackme.backend.domain.spec.TeamCardSpecification.hasStream(),
+            org.springframework.data.domain.PageRequest.of(0, 1));
+        var secondPage = teamCardsRepository.findAll(
+            net.trackme.backend.domain.spec.TeamCardSpecification.hasStream(),
+            org.springframework.data.domain.PageRequest.of(1, 1));
+
+        assertThat(firstPage.getTotalElements()).isEqualTo(2);
+        assertThat(firstPage.getTotalPages()).isEqualTo(2);
+        assertThat(java.util.stream.Stream.concat(firstPage.stream(), secondPage.stream()).map(TeamCard::getName))
+            .containsExactlyInAnyOrder("Linked", "Multiple streams");
+    }
+
     @BeforeEach
     void setUp() {
         teamCardsRepository.deleteAll();
