@@ -119,22 +119,33 @@ public class TeamCardSummaryService {
      */
     private void sendTeamCardLowGradeSummary() {
         var pageRequest = PageRequest.of(0, SUMMARY_PAGE_SIZE, Sort.by("id"));
+        List<TeamCardLowGradeSummaryEvent> summaryEvents = new ArrayList<>();
         Slice<TeamCard> teamCards;
 
         do {
             teamCards = teamCardsRepository.findAllBy(pageRequest);
-            sendTeamCardLowGradeSummary(teamCards.getContent());
+            summaryEvents.addAll(buildTeamCardLowGradeSummaryEvents(teamCards.getContent()));
             entityManager.clear();
             pageRequest = pageRequest.next();
         } while (teamCards.hasNext());
+
+        log.info("Total events to send: {}", summaryEvents.size());
+
+        if (summaryEvents.isEmpty()) {
+            log.info("No events to send");
+            return;
+        }
+
+        teamCardEventsProducer.sendTeamCardLowGradeSummaryEvent(summaryEvents);
     }
 
     /**
-     * Отправляет сводку о командах с низким рейтингом для одной страницы.
+     * Формирует строки общей сводки для одной страницы, не отправляя отдельное письмо.
      *
      * @param batch страница команд
+     * @return строки сводки без ссылок на загруженные сущности
      */
-    private void sendTeamCardLowGradeSummary(List<TeamCard> batch) {
+    private List<TeamCardLowGradeSummaryEvent> buildTeamCardLowGradeSummaryEvents(List<TeamCard> batch) {
         List<TeamCardLowGradeSummaryEvent> teamCardLowGradeSummaryEvents = new ArrayList<>();
 
         var teamCards = batch.stream()
@@ -147,7 +158,7 @@ public class TeamCardSummaryService {
 
         if (teamCards.isEmpty()) {
             log.info("No team cards with low grade");
-            return;
+            return List.of();
         }
 
         for (var teamCard : teamCards) {
@@ -174,14 +185,7 @@ public class TeamCardSummaryService {
             }, () -> log.info("Team card {} has no active streams.", teamCard.getId()));
         }
 
-        log.info("Total events to send: {}", teamCardLowGradeSummaryEvents.size());
-
-        if (teamCardLowGradeSummaryEvents.isEmpty()) {
-            log.info("No events to send");
-            return;
-        }
-
-        teamCardEventsProducer.sendTeamCardLowGradeSummaryEvent(teamCardLowGradeSummaryEvents);
+        return teamCardLowGradeSummaryEvents;
     }
 
     /**
