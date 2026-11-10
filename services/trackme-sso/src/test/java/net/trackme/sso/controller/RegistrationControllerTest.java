@@ -14,6 +14,7 @@ import net.trackme.sso.dto.RegistrationRequestDto;
 import net.trackme.sso.services.social.SocialAccountService;
 import net.trackme.sso.services.social.SocialProfile;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,6 +33,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -62,13 +65,27 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
     private RegistrationTokenStore registrationTokenStore;
     @Autowired
     private SocialAccountService socialAccountService;
+    private final List<String> testUsernames = new ArrayList<>();
+    private String originalSuperAdminEmail;
 
     @BeforeEach
     void setUpUsers()
     {
         var admin = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
+        originalSuperAdminEmail = admin.getEmail();
         admin.setEmail("superadmin@superadmin.ru");
         userRepository.save(admin);
+    }
+
+    @AfterEach
+    void cleanUpUsers() {
+        for (var username : testUsernames) {
+            userRepository.findByUsername(username).ifPresent(userRepository::delete);
+        }
+        userRepository.findByUsername("superadmin").ifPresent(admin -> {
+            admin.setEmail(originalSuperAdminEmail);
+            userRepository.save(admin);
+        });
     }
 
     @Test
@@ -122,6 +139,7 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
         userRepository.save(admin);
         stubMailMessage();
         var username = "new.tracker";
+        testUsernames.add(username);
         var token = registrationTokenStore.generateToken().tokenHash();
         registrationStore.saveToRegistration(RegistrationRequestDto.builder()
                 .username(username).email("new.tracker@example.org").fullName("Иван & Петров")
@@ -145,6 +163,7 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
         stubMailMessage();
         var admin = userRepository.findByUsername("superadmin").orElseThrow();
         var username = provider + ".applicant";
+        testUsernames.add(username);
         var profile = new SocialProfile("sbi-934-" + provider, username + "@example.org", "Анна Иванова",
                 Instant.now().plusSeconds(600), provider, "");
 
@@ -166,17 +185,16 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
         secondAdmin.setFullName("Другой суперадминистратор");
         secondAdmin.setActive(true);
         secondAdmin.getRoles().addAll(admin.getRoles());
+        testUsernames.add(secondAdmin.getUsername());
         userRepository.save(secondAdmin);
 
-        try {
-            var profile = new SocialProfile("sbi-934-shared", "shared.applicant@example.org", "Иван Иванов",
-                    Instant.now().plusSeconds(600));
-            socialAccountService.register(profile, "shared.applicant", "TRACKER");
+        var username = "shared.applicant";
+        testUsernames.add(username);
+        var profile = new SocialProfile("sbi-934-shared", "shared.applicant@example.org", "Иван Иванов",
+                Instant.now().plusSeconds(600));
+        socialAccountService.register(profile, username, "TRACKER");
 
-            Assertions.assertThat(registrationEmailBody()).contains("Здравствуйте!", "shared.applicant");
-        } finally {
-            userRepository.delete(secondAdmin);
-        }
+        Assertions.assertThat(registrationEmailBody()).contains("Здравствуйте!", username);
     }
 
     private void stubMailMessage() {
