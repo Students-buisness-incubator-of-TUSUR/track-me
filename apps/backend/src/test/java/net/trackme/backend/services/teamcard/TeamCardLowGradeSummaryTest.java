@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -150,7 +151,7 @@ class TeamCardLowGradeSummaryTest {
     }
 
     @Test
-    void multiplePages_sendEachBatchBeforeLoadingNextPage() {
+    void multiplePages_sendOneCombinedSummaryAfterReadingAllPages() {
         var teams = teams(21, false);
         var firstPage = PageRequest.of(0, 10, Sort.by("id"));
         givenPage(firstPage, teams.subList(0, 10), true);
@@ -162,16 +163,12 @@ class TeamCardLowGradeSummaryTest {
         var order = inOrder(teamCardsRepository, teamCardEventsProducer, entityManager);
         for (int page = 0; page < 3; page++) {
             order.verify(teamCardsRepository).findAllBy(firstPage.withPage(page));
-            order.verify(teamCardEventsProducer)
-                    .sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
             order.verify(entityManager).clear();
         }
+        order.verify(teamCardEventsProducer)
+                .sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
         verifyNoMoreInteractions(teamCardsRepository, teamCardEventsProducer, entityManager);
-        assertEquals(List.of(10, 10, 1), eventsCaptor.getAllValues().stream()
-                .map(List::size).toList());
-        assertEquals(teams.stream().map(TeamCard::getName).toList(),
-                eventsCaptor.getAllValues().stream().flatMap(List::stream)
-                        .map(TeamCardLowGradeSummaryEvent::teamCardName).toList());
+        assertEquals(teams.stream().map(TeamCard::getName).toList(), eventTeamNames());
     }
 
     @Test
@@ -189,10 +186,45 @@ class TeamCardLowGradeSummaryTest {
         order.verify(teamCardsRepository).findAllBy(firstPage);
         order.verify(entityManager).clear();
         order.verify(teamCardsRepository).findAllBy(firstPage.next());
-        order.verify(teamCardEventsProducer).sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
         order.verify(entityManager).clear();
+        order.verify(teamCardEventsProducer).sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
         verifyNoMoreInteractions(teamCardsRepository, teamCardEventsProducer, entityManager);
         assertEquals(List.of("Eligible"), eventTeamNames());
+    }
+
+    @Test
+    void sparsePagesWithDifferentTrackers_sendOneSummaryAcrossFilteredMiddlePage() {
+        var firstPage = PageRequest.of(0, 10, Sort.by("id"));
+        var firstBatch = teams(10, true);
+        var firstTeam = firstBatch.getFirst();
+        firstTeam.setPassive(false);
+        firstTeam.setTrackerFullName("First tracker");
+        var lastTeam = team("Last team", "0.25", false);
+        lastTeam.setTrackerFullName("Second tracker");
+        givenPage(firstPage, firstBatch, true);
+        givenPage(firstPage.next(), teams(10, true), true);
+        givenPage(firstPage.next().next(), List.of(lastTeam), false);
+
+        summaryService.reportAboutTeamCardLowGrades();
+
+        verify(teamCardEventsProducer).sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
+        verifyNoMoreInteractions(teamCardEventsProducer);
+        assertEquals(List.of(firstTeam.getName(), lastTeam.getName()), eventTeamNames());
+        assertEquals(List.of("First tracker", "Second tracker"), eventsCaptor.getValue().stream()
+                .map(TeamCardLowGradeSummaryEvent::trackerFullName).toList());
+    }
+
+    @Test
+    void laterPageFails_doesNotSendPartialSummary() {
+        var firstPage = PageRequest.of(0, 10, Sort.by("id"));
+        givenPage(firstPage, teams(10, false), true);
+        when(teamCardsRepository.findAllBy(firstPage.next()))
+                .thenThrow(new IllegalStateException("Page loading failed"));
+
+        assertThrows(IllegalStateException.class, summaryService::reportAboutTeamCardLowGrades);
+
+        verify(entityManager).clear();
+        verifyNoInteractions(teamCardEventsProducer);
     }
 
     @Test
