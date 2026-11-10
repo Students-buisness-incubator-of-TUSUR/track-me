@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Запрос на регистрацию в TrackMe</title>
+</head>
+<body>
+<p th:text="${#strings.isEmpty(recipientName) ? 'Здравствуйте!' : 'Здравствуйте, ' + recipientName + '!'}">Здравствуйте!</p>
+<p>Пользователь <span th:text="${fullName}"></span> с юзернеймом <span th:text="${username}"></span>
+    подал запрос на присвоение ему роли <span th:text="${role}"></span> в сервисе TrackMe.</p>
+<p>Если вы готовы подтвердить присвоение ему данной роли, перейдите, пожалуйста,
+    <a th:href="${approvalLink}">по ссылке</a>.</p>
+</body>
+</html>
