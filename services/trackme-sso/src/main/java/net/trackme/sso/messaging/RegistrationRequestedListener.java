@@ -1,6 +1,9 @@
 package net.trackme.sso.messaging;
 
+import static net.trackme.sso.dao.UserSpecification.byRole;
+
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.sso.config.AppProperties;
@@ -18,6 +21,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 @RequiredArgsConstructor
 public class RegistrationRequestedListener {
+
+    private static final String SUPER_ADMIN = "SUPER_ADMIN";
 
     private final AppProperties appProperties;
     private final UserRepository users;
@@ -60,7 +65,8 @@ public class RegistrationRequestedListener {
         try {
             return users.findByEmail(mail.getRegistrationRecipient())
                     .filter(user -> Boolean.TRUE.equals(user.getActive()))
-                    .filter(user -> user.getRoles().stream().anyMatch(role -> "SUPER_ADMIN".equals(role.getCode())))
+                    .filter(user -> user.getRoles().stream().anyMatch(role -> SUPER_ADMIN.equals(role.getCode())))
+                    .or(this::findOnlyActiveSuperAdmin)
                     .map(UserEntity::getFullName)
                     .filter(StringUtils::hasText)
                     .orElse("");
@@ -68,5 +74,12 @@ public class RegistrationRequestedListener {
             log.warn("Could not look up the registration email recipient's name", exception);
             return "";
         }
+    }
+
+    private Optional<UserEntity> findOnlyActiveSuperAdmin() {
+        var activeSuperAdmins = byRole(SUPER_ADMIN)
+                .and((root, query, builder) -> builder.isTrue(root.get("active")));
+        var matches = users.findBy(activeSuperAdmins, query -> query.limit(2).all());
+        return matches.size() == 1 ? Optional.of(matches.getFirst()) : Optional.empty();
     }
 }
