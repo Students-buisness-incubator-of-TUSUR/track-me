@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.domain.TeamCard;
+import net.trackme.backend.domain.spec.TeamCardOrdering;
 import net.trackme.backend.messaging.TeamCardDeletedEvent;
 import net.trackme.backend.messaging.internal.TeamCardChangedInternalEvent;
 import net.trackme.backend.messaging.internal.TeamCardStreamAddedInternalEvent;
@@ -162,6 +163,9 @@ public class TeamCardsServiceImpl implements TeamCardsService {
 
     @Override
     public Page<TeamCard> findAll(Specification<TeamCard> specification, Pageable pageable) {
+        if (pageable.getSort().getOrderFor(TeamCardOrdering.SORT_PROPERTY) != null) {
+            return teamCardsRepository.findAllByStreamOrder(specification, pageable);
+        }
         return teamCardsRepository.findAll(specification, pageable);
     }
 
