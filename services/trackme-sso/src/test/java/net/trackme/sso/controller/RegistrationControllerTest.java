@@ -8,6 +8,7 @@ import net.trackme.sso.components.RegistrationStore;
 import net.trackme.sso.components.RegistrationTokenStore;
 import net.trackme.sso.components.impl.RedisRegistrationStore;
 import net.trackme.sso.dao.entity.UserEntity;
+import net.trackme.sso.dao.repository.RoleRepository;
 import net.trackme.sso.dao.repository.UserRepository;
 import net.trackme.sso.dto.RecoveryPasswordRequestDto;
 import net.trackme.sso.dto.RegistrationRequestDto;
@@ -34,7 +35,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -59,6 +62,8 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
     private StringRedisTemplate stringRedisTemplate;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
     @Autowired
     private RegistrationStore registrationStore;
     @Autowired
@@ -133,10 +138,13 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void confirmedTrackerRegistrationNotifiesSuperAdminOnce() throws Exception {
+    void confirmedTrackerRegistrationNotifiesApproversOnce() throws Exception {
         var admin = userRepository.findByUsername("superadmin").orElseThrow();
         admin.setEmail(REGISTRATION_RECIPIENT);
         userRepository.save(admin);
+        var activeAdmin = createAdmin("active.approver", true, true);
+        createAdmin("inactive.approver", false, true);
+        createAdmin("locked.approver", true, false);
         stubMailMessage();
         var username = "new.tracker";
         testUsernames.add(username);
@@ -151,17 +159,22 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isInternalServerError());
 
         Assertions.assertThat(userRepository.findByUsername(username).orElseThrow().getActive()).isFalse();
-        Assertions.assertThat(registrationEmailBody()).contains("Здравствуйте, " + admin.getFullName() + "!",
+        var emails = registrationEmailBodies(2);
+        Assertions.assertThat(emails).containsOnlyKeys(REGISTRATION_RECIPIENT, activeAdmin.getEmail());
+        Assertions.assertThat(emails.get(REGISTRATION_RECIPIENT)).contains("Здравствуйте, " + admin.getFullName() + "!",
                 "Иван &amp; Петров", username, "роли <span>трекера</span>",
                 "href=\"https://trackme.example.org/list-trackers\"");
+        Assertions.assertThat(emails.get(activeAdmin.getEmail())).contains("Здравствуйте, " + activeAdmin.getFullName() + "!",
+                username, "href=\"https://trackme.example.org/list-trackers\"");
     }
 
     @ParameterizedTest
     @CsvSource({"yandex,ADMIN,администратора,list-admins", "google,TRACKER,трекера,list-trackers"})
-    void socialRegistrationNotifiesSuperAdmin(String provider, String role, String roleName, String section)
+    void socialRegistrationNotifiesApprovers(String provider, String role, String roleName, String section)
             throws Exception {
         stubMailMessage();
         var admin = userRepository.findByUsername("superadmin").orElseThrow();
+        var activeAdmin = createAdmin("social.approver", true, true);
         var username = provider + ".applicant";
         testUsernames.add(username);
         var profile = new SocialProfile("sbi-934-" + provider, username + "@example.org", "Анна Иванова",
@@ -170,9 +183,16 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
         socialAccountService.register(profile, username, role);
 
         Assertions.assertThat(userRepository.findByUsername(username).orElseThrow().getActive()).isFalse();
-        Assertions.assertThat(registrationEmailBody()).contains("Здравствуйте, " + admin.getFullName() + "!",
+        var emails = registrationEmailBodies("TRACKER".equals(role) ? 2 : 1);
+        Assertions.assertThat(emails.get(REGISTRATION_RECIPIENT)).contains("Здравствуйте, " + admin.getFullName() + "!",
                 "Анна Иванова", username,
                 "роли <span>" + roleName + "</span>", "href=\"https://trackme.example.org/" + section + "\"");
+        if ("TRACKER".equals(role)) {
+            Assertions.assertThat(emails.get(activeAdmin.getEmail())).contains(username,
+                    "href=\"https://trackme.example.org/list-trackers\"");
+        } else {
+            Assertions.assertThat(emails).containsOnlyKeys(REGISTRATION_RECIPIENT);
+        }
     }
 
     @Test
@@ -194,23 +214,40 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
                 Instant.now().plusSeconds(600));
         socialAccountService.register(profile, username, "TRACKER");
 
-        Assertions.assertThat(registrationEmailBody()).contains("Здравствуйте!", username);
+        Assertions.assertThat(registrationEmailBodies(1).get(REGISTRATION_RECIPIENT)).contains("Здравствуйте!", username);
+    }
+
+    private UserEntity createAdmin(String username, boolean active, boolean unlocked) {
+        var admin = new UserEntity();
+        admin.setUsername(username);
+        admin.setFullName("Администратор " + username);
+        admin.setEmail(username + "@example.org");
+        admin.setActive(active);
+        admin.setAccountNonLocked(unlocked);
+        admin.getRoles().add(roleRepository.findByCode("ADMIN").orElseThrow());
+        testUsernames.add(username);
+        return userRepository.save(admin);
     }
 
     private void stubMailMessage() {
-        when(javaMailSender.createMimeMessage()).thenReturn(new JavaMailSenderImpl().createMimeMessage());
+        var mailSender = new JavaMailSenderImpl();
+        when(javaMailSender.createMimeMessage()).thenAnswer(invocation -> mailSender.createMimeMessage());
     }
 
-    private String registrationEmailBody() throws Exception {
+    private Map<String, String> registrationEmailBodies(int count) throws Exception {
         var sent = ArgumentCaptor.forClass(MimeMessage.class);
-        verify(javaMailSender).send(sent.capture());
-        var message = sent.getValue();
-        Assertions.assertThat(message.getRecipients(Message.RecipientType.TO)[0].toString())
-                .isEqualTo(REGISTRATION_RECIPIENT);
-        Assertions.assertThat(message.getSubject()).contains("Запрос на регистрацию");
-        var related = (Multipart) message.getContent();
-        var content = (Multipart) related.getBodyPart(0).getContent();
-        return (String) content.getBodyPart(0).getContent();
+        verify(javaMailSender, times(count)).send(sent.capture());
+        var emails = new HashMap<String, String>();
+        for (var message : sent.getAllValues()) {
+            var recipients = message.getRecipients(Message.RecipientType.TO);
+            Assertions.assertThat(recipients).hasSize(1);
+            Assertions.assertThat(message.getSubject()).contains("Запрос на регистрацию");
+            var related = (Multipart) message.getContent();
+            var content = (Multipart) related.getBodyPart(0).getContent();
+            emails.put(recipients[0].toString(), (String) content.getBodyPart(0).getContent());
+        }
+        Assertions.assertThat(emails).hasSize(count);
+        return emails;
     }
 
     @Test
