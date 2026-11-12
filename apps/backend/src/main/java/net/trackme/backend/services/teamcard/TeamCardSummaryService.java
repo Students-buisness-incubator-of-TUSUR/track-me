@@ -86,6 +86,10 @@ public class TeamCardSummaryService {
 
             try {
                 var teamCard = teamCardsService.getTeamCard(teamCardId);
+                if (Boolean.TRUE.equals(teamCard.getPassive())) {
+                    continue;
+                }
+
                 getStreamByTeamCard(teamCard).ifPresentOrElse(stream -> {
                     String trackerFullName = meetingSummaryEvent.getOrDefault(
                             "trackerFullName", "Не назначен");
