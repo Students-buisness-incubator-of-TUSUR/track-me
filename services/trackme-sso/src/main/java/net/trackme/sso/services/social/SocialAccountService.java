@@ -9,6 +9,8 @@ import net.trackme.sso.dao.repository.RoleRepository;
 import net.trackme.sso.dao.repository.UserRepository;
 import net.trackme.sso.dto.AuthorizedUser;
 import net.trackme.sso.mapper.AuthorizedUserMapper;
+import net.trackme.sso.messaging.RegistrationRequestedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ public class SocialAccountService {
     private final UserRepository users;
     private final RoleRepository roles;
     private final PasswordEncoder passwords;
+    private final ApplicationEventPublisher events;
 
     @Transactional(readOnly = true)
     public Optional<AuthorizedUser> login(SocialProfile profile) {
@@ -64,6 +67,7 @@ public class SocialAccountService {
         user.getRoles().add(roles.findByCode(role).orElseThrow(
                 () -> new IllegalArgumentException("Роль недоступна.")));
         users.saveAndFlush(user);
+        events.publishEvent(new RegistrationRequestedEvent(user.getUsername(), user.getFullName(), role));
     }
 
     @Transactional

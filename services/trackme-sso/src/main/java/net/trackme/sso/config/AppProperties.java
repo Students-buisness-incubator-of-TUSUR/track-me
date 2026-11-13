@@ -18,6 +18,7 @@ public class AppProperties {
 
   @NotBlank(message = "URL cannot be blank")
   private String apiUrl;
+  private String frontendUrl;
 
   @NotBlank(message = "Telegram URL cannot be blank")
   private String telegramUrl;
@@ -65,6 +66,8 @@ public class AppProperties {
 
     @NotBlank(message = "Mail subject cannot be blank")
     private String subject;
+    private String registrationRecipient;
+    private String registrationRecipientName;
 
     private List<String> summarySendRoles;
   }

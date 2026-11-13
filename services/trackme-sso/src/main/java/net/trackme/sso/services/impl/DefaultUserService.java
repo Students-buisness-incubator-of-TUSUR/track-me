@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -33,6 +34,7 @@ import net.trackme.sso.exception.EmailNotFoundException;
 import net.trackme.sso.exception.TeamReassignmentException;
 import net.trackme.sso.exception.WrongOldPasswordException;
 import net.trackme.sso.mapper.UserMapper;
+import net.trackme.sso.messaging.RegistrationRequestedEvent;
 import net.trackme.sso.services.BackendClient;
 import net.trackme.sso.services.UserService;
 import net.trackme.sso.type.AuthErrorCode;
@@ -52,6 +54,7 @@ public class DefaultUserService implements UserService {
   private final PasswordEncoder passwordEncoder;
   private final UserMapper userMapper;
   private final BackendClient backendClient;
+  private final ApplicationEventPublisher events;
 
   /**
    * Создание пользователя на основе регистрационных данных. Пользователь будет не активирован.
@@ -70,7 +73,9 @@ public class DefaultUserService implements UserService {
     user.getRoles().add(roleRepository.findByCode(userDto.role())
         .orElseThrow(() -> new AuthException(AuthErrorCode.ROLE_NOT_FOUND)));
     user.setPasswordHash(passwordEncoder.encode(userDto.password()));
-    return userRepository.save(user);
+    var savedUser = userRepository.save(user);
+    events.publishEvent(new RegistrationRequestedEvent(user.getUsername(), user.getFullName(), userDto.role()));
+    return savedUser;
   }
 
   @Override

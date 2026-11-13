@@ -1,15 +1,25 @@
 package net.trackme.sso.controller;
 
 import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.Message;
+import jakarta.mail.Multipart;
 import net.trackme.sso.AbstractIntegrationTest;
 import net.trackme.sso.components.RegistrationStore;
 import net.trackme.sso.components.RegistrationTokenStore;
 import net.trackme.sso.components.impl.RedisRegistrationStore;
+import net.trackme.sso.dao.entity.UserEntity;
 import net.trackme.sso.dao.repository.UserRepository;
 import net.trackme.sso.dto.RecoveryPasswordRequestDto;
+import net.trackme.sso.dto.RegistrationRequestDto;
+import net.trackme.sso.services.social.SocialAccountService;
+import net.trackme.sso.services.social.SocialProfile;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration;
@@ -18,9 +28,13 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -33,8 +47,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         MailSenderAutoConfiguration.class,
         MailSenderValidatorAutoConfiguration.class
 })
+@TestPropertySource(properties = "app.frontend-url=https://trackme.example.org/")
 class RegistrationControllerTest extends AbstractIntegrationTest {
 
+    private static final String REGISTRATION_RECIPIENT = "startup-poligon@tusur.ru";
     @Autowired
     private MockMvc mockMvc;
     @MockitoBean
@@ -47,13 +63,29 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
     private RegistrationStore registrationStore;
     @Autowired
     private RegistrationTokenStore registrationTokenStore;
+    @Autowired
+    private SocialAccountService socialAccountService;
+    private final List<String> testUsernames = new ArrayList<>();
+    private String originalSuperAdminEmail;
 
     @BeforeEach
     void setUpUsers()
     {
         var admin = userRepository.findByUsername("superadmin").stream().findFirst().orElseThrow();
+        originalSuperAdminEmail = admin.getEmail();
         admin.setEmail("superadmin@superadmin.ru");
         userRepository.save(admin);
+    }
+
+    @AfterEach
+    void cleanUpUsers() {
+        for (var username : testUsernames) {
+            userRepository.findByUsername(username).ifPresent(userRepository::delete);
+        }
+        userRepository.findByUsername("superadmin").ifPresent(admin -> {
+            admin.setEmail(originalSuperAdminEmail);
+            userRepository.save(admin);
+        });
     }
 
     @Test
@@ -83,6 +115,8 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
 
         // Проверяем, что отправка письма действительно произошла
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+        Assertions.assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString())
+                .isEqualTo("john@john.john");
 
         // Проверяем, что после запроса в Redis появился хотя бы один новый ключ
         Set<String> keysAfter = stringRedisTemplate.keys(RedisRegistrationStore.SESSION_ID_TO_REG_DATA + "*");
@@ -96,6 +130,87 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
         Assertions.assertThat(keysAfter)
                 .as("Ожидается, что появился новый ключ в Redis после регистрации")
                 .hasSizeGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    void confirmedTrackerRegistrationNotifiesSuperAdminOnce() throws Exception {
+        var admin = userRepository.findByUsername("superadmin").orElseThrow();
+        admin.setEmail(REGISTRATION_RECIPIENT);
+        userRepository.save(admin);
+        stubMailMessage();
+        var username = "new.tracker";
+        testUsernames.add(username);
+        var token = registrationTokenStore.generateToken().tokenHash();
+        registrationStore.saveToRegistration(RegistrationRequestDto.builder()
+                .username(username).email("new.tracker@example.org").fullName("Иван & Петров")
+                .phoneNumber("+79001234567").password("Password123!").role("TRACKER").build(), token);
+
+        mockMvc.perform(post("/api/v1/registration/confirm").param("token", token).with(csrf()))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/registration/confirm").param("token", token).with(csrf()))
+                .andExpect(status().isInternalServerError());
+
+        Assertions.assertThat(userRepository.findByUsername(username).orElseThrow().getActive()).isFalse();
+        Assertions.assertThat(registrationEmailBody()).contains("Здравствуйте, " + admin.getFullName() + "!",
+                "Иван &amp; Петров", username, "роли <span>трекера</span>",
+                "href=\"https://trackme.example.org/list-trackers\"");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"yandex,ADMIN,администратора,list-admins", "google,TRACKER,трекера,list-trackers"})
+    void socialRegistrationNotifiesSuperAdmin(String provider, String role, String roleName, String section)
+            throws Exception {
+        stubMailMessage();
+        var admin = userRepository.findByUsername("superadmin").orElseThrow();
+        var username = provider + ".applicant";
+        testUsernames.add(username);
+        var profile = new SocialProfile("sbi-934-" + provider, username + "@example.org", "Анна Иванова",
+                Instant.now().plusSeconds(600), provider, "");
+
+        socialAccountService.register(profile, username, role);
+
+        Assertions.assertThat(userRepository.findByUsername(username).orElseThrow().getActive()).isFalse();
+        Assertions.assertThat(registrationEmailBody()).contains("Здравствуйте, " + admin.getFullName() + "!",
+                "Анна Иванова", username,
+                "роли <span>" + roleName + "</span>", "href=\"https://trackme.example.org/" + section + "\"");
+    }
+
+    @Test
+    void sharedMailboxWithSeveralSuperAdminsUsesGenericGreeting() throws Exception {
+        stubMailMessage();
+        var admin = userRepository.findByUsername("superadmin").orElseThrow();
+        var secondAdmin = new UserEntity();
+        secondAdmin.setEmail("second-admin@example.org");
+        secondAdmin.setUsername("second.admin");
+        secondAdmin.setFullName("Другой суперадминистратор");
+        secondAdmin.setActive(true);
+        secondAdmin.getRoles().addAll(admin.getRoles());
+        testUsernames.add(secondAdmin.getUsername());
+        userRepository.save(secondAdmin);
+
+        var username = "shared.applicant";
+        testUsernames.add(username);
+        var profile = new SocialProfile("sbi-934-shared", "shared.applicant@example.org", "Иван Иванов",
+                Instant.now().plusSeconds(600));
+        socialAccountService.register(profile, username, "TRACKER");
+
+        Assertions.assertThat(registrationEmailBody()).contains("Здравствуйте!", username);
+    }
+
+    private void stubMailMessage() {
+        when(javaMailSender.createMimeMessage()).thenReturn(new JavaMailSenderImpl().createMimeMessage());
+    }
+
+    private String registrationEmailBody() throws Exception {
+        var sent = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(javaMailSender).send(sent.capture());
+        var message = sent.getValue();
+        Assertions.assertThat(message.getRecipients(Message.RecipientType.TO)[0].toString())
+                .isEqualTo(REGISTRATION_RECIPIENT);
+        Assertions.assertThat(message.getSubject()).contains("Запрос на регистрацию");
+        var related = (Multipart) message.getContent();
+        var content = (Multipart) related.getBodyPart(0).getContent();
+        return (String) content.getBodyPart(0).getContent();
     }
 
     @Test

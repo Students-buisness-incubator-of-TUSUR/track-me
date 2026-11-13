@@ -13,13 +13,15 @@ import net.trackme.sso.dao.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 class SocialAccountServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final RoleRepository roles = mock(RoleRepository.class);
     private final PasswordEncoder passwords = mock(PasswordEncoder.class);
-    private final SocialAccountService service = new SocialAccountService(users, roles, passwords);
+    private final SocialAccountService service = new SocialAccountService(
+            users, roles, passwords, mock(ApplicationEventPublisher.class));
     private SocialProfile profile;
 
     @BeforeEach
