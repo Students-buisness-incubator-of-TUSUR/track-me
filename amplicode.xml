@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+    <component name="AmplicodePersistenceUnitSettings">
+        <persistence-units>
+            <persistence-unit moduleName="trackme.meeting-service.main" name="Default">
+                <packages>
+                    <package value="net.trackme.meetingservice"/>
+                </packages>
+            </persistence-unit>
+            <persistence-unit moduleName="trackme.commons.main" name="Default"/>
+            <persistence-unit moduleName="trackme.backend.main" name="Default">
+                <packages>
+                    <package value="net.trackme.backend.domain"/>
+                </packages>
+            </persistence-unit>
+            <persistence-unit moduleName="trackme.trackme-sso.main" name="Default">
+                <packages>
+                    <package value="net.trackme.sso"/>
+                </packages>
+            </persistence-unit>
+            z
+        </persistence-units>
+    </component>
+</project>
