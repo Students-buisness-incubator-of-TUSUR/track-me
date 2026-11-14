@@ -46,6 +46,9 @@ public class DefaultUserService implements UserService {
 
   private final UserRepository userRepository;
   private static final String RONIN = "ronin";
+  private static final String TRACKER = "TRACKER";
+  private static final String ADMIN = "ADMIN";
+  private static final String SUPER_ADMIN = "SUPER_ADMIN";
   private static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
   private static final String AUTH_HEADER = "Authorization";
   private static final String BEARER_PREFIX = "Bearer ";
@@ -116,10 +119,14 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void enableUser(String username) {
-      if (RONIN.equals(username)) {
-          checkSuperAdmin();
-      }
-      changeActivity(username, true);
+    var user = findByUsername(username);
+    var roles = user.getRoles().stream().map(RoleEntity::getCode).toList();
+    if (RONIN.equals(username) || !roles.contains(TRACKER)
+        || roles.contains(ADMIN) || roles.contains(SUPER_ADMIN)) {
+      checkSuperAdmin();
+    }
+    user.setActive(true);
+    save(user);
   }
 
   @Override
@@ -256,7 +263,7 @@ public class DefaultUserService implements UserService {
   public Page<UserDto> getTrackers(FilterRequest filterRequest, Pageable pageable) {
     var filters = filterRequest.filters();
     var trackers = userRepository.findAll(
-        withFilters(filters).and(byRole("TRACKER")),
+        withFilters(filters).and(byRole(TRACKER)),
         pageable);
     return trackers.map(userMapper::userEntityToUserDto);
   }
@@ -265,7 +272,7 @@ public class DefaultUserService implements UserService {
   public Page<UserDto> getAdmins(FilterRequest filterRequest, Pageable pageable) {
     var filters = filterRequest.filters();
     var admins = userRepository.findAll(
-        withFilters(filters).and(byRole("ADMIN")),
+        withFilters(filters).and(byRole(ADMIN)),
         pageable);
     return admins.map(userMapper::userEntityToUserDto);
   }
@@ -290,7 +297,7 @@ public class DefaultUserService implements UserService {
       var auth = SecurityContextHolder.getContext().getAuthentication();
       if (auth == null || auth.getAuthorities().stream()
               .noneMatch(a -> a.getAuthority().equals(ROLE_SUPER_ADMIN))) {
-          throw new AccessDeniedException("Ronin user can only be modified by SUPER_ADMIN");
+          throw new AccessDeniedException("This user operation requires SUPER_ADMIN");
       }
   }
 

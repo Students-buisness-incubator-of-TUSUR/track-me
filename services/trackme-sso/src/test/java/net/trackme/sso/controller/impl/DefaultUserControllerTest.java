@@ -7,6 +7,8 @@ import net.trackme.sso.services.BackendClient;
 import net.trackme.sso.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -92,6 +94,31 @@ class DefaultUserControllerTest extends AbstractIntegrationTest {
             .param("username", TRACKER)
             .with(csrf()))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser(username = "admin", roles = "ADMIN")
+  void enableUser_adminCanConfirmTracker() throws Exception {
+    mockMvc.perform(post("/api/v1/users/enable").param("username", TRACKER).with(csrf()))
+        .andExpect(status().isOk());
+
+    try {
+      assertThat(userDetailsService.loadUserByUsername(TRACKER).isEnabled()).isTrue();
+    } finally {
+      userService.disableUser(TRACKER);
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"admin", "superadmin", RONIN})
+  @WithMockUser(username = "admin", roles = "ADMIN")
+  void enableUser_adminCannotActivatePrivilegedOrReservedAccount(String username) throws Exception {
+    var wasActive = userService.findByUsername(username).getActive();
+
+    mockMvc.perform(post("/api/v1/users/enable").param("username", username).with(csrf()))
+        .andExpect(status().isForbidden());
+
+    assertThat(userService.findByUsername(username).getActive()).isEqualTo(wasActive);
   }
 
   @Test

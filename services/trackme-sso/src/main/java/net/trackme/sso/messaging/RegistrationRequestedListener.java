@@ -2,8 +2,11 @@ package net.trackme.sso.messaging;
 
 import static net.trackme.sso.dao.UserSpecification.byRole;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.sso.config.AppProperties;
@@ -23,16 +26,18 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class RegistrationRequestedListener {
 
     private static final String SUPER_ADMIN = "SUPER_ADMIN";
+    private static final String ADMIN = "ADMIN";
+    private static final String TRACKER = "TRACKER";
 
     private final AppProperties appProperties;
     private final UserRepository users;
     private final EmailService emailService;
 
     @TransactionalEventListener
-    public void notifySuperAdmin(RegistrationRequestedEvent event) {
+    public void notifyApprovers(RegistrationRequestedEvent event) {
         var role = switch (event.role()) {
-            case "TRACKER" -> "трекера";
-            case "ADMIN" -> "администратора";
+            case TRACKER -> "трекера";
+            case ADMIN -> "администратора";
             default -> null;
         };
         if (role == null) {
@@ -40,21 +45,53 @@ public class RegistrationRequestedListener {
         }
 
         var mail = appProperties.getMail();
-        var section = "TRACKER".equals(event.role()) ? "list-trackers" : "list-admins";
+        var isTracker = TRACKER.equals(event.role());
+        var section = isTracker ? "list-trackers" : "list-admins";
         var link = UriComponentsBuilder.fromUriString(appProperties.getFrontendUrl())
                 .pathSegment(section).build().toUriString();
 
+        Map<String, Object> requestDetails = Map.of(
+                "fullName", StringUtils.hasText(event.fullName()) ? event.fullName() : "ФИО не указано",
+                "username", event.username(), "role", role, "approvalLink", link);
+        var superAdminEmail = mail.getRegistrationRecipient();
+        sendRegistrationEmail(superAdminEmail, recipientName(mail), requestDetails);
+        if (isTracker) {
+            notifyAdmins(superAdminEmail, requestDetails);
+        }
+    }
+
+    private void notifyAdmins(String superAdminEmail, Map<String, Object> requestDetails) {
+        var addresses = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        addresses.add(superAdminEmail);
+        for (var admin : findActiveAdmins()) {
+            var email = admin.getEmail().strip();
+            if (!email.isEmpty() && addresses.add(email)) {
+                sendRegistrationEmail(email, admin.getFullName(), requestDetails);
+            }
+        }
+    }
+
+    private List<UserEntity> findActiveAdmins() {
+        var activeAdmins = byRole(ADMIN).and((root, query, builder) ->
+                builder.and(builder.isTrue(root.get("active")), builder.isTrue(root.get("accountNonLocked"))));
         try {
-            emailService.sendMail(mail.getRegistrationRecipient(), mail.getFrom(),
+            return users.findAll(activeAdmins);
+        } catch (DataAccessException exception) {
+            log.warn("Could not look up administrators for tracker registration email", exception);
+            return List.of();
+        }
+    }
+
+    private void sendRegistrationEmail(String email, String name, Map<String, Object> requestDetails) {
+        var mail = appProperties.getMail();
+        var variables = new HashMap<>(requestDetails);
+        variables.put("recipientName", StringUtils.hasText(name) ? name : "");
+        try {
+            emailService.sendMail(email, mail.getFrom(),
                     "[" + mail.getSubject() + "] Запрос на регистрацию",
-                    "email-registration-request.html", Map.of(
-                            "recipientName", recipientName(mail),
-                            "fullName", StringUtils.hasText(event.fullName()) ? event.fullName() : "ФИО не указано",
-                            "username", event.username(),
-                            "role", role,
-                            "approvalLink", link));
+                    "email-registration-request.html", variables);
         } catch (MailException exception) {
-            log.warn("Registration request email failed for role {}", event.role(), exception);
+            log.warn("Registration request email failed", exception);
         }
     }
 
