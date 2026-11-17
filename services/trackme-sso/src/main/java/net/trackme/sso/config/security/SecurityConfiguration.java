@@ -39,6 +39,7 @@ public class SecurityConfiguration {
             "/v3/api-docs",
             "/api/csrf",
             "/api/v1/registration/**",
+            "/api/v1/organizations/available",
             "/v3/api-docs/swagger-config",
             "/.well-known/**"
     };

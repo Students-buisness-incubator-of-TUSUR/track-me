@@ -92,6 +92,23 @@ public class DefaultUserController implements UserController {
     return ResponseEntity.ok(new PagedModel<>(admins));
   }
 
+  @Override
+  @PreAuthorize("hasRole('OVERLORD')")
+  public ResponseEntity<PagedModel<UserDto>> getSuperAdmins(FilterRequest filterRequest,
+                                                            Pageable pageable) {
+    log.info("Getting super admins with filter: {}", filterRequest);
+    var superAdmins = userService.getSuperAdmins(filterRequest, pageable);
+    return ResponseEntity.ok(new PagedModel<>(superAdmins));
+  }
+
+  @Override
+  @PreAuthorize("hasRole('OVERLORD')")
+  public ResponseEntity<Void> promoteToSuperAdmin(String username) {
+    log.info("Promoting user to super admin: {}", username);
+    userService.promoteToSuperAdmin(username);
+    return ResponseEntity.ok().build();
+  }
+
   @ExceptionHandler(TeamReassignmentException.class)
   public ResponseEntity<ErrorResponseDto> handleTeamReassignmentException(
           TeamReassignmentException e) {

@@ -23,6 +23,10 @@ public record UserDto(
     @Schema(description = "URL аватара пользователя")
     String avatarUrl,
     @Schema(description = "Признак блокировки пользователя")
-    boolean enabled
+    boolean enabled,
+    @Schema(description = "Идентификатор организации пользователя")
+    String organizationId,
+    @Schema(description = "Название организации пользователя")
+    String organizationName
 ) {
 }

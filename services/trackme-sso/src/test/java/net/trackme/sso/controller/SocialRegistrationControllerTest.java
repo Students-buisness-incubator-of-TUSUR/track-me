@@ -60,25 +60,25 @@ class SocialRegistrationControllerTest {
         assertNull(request.getSession().getAttribute(SocialLoginHandler.PENDING));
         request.removeAttribute("yandex.registered");
         assertEquals(400, controller.registration(request, body).getStatusCode().value());
-        verify(accounts, times(1)).register(profile, "newuser", "ADMIN");
+        verify(accounts, times(1)).register(profile, "newuser", "ADMIN", "", null);
     }
 
     @Test
     void registrationRequiresConsentAndVerifiedProfile() {
         var request = pending();
-        controller.register(request, "newuser", "TRACKER", false, false, false);
+        controller.register(request, "newuser", "TRACKER", false, false, false, null);
         verifyNoInteractions(accounts);
-        controller.register(new MockHttpServletRequest(), "newuser", "TRACKER", true, true, true);
+        controller.register(new MockHttpServletRequest(), "newuser", "TRACKER", true, true, true, null);
         verifyNoInteractions(accounts);
-        controller.register(request, "newuser", "TRACKER", true, true, true);
-        verify(accounts).register(profile, "newuser", "TRACKER");
+        controller.register(request, "newuser", "TRACKER", true, true, true, null);
+        verify(accounts).register(profile, "newuser", "TRACKER", "", null);
         assertNull(request.getSession().getAttribute(SocialLoginHandler.PENDING));
     }
 
     @Test
     void invalidFieldsAreReturnedBesideTheirInputs() {
         var request = pending();
-        controller.register(request, "", "SUPER_ADMIN", false, false, false);
+        controller.register(request, "", "SUPER_ADMIN", false, false, false, null);
         var model = new ExtendedModelMap();
         controller.form(request, model);
         var fields = (java.util.Map<?, ?>) request.getSession().getAttribute("trackme.yandex.fieldErrors");
@@ -96,15 +96,15 @@ class SocialRegistrationControllerTest {
     @org.junit.jupiter.params.provider.CsvSource({"false,true,true", "true,false,true", "true,true,false"})
     void eachConsentIsRequiredOnServer(boolean license, boolean policy, boolean consent) {
         var request = pending();
-        controller.register(request, "newuser", "TRACKER", license, policy, consent);
+        controller.register(request, "newuser", "TRACKER", license, policy, consent, null);
         verifyNoInteractions(accounts);
     }
 
     @Test
     void stripsLeadingAtAndAcceptsAdminSelection() {
         var request = pending();
-        controller.register(request, " @newuser ", "ADMIN", true, true, true);
-        verify(accounts).register(profile, "newuser", "ADMIN");
+        controller.register(request, " @newuser ", "ADMIN", true, true, true, null);
+        verify(accounts).register(profile, "newuser", "ADMIN", "", null);
     }
 
     @Test
@@ -128,14 +128,14 @@ class SocialRegistrationControllerTest {
         controller.form(request, model);
         assertEquals(false, controller.profile(request, csrf()).get("pending"));
         assertNotNull(request.getSession().getAttribute("trackme.yandex.error"));
-        controller.register(request, "newuser", "TRACKER", true, true, true);
+        controller.register(request, "newuser", "TRACKER", true, true, true, null);
         verifyNoInteractions(accounts);
     }
     @Test
     void apiReportsDuplicateAccountWithoutConsumingPendingIdentity() {
         var request = pending();
         doThrow(new org.springframework.dao.DataIntegrityViolationException("duplicate"))
-                .when(accounts).register(profile, "newuser", "TRACKER");
+                .when(accounts).register(profile, "newuser", "TRACKER", "", null);
         var result = controller.registration(request,
                 new SocialRegistrationController.Registration("newuser", "TRACKER", true, true, true));
         assertEquals(400, result.getStatusCode().value());

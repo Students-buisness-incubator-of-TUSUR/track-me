@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
+import net.trackme.sso.dao.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -40,6 +41,8 @@ import static net.trackme.sso.config.security.SecurityConfiguration.PERMIT_ALL_P
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 public class OAuth2AuthorizationServerConfig {
+
+    private final UserRepository userRepository;
 
     @org.springframework.beans.factory.annotation.Value("${app.yandex.enabled:false}")
     private boolean yandexSsoEnabled;
@@ -81,6 +84,17 @@ public class OAuth2AuthorizationServerConfig {
                 }
 
                 claims.put("roles", roles);
+
+                if (!AuthorizationGrantType.CLIENT_CREDENTIALS
+                        .equals(context.getAuthorizationGrantType())) {
+                    userRepository.findByUsername(context.getPrincipal().getName())
+                            .map(user -> user.getOrganization())
+                            .ifPresent(organization -> {
+                                claims.put("organization_id",
+                                        organization.getId().toString());
+                                claims.put("organization_name", organization.getName());
+                            });
+                }
 
                 var authorization = context.getAuthorization();
                 if (authorization != null) {
