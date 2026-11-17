@@ -14,7 +14,6 @@ import java.util.UUID;
 import net.trackme.backend.domain.Stream;
 import net.trackme.backend.mapping.StreamMapper;
 import net.trackme.backend.rest.api.stream.StreamCreateDto;
-import net.trackme.backend.rest.api.stream.StreamDto;
 import net.trackme.backend.rest.api.stream.StreamUpdateDto;
 import net.trackme.backend.services.nti.NtiMarketService;
 import net.trackme.backend.services.organization.OrganizationContext;

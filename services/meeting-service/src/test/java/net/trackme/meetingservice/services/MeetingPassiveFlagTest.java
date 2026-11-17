@@ -195,8 +195,10 @@ class MeetingPassiveFlagTest {
         when(meetingRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(Page.empty());
 
+        var pageable = PageRequest.of(0, 10);
+
         assertThrows(AccessDeniedException.class, () ->
-                meetingService.getMeetings(teamCardId, PageRequest.of(0, 10)));
+                meetingService.getMeetings(teamCardId, pageable));
     }
 
 }
