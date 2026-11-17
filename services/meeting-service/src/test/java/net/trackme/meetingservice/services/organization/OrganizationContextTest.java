@@ -79,11 +79,60 @@ class OrganizationContextTest {
         .doesNotThrowAnyException();
   }
 
+  @Test
+  void overlordAuthorityWithoutRolePrefixIsRecognized() {
+    authenticateClaims(null, null, "OVERLORD");
+
+    assertThat(OrganizationContext.isOverlord()).isTrue();
+  }
+
+  @Test
+  void noAuthenticationMeansNotOverlordAndUnscopedAccess() {
+    SecurityContextHolder.clearContext();
+
+    assertThat(OrganizationContext.isOverlord()).isFalse();
+    assertThat(OrganizationContext.getOrganizationId()).isEmpty();
+    assertThatCode(() -> OrganizationContext.checkOrganizationAccess(ORGANIZATION_B))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  void jwtWithoutOrganizationClaimsMeansUnscopedAccess() {
+    authenticate(null, null, "ROLE_TRACKER");
+
+    assertThat(OrganizationContext.getOrganizationId()).isEmpty();
+    assertThat(OrganizationContext.getOrganizationName()).isEmpty();
+    assertThatCode(() -> OrganizationContext.checkOrganizationAccess(ORGANIZATION_B))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  void blankOrganizationClaimsAreIgnored() {
+    authenticateClaims("", "", "ROLE_TRACKER");
+
+    assertThat(OrganizationContext.getOrganizationId()).isEmpty();
+    assertThat(OrganizationContext.getOrganizationName()).isEmpty();
+  }
+
+  @Test
+  void invalidOrganizationIdClaimIsIgnored() {
+    authenticateClaims("not-a-uuid", "Организация А", "ROLE_TRACKER");
+
+    assertThat(OrganizationContext.getOrganizationId()).isEmpty();
+    assertThat(OrganizationContext.getOrganizationName()).contains("Организация А");
+  }
+
   private static void authenticate(UUID organizationId, String organizationName,
                                    String... roles) {
+    authenticateClaims(organizationId != null ? organizationId.toString() : null,
+        organizationName, roles);
+  }
+
+  private static void authenticateClaims(String organizationId, String organizationName,
+                                         String... roles) {
     var builder = Jwt.withTokenValue("token").header("alg", "none").subject("user");
     if (organizationId != null) {
-      builder.claim(OrganizationContext.ORGANIZATION_ID_CLAIM, organizationId.toString());
+      builder.claim(OrganizationContext.ORGANIZATION_ID_CLAIM, organizationId);
     }
     if (organizationName != null) {
       builder.claim(OrganizationContext.ORGANIZATION_NAME_CLAIM, organizationName);

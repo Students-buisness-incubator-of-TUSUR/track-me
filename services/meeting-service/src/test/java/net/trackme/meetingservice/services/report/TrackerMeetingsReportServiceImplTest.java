@@ -8,6 +8,7 @@ import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.entities.MeetingStatus;
 import net.trackme.meetingservice.entities.TeamStatus;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.services.organization.OrganizationContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +19,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.io.ByteArrayOutputStream;
 import java.time.OffsetDateTime;
@@ -53,6 +57,18 @@ class TrackerMeetingsReportServiceImplTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
+    private void authenticateWithOrganization(UUID organizationId, String... roles) {
+        var builder = Jwt.withTokenValue("token").header("alg", "none").subject("tracker1");
+        if (organizationId != null) {
+            builder.claim(OrganizationContext.ORGANIZATION_ID_CLAIM, organizationId.toString());
+        }
+        var authorities = java.util.Arrays.stream(roles)
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+        SecurityContextHolder.getContext().setAuthentication(
+                new JwtAuthenticationToken(builder.build(), authorities));
+    }
+
     private TrackerMeetingReportRecordDto sampleDto(String teamName) {
         return TrackerMeetingReportRecordDto.builder()
                 .teamId(UUID.randomUUID())
@@ -66,6 +82,42 @@ class TrackerMeetingsReportServiceImplTest {
     }
 
     // ========== getReportRecordsForTracker(List<Filter>) ==========
+
+    @Test
+    void getReportRecordsForTracker_appliesOrganizationFilterForRegularUser() {
+        authenticateWithOrganization(UUID.randomUUID(), "ROLE_TRACKER");
+        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
+                .thenReturn(List.of());
+
+        var result = reportService.getReportRecordsForTracker(List.of());
+
+        assertTrue(result.isEmpty());
+        verify(meetingRepository).findAll(any(Specification.class), any(Sort.class));
+    }
+
+    @Test
+    void getReportRecordsForTracker_doesNotFilterOrganizationForOverlord() {
+        authenticateWithOrganization(null, "ROLE_OVERLORD");
+        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
+                .thenReturn(List.of());
+
+        var result = reportService.getReportRecordsForTracker(List.of());
+
+        assertTrue(result.isEmpty());
+        verify(meetingRepository).findAll(any(Specification.class), any(Sort.class));
+    }
+
+    @Test
+    void getReportRecordsForTracker_ignoresOrganizationClaimForOverlord() {
+        authenticateWithOrganization(UUID.randomUUID(), "ROLE_OVERLORD");
+        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
+                .thenReturn(List.of());
+
+        var result = reportService.getReportRecordsForTracker(List.of());
+
+        assertTrue(result.isEmpty());
+        verify(meetingRepository).findAll(any(Specification.class), any(Sort.class));
+    }
 
     @Test
     void getReportRecordsForTracker_List_ReturnsDataForCurrentTracker() {

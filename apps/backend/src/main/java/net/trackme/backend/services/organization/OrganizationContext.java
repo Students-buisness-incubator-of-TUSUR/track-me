@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
@@ -62,7 +63,7 @@ public class OrganizationContext {
     public boolean isOverlord() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null && authentication.getAuthorities().stream()
-                .map(authority -> authority.getAuthority())
+                .map(GrantedAuthority::getAuthority)
                 .anyMatch(authority -> ROLE_OVERLORD.equals(authority)
                         || AUTHORITY_OVERLORD.equals(authority));
     }
@@ -95,7 +96,7 @@ public class OrganizationContext {
     private Optional<UUID> parseUuid(String value) {
         try {
             return Optional.of(UUID.fromString(value));
-        } catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException _) {
             return Optional.empty();
         }
     }
