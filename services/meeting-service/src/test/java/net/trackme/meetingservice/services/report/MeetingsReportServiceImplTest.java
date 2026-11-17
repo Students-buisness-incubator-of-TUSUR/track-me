@@ -6,6 +6,8 @@ import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.services.organization.OrganizationContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -14,6 +16,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -36,6 +42,62 @@ class MeetingsReportServiceImplTest {
 
     @InjectMocks
     private MeetingsReportServiceImpl reportService;
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void getReportRecordsForStream_appliesOrganizationFilterForRegularUser() {
+        UUID streamId = UUID.randomUUID();
+        authenticateWithOrganization(UUID.randomUUID(), "ROLE_TRACKER");
+        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
+                .thenReturn(List.of());
+
+        var result = reportService.getReportRecordsForStream(streamId, List.of());
+
+        assertTrue(result.isEmpty());
+        verify(meetingRepository).findAll(any(Specification.class), any(Sort.class));
+    }
+
+    @Test
+    void getReportRecordsForStream_doesNotFilterOrganizationForOverlord() {
+        UUID streamId = UUID.randomUUID();
+        authenticateWithOrganization(null, "ROLE_OVERLORD");
+        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
+                .thenReturn(List.of());
+
+        var result = reportService.getReportRecordsForStream(streamId, List.of());
+
+        assertTrue(result.isEmpty());
+        verify(meetingRepository).findAll(any(Specification.class), any(Sort.class));
+    }
+
+    @Test
+    void getReportRecordsForStream_ignoresOrganizationClaimForOverlord() {
+        UUID streamId = UUID.randomUUID();
+        authenticateWithOrganization(UUID.randomUUID(), "ROLE_OVERLORD");
+        when(meetingRepository.findAll(ArgumentMatchers.<Specification<Meeting>>any(), any(Sort.class)))
+                .thenReturn(List.of());
+
+        var result = reportService.getReportRecordsForStream(streamId, List.of());
+
+        assertTrue(result.isEmpty());
+        verify(meetingRepository).findAll(any(Specification.class), any(Sort.class));
+    }
+
+    private static void authenticateWithOrganization(UUID organizationId, String... roles) {
+        var builder = Jwt.withTokenValue("token").header("alg", "none").subject("user");
+        if (organizationId != null) {
+            builder.claim(OrganizationContext.ORGANIZATION_ID_CLAIM, organizationId.toString());
+        }
+        var authorities = java.util.Arrays.stream(roles)
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+        SecurityContextHolder.getContext().setAuthentication(
+                new JwtAuthenticationToken(builder.build(), authorities));
+    }
 
     @Test
     void getReportRecordsForStream_List_WithFilters_ReturnsData() {

@@ -45,6 +45,14 @@ public class Stream {
     @Builder.Default
     private Integer meetingsCount = 10;
 
+    /** Идентификатор организации, которой принадлежит поток. */
+    @Column(name = "organization_id")
+    private UUID organizationId;
+
+    /** Название организации (денормализовано для фильтрации и отчётов). */
+    @Column(name = "organization_name")
+    private String organizationName;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(
             name = "stream_nti_market",

@@ -7,6 +7,7 @@ import net.trackme.meetingservice.api.dto.MeetingReportRecordDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.services.organization.OrganizationContext;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -46,7 +47,10 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
     private final MeetingsReportExcelGenerator excelGenerator;
 
     @Override
-    @Cacheable(value = "meetings-report-all", key = "#streamId.toString() + '-' + #filters.hashCode()")
+    @Cacheable(value = "meetings-report-all",
+            key = "#streamId.toString() + '-' + #filters.hashCode() + '-' + "
+                    + "T(net.trackme.meetingservice.services.organization.OrganizationContext)"
+                    + ".getOrganizationId().orElse(null)")
     public List<MeetingReportRecordDto> getReportRecordsForStream(
             UUID streamId,
             List<Filter> filters
@@ -125,6 +129,11 @@ public class MeetingsReportServiceImpl implements MeetingsReportService {
     }
 
     private Specification<Meeting> buildBaseSpec(UUID streamId, List<Filter> filters) {
-        return belongsToStream(streamId).and(withFilters(filters));
+        Specification<Meeting> spec = belongsToStream(streamId).and(withFilters(filters));
+        var organizationId = OrganizationContext.getOrganizationId();
+        if (organizationId.isPresent() && !OrganizationContext.isOverlord()) {
+            spec = spec.and(organizationEquals(organizationId.get()));
+        }
+        return spec;
     }
 }

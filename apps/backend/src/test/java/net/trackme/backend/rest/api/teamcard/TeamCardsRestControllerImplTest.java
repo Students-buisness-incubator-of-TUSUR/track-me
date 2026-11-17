@@ -819,7 +819,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_withoutFilters_success() throws Exception {
         var stream1 = streamRepository.findAll().getFirst();
         var stream2 = streamRepository.save(Stream.builder()
@@ -892,7 +892,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_withFilters_success() throws Exception {
         var stream1 = streamRepository.findAll().getFirst();
         var stream2 = streamRepository.save(Stream.builder()
@@ -968,7 +968,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_pagination_success() throws Exception {
         var stream = streamRepository.findAll().getFirst();
 
@@ -1017,7 +1017,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_complexPaginationAndSort_success() throws Exception {
         var stream1 = streamRepository.save(Stream.builder()
                 .name("Alpha")
@@ -1081,7 +1081,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_shouldExcludeCardsWithoutStreams() throws Exception {
         var stream = streamRepository.findAll().getFirst();
         saveTeamCardWithStream("tracker1", "With Stream", 5.0, stream);
@@ -1104,7 +1104,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_shouldReturnCorrectAggregatedGrades() throws Exception {
         var stream = streamRepository.findAll().getFirst();
 
@@ -1120,7 +1120,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_withComplexFilter_success() throws Exception {
         var stream1 = streamRepository.save(Stream.builder()
                 .name("Alpha")
@@ -1156,7 +1156,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReportExcel_withoutFilters_success() throws Exception {
         var stream1 = streamRepository.findAll().getFirst();
         var stream2 = streamRepository.save(Stream.builder()
@@ -1220,7 +1220,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReportExcel_withFilters_success() throws Exception {
         var stream1 = streamRepository.findAll().getFirst();
         var stream2 = streamRepository.save(Stream.builder()
@@ -1285,7 +1285,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_shouldReturnCorrectMeetingsCountPlan() throws Exception {
         var now = LocalDate.now();
         // План встреч считается целыми календарными неделями от trackStartDate
@@ -1585,7 +1585,7 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
-    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_forPassiveTeam_shouldReturnFullMeetingsCountPlan() throws Exception {
         var now = LocalDate.now();
         var stream = streamRepository.save(Stream.builder()

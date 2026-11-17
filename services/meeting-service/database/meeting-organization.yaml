@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - changeSet:
+      id: meeting-add-organization-columns
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: meeting
+                columnName: organization_id
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: meeting
+            columns:
+              - column:
+                  name: organization_id
+                  type: UUID
+                  constraints:
+                    nullable: true
+              - column:
+                  name: organization_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: meeting-backfill-organization-default
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          and:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: meeting
+                columnName: organization_id
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: meeting
+                columnName: organization_name
+      changes:
+        - update:
+            schemaName: ${db_schema}
+            tableName: meeting
+            where: organization_id IS NULL
+            columns:
+              - column:
+                  name: organization_id
+                  value: 00000000-0000-0000-0000-000000000001
+              - column:
+                  name: organization_name
+                  value: Организация по умолчанию
+
+  - changeSet:
+      id: meeting-add-organization-index
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - indexExists:
+                schemaName: ${db_schema}
+                indexName: idx_meeting_organization_id
+      changes:
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: meeting
+            indexName: idx_meeting_organization_id
+            columns:
+              - column:
+                  name: organization_id

@@ -20,6 +20,8 @@ public class TeamCardDto {
     private List<StreamDto> streams;
     private String username;
     private String name;
+    private UUID organizationId;
+    private String organizationName;
     /**
      * Пассивный статус карточки команды.
      * Если true - команда пассивна, только администратор может её редактировать.

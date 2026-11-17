@@ -70,7 +70,7 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OVERLORD')")
     public ResponseEntity<PagedModel<TeamCardReportRecordDto>> getTeamCardReport(
             FilterRequest filters,
             Pageable pageable) {
@@ -79,7 +79,7 @@ public class TeamCardsRestControllerImpl implements TeamCardsRestController {
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('OVERLORD')")
     public ResponseEntity<StreamingResponseBody> getTeamCardReportExcel(FilterRequest filters) {
         String filename = "отчёт-по-командам-" +
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +

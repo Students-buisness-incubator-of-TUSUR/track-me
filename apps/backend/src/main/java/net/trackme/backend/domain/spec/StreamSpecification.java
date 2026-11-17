@@ -22,13 +22,17 @@ public class StreamSpecification implements Specification<Stream> {
 
     public static final String READINESS_LEVEL_FIELD = "teamCards.readinessLevel";
     public static final String NTIMARKETS_NAME_FIELD = "ntiMarkets.name";
+    public static final String ORGANIZATION_ID_FIELD = "organizationId";
+    public static final String ORGANIZATION_NAME_FIELD = "organizationName";
 
     public static final List<String> ALLOWED_FIELDS = List.of(
             "name",
             "active",
             "year",
             NTIMARKETS_NAME_FIELD,
-            READINESS_LEVEL_FIELD
+            READINESS_LEVEL_FIELD,
+            ORGANIZATION_NAME_FIELD,
+            ORGANIZATION_ID_FIELD
     );
 
     private final transient List<Filter> filters;
@@ -59,6 +63,17 @@ public class StreamSpecification implements Specification<Stream> {
 
     public static Specification<Stream> byId(UUID id) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
+    }
+
+    /**
+     * Спецификация для фильтрации потоков по организации.
+     *
+     * @param organizationId идентификатор организации
+     * @return спецификация
+     */
+    public static Specification<Stream> organizationEquals(UUID organizationId) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get(ORGANIZATION_ID_FIELD), organizationId);
     }
 
     @Override

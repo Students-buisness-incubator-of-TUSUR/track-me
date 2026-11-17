@@ -6,6 +6,7 @@ import net.trackme.meetingservice.api.dto.TrackerMeetingReportRecordDto;
 import net.trackme.meetingservice.dao.MeetingRepository;
 import net.trackme.meetingservice.entities.Meeting;
 import net.trackme.meetingservice.mapping.MeetingMapper;
+import net.trackme.meetingservice.services.organization.OrganizationContext;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,8 +47,7 @@ public class TrackerMeetingsReportServiceImpl implements TrackerMeetingsReportSe
     @Override
     public List<TrackerMeetingReportRecordDto> getReportRecordsForTracker(List<Filter> filters) {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Specification<Meeting> spec = withFilters(filters)
-                .and(trackerUsernameEquals(username));
+        Specification<Meeting> spec = trackerReportSpec(filters, username);
         return meetingRepository.findAll(spec, DEFAULT_SORT).stream()
                 .map(meetingMapper::mapToTrackerReportDto).toList();
     }
@@ -57,8 +57,7 @@ public class TrackerMeetingsReportServiceImpl implements TrackerMeetingsReportSe
             List<Filter> filters, Pageable pageable) {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         Sort effectiveSort = calculateEffectiveSort(pageable.getSort());
-        Specification<Meeting> baseSpec = withFilters(filters)
-                .and(trackerUsernameEquals(username));
+        Specification<Meeting> baseSpec = trackerReportSpec(filters, username);
         Page<Meeting> meetingPage = meetingRepository.findAll(baseSpec,
                 PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), effectiveSort));
 
@@ -76,8 +75,7 @@ public class TrackerMeetingsReportServiceImpl implements TrackerMeetingsReportSe
             List<Filter> filters, Sort sort,
             int fetchPageSize, int exportLimit, OutputStream outputStream) throws IOException {
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Specification<Meeting> baseSpec = withFilters(filters)
-                .and(trackerUsernameEquals(username));
+        Specification<Meeting> baseSpec = trackerReportSpec(filters, username);
         Sort effectiveSort = calculateEffectiveSort(sort);
 
         var recordStream = IntStream.iterate(0, i -> i + 1)
@@ -93,6 +91,16 @@ public class TrackerMeetingsReportServiceImpl implements TrackerMeetingsReportSe
                 .limit(exportLimit);
 
         excelGenerator.generate(recordStream, outputStream);
+    }
+
+    private Specification<Meeting> trackerReportSpec(List<Filter> filters, String username) {
+        Specification<Meeting> spec = withFilters(filters)
+                .and(trackerUsernameEquals(username));
+        var organizationId = OrganizationContext.getOrganizationId();
+        if (organizationId.isPresent() && !OrganizationContext.isOverlord()) {
+            spec = spec.and(organizationEquals(organizationId.get()));
+        }
+        return spec;
     }
 
     private Sort calculateEffectiveSort(Sort clientSort) {

@@ -38,6 +38,12 @@ public class TeamCardSpecification implements Specification<TeamCard> {
     /** Поле для фильтрации по рынкам НТИ (как приходит с фронта). */
     public static final String NTI_MARKETS_NAME_FIELD = "ntiMarkets.name";
 
+    /** Поле названия организации. */
+    public static final String ORGANIZATION_NAME_FIELD = "organizationName";
+
+    /** Поле идентификатора организации. */
+    public static final String ORGANIZATION_ID_FIELD = "organizationId";
+
     /**
      * Список допустимых полей для фильтрации карточек команд.
      */
@@ -53,7 +59,9 @@ public class TeamCardSpecification implements Specification<TeamCard> {
             "enabled",
             "averageGrade",
             "streams.startDate",
-            "streams.endDate"
+            "streams.endDate",
+            ORGANIZATION_NAME_FIELD,
+            ORGANIZATION_ID_FIELD
     );
 
     private final transient List<Filter> filters;
@@ -82,6 +90,28 @@ public class TeamCardSpecification implements Specification<TeamCard> {
     public static Specification<TeamCard> hasStream() {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.isNotEmpty(root.get(STREAMS_FIELD));
+    }
+
+    /**
+     * Спецификация для фильтрации карточек команд по организации.
+     *
+     * @param organizationId идентификатор организации
+     * @return спецификация
+     */
+    public static Specification<TeamCard> organizationEquals(UUID organizationId) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get(ORGANIZATION_ID_FIELD), organizationId);
+    }
+
+    /**
+     * Спецификация для фильтрации карточек команд по названию организации.
+     *
+     * @param organizationName название организации
+     * @return спецификация
+     */
+    public static Specification<TeamCard> organizationNameEquals(String organizationName) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get(ORGANIZATION_NAME_FIELD), organizationName);
     }
 
     /**

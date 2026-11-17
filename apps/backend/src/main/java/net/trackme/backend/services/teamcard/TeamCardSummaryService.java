@@ -101,6 +101,8 @@ public class TeamCardSummaryService {
                                     .meetingNumber(meetingSummaryEvent.get("meetingNumber"))
                                     .meetingLink(meetingSummaryEvent.get("meetingLink"))
                                     .trackerFullName(trackerFullName)
+                                    .organizationId(resolveOrganizationId(teamCard, stream))
+                                    .organizationName(resolveOrganizationName(teamCard, stream))
                                     .build();
 
                     teamCardSummaryEvents.add(teamCardSummaryEvent);
@@ -183,6 +185,8 @@ public class TeamCardSummaryService {
                         .streamName(stream.getName())
                         .averageGrade(teamCard.getAverageGrade())
                         .trackerFullName(trackerFullName)
+                        .organizationId(resolveOrganizationId(teamCard, stream))
+                        .organizationName(resolveOrganizationName(teamCard, stream))
                         .build();
 
                 teamCardLowGradeSummaryEvents.add(event);
@@ -200,5 +204,37 @@ public class TeamCardSummaryService {
      */
     private Optional<Stream> getStreamByTeamCard(TeamCard teamCard) {
         return teamCard.getStreams().stream().filter(Stream::isActive).findFirst();
+    }
+
+    /**
+     * Определяет идентификатор организации для сводки.
+     * Если у карточки команды организация не указана, используется организация потока.
+     *
+     * @param teamCard карточка команды
+     * @param stream   активный поток
+     * @return идентификатор организации или {@code null}, если организация неизвестна
+     */
+    private String resolveOrganizationId(TeamCard teamCard, Stream stream) {
+        if (teamCard.getOrganizationId() != null) {
+            return teamCard.getOrganizationId().toString();
+        }
+        return stream.getOrganizationId() != null
+                ? stream.getOrganizationId().toString()
+                : null;
+    }
+
+    /**
+     * Определяет название организации для сводки.
+     * Если у карточки команды название не указано, используется название организации потока.
+     *
+     * @param teamCard карточка команды
+     * @param stream   активный поток
+     * @return название организации или {@code null}, если организация неизвестна
+     */
+    private String resolveOrganizationName(TeamCard teamCard, Stream stream) {
+        if (teamCard.getOrganizationName() != null && !teamCard.getOrganizationName().isBlank()) {
+            return teamCard.getOrganizationName();
+        }
+        return stream.getOrganizationName();
     }
 }

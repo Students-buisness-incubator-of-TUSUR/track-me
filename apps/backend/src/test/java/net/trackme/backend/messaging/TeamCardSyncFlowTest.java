@@ -114,7 +114,9 @@ class TeamCardSyncFlowTest {
                 "stream",
                 "meeting-number",
                 "meeting-link",
-                "Иванов Иван Иванович" 
+                "Иванов Иван Иванович",
+                null,
+                null
         ));
 
         producer.sendTeamCardSummaryEvent(events);
@@ -133,7 +135,9 @@ class TeamCardSyncFlowTest {
                 "team-card",
                 "stream-name",
                 BigDecimal.ONE,
-                "Иванов Иван Иванович"
+                "Иванов Иван Иванович",
+                null,
+                null
         ));
 
         producer.sendTeamCardLowGradeSummaryEvent(events);
