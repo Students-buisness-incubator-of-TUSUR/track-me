@@ -2,6 +2,8 @@ package net.trackme.backend.usecases;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import net.trackme.backend.domain.Stream;
+import net.trackme.backend.domain.TeamCard;
 import net.trackme.backend.mapping.TeamCardMapper;
 import net.trackme.backend.models.TeamCardStatus;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
@@ -10,6 +12,7 @@ import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
 import net.trackme.backend.services.nti.NtiMarketService;
 import net.trackme.backend.services.exceptions.ExcelExportException;
+import net.trackme.backend.services.organization.OrganizationContext;
 import net.trackme.backend.services.stream.MutableStreamService;
 import net.trackme.backend.services.teamcard.report.TeamCardsReportService;
 import net.trackme.backend.services.teamcard.TeamCardsService;
@@ -27,6 +30,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.UUID;
 
+import static net.trackme.backend.domain.spec.TeamCardSpecification.organizationEquals;
 import static net.trackme.backend.domain.spec.TeamCardSpecification.userEquals;
 import static net.trackme.backend.domain.spec.TeamCardSpecification.withFilters;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +49,8 @@ public class TeamCardsUseCase {
 
     private final NtiMarketService ntiMarketService;
 
+    private final OrganizationContext organizationContext;
+
     @Value("${app.report.export-limit:10000}")
     private int exportLimit;
 
@@ -58,6 +64,7 @@ public class TeamCardsUseCase {
         var ntiMarketIds = teamCardDto.ntiMarketIds();
 
         var stream = streamService.findActive(streamId);
+        organizationContext.checkOrganizationAccess(stream.getOrganizationId());
         var teamCardEntity = teamCardMapper.mapToEntity(teamCardDto);
         var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
 
@@ -65,6 +72,7 @@ public class TeamCardsUseCase {
         teamCardEntity.setNtiMarkets(ntiMarkets);
         teamCardEntity.addStream(stream);
         teamCardEntity.setStatus(TeamCardStatus.OK);
+        applyOrganization(teamCardEntity, stream);
 
         var createdTeamCard = teamCardsService.createTeamCard(teamCardEntity);
         return teamCardMapper.mapToDto(createdTeamCard);
@@ -74,12 +82,14 @@ public class TeamCardsUseCase {
     public TeamCardDto updateTeamCard(UUID teamCardId,
                                       TeamCardUpdateDto createOrUpdateDto) {
         var existingTeamCard = teamCardsService.getTeamCard(teamCardId);
+        organizationContext.checkOrganizationAccess(existingTeamCard.getOrganizationId());
 
         // Получаем роль текущего пользователя
         var auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = auth != null && auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") ||
-                        a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+                        a.getAuthority().equals("ROLE_SUPER_ADMIN") ||
+                        a.getAuthority().equals("ROLE_OVERLORD"));
 
         // Изменять пассивный статус может только ADMIN/SUPER_ADMIN.
         boolean passiveChanged = createOrUpdateDto.passive() != null
@@ -108,24 +118,32 @@ public class TeamCardsUseCase {
     public Page<TeamCardDto> getTeamCards(List<Filter> filters,
                                           Authentication authentication,
                                           Pageable pageable) {
-        var page = teamCardsService.getTeamCards(
-                withFilters(filters)
-                        .and(userEquals(authentication.getName())),
-                pageable);
+        var specification = withFilters(filters)
+                .and(userEquals(authentication.getName()));
+        var organizationId = organizationContext.getOrganizationId();
+        if (organizationId.isPresent() && !organizationContext.isOverlord()) {
+            specification = specification.and(organizationEquals(organizationId.get()));
+        }
+        var page = teamCardsService.getTeamCards(specification, pageable);
         return page.map(teamCardMapper::mapToDto);
     }
 
     @PreAuthorize("hasPermission(#teamCardId, 'net.trackme.backend.domain.TeamCard', 'READ')")
     public TeamCardDto getTeamCard(UUID teamCardId) {
         var teamCard = teamCardsService.getTeamCard(teamCardId);
+        organizationContext.checkOrganizationAccess(teamCard.getOrganizationId());
         return teamCardMapper.mapToDto(teamCard);
     }
 
     public void deleteTeamCard(UUID id) {
+        var teamCard = teamCardsService.getTeamCard(id);
+        organizationContext.checkOrganizationAccess(teamCard.getOrganizationId());
         teamCardsService.deleteTeamCard(id);
     }
 
     public Integer getTeamCardCount(UUID streamId) {
+        var stream = streamService.getById(streamId);
+        organizationContext.checkOrganizationAccess(stream.getOrganizationId());
         return teamCardsService.getTeamCardCount(streamId);
     }
 
@@ -140,5 +158,16 @@ public class TeamCardsUseCase {
         } catch (IOException e) {
             throw new ExcelExportException("Ошибка генерации Excel отчёта", e);
         }
+    }
+
+    private void applyOrganization(TeamCard teamCard, Stream stream) {
+        var organizationId = stream.getOrganizationId() != null
+                ? stream.getOrganizationId()
+                : organizationContext.getOrganizationId().orElse(null);
+        var organizationName = stream.getOrganizationName() != null
+                ? stream.getOrganizationName()
+                : organizationContext.getOrganizationName().orElse(null);
+        teamCard.setOrganizationId(organizationId);
+        teamCard.setOrganizationName(organizationName);
     }
 }

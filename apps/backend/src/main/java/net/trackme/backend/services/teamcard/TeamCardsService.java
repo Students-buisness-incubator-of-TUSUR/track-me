@@ -129,4 +129,16 @@ public interface TeamCardsService {
      * @param toUserFullName полное имя нового трекера (если известно, иначе используется username)
      */
     void reassignTeams(String fromUsername, String toUsername, String toUserFullName);
+
+    /**
+     * Переназначает все команды с одного пользователя на другого
+     * в пределах указанной организации.
+     *
+     * @param fromUsername исходный username трекера
+     * @param toUsername новый username трекера
+     * @param toUserFullName полное имя нового трекера
+     * @param organizationId идентификатор организации или {@code null} для всех организаций
+     */
+    void reassignTeams(String fromUsername, String toUsername, String toUserFullName,
+                       UUID organizationId);
 }

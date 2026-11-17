@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,9 +69,9 @@ class TeamCardLowGradeSummaryTest {
         verify(teamCardEventsProducer).sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
         assertEquals(List.of(
                 new TeamCardLowGradeSummaryEvent(
-                        "Low grade", "Active stream", BigDecimal.ZERO, "Test tracker"),
+                        "Low grade", "Active stream", BigDecimal.ZERO, "Test tracker", null, null),
                 new TeamCardLowGradeSummaryEvent(
-                        "At threshold", "Active stream", new BigDecimal("0.25"), "Test tracker")),
+                        "At threshold", "Active stream", new BigDecimal("0.25"), "Test tracker", null, null)),
                 eventsCaptor.getValue());
     }
 
@@ -169,6 +170,41 @@ class TeamCardLowGradeSummaryTest {
                 .sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
         verifyNoMoreInteractions(teamCardsRepository, teamCardEventsProducer, entityManager);
         assertEquals(teams.stream().map(TeamCard::getName).toList(), eventTeamNames());
+    }
+
+    @Test
+    void organizationFromTeamCard_isPropagatedToEvent() {
+        var organizationId = UUID.randomUUID();
+        var organizationTeam = team("Organization team", "0.1", false);
+        organizationTeam.setOrganizationId(organizationId);
+        organizationTeam.setOrganizationName("Organization");
+        givenTeams(List.of(organizationTeam));
+
+        summaryService.reportAboutTeamCardLowGrades();
+
+        verify(teamCardEventsProducer).sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
+        var event = eventsCaptor.getValue().getFirst();
+        assertEquals(organizationId.toString(), event.organizationId());
+        assertEquals("Organization", event.organizationName());
+    }
+
+    @Test
+    void organizationFromStream_isUsedWhenTeamCardHasNoOrganization() {
+        var organizationId = UUID.randomUUID();
+        var organizationTeam = team("Stream organization team", "0.1", false);
+        organizationTeam.setStreams(Set.of(Stream.builder()
+                .name("Active stream")
+                .organizationId(organizationId)
+                .organizationName("Stream organization")
+                .build()));
+        givenTeams(List.of(organizationTeam));
+
+        summaryService.reportAboutTeamCardLowGrades();
+
+        verify(teamCardEventsProducer).sendTeamCardLowGradeSummaryEvent(eventsCaptor.capture());
+        var event = eventsCaptor.getValue().getFirst();
+        assertEquals(organizationId.toString(), event.organizationId());
+        assertEquals("Stream organization", event.organizationName());
     }
 
     @Test

@@ -60,6 +60,14 @@ public class TeamCard {
     @Column(nullable = false)
     private String meetingRoomLink;
 
+    /** Идентификатор организации, которой принадлежит карточка команды. */
+    @Column(name = "organization_id")
+    private UUID organizationId;
+
+    /** Название организации (денормализовано для фильтрации и отчётов). */
+    @Column(name = "organization_name")
+    private String organizationName;
+
     @ManyToMany(
             fetch = FetchType.EAGER,
             cascade = CascadeType.DETACH)

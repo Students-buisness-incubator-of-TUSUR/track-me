@@ -146,4 +146,37 @@ public interface MeetingMetadataRepository extends JpaRepository<Meeting, UUID> 
     @Modifying(clearAutomatically = true)
     @Query(value = "DELETE FROM meeting WHERE team_card_id = :teamId", nativeQuery = true)
     void deleteAllByTeamCardId(@Param("teamId") UUID teamId);
+
+    /**
+     * Удаляет связи meeting_stream для всех встреч указанной организации.
+     *
+     * @param organizationId идентификатор организации
+     */
+    @Modifying(clearAutomatically = true)
+    @Query(value = """
+        DELETE FROM meeting_stream
+        WHERE meeting_id IN (SELECT id FROM meeting WHERE organization_id = :organizationId)
+    """, nativeQuery = true)
+    void deleteMeetingStreamsByOrganizationId(@Param("organizationId") UUID organizationId);
+
+    /**
+     * Удаляет все встречи указанной организации.
+     *
+     * @param organizationId идентификатор организации
+     */
+    @Modifying(clearAutomatically = true)
+    @Query(value = "DELETE FROM meeting WHERE organization_id = :organizationId", nativeQuery = true)
+    void deleteAllByOrganizationId(@Param("organizationId") UUID organizationId);
+
+    /**
+     * Обновляет денормализованное название организации во всех её встречах.
+     *
+     * @param organizationId идентификатор организации
+     * @param organizationName новое название организации
+     */
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Meeting m SET m.organizationName = :organizationName "
+        + "WHERE m.organizationId = :organizationId")
+    void updateOrganizationName(@Param("organizationId") UUID organizationId,
+                                @Param("organizationName") String organizationName);
 }

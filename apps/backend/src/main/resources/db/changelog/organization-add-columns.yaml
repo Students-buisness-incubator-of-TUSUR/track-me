@@ -1,0 +1,142 @@
+databaseChangeLog:
+  - changeSet:
+      id: organization-add-stream-columns
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: organization_id
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: stream
+            columns:
+              - column:
+                  name: organization_id
+                  type: UUID
+                  constraints:
+                    nullable: true
+              - column:
+                  name: organization_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: organization-add-team-card-columns
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: organization_id
+      changes:
+        - addColumn:
+            schemaName: ${db_schema}
+            tableName: team_card
+            columns:
+              - column:
+                  name: organization_id
+                  type: UUID
+                  constraints:
+                    nullable: true
+              - column:
+                  name: organization_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+
+  - changeSet:
+      id: organization-backfill-stream-default
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          and:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: organization_id
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: stream
+                columnName: organization_name
+      changes:
+        - update:
+            schemaName: ${db_schema}
+            tableName: stream
+            where: organization_id IS NULL
+            columns:
+              - column:
+                  name: organization_id
+                  value: 00000000-0000-0000-0000-000000000001
+              - column:
+                  name: organization_name
+                  value: Организация по умолчанию
+
+  - changeSet:
+      id: organization-backfill-team-card-default
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          and:
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: organization_id
+            - columnExists:
+                schemaName: ${db_schema}
+                tableName: team_card
+                columnName: organization_name
+      changes:
+        - update:
+            schemaName: ${db_schema}
+            tableName: team_card
+            where: organization_id IS NULL
+            columns:
+              - column:
+                  name: organization_id
+                  value: 00000000-0000-0000-0000-000000000001
+              - column:
+                  name: organization_name
+                  value: Организация по умолчанию
+
+  - changeSet:
+      id: organization-add-stream-index
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - indexExists:
+                schemaName: ${db_schema}
+                indexName: idx_stream_organization_id
+      changes:
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: stream
+            indexName: idx_stream_organization_id
+            columns:
+              - column:
+                  name: organization_id
+
+  - changeSet:
+      id: organization-add-team-card-index
+      author: trackme-backend
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - indexExists:
+                schemaName: ${db_schema}
+                indexName: idx_team_card_organization_id
+      changes:
+        - createIndex:
+            schemaName: ${db_schema}
+            tableName: team_card
+            indexName: idx_team_card_organization_id
+            columns:
+              - column:
+                  name: organization_id

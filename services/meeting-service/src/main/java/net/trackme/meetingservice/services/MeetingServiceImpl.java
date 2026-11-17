@@ -59,6 +59,7 @@ import net.trackme.meetingservice.services.exceptions.MeetingNotFoundException;
 import net.trackme.meetingservice.services.integration.backend.BackendApiClient;
 import net.trackme.meetingservice.services.integration.backend.dto.StreamDto;
 import net.trackme.meetingservice.services.integration.sso.SsoApiClient;
+import net.trackme.meetingservice.services.organization.OrganizationContext;
 import net.trackme.meetingservice.services.integration.sso.dto.UserDto;
 
 /**
@@ -70,8 +71,10 @@ public class MeetingServiceImpl implements MeetingService {
 
     private static final String ROLE_ADMIN = "ROLE_ADMIN";
     private static final String ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN";
+    private static final String ROLE_OVERLORD = "ROLE_OVERLORD";
     private static final String AUTHORITY_ADMIN = "ADMIN";
     private static final String AUTHORITY_SUPER_ADMIN = "SUPER_ADMIN";
+    private static final String AUTHORITY_OVERLORD = "OVERLORD";
     private static final String BACKDATE_CREATE_ERROR = "Нельзя создавать встречи с датой в прошлом";
     private static final String BACKDATE_UPDATE_ERROR = "Нельзя переносить дату встречи задним числом";
     private static final String PASSIVE_TEAM_ERROR = "Трекер не может создавать встречи для пассивной команды";
@@ -139,6 +142,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         var meeting = meetingMapper.mapToEntity(createDto);
         var teamData = userBackendClient.getTeamCardById(teamCardId);
+        OrganizationContext.checkOrganizationAccess(teamData.getOrganizationId());
         var trackerUsername = teamData.getUsername();
 
         meeting.setTeamCardId(teamCardId);
@@ -146,6 +150,8 @@ public class MeetingServiceImpl implements MeetingService {
         meeting.setNumber("0");
         // Denormalize (Backend)
         meeting.setTeamName(teamData.getName());
+        meeting.setOrganizationId(teamData.getOrganizationId());
+        meeting.setOrganizationName(teamData.getOrganizationName());
         meeting.setStreamIds(teamData.getStreams().stream().map(StreamDto::getId).collect(toSet()));
         meeting.setTrackerUsername(trackerUsername);
 
@@ -186,6 +192,9 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     public Page<MeetingDto> getMeetings(UUID teamCardId, Pageable pageable) {
         var meetings = meetingRepository.findAll(teamCardIdEquals(teamCardId), pageable);
+        meetings.getContent()
+                .forEach(meeting -> OrganizationContext.checkOrganizationAccess(
+                        meeting.getOrganizationId()));
         var roomLink = fetchRoomLink(teamCardId);
         return meetings.map(m -> withRoomLink(meetingMapper.mapToDto(m), roomLink));
     }
@@ -204,6 +213,7 @@ public class MeetingServiceImpl implements MeetingService {
          SecurityContextHolder.getContext().getAuthentication().getAuthorities());
 
         var meeting = findMeeting(meetingId, teamCardId);
+        OrganizationContext.checkOrganizationAccess(meeting.getOrganizationId());
         validateTeamCardNotPassiveForEdit(teamCardId);
         validateNotCompletedForNonSuperAdmin(meeting, meetingId, teamCardId);
         validateNotBackdating(meeting, updateDto);
@@ -246,6 +256,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         var meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+        OrganizationContext.checkOrganizationAccess(meeting.getOrganizationId());
 
         logAdminDeletion(meetingId, meeting);
 
@@ -273,6 +284,7 @@ public class MeetingServiceImpl implements MeetingService {
         validateImageFile(file);
 
         var meeting = meetingRepository.getReferenceById(meetingId);
+        OrganizationContext.checkOrganizationAccess(meeting.getOrganizationId());
         try {
             meeting.setImageBytes(file.getBytes());
             meetingRepository.save(meeting);
@@ -288,6 +300,7 @@ public class MeetingServiceImpl implements MeetingService {
                     + "or hasRole('ADMIN')")
     public Resource getMeetingImage(UUID meetingId) {
         var meeting = getMeeting(meetingId);
+        OrganizationContext.checkOrganizationAccess(meeting.getOrganizationId());
         if (meeting.getImageBytes() == null) {
             throw new MeetingImageNotFoundException(meetingId);
         }
@@ -310,6 +323,7 @@ public class MeetingServiceImpl implements MeetingService {
         validateAdminNotChangingStatus(updateDto);
 
         var meeting = findMeeting(meetingId, teamCardId);
+        OrganizationContext.checkOrganizationAccess(meeting.getOrganizationId());
         validateNotBackdating(meeting, updateDto);
 
         var oldStatus = meeting.getStatus();
@@ -346,6 +360,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new MeetingNotFoundException(meetingId));
+        OrganizationContext.checkOrganizationAccess(meeting.getOrganizationId());
 
         OffsetDateTime oldStartDate = meeting.getStartDate();
         boolean dateChanged = isDateChanged(updateDto, oldStartDate);
@@ -498,7 +513,9 @@ public class MeetingServiceImpl implements MeetingService {
                     return ROLE_ADMIN.equals(auth)
                             || AUTHORITY_ADMIN.equals(auth)
                             || ROLE_SUPER_ADMIN.equals(auth)
-                            || AUTHORITY_SUPER_ADMIN.equals(auth);
+                            || AUTHORITY_SUPER_ADMIN.equals(auth)
+                            || ROLE_OVERLORD.equals(auth)
+                            || AUTHORITY_OVERLORD.equals(auth);
                 });
     }
 
@@ -515,7 +532,9 @@ public class MeetingServiceImpl implements MeetingService {
         if (authentication == null) return false;
         return authentication.getAuthorities().stream()
                 .anyMatch(auth -> ROLE_SUPER_ADMIN.equals(auth.getAuthority())
-                              || AUTHORITY_SUPER_ADMIN.equals(auth.getAuthority()));
+                              || AUTHORITY_SUPER_ADMIN.equals(auth.getAuthority())
+                              || ROLE_OVERLORD.equals(auth.getAuthority())
+                              || AUTHORITY_OVERLORD.equals(auth.getAuthority()));
     }
 
     private Authentication getAuthentication() {
@@ -756,7 +775,12 @@ public class MeetingServiceImpl implements MeetingService {
     private String fetchRoomLink(UUID teamCardId) {
         try {
             var teamCard = userBackendClient.getTeamCardById(teamCardId);
+            if (teamCard != null) {
+                OrganizationContext.checkOrganizationAccess(teamCard.getOrganizationId());
+            }
             return teamCard != null ? teamCard.getMeetingRoomLink() : null;
+        } catch (AccessDeniedException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Не удалось получить roomLink для teamCardId={}: {} | cause: {}",
                     teamCardId, e.getMessage(),

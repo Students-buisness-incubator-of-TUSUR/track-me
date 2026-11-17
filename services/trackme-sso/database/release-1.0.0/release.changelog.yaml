@@ -10,14 +10,39 @@ databaseChangeLog:
       context: prod
 
   - include:
+      file: object/organizations.sql
+      relativeToChangelogFile: true
+      context: prod,dev
+
+  - include:
       file: data/roles-data.sql
       relativeToChangelogFile: true
       context: prod
 
   - include:
+      file: data/roles-data-overlord.sql
+      relativeToChangelogFile: true
+      context: prod,dev
+
+  - include:
+      file: data/organizations-data.sql
+      relativeToChangelogFile: true
+      context: prod,dev
+
+  - include:
+      file: object/users-organization.sql
+      relativeToChangelogFile: true
+      context: prod,dev
+
+  - include:
       file: data/users-data.sql
       relativeToChangelogFile: true
       context: prod
+
+  - include:
+      file: data/overlord-user.sql
+      relativeToChangelogFile: true
+      context: prod,dev
 
   - include:
       file: data/dev/users-data.sql

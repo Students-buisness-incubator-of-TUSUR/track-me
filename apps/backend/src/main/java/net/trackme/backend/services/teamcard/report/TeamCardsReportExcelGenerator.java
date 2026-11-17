@@ -17,6 +17,7 @@ public class TeamCardsReportExcelGenerator {
     private static final String FONT_NAME = "Arial";
     private static final String SHEET_NAME = "Отчёт по командам";
     private static final String[] HEADERS = {
+            "Организация",
             "Поток",
             "Дата начала",
             "Дата окончания",
@@ -87,46 +88,50 @@ public class TeamCardsReportExcelGenerator {
             row.setHeightInPoints(18);
 
             setString(row, 0,
-                    record.streamName(),
+                    record.organizationName(),
                     styles.text
             );
             setString(row, 1,
-                    record.startDate() != null ? record.startDate().toString() : "",
+                    record.streamName(),
                     styles.text
             );
             setString(row, 2,
-                    record.endDate() != null ? record.endDate().toString() : "",
+                    record.startDate() != null ? record.startDate().toString() : "",
                     styles.text
             );
             setString(row, 3,
-                    record.teamCardName(),
+                    record.endDate() != null ? record.endDate().toString() : "",
                     styles.text
             );
             setString(row, 4,
+                    record.teamCardName(),
+                    styles.text
+            );
+            setString(row, 5,
                     record.username(),
                     styles.text
             );
-            setNumber(row, 5,
+            setNumber(row, 6,
                     record.averageTeamGrade() != null ? record.averageTeamGrade().doubleValue() : null,
                     styles.number
             );
-            setNumber(row, 6,
+            setNumber(row, 7,
                     record.averageUserGrade() != null ? record.averageUserGrade().doubleValue() : null,
                     styles.number
             );
-            setInteger(row, 7,
+            setInteger(row, 8,
                     record.meetingsCountPlan(),
                     styles.integer
             );
-            setInteger(row, 8,
+            setInteger(row, 9,
                     record.meetingsCountFact(),
                     styles.integer
             );
-            setString(row, 9,
+            setString(row, 10,
                     record.ntiMarkets() != null ? String.join(", ", record.ntiMarkets()) : "",
                     styles.text
             );
-            setString(row, 10,
+            setString(row, 11,
                     record.readinessLevel(),
                     styles.text
             );
