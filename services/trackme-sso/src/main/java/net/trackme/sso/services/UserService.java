@@ -33,13 +33,10 @@ public interface UserService {
 
   void disableUser(String username);
 
-  // НОВЫЙ МЕТОД: разблокировка пользователя
   void unlockUser(String username);
 
-  // НОВЫЙ МЕТОД: полное удаление пользователя с переназначением команд
   void deleteUser(String username);
 
-  // НОВЫЙ МЕТОД: получение списка команд пользователя
   List<Map<String, String>> getUserTeams(String username);
 
   UserDto getUserInfo(String username);
@@ -47,6 +44,22 @@ public interface UserService {
   Page<UserDto> getTrackers(FilterRequest filterRequest, Pageable pageable);
 
   Page<UserDto> getAdmins(FilterRequest filterRequest, Pageable pageable);
+
+  /**
+   * Возвращает список суперадминистраторов.
+   *
+   * @param filterRequest фильтры
+   * @param pageable      параметры страницы
+   * @return страница суперадминистраторов
+   */
+  Page<UserDto> getSuperAdmins(FilterRequest filterRequest, Pageable pageable);
+
+  /**
+   * Повышает администратора до суперадминистратора.
+   *
+   * @param username имя пользователя
+   */
+  void promoteToSuperAdmin(String username);
 
   boolean existsByEmailOrUsername(String email, String username);
 

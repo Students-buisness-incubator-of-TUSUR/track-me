@@ -4,6 +4,7 @@ import net.trackme.sso.dao.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,4 +24,6 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID>, JpaSpec
     boolean existsByEmail(String email);
 
     boolean existsByEmailOrUsername(String email, String username);
+
+    List<UserEntity> findAllByOrganizationId(UUID organizationId);
 }

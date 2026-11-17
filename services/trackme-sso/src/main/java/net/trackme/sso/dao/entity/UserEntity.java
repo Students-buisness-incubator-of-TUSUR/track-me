@@ -71,4 +71,8 @@ public class UserEntity extends VersionedBusinessEntity<UUID> {
   @Column(name = "account_non_locked")
   private Boolean accountNonLocked = true;
 
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "organization_id")
+  private OrganizationEntity organization;
+
 }

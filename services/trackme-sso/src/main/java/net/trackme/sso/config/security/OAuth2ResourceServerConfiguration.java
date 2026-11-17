@@ -20,6 +20,8 @@ public class OAuth2ResourceServerConfiguration {
     http
         .securityMatcher("/api/**")
         .authorizeHttpRequests(authorize -> authorize
+            .requestMatchers(org.springframework.http.HttpMethod.GET,
+                "/api/v1/organizations/available").permitAll()
             .requestMatchers("/api/v1/account/**").hasRole("TRACKER")
             .requestMatchers("/api/v1/users/**").hasRole("TRACKER")
             .requestMatchers("/api/v1/registration/**").permitAll()
@@ -51,7 +53,8 @@ public class OAuth2ResourceServerConfiguration {
    */
   @Bean
   public RoleHierarchy roleHierarchy() {
-    String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
+    String hierarchy = "ROLE_OVERLORD > ROLE_SUPER_ADMIN\n" +
+                       "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
                        "ROLE_ADMIN > ROLE_TRACKER";
     return RoleHierarchyImpl.fromHierarchy(hierarchy);
   }

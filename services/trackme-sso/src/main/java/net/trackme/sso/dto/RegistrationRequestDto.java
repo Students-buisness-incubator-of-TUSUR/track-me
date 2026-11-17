@@ -41,6 +41,23 @@ public record RegistrationRequestDto(
     @Email(message = "Email должен быть корректным.")
     String email,
     @NotBlank(message = "Роль не может быть пустой.")
-    String role
+    String role,
+    @Schema(description = "Идентификатор организации, выбранной при регистрации")
+    String organizationId
 ) {
+
+    /**
+     * Совместимый конструктор без организации.
+     *
+     * @param username    имя пользователя
+     * @param password    пароль
+     * @param phoneNumber номер телефона
+     * @param fullName    полное имя
+     * @param email       email
+     * @param role        роль
+     */
+    public RegistrationRequestDto(String username, String password, String phoneNumber,
+                                  String fullName, String email, String role) {
+        this(username, password, phoneNumber, fullName, email, role, null);
+    }
 }

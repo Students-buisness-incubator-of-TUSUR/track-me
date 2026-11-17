@@ -3,6 +3,7 @@ package net.trackme.sso.services.impl;
 import net.trackme.sso.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.client.RestClient;
 
 import java.util.Map;
@@ -12,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class BackendClientImplTest extends AbstractIntegrationTest {
 
     @Autowired
+    @Qualifier("backendRestClient")
     private RestClient restClient;
 
     @Test
