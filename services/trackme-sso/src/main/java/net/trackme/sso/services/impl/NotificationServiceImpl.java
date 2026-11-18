@@ -38,6 +38,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final String FIELD_MEETING_DATE = "meetingDate";
     private static final String FIELD_APP_NAME = "appName";
     private static final String FIELD_SUPPORT_EMAIL = "supportEmail";
+    private static final String FIELD_ORGANIZATION_ID = "organizationId";
 
     private static final Collator RUSSIAN_COLLATOR = Collator.getInstance(Locale.of("ru", "RU"));
 
@@ -78,6 +79,18 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendTeamCardSummary(
             List<Map<String, String>> teamCardSummaryEvents) {
+        String subject = "[" + appProperties.getMail().getSubject() + "] Сводка по пропущенным встречам";
+        String templateName = "email-not-happened-meetings-summary.html";
+
+        // Формируем отдельную сводку для каждой организации, чтобы не раскрывать данные между арендаторами
+        for (var entry : groupByOrganization(teamCardSummaryEvents).entrySet()) {
+            String summary = buildTeamCardSummary(entry.getValue());
+            sendMessageToAnyEmails(subject, templateName, summary, entry.getKey());
+        }
+    }
+
+    private String buildTeamCardSummary(
+            List<Map<String, String>> teamCardSummaryEvents) {
         // Группируем по потокам
         Map<String, List<Map<String, String>>> groupedByStream = groupAndSortByStream(teamCardSummaryEvents);
 
@@ -104,16 +117,23 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
-        String summary = String.join("<br><br>", infos);
-
-        sendMessageToAnyEmails(
-                "[" + appProperties.getMail().getSubject() + "] Сводка по пропущенным встречам",
-                "email-not-happened-meetings-summary.html",
-                summary);
+        return String.join("<br><br>", infos);
     }
 
     @Override
     public void sendTeamCardLowGradeSummary(
+            List<Map<String, String>> teamCardLowGradeSummaryEvents) {
+        String subject = "[" + appProperties.getMail().getSubject() + "] Сводка по командам с низким рейтингом";
+        String templateName = "email-team-card-low-grade-summary.html";
+
+        // Формируем отдельную сводку для каждой организации, чтобы не раскрывать данные между арендаторами
+        for (var entry : groupByOrganization(teamCardLowGradeSummaryEvents).entrySet()) {
+            String summary = buildTeamCardLowGradeSummary(entry.getValue());
+            sendMessageToAnyEmails(subject, templateName, summary, entry.getKey());
+        }
+    }
+
+    private String buildTeamCardLowGradeSummary(
             List<Map<String, String>> teamCardLowGradeSummaryEvents) {
         // Группируем по потокам
         Map<String, List<Map<String, String>>> groupedByStream = groupAndSortByStream(teamCardLowGradeSummaryEvents);
@@ -140,12 +160,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
         }
 
-        String summary = String.join("<br><br>", infos);
-
-        sendMessageToAnyEmails(
-                "[" + appProperties.getMail().getSubject() + "] Сводка по командам с низким рейтингом",
-                "email-team-card-low-grade-summary.html",
-                summary);
+        return String.join("<br><br>", infos);
     }
 
     /**
@@ -196,7 +211,35 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void sendMessageToAnyEmails(String subject, String templateName, String summary) {
+    /**
+     * Делит события сводки по организациям.
+     * События без идентификатора организации попадают в общую группу
+     * и обрабатываются по прежним правилам (рассылка всем получателям),
+     * чтобы сохранить совместимость со старыми сообщениями.
+     */
+    private Map<String, List<Map<String, String>>> groupByOrganization(
+            List<Map<String, String>> events) {
+
+        Map<String, List<Map<String, String>>> grouped = new LinkedHashMap<>();
+
+        if (events.isEmpty()) {
+            grouped.put(null, List.of());
+            return grouped;
+        }
+
+        for (var event : events) {
+            String organizationId = event.get(FIELD_ORGANIZATION_ID);
+            String key = organizationId == null || organizationId.isBlank()
+                    ? null
+                    : organizationId;
+            grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(event);
+        }
+
+        return grouped;
+    }
+
+    private void sendMessageToAnyEmails(String subject, String templateName, String summary,
+                                        String organizationId) {
         var emailTos = userRepository.findAll()
                 .stream()
                 .filter(userEntity -> userEntity
@@ -208,6 +251,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 .contains(roleEntity.getCode())))
                 .filter(UserEntity::getActive)
                 .filter(user -> user.getEmail() != null && !user.getEmail().isBlank())
+                .filter(user -> isUserInOrganization(user, organizationId))
                 .toList();
 
         if (emailTos.isEmpty()) {
@@ -227,6 +271,19 @@ public class NotificationServiceImpl implements NotificationService {
                             FIELD_SUPPORT_EMAIL, appProperties.getMail().getFrom(),
                             "summary", summary));
         }
+    }
+
+    /**
+     * Проверяет, что пользователь относится к указанной организации.
+     * Если организация не задана (старый формат события), ограничение не применяется.
+     */
+    private boolean isUserInOrganization(UserEntity user, String organizationId) {
+        if (organizationId == null) {
+            return true;
+        }
+        return user.getOrganization() != null
+                && user.getOrganization().getId() != null
+                && organizationId.equals(user.getOrganization().getId().toString());
     }
 
     private static final ZoneId TOMSK_ZONE = ZoneId.of("Asia/Tomsk");

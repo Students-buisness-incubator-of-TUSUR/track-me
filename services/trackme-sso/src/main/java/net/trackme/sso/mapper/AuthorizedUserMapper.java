@@ -28,6 +28,8 @@ public class AuthorizedUserMapper {
         .email(entity.getEmail())
         .phoneNumber(entity.getPhoneNumber())
         .accountNonLocked(entity.getAccountNonLocked())
+        .organizationId(entity.getOrganization() == null ? null : entity.getOrganization().getId())
+        .organizationName(entity.getOrganization() == null ? null : entity.getOrganization().getName())
         .build();
   }
 

@@ -112,7 +112,8 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
                                     "phoneNumber": "+79001234567",
                                     "fullName": "John Doe",
                                     "email": "john@john.john",
-                                    "role": "USER"
+                                    "role": "TRACKER",
+                                    "organizationId": "00000000-0000-0000-0000-000000000001"
                                 }
                                 """)
                         .with(csrf()))

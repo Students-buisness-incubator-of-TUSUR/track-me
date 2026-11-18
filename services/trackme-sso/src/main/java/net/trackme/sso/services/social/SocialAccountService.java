@@ -1,15 +1,21 @@
 package net.trackme.sso.services.social;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import net.trackme.sso.dao.entity.OrganizationEntity;
 import net.trackme.sso.dao.entity.UserEntity;
+import net.trackme.sso.dao.repository.OrganizationRepository;
 import net.trackme.sso.dao.repository.RoleRepository;
 import net.trackme.sso.dao.repository.UserRepository;
 import net.trackme.sso.dto.AuthorizedUser;
 import net.trackme.sso.mapper.AuthorizedUserMapper;
 import net.trackme.sso.messaging.RegistrationRequestedEvent;
+import net.trackme.sso.services.CurrentUserService;
+import net.trackme.sso.services.OrganizationAccessNotifier;
+import net.trackme.sso.services.OrganizationService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +28,8 @@ public class SocialAccountService {
     private final UserRepository users;
     private final RoleRepository roles;
     private final PasswordEncoder passwords;
+    private final OrganizationRepository organizations;
+    private final OrganizationAccessNotifier accessNotifier;
     private final ApplicationEventPublisher events;
 
     @Transactional(readOnly = true)
@@ -32,15 +40,22 @@ public class SocialAccountService {
 
     @Transactional
     public void register(SocialProfile profile, String username, String role) {
-        registerAccount(profile, username, role, profile.phoneNumber());
+        registerAccount(profile, username, role, profile.phoneNumber(), null);
     }
 
     @Transactional
     public void register(SocialProfile profile, String username, String role, String phoneNumber) {
-        registerAccount(profile, username, role, phoneNumber);
+        registerAccount(profile, username, role, phoneNumber, null);
     }
 
-    private void registerAccount(SocialProfile profile, String username, String role, String phoneNumber) {
+    @Transactional
+    public void register(SocialProfile profile, String username, String role, String phoneNumber,
+                         String organizationId) {
+        registerAccount(profile, username, role, phoneNumber, organizationId);
+    }
+
+    private void registerAccount(SocialProfile profile, String username, String role,
+                                 String phoneNumber, String organizationId) {
         profile.requireValid();
         username = normalizeUsername(username);
         if (role == null || !Set.of("TRACKER", "ADMIN").contains(role)
@@ -66,8 +81,24 @@ public class SocialAccountService {
         user.setAccountNonLocked(true);
         user.getRoles().add(roles.findByCode(role).orElseThrow(
                 () -> new IllegalArgumentException("Роль недоступна.")));
+        user.setOrganization(resolveOrganization(organizationId));
         users.saveAndFlush(user);
         events.publishEvent(new RegistrationRequestedEvent(user.getUsername(), user.getFullName(), role));
+    }
+
+    private OrganizationEntity resolveOrganization(String organizationId) {
+        UUID id;
+        try {
+            id = organizationId == null || organizationId.isBlank()
+                    ? OrganizationService.DEFAULT_ORGANIZATION_ID
+                    : UUID.fromString(organizationId);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Выберите организацию из списка.");
+        }
+        return organizations.findById(id)
+                .filter(organization -> organization.isAvailable(LocalDate.now()))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Выбранная организация недоступна для регистрации."));
     }
 
     @Transactional
@@ -103,7 +134,25 @@ public class SocialAccountService {
         if (!Boolean.TRUE.equals(user.getActive()) || !Boolean.TRUE.equals(user.getAccountNonLocked())) {
             throw new IllegalArgumentException("Аккаунт ожидает активации или заблокирован. Обратитесь к администратору.");
         }
+        if (isOverlord(user)) {
+            return AuthorizedUserMapper.map(user);
+        }
+        if (user.getOrganization() == null) {
+            accessNotifier.notifyAccessDenied(user, null);
+            throw new IllegalArgumentException(
+                    "Пользователю не назначена организация. Обратитесь к владельцу платформы.");
+        }
+        if (!user.getOrganization().isAvailable(LocalDate.now())) {
+            accessNotifier.notifyAccessDenied(user, user.getOrganization());
+            throw new IllegalArgumentException(
+                    "Организация заблокирована или срок её действия истёк. Обратитесь к владельцу платформы.");
+        }
         return AuthorizedUserMapper.map(user);
+    }
+
+    private static boolean isOverlord(UserEntity user) {
+        return user.getRoles().stream()
+                .anyMatch(role -> CurrentUserService.OVERLORD.equals(role.getCode()));
     }
 
     public static String normalizeUsername(String username) {

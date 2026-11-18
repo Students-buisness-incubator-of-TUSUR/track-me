@@ -10,6 +10,7 @@ import net.trackme.sso.dao.entity.UserEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.UUID;
 
 public class UserSpecification implements Specification<UserEntity> {
 
@@ -27,6 +28,17 @@ public class UserSpecification implements Specification<UserEntity> {
       var roleJoin = root.join("roles");
       return criteriaBuilder.equal(roleJoin.get("code"), role);
     };
+  }
+
+  /**
+   * Ограничивает выборку пользователями указанной организации.
+   *
+   * @param organizationId идентификатор организации
+   * @return спецификация
+   */
+  public static Specification<UserEntity> byOrganization(UUID organizationId) {
+    return (root, query, criteriaBuilder) ->
+        criteriaBuilder.equal(root.get("organization").get("id"), organizationId);
   }
 
   public static Specification<UserEntity> withFilters(List<Filter> filters) {

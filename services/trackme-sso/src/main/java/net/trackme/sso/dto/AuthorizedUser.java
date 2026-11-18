@@ -32,6 +32,10 @@ public class AuthorizedUser extends User implements OAuth2User {
 
   private Boolean accountNonLocked;
 
+  private UUID organizationId;
+
+  private String organizationName;
+
   private transient Map<String, Object> oauthAttributes;
 
   public AuthorizedUser(
@@ -138,6 +142,16 @@ public class AuthorizedUser extends User implements OAuth2User {
 
     public AuthorizedUserBuilder accountNonLocked(Boolean accountNonLocked) {
       this.entity.setAccountNonLocked(accountNonLocked);
+      return this;
+    }
+
+    public AuthorizedUserBuilder organizationId(UUID organizationId) {
+      this.entity.setOrganizationId(organizationId);
+      return this;
+    }
+
+    public AuthorizedUserBuilder organizationName(String organizationName) {
+      this.entity.setOrganizationName(organizationName);
       return this;
     }
 

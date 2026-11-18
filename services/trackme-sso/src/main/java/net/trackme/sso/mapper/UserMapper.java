@@ -27,6 +27,12 @@ public interface UserMapper {
 
   @Mapping(target = "enabled", source = "active")
   @Mapping(target = "roles", source = "roles", qualifiedByName = "roleToCodeList")
+  @Mapping(target = "organizationId",
+      expression = "java(userEntity.getOrganization() == null ? null "
+          + ": userEntity.getOrganization().getId().toString())")
+  @Mapping(target = "organizationName",
+      expression = "java(userEntity.getOrganization() == null ? null "
+          + ": userEntity.getOrganization().getName())")
   UserDto userEntityToUserDto(UserEntity userEntity);
 
   @Mapping(target = "version", ignore = true)
