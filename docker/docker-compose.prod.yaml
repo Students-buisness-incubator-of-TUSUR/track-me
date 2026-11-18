@@ -19,8 +19,15 @@
 #
 # Все прикладные значения (домены, секреты, cookie/CORS, IMAGE_*) берутся из .env (см. .env.prod.example).
 
+x-logging: &logging-limits
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
 services:
   trackme-postgres:
+    logging: *logging-limits
     image: postgres:16
     env_file:
       - .env
@@ -37,6 +44,7 @@ services:
       retries: 5
 
   trackme-redis:
+    logging: *logging-limits
     image: redis:7-alpine
     env_file:
       - .env
@@ -71,6 +79,7 @@ services:
       retries: 5
 
   trackme-kafka:
+    logging: *logging-limits
     extra_hosts:
       - "host.docker.internal:host-gateway"
     container_name: trackme-kafka
@@ -102,6 +111,7 @@ services:
       start_period: 30s
 
   trackme-backend:
+    logging: *logging-limits
     image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/backend:${IMAGE_TAG:-latest}
     platform: linux/amd64
     env_file:
@@ -125,6 +135,7 @@ services:
       retries: 5
 
   trackme-meeting-service:
+    logging: *logging-limits
     image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/meeting-service:${IMAGE_TAG:-latest}
     platform: linux/amd64
     env_file:
@@ -144,6 +155,7 @@ services:
       retries: 5
 
   trackme-sso:
+    logging: *logging-limits
     image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/sso:${IMAGE_TAG:-latest}
     platform: linux/amd64
     env_file:
@@ -165,6 +177,7 @@ services:
       retries: 5
 
   trackme-client-gateway:
+    logging: *logging-limits
     image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/gateway:${IMAGE_TAG:-latest}
     platform: linux/amd64
     env_file:
@@ -184,6 +197,7 @@ services:
       retries: 5
 
   telegram-service:
+    logging: *logging-limits
     image: ${IMAGE_REPO:-ghcr.io/students-buisness-incubator-of-tusur/track-me}/telegram-service:${IMAGE_TAG:-latest}
     platform: linux/amd64
     env_file:
@@ -203,6 +217,7 @@ services:
       retries: 5
 
   trackme-frontend:
+    logging: *logging-limits
     # Тег фронтенда задаётся отдельно (свой репозиторий track-me-frontend) через FRONTEND_IMAGE в .env.
     image: ${FRONTEND_IMAGE}
     platform: linux/amd64
