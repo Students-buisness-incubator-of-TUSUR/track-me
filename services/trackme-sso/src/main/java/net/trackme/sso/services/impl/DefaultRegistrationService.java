@@ -19,12 +19,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import net.trackme.sso.services.OrganizationService;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DefaultRegistrationService implements RegistrationService {
   private static final String UNEXPECTED_ERROR = "$happened.unexpected.error";
+  private static final String ORGANIZATION_REQUIRED = "$organization.required";
+  private static final String ORGANIZATION_NOT_AVAILABLE = "$organization.not.available";
+  private static final String ROLE_NOT_AVAILABLE = "$role.not.available";
+  private static final Set<String> SELF_REGISTRATION_ROLES =
+      Set.of("TRACKER", "ADMIN", "SUPER_ADMIN");
+  private static final Set<String> ORGANIZATION_REQUIRED_ROLES =
+      Set.of("TRACKER", "ADMIN", "SUPER_ADMIN");
 
   /**
    * Сервис пользователей.
@@ -56,12 +66,22 @@ public class DefaultRegistrationService implements RegistrationService {
    */
   private final OAuth2AuthorizationServerProperties authorizationServerProperties;
 
+  /**
+   * Сервис организаций.
+   */
+  private final OrganizationService organizationService;
+
 
   @Override
   public void register(RegistrationRequestDto requestDto) {
+      if (!SELF_REGISTRATION_ROLES.contains(requestDto.role())) {
+        throw InformationException.builder(ROLE_NOT_AVAILABLE).build();
+      }
       if (userService.existsByEmailOrUsername(requestDto.email(), requestDto.username())) {
         throw InformationException.builder("$account.already.exist").build();
       }
+
+    validateOrganization(requestDto);
 
     RegistrationToken registrationToken = tokenStore.generateToken();
     var tokenHash = registrationToken.tokenHash();
@@ -134,6 +154,21 @@ public class DefaultRegistrationService implements RegistrationService {
       .ifPresentOrElse(dto ->
               userService.resetPassword(dto.email(), requestDto.password()),
               () -> log.error("Recovery token not found for tokenHash: {}", token));
+  }
+
+  private void validateOrganization(RegistrationRequestDto requestDto) {
+    if (!ORGANIZATION_REQUIRED_ROLES.contains(requestDto.role())) {
+      return;
+    }
+    if (requestDto.organizationId() == null || requestDto.organizationId().isBlank()) {
+      throw InformationException.builder(ORGANIZATION_REQUIRED).build();
+    }
+    try {
+      organizationService.getAvailableOrganization(UUID.fromString(requestDto.organizationId()));
+    } catch (IllegalArgumentException | jakarta.persistence.EntityNotFoundException
+             | org.springframework.security.access.AccessDeniedException exception) {
+      throw InformationException.builder(ORGANIZATION_NOT_AVAILABLE).build();
+    }
   }
 
   private String getConfirmationLink(String token, String url) {

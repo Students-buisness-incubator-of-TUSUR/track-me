@@ -6,6 +6,7 @@ import net.trackme.sso.dao.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,14 +25,18 @@ class DefaultAccountControllerTest extends AbstractIntegrationTest {
   @Autowired
   private UserRepository userRepository;
 
+  @Autowired
+  private PasswordEncoder passwordEncoder;
+
   @BeforeEach
   void setUp() {
-    // Убедимся, что superadmin активен перед каждым тестом
+    // Интеграционные тесты используют общую БД, поэтому приводим superadmin
+    // к состоянию, от которого зависят проверки этого класса.
     userRepository.findByUsername("superadmin").ifPresent(admin -> {
-      if (!admin.getActive()) {
-        admin.setActive(true);
-        userRepository.save(admin);
-      }
+      admin.setActive(true);
+      admin.setEmail("");
+      admin.setPasswordHash(passwordEncoder.encode("superadmin"));
+      userRepository.save(admin);
     });
   }
 

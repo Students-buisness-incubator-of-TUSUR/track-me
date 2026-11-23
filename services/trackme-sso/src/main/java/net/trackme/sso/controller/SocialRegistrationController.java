@@ -62,9 +62,16 @@ public class SocialRegistrationController {
     }
 
     public record Registration(String username, String role, boolean licenseAccepted,
-                               boolean policyAccepted, boolean consent, String phoneNumber) {
-        public Registration(String username, String role, boolean licenseAccepted, boolean policyAccepted, boolean consent) {
-            this(username, role, licenseAccepted, policyAccepted, consent, null);
+                               boolean policyAccepted, boolean consent, String phoneNumber,
+                               String organizationId) {
+        public Registration(String username, String role, boolean licenseAccepted,
+                            boolean policyAccepted, boolean consent, String phoneNumber) {
+            this(username, role, licenseAccepted, policyAccepted, consent, phoneNumber, null);
+        }
+
+        public Registration(String username, String role, boolean licenseAccepted,
+                            boolean policyAccepted, boolean consent) {
+            this(username, role, licenseAccepted, policyAccepted, consent, null, null);
         }
     }
 
@@ -75,7 +82,8 @@ public class SocialRegistrationController {
             @org.springframework.web.bind.annotation.RequestBody Registration body) {
         // The same validation is shared by API and legacy POST; all identity data stays in the session.
         register(request, body.username() == null ? "" : body.username(),
-                body.role() == null ? "" : body.role(), body.licenseAccepted(), body.policyAccepted(), body.consent(), body.phoneNumber());
+                body.role() == null ? "" : body.role(), body.licenseAccepted(), body.policyAccepted(),
+                body.consent(), body.phoneNumber(), body.organizationId());
         Object fields = request.getSession().getAttribute(FIELD_ERRORS);
         if (fields != null) {
             request.getSession().removeAttribute(FIELD_ERRORS);
@@ -92,12 +100,15 @@ public class SocialRegistrationController {
                            @RequestParam(defaultValue = "") String role,
                            @RequestParam(defaultValue = "false") boolean licenseAccepted,
                            @RequestParam(defaultValue = "false") boolean policyAccepted,
-                           @RequestParam(defaultValue = "false") boolean consent) {
-        return register(request, username, role, licenseAccepted, policyAccepted, consent, null);
+                           @RequestParam(defaultValue = "false") boolean consent,
+                           @RequestParam(required = false) String organizationId) {
+        return register(request, username, role, licenseAccepted, policyAccepted, consent,
+                null, organizationId);
     }
 
     private String register(HttpServletRequest request, String username, String role,
-                            boolean licenseAccepted, boolean policyAccepted, boolean consent, String phoneNumber) {
+                            boolean licenseAccepted, boolean policyAccepted, boolean consent,
+                            String phoneNumber, String organizationId) {
         request.removeAttribute(REGISTERED);
         request.getSession().removeAttribute(FIELD_ERRORS);
         request.getSession().removeAttribute(ERROR);
@@ -119,8 +130,11 @@ public class SocialRegistrationController {
             return COMPLETE_REDIRECT;
         }
         try {
-            if (phoneNumber == null || phoneNumber.isBlank()) accounts.register(pending(request), username, role);
-            else accounts.register(pending(request), username, role, phoneNumber);
+            if (phoneNumber == null || phoneNumber.isBlank()) {
+                accounts.register(pending(request), username, role, "", organizationId);
+            } else {
+                accounts.register(pending(request), username, role, phoneNumber, organizationId);
+            }
             request.setAttribute(REGISTERED, true);
             request.getSession().removeAttribute(SocialLoginHandler.PENDING);
             request.getSession().setAttribute(ERROR,

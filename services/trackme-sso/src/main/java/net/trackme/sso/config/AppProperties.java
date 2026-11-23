@@ -76,8 +76,15 @@ public class AppProperties {
   public static class ServicesProperties {
     private BackendProperties backend = new BackendProperties();
 
+    private MeetingProperties meeting = new MeetingProperties();
+
     @Data
     public static class BackendProperties {
+      private String url;
+    }
+
+    @Data
+    public static class MeetingProperties {
       private String url;
     }
   }

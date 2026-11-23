@@ -6,10 +6,13 @@ import static org.mockito.Mockito.*;
 
 import java.time.Instant;
 import java.util.Optional;
+import net.trackme.sso.dao.entity.OrganizationEntity;
 import net.trackme.sso.dao.entity.RoleEntity;
 import net.trackme.sso.dao.entity.UserEntity;
+import net.trackme.sso.dao.repository.OrganizationRepository;
 import net.trackme.sso.dao.repository.RoleRepository;
 import net.trackme.sso.dao.repository.UserRepository;
+import net.trackme.sso.type.OrganizationStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -20,13 +23,19 @@ class SocialAccountServiceTest {
     private final UserRepository users = mock(UserRepository.class);
     private final RoleRepository roles = mock(RoleRepository.class);
     private final PasswordEncoder passwords = mock(PasswordEncoder.class);
+    private final OrganizationRepository organizations = mock(OrganizationRepository.class);
+    private final net.trackme.sso.services.OrganizationAccessNotifier accessNotifier =
+            mock(net.trackme.sso.services.OrganizationAccessNotifier.class);
     private final SocialAccountService service = new SocialAccountService(
-            users, roles, passwords, mock(ApplicationEventPublisher.class));
+            users, roles, passwords, organizations, accessNotifier,
+            mock(ApplicationEventPublisher.class));
+    private final OrganizationEntity organization = organization();
     private SocialProfile profile;
 
     @BeforeEach
     void setUp() {
         profile = new SocialProfile("12345", "person@yandex.ru", "Имя", Instant.now().plusSeconds(600));
+        when(organizations.findById(any())).thenReturn(Optional.of(organization));
     }
 
     @Test
@@ -142,7 +151,16 @@ class SocialAccountServiceTest {
         user.setPasswordHash("hash");
         user.setActive(true);
         user.setAccountNonLocked(true);
+        user.setOrganization(organization);
         return user;
+    }
+
+    private static OrganizationEntity organization() {
+        var organization = new OrganizationEntity();
+        organization.setId(java.util.UUID.randomUUID());
+        organization.setName("Тестовая организация");
+        organization.setStatus(OrganizationStatus.ACTIVE);
+        return organization;
     }
     @Test
     void googleRegistrationStoresGoogleIdentityAndPhoneWithoutLinkingYandex() {
@@ -165,5 +183,58 @@ class SocialAccountServiceTest {
         assertTrue(service.login(google).isEmpty());
         verify(users).findByGoogleId("12345");
         verify(users, never()).findByYandexId(any());
+    }
+
+    @Test
+    void registrationAssignsSelectedOrganization() {
+        var role = new RoleEntity();
+        role.setCode("TRACKER");
+        when(roles.findByCode("TRACKER")).thenReturn(Optional.of(role));
+        when(passwords.encode(any())).thenReturn("hash");
+
+        service.register(profile, "newuser", "TRACKER", "",
+                organization.getId().toString());
+
+        var saved = ArgumentCaptor.forClass(UserEntity.class);
+        verify(users).saveAndFlush(saved.capture());
+        assertEquals(organization, saved.getValue().getOrganization());
+    }
+
+    @Test
+    void registrationRejectsMalformedOrganizationId() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.register(profile, "newuser", "TRACKER", "", "bad-id"));
+        verify(users, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void registrationRejectsUnavailableOrganization() {
+        var blocked = organization();
+        blocked.setStatus(OrganizationStatus.BLOCKED);
+        when(organizations.findById(any())).thenReturn(Optional.of(blocked));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.register(profile, "newuser", "TRACKER", "",
+                        blocked.getId().toString()));
+        verify(users, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void overlordCanLogInWithoutOrganization() {
+        var role = new RoleEntity();
+        role.setCode("OVERLORD");
+        role.setActive(true);
+        var overlord = new UserEntity();
+        overlord.setUsername("overlord");
+        overlord.setEmail("overlord@trackme.local");
+        overlord.setPasswordHash("hash");
+        overlord.setActive(true);
+        overlord.setAccountNonLocked(true);
+        overlord.setRoles(java.util.Set.of(role));
+        when(users.findByYandexId(profile.id())).thenReturn(Optional.of(overlord));
+
+        var loggedIn = service.login(profile).orElseThrow();
+
+        assertEquals("overlord", loggedIn.getUsername());
     }
 }

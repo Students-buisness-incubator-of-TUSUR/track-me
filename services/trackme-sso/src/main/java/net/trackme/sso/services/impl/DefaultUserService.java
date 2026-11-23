@@ -3,6 +3,7 @@ package net.trackme.sso.services.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -21,10 +22,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.commons.filters.FilterRequest;
+import static net.trackme.sso.dao.UserSpecification.byOrganization;
 import static net.trackme.sso.dao.UserSpecification.byRole;
 import static net.trackme.sso.dao.UserSpecification.withFilters;
+import net.trackme.sso.dao.entity.OrganizationEntity;
 import net.trackme.sso.dao.entity.RoleEntity;
 import net.trackme.sso.dao.entity.UserEntity;
+import net.trackme.sso.dao.repository.OrganizationRepository;
 import net.trackme.sso.dao.repository.RoleRepository;
 import net.trackme.sso.dao.repository.UserRepository;
 import net.trackme.sso.dto.RegistrationRequestDto;
@@ -36,8 +40,11 @@ import net.trackme.sso.exception.WrongOldPasswordException;
 import net.trackme.sso.mapper.UserMapper;
 import net.trackme.sso.messaging.RegistrationRequestedEvent;
 import net.trackme.sso.services.BackendClient;
+import net.trackme.sso.services.CurrentUserService;
+import net.trackme.sso.services.OrganizationService;
 import net.trackme.sso.services.UserService;
 import net.trackme.sso.type.AuthErrorCode;
+import org.springframework.data.jpa.domain.Specification;
 
 @Slf4j 
 @Service
@@ -58,6 +65,9 @@ public class DefaultUserService implements UserService {
   private final UserMapper userMapper;
   private final BackendClient backendClient;
   private final ApplicationEventPublisher events;
+  private final OrganizationRepository organizationRepository;
+  private final OrganizationService organizationService;
+  private final CurrentUserService currentUserService;
 
   /**
    * Создание пользователя на основе регистрационных данных. Пользователь будет не активирован.
@@ -76,9 +86,23 @@ public class DefaultUserService implements UserService {
     user.getRoles().add(roleRepository.findByCode(userDto.role())
         .orElseThrow(() -> new AuthException(AuthErrorCode.ROLE_NOT_FOUND)));
     user.setPasswordHash(passwordEncoder.encode(userDto.password()));
+    user.setOrganization(resolveOrganization(userDto));
     var savedUser = userRepository.save(user);
-    events.publishEvent(new RegistrationRequestedEvent(user.getUsername(), user.getFullName(), userDto.role()));
+    events.publishEvent(new RegistrationRequestedEvent(
+        savedUser.getUsername(), savedUser.getFullName(), userDto.role()));
     return savedUser;
+  }
+
+  private OrganizationEntity resolveOrganization(RegistrationRequestDto userDto) {
+    var organizationId = userDto.organizationId();
+    if (organizationId != null && !organizationId.isBlank()) {
+      return organizationService.getAvailableOrganization(UUID.fromString(organizationId));
+    }
+    if (CurrentUserService.OVERLORD.equals(userDto.role())) {
+      return null;
+    }
+    return organizationRepository.findById(OrganizationService.DEFAULT_ORGANIZATION_ID)
+        .orElse(null);
   }
 
   @Override
@@ -119,14 +143,16 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void enableUser(String username) {
-    var user = findByUsername(username);
-    var roles = user.getRoles().stream().map(RoleEntity::getCode).toList();
-    if (RONIN.equals(username) || !roles.contains(TRACKER)
-        || roles.contains(ADMIN) || roles.contains(SUPER_ADMIN)) {
-      checkSuperAdmin();
-    }
-    user.setActive(true);
-    save(user);
+      var userEntity = findByUsername(username);
+      ensureSameOrganization(userEntity);
+      ensureSuperAdminModificationAllowed(userEntity);
+      var roles = userEntity.getRoles().stream().map(RoleEntity::getCode).toList();
+      if (RONIN.equals(username) || !roles.contains(TRACKER)
+          || roles.contains(ADMIN) || roles.contains(SUPER_ADMIN)) {
+          checkSuperAdmin();
+      }
+      userEntity.setActive(true);
+      save(userEntity);
   }
 
   @Override
@@ -139,6 +165,8 @@ public class DefaultUserService implements UserService {
         
         // Обычная логика для остальных пользователей
         var userEntity = findByUsername(username);
+        ensureSameOrganization(userEntity);
+        ensureSuperAdminModificationAllowed(userEntity);
         if (Boolean.FALSE.equals(userEntity.getActive())) {
             userEntity.setAccountNonLocked(false);
             save(userEntity);
@@ -205,6 +233,8 @@ public class DefaultUserService implements UserService {
         
         // Обычная логика для остальных пользователей
         var userEntity = findByUsername(username);
+        ensureSameOrganization(userEntity);
+        ensureSuperAdminModificationAllowed(userEntity);
         userEntity.setAccountNonLocked(true);
         userEntity.setActive(false);
         save(userEntity);
@@ -220,7 +250,9 @@ public class DefaultUserService implements UserService {
       
       log.info("Starting deletion process for user: {}", username);
       var userEntity = findByUsername(username);
-      
+      ensureSameOrganization(userEntity);
+      ensureSuperAdminModificationAllowed(userEntity);
+
       // Переназначаем команды на Ronin (ошибки логируются внутри)
       reassignTeamsToRonin(username);
       
@@ -231,6 +263,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   public List<Map<String, String>> getUserTeams(String username) {
+    ensureSameOrganization(findByUsername(username));
     try {
         String token = extractBearerToken();
         List<Map<String, String>> teams = backendClient.getUserTeams(username, token != null ? token : "");
@@ -246,6 +279,7 @@ public class DefaultUserService implements UserService {
   @Override
   public UserDto getUserInfo(String username) {
     var userEntity = findByUsername(username);
+    ensureSameOrganization(userEntity);
     return UserDto.builder()
         .username(userEntity.getUsername())
         .email(userEntity.getEmail())
@@ -256,6 +290,10 @@ public class DefaultUserService implements UserService {
         .roles(userEntity.getRoles().stream()
             .map(RoleEntity::getCode)
             .toList())
+        .organizationId(userEntity.getOrganization() == null
+            ? null : userEntity.getOrganization().getId().toString())
+        .organizationName(userEntity.getOrganization() == null
+            ? null : userEntity.getOrganization().getName())
         .build();
   }
 
@@ -263,7 +301,7 @@ public class DefaultUserService implements UserService {
   public Page<UserDto> getTrackers(FilterRequest filterRequest, Pageable pageable) {
     var filters = filterRequest.filters();
     var trackers = userRepository.findAll(
-        withFilters(filters).and(byRole(TRACKER)),
+        withFilters(filters).and(byRole(TRACKER)).and(organizationScope()),
         pageable);
     return trackers.map(userMapper::userEntityToUserDto);
   }
@@ -272,9 +310,38 @@ public class DefaultUserService implements UserService {
   public Page<UserDto> getAdmins(FilterRequest filterRequest, Pageable pageable) {
     var filters = filterRequest.filters();
     var admins = userRepository.findAll(
-        withFilters(filters).and(byRole(ADMIN)),
+        withFilters(filters).and(byRole(ADMIN)).and(organizationScope()),
         pageable);
     return admins.map(userMapper::userEntityToUserDto);
+  }
+
+  @Override
+  public Page<UserDto> getSuperAdmins(FilterRequest filterRequest, Pageable pageable) {
+    var filters = filterRequest.filters();
+    var superAdmins = userRepository.findAll(
+        withFilters(filters).and(byRole("SUPER_ADMIN")).and(organizationScope()),
+        pageable);
+    return superAdmins.map(userMapper::userEntityToUserDto);
+  }
+
+  @Override
+  @Transactional
+  public void promoteToSuperAdmin(String username) {
+    if (!currentUserService.isOverlord()) {
+      throw new AccessDeniedException(
+          "Повышать администраторов до суперадминистратора может только владелец платформы.");
+    }
+    var userEntity = findByUsername(username);
+    if (userEntity.getRoles().stream().noneMatch(role -> "ADMIN".equals(role.getCode()))) {
+      throw new IllegalArgumentException(
+          "Повысить до суперадминистратора можно только администратора.");
+    }
+    if (userEntity.getRoles().stream().noneMatch(role -> "SUPER_ADMIN".equals(role.getCode()))) {
+      userEntity.getRoles().add(roleRepository.findByCode("SUPER_ADMIN")
+          .orElseThrow(() -> new AuthException(AuthErrorCode.ROLE_NOT_FOUND)));
+      save(userEntity);
+    }
+    log.info("User {} promoted to SUPER_ADMIN", username);
   }
 
   @Override
@@ -296,8 +363,49 @@ public class DefaultUserService implements UserService {
   private void checkSuperAdmin() {
       var auth = SecurityContextHolder.getContext().getAuthentication();
       if (auth == null || auth.getAuthorities().stream()
-              .noneMatch(a -> a.getAuthority().equals(ROLE_SUPER_ADMIN))) {
-          throw new AccessDeniedException("This user operation requires SUPER_ADMIN");
+              .noneMatch(a -> a.getAuthority().equals(ROLE_SUPER_ADMIN)
+                  || a.getAuthority().equals("ROLE_OVERLORD")
+                  || a.getAuthority().equals("OVERLORD"))) {
+          throw new AccessDeniedException(
+              "This user operation requires SUPER_ADMIN or OVERLORD");
+      }
+  }
+
+  private Specification<UserEntity> organizationScope() {
+      if (currentUserService.isOverlord()) {
+          return (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+      }
+      var organizationId = currentUserService.getOrganizationId();
+      return organizationId == null
+          ? (root, query, criteriaBuilder) -> criteriaBuilder.conjunction()
+          : byOrganization(organizationId);
+  }
+
+  private void ensureSameOrganization(UserEntity userEntity) {
+      if (currentUserService.isOverlord()) {
+          return;
+      }
+      var currentOrganizationId = currentUserService.getOrganizationId();
+      if (currentOrganizationId == null) {
+          return;
+      }
+      var targetOrganization = userEntity.getOrganization();
+      if (targetOrganization == null || !currentOrganizationId.equals(targetOrganization.getId())) {
+          throw new AccessDeniedException(
+              "Пользователь принадлежит другой организации.");
+      }
+  }
+
+  private void ensureSuperAdminModificationAllowed(UserEntity userEntity) {
+      if (currentUserService.isOverlord()) {
+          return;
+      }
+      var isSuperAdmin = userEntity.getRoles().stream()
+          .anyMatch(role -> "SUPER_ADMIN".equals(role.getCode()));
+      if (isSuperAdmin) {
+          throw new AccessDeniedException(
+              "Блокировать, разблокировать и удалять суперадминистраторов может только "
+                  + "владелец платформы.");
       }
   }
 

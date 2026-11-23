@@ -79,6 +79,8 @@ app:
   services:
     backend:
       url: ${BACKEND_SERVICE_URL:http://trackme-backend:8080}
+    meeting:
+      url: ${MEETING_SERVICE_URL:http://trackme-meeting-service:8082}
 
 registration-store:
   cookie-name: trackme-sso-temporary-session
@@ -95,6 +97,8 @@ app:
   services:
     backend:
       url: ${BACKEND_SERVICE_URL:http://trackme-backend:8080}
+    meeting:
+      url: ${MEETING_SERVICE_URL:http://trackme-meeting-service:8082}
 
 management:
   health:

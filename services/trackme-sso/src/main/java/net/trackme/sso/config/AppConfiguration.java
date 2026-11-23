@@ -51,4 +51,9 @@ public class AppConfiguration {
     public RestClient backendRestClient() {
         return RestClient.create(appProperties.getServices().getBackend().getUrl());
     }
+
+    @Bean
+    public RestClient meetingRestClient() {
+        return RestClient.create(appProperties.getServices().getMeeting().getUrl());
+    }
 }

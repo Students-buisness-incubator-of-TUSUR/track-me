@@ -57,4 +57,15 @@ public interface UserController {
   ResponseEntity<PagedModel<UserDto>> getAdmins(@RequestBody @Valid FilterRequest filterRequest,
                                                 @PageableDefault(sort = "username")
                                                 @ParameterObject Pageable pageable);
+
+  @PostMapping(path = "/super-administrators", produces = "application/json",
+               consumes = "application/json")
+  @Operation(summary = "Получить список суперадминистраторов")
+  ResponseEntity<PagedModel<UserDto>> getSuperAdmins(
+      @RequestBody @Valid FilterRequest filterRequest,
+      @PageableDefault(sort = "username") @ParameterObject Pageable pageable);
+
+  @PostMapping("/promote")
+  @Operation(summary = "Повысить администратора до суперадминистратора")
+  ResponseEntity<Void> promoteToSuperAdmin(@RequestParam String username);
 }
