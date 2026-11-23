@@ -201,6 +201,7 @@ class TeamCardMissedMeetingSummaryTest {
 
     private TeamCardSummaryEvent expectedEvent(TeamCard team, String number) {
         return new TeamCardSummaryEvent(team.getName(), "Active stream", number,
-                "https://example.test/meetings/" + number, "Tracker of " + team.getName());
+                "https://example.test/meetings/" + number, "Tracker of " + team.getName(),
+                null, null);
     }
 }

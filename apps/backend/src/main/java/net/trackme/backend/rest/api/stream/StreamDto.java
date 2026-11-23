@@ -26,6 +26,10 @@ public record StreamDto(
     @Schema(description = "Дата начала трека")
     LocalDate trackStartDate,
     @Schema(description = "Количество встреч на команду в потоке")
-    Integer meetingsCount
+    Integer meetingsCount,
+    @Schema(description = "Идентификатор организации")
+    UUID organizationId,
+    @Schema(description = "Название организации")
+    String organizationName
 ) {
 }

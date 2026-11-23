@@ -12,6 +12,8 @@ import net.trackme.backend.rest.api.teamcard.dto.TeamCardCreateDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardDto;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardUpdateDto;
 import net.trackme.backend.services.nti.NtiMarketService;
+import net.trackme.backend.services.organization.OrganizationContext;
+import net.trackme.backend.services.stream.StreamService;
 import net.trackme.backend.services.teamcard.TeamCardsService;
 import net.trackme.commons.filters.FilterRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,10 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
 
   private final NtiMarketService ntiMarketService;
 
+  private final StreamService streamService;
+
+  private final OrganizationContext organizationContext;
+
   private static final Logger log = LoggerFactory.getLogger(TeamCardsAdminRestControllerImpl.class);
 
   @Override
@@ -40,6 +46,10 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   public ResponseEntity<TeamCardDto> createTeamCard(TeamCardCreateDto dto,
                                                     UUID streamId,
                                                     String username) {
+    if (streamId != null) {
+      organizationContext.checkOrganizationAccess(
+          streamService.getById(streamId).getOrganizationId());
+    }
     var teamCard = teamCardMapper.mapToEntity(dto);
     var ntiMarketIds = dto.ntiMarketIds();
     var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
@@ -55,6 +65,12 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   public ResponseEntity<TeamCardDto> updateTeamCard(UUID teamCardId,
                                                     String username, UUID streamId,
                                                     TeamCardUpdateDto updateDto) {
+    var existingTeamCard = teamCardsService.getTeamCard(teamCardId);
+    organizationContext.checkOrganizationAccess(existingTeamCard.getOrganizationId());
+    if (streamId != null) {
+      organizationContext.checkOrganizationAccess(
+          streamService.getById(streamId).getOrganizationId());
+    }
     var teamCard = teamCardMapper.mapToEntity(updateDto);
     var ntiMarketIds = updateDto.ntiMarketIds();
     var ntiMarkets = ntiMarketService.getNtiMarkets(ntiMarketIds);
@@ -82,6 +98,7 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
         teamCardId, request.passive());
 
     var teamCard = teamCardsService.getTeamCard(teamCardId);
+    organizationContext.checkOrganizationAccess(teamCard.getOrganizationId());
     teamCard.setPassive(request.passive());
     var updated = teamCardsService.updateTeamCard(teamCardId, teamCard, null, null);
     var teamCardDto = teamCardMapper.mapToDto(updated);
@@ -97,6 +114,10 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
                                                               FilterRequest filterRequest) {
     var specs = TeamCardSpecification.withFilters(filterRequest.filters())
         .and(TeamCardSpecification.hasStream());
+    var organizationId = organizationContext.getOrganizationId();
+    if (organizationId.isPresent() && !organizationContext.isOverlord()) {
+      specs = specs.and(TeamCardSpecification.organizationEquals(organizationId.get()));
+    }
     var page = teamCardsService.findAll(specs, pageable)
         .map(teamCardMapper::mapToDto);
     return ResponseEntity.ok(new PagedModel<>(page));
@@ -105,11 +126,14 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   @Override
   public ResponseEntity<TeamCardDto> getTeamCard(UUID id, String username) {
     var teamCard = teamCardsService.getTeamCard(id, username);
+    organizationContext.checkOrganizationAccess(teamCard.getOrganizationId());
     return ResponseEntity.ok(teamCardMapper.mapToDto(teamCard));
   }
 
   @Override
   public ResponseEntity<Void> deleteTeamCard(UUID id, String username) {
+    var teamCard = teamCardsService.getTeamCard(id, username);
+    organizationContext.checkOrganizationAccess(teamCard.getOrganizationId());
     teamCardsService.deleteTeamCard(id, username);
     return ResponseEntity.noContent().build();
   }
@@ -118,7 +142,13 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
   public ResponseEntity<List<Map<String, String>>> getTeamsByUser(String username) {
     log.info("Getting teams for user: {}", username);
     List<TeamCard> teams = teamCardsService.getTeamCardsByUser(username);
-    
+    var organizationId = organizationContext.getOrganizationId();
+    if (organizationId.isPresent() && !organizationContext.isOverlord()) {
+      teams = teams.stream()
+          .filter(team -> organizationId.get().equals(team.getOrganizationId()))
+          .toList();
+    }
+
     List<Map<String, String>> result = teams.stream()
         .map(team -> Map.of(
             "id", team.getId().toString(),
@@ -147,7 +177,9 @@ public class TeamCardsAdminRestControllerImpl implements TeamCardsAdminRestContr
     log.info("Reassigning all teams from '{}' to '{}' with fullName: '{}'", 
         fromUsername, toUsername, toUserFullName);
     
-    teamCardsService.reassignTeams(fromUsername, toUsername, toUserFullName);
+    var organizationId = organizationContext.getOrganizationId();
+    teamCardsService.reassignTeams(fromUsername, toUsername, toUserFullName,
+        organizationId.filter(id -> !organizationContext.isOverlord()).orElse(null));
     
     log.info("Successfully reassigned teams from '{}' to '{}'", fromUsername, toUsername);
     return ResponseEntity.ok().build();

@@ -15,6 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
 import static net.trackme.backend.models.UserRole.ADMIN;
+import static net.trackme.backend.models.UserRole.OVERLORD;
 import static net.trackme.backend.models.UserRole.SUPER_ADMIN;
 import static net.trackme.backend.models.UserRole.TRACKER;
 
@@ -54,6 +55,8 @@ public class SecurityConfiguration {
                                 .hasAnyRole(ADMIN.toString(), SUPER_ADMIN.toString())
                         .requestMatchers("/api/v1/admin/team-cards/reassign")
                                 .hasAnyRole(ADMIN.toString(), SUPER_ADMIN.toString())
+                        .requestMatchers("/api/v1/admin/organizations/**")
+                                .hasRole(OVERLORD.toString())
                         .requestMatchers("/api/v1/admin/**")
                                 .hasAnyRole(ADMIN.toString(), SUPER_ADMIN.toString())
                         
@@ -81,8 +84,10 @@ public class SecurityConfiguration {
      */
     @Bean
     public RoleHierarchy roleHierarchy() {
-        String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n"
-                         + "ROLE_ADMIN > ROLE_TRACKER";
+        String hierarchy = """
+                ROLE_OVERLORD > ROLE_SUPER_ADMIN
+                ROLE_SUPER_ADMIN > ROLE_ADMIN
+                ROLE_ADMIN > ROLE_TRACKER""";
         return RoleHierarchyImpl.fromHierarchy(hierarchy);
     }
 

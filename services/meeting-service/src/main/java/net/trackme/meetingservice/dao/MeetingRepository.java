@@ -70,4 +70,12 @@ public interface MeetingRepository extends JpaRepository<Meeting, UUID>, JpaSpec
      */
     @Override
     List<Meeting> findAll(Specification<Meeting> spec, Sort sort);
+
+    /**
+     * Находит все встречи организации.
+     *
+     * @param organizationId идентификатор организации
+     * @return список встреч организации
+     */
+    List<Meeting> findAllByOrganizationId(UUID organizationId);
 }

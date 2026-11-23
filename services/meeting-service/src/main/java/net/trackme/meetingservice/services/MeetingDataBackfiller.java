@@ -173,6 +173,13 @@ public class MeetingDataBackfiller {
             meeting.setStreamIds(streamIds);
             updated = true;
         }
+        if (teamData.getOrganizationId() != null
+                && (!Objects.equals(meeting.getOrganizationId(), teamData.getOrganizationId())
+                || !Objects.equals(meeting.getOrganizationName(), teamData.getOrganizationName()))) {
+            meeting.setOrganizationId(teamData.getOrganizationId());
+            meeting.setOrganizationName(teamData.getOrganizationName());
+            updated = true;
+        }
         BigDecimal oldWeight = meeting.getTeamStatusValue();
         meeting.updateTeamStatusValue();
         return oldWeight == null || oldWeight.compareTo(meeting.getTeamStatusValue()) != 0 || updated;

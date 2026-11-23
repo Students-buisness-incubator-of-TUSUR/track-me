@@ -10,6 +10,7 @@ import net.trackme.backend.rest.api.stream.StreamCreateDto;
 import net.trackme.backend.rest.api.stream.StreamDto;
 import net.trackme.backend.rest.api.stream.StreamUpdateDto;
 import net.trackme.backend.services.nti.NtiMarketService;
+import net.trackme.backend.services.organization.OrganizationContext;
 import net.trackme.backend.services.stream.MutableStreamService;
 import net.trackme.commons.filters.FilterRequest;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,7 @@ public class StreamAdminUseCase {
     private final StreamMapper streamMapper;
     private final MutableStreamService streamService;
     private final NtiMarketService ntiMarketService;
+    private final OrganizationContext organizationContext;
 
     private static void validateStreamEntityFound(UUID streamId, Stream streamEntity) {
         if (streamEntity == null) {
@@ -43,6 +45,7 @@ public class StreamAdminUseCase {
     @Transactional
     public StreamDto createStream(StreamCreateDto streamCreateDto) {
         var streamEntity = streamMapper.mapFromDto(streamCreateDto);
+        applyOrganization(streamEntity);
         var ntiMarkets = ntiMarketService.getNtiMarkets(streamCreateDto.ntiMarketIds());
         streamEntity.addNtiMarkets(ntiMarkets);
 
@@ -59,6 +62,7 @@ public class StreamAdminUseCase {
     public StreamDto updateStream(UUID streamId, StreamUpdateDto updateDto) {
         var streamEntity = streamService.getById(streamId);
         validateStreamEntityFound(streamId, streamEntity);
+        organizationContext.checkOrganizationAccess(streamEntity.getOrganizationId());
 
         streamMapper.updateFromDto(updateDto, streamEntity);
 
@@ -75,6 +79,8 @@ public class StreamAdminUseCase {
      * Удалить поток.
      */
     public void deleteStream(UUID streamId) {
+        var streamEntity = streamService.getById(streamId);
+        organizationContext.checkOrganizationAccess(streamEntity.getOrganizationId());
         streamService.delete(streamId);
         log.info("Stream deleted: {}", streamId);
     }
@@ -85,6 +91,11 @@ public class StreamAdminUseCase {
     public Page<StreamDto> findAllStreams(FilterRequest filterRequest, Pageable pageable) {
         var filters = filterRequest.filters();
         var specification = StreamSpecification.withFilters(filters);
+        var organizationId = organizationContext.getOrganizationId();
+        if (organizationId.isPresent() && !organizationContext.isOverlord()) {
+            specification = specification.and(
+                StreamSpecification.organizationEquals(organizationId.get()));
+        }
         var page = streamService.findAll(specification, pageable);
         return page.map(streamMapper::mapToDto);
     }
@@ -95,6 +106,12 @@ public class StreamAdminUseCase {
     public StreamDto getById(UUID streamId) {
         var streamEntity = streamService.getById(streamId);
         validateStreamEntityFound(streamId, streamEntity);
+        organizationContext.checkOrganizationAccess(streamEntity.getOrganizationId());
         return streamMapper.mapToDto(streamEntity);
+    }
+
+    private void applyOrganization(Stream stream) {
+        organizationContext.getOrganizationId().ifPresent(stream::setOrganizationId);
+        organizationContext.getOrganizationName().ifPresent(stream::setOrganizationName);
     }
 }

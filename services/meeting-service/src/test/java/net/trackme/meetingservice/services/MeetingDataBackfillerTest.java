@@ -159,6 +159,32 @@ class MeetingDataBackfillerTest {
     }
 
     @Test
+    void syncsOrganizationFromTeamCard() {
+        UUID teamId = UUID.randomUUID();
+        UUID organizationId = UUID.randomUUID();
+        Meeting meeting = new Meeting();
+        meeting.setTeamName("Team");
+        meeting.setTrackerUsername("tracker1");
+        meeting.setTrackerFullName("tracker1");
+        meeting.setStreamIds(Set.of());
+        meeting.setOrganizationId(UUID.randomUUID());
+        meeting.setOrganizationName("Старая организация");
+        when(ssoApiClient.getTrackers()).thenReturn(List.of());
+        when(metadataRepository.findTeamIdsWithIncompleteMetadata()).thenReturn(List.of());
+        when(metadataRepository.findAllUniqueTeamCardIds()).thenReturn(List.of(teamId));
+        when(userBackendClient.getTeamCardById(teamId)).thenReturn(TeamCardDto.builder()
+                .name("Team").username("tracker1").streams(List.of())
+                .organizationId(organizationId).organizationName("Новая организация").build());
+        when(metadataRepository.findAllByTeamCardId(teamId)).thenReturn(List.of(meeting));
+
+        backfiller.run("token", new AtomicBoolean(false));
+
+        assertEquals(organizationId, meeting.getOrganizationId());
+        assertEquals("Новая организация", meeting.getOrganizationName());
+        verify(metadataRepository).saveAll(List.of(meeting));
+    }
+
+    @Test
     void repairsStreamMembershipTrackerIdentityAndWeightTogether() {
         UUID teamId = UUID.randomUUID();
         UUID streamId = UUID.randomUUID();

@@ -20,6 +20,8 @@ public record MeetingSpecification(List<Filter> filters) implements Specificatio
     private static final String STATUS_FIELD = "status";
     private static final String START_DATE_FIELD = "startDate";
     private static final String TEAM_STATUS_VALUE_FIELD = "teamStatusValue";
+    private static final String ORGANIZATION_ID_FIELD = "organizationId";
+    private static final String ORGANIZATION_NAME_FIELD = "organizationName";
 
     public static final List<String> ALLOWED_FIELDS = List.of(
             TEAM_NAME_FIELD,
@@ -29,7 +31,9 @@ public record MeetingSpecification(List<Filter> filters) implements Specificatio
             STATUS_FIELD,
             START_DATE_FIELD,
             TEAM_STATUS_VALUE_FIELD,
-            "teamStatus"
+            "teamStatus",
+            ORGANIZATION_ID_FIELD,
+            ORGANIZATION_NAME_FIELD
     );
 
     /**
@@ -111,6 +115,17 @@ public record MeetingSpecification(List<Filter> filters) implements Specificatio
     public static Specification<Meeting> trackerUsernameEquals(String username) {
     return (root, query, cb) ->
             cb.equal(root.get(TRACKER_USERNAME_FIELD), username);
+    }
+
+    /**
+     * Спецификация для фильтрации встреч по организации.
+     *
+     * @param organizationId идентификатор организации
+     * @return спецификация
+     */
+    public static Specification<Meeting> organizationEquals(UUID organizationId) {
+        return (root, query, cb) ->
+                cb.equal(root.get(ORGANIZATION_ID_FIELD), organizationId);
     }
 
     @Override

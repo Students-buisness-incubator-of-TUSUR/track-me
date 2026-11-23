@@ -70,6 +70,14 @@ public class Meeting {
     @Column(name = "team_name", nullable = true)
     private String teamName;
 
+    /** Идентификатор организации, которой принадлежит встреча. */
+    @Column(name = "organization_id", nullable = true)
+    private UUID organizationId;
+
+    /** Название организации (денормализовано для фильтрации и отчётов). */
+    @Column(name = "organization_name", nullable = true)
+    private String organizationName;
+
     @Column(name = "tracker_id", nullable = true)
     private String trackerId;
 

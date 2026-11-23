@@ -28,6 +28,7 @@ public class SecurityConfiguration {
     private static final String ROLE_TRACKER = "TRACKER";
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_SUPER_ADMIN = "SUPER_ADMIN";
+    private static final String ROLE_OVERLORD = "OVERLORD";
 
     /**
      * Устонавливает фильтры безопасности.
@@ -48,6 +49,7 @@ public class SecurityConfiguration {
                                         "/v3/api-docs/**",
                                         "/v3/api-docs.yaml/**",
                                         "/v3/api-docs.yaml").permitAll()
+                                .requestMatchers("/api/v1/admin/organizations/**").hasRole(ROLE_OVERLORD)
                                 .requestMatchers("/api/v1/admin-update/**").hasAnyRole(ROLE_ADMIN, ROLE_SUPER_ADMIN)
                                 .requestMatchers("/api/v1/super-admin-update/**").hasRole(ROLE_SUPER_ADMIN)
                                 .requestMatchers("/api/v1/**").hasAnyRole(ROLE_TRACKER, ROLE_ADMIN, ROLE_SUPER_ADMIN)
@@ -66,8 +68,10 @@ public class SecurityConfiguration {
      */
     @Bean
     public RoleHierarchy roleHierarchy() {
-        String hierarchy = "ROLE_SUPER_ADMIN > ROLE_ADMIN\n" +
-                           "ROLE_ADMIN > ROLE_TRACKER";
+        String hierarchy = """
+                ROLE_OVERLORD > ROLE_SUPER_ADMIN
+                ROLE_SUPER_ADMIN > ROLE_ADMIN
+                ROLE_ADMIN > ROLE_TRACKER""";
         return RoleHierarchyImpl.fromHierarchy(hierarchy);
     }
 

@@ -9,5 +9,7 @@ public record TeamCardLowGradeSummaryEvent(
         String teamCardName,
         String streamName,
         BigDecimal averageGrade,
-        String trackerFullName
+        String trackerFullName,
+        String organizationId,
+        String organizationName
 ) {}

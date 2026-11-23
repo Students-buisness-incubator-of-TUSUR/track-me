@@ -18,3 +18,5 @@ databaseChangeLog:
       file: meeting-denormalized.yaml
   - include:
       file: meeting-add-tasks-next-manually-set.yaml
+  - include:
+      file: meeting-organization.yaml

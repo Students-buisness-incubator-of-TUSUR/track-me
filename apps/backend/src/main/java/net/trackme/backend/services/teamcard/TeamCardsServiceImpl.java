@@ -139,6 +139,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
         if (streamId != null) {
             var stream = streamService.getById(streamId);
             teamCard.addStream(stream);
+            applyOrganization(teamCard, stream);
             eventPublisher.publishEvent(new TeamCardStreamAddedInternalEvent(
                 teamCardId,
                 streamId
@@ -193,6 +194,7 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     public TeamCard createTeamCard(TeamCard teamCard, UUID streamId, String username) {
         var stream = streamService.getById(streamId);
         teamCard.addStream(stream);
+        applyOrganization(teamCard, stream);
         return createTeamCard(teamCard, username);
     }
 
@@ -265,7 +267,26 @@ public class TeamCardsServiceImpl implements TeamCardsService {
     @PreAuthorize("hasRole('ADMIN')")
     @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
     public void reassignTeams(String fromUsername, String toUsername, String toUserFullName) {
-        List<TeamCard> teams = teamCardsRepository.findByUsername(fromUsername);
+        reassignTeams(fromUsername, toUsername, toUserFullName, null);
+    }
+
+    /**
+     * Переназначает команды от одного трекера другому с ограничением по организации.
+     *
+     * @param fromUsername исходный username трекера
+     * @param toUsername новый username трекера
+     * @param toUserFullName полное имя нового трекера
+     * @param organizationId идентификатор организации или {@code null} для всех организаций
+     */
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = {"team-cards-report-all", "team-cards-report-page"}, allEntries = true)
+    public void reassignTeams(String fromUsername, String toUsername, String toUserFullName,
+                              UUID organizationId) {
+        List<TeamCard> teams = organizationId == null
+            ? teamCardsRepository.findByUsername(fromUsername)
+            : teamCardsRepository.findByUsernameAndOrganizationId(fromUsername, organizationId);
         log.info("Reassigning {} teams from '{}' to '{}'", teams.size(), fromUsername, toUsername);
 
         String newTrackerFullName = (toUserFullName != null && !toUserFullName.isBlank())
@@ -295,5 +316,12 @@ public class TeamCardsServiceImpl implements TeamCardsService {
 
         teamCardsRepository.saveAll(teams);
         log.info("Successfully reassigned {} teams", teams.size());
+    }
+
+    private void applyOrganization(TeamCard teamCard, net.trackme.backend.domain.Stream stream) {
+        if (stream.getOrganizationId() != null) {
+            teamCard.setOrganizationId(stream.getOrganizationId());
+            teamCard.setOrganizationName(stream.getOrganizationName());
+        }
     }
 }

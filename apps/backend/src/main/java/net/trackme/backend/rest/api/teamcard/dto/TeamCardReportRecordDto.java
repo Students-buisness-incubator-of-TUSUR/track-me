@@ -11,6 +11,9 @@ import java.util.UUID;
 @Builder
 @Schema(description = "DTO для записи отчета")
 public record TeamCardReportRecordDto(
+        @Schema(description = "Название организации")
+        String organizationName,
+
         @Schema(description = "Идентификатор потока")
         UUID streamId,
 
@@ -44,6 +47,7 @@ public record TeamCardReportRecordDto(
 ) {
     public TeamCardReportRecordDto withAverageUserGrade(BigDecimal averageUserGrade) {
         return new TeamCardReportRecordDto(
+                organizationName,
                 streamId,
                 streamName,
                 startDate,
