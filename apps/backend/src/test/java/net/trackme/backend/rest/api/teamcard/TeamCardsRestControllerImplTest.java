@@ -819,6 +819,16 @@ class TeamCardsRestControllerImplTest extends BaseApplicationTest {
     }
 
     @Test
+    @WithMockUser(value = BaseApplicationTest.USER, roles = "ADMIN")
+    void getTeamCardsReport_byAdmin_success() throws Exception {
+        mockMvc.perform(post("/api/v1/team-cards/reports")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filters\": []}"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @WithMockUser(value = BaseApplicationTest.USER, roles = "OVERLORD")
     void getTeamCardsReport_withoutFilters_success() throws Exception {
         var stream1 = streamRepository.findAll().getFirst();

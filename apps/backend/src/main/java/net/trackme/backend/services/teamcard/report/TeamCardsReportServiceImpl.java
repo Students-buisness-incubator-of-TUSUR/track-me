@@ -6,6 +6,7 @@ import net.trackme.backend.domain.TeamCard;
 import net.trackme.backend.mapping.TeamCardMapper;
 import net.trackme.backend.repos.TeamCardsRepository;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
+import net.trackme.backend.services.organization.OrganizationContext;
 import net.trackme.commons.filters.Filter;
 
 import org.springframework.cache.annotation.Cacheable;
@@ -34,14 +35,21 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
     private static final Sort DEFAULT_REPORT_SORT =
             Sort.by(Sort.Direction.ASC, "organizationName");
 
+    private static final String ORGANIZATION_CACHE_KEY =
+            "T(java.util.Objects).toString("
+                    + "@organizationContext.getOrganizationId().orElse(null), 'none')";
+
     private final TeamCardsReportExcelGenerator excelGenerator;
 
     private final TeamCardsRepository teamCardsRepository;
 
     private final TeamCardMapper teamCardMapper;
 
+    private final OrganizationContext organizationContext;
+
     @Override
-    @Cacheable(value = "team-cards-report-all", key = "#filters.hashCode()")
+    @Cacheable(value = "team-cards-report-all",
+               key = ORGANIZATION_CACHE_KEY + " + '-' + #filters.hashCode()")
     public List<TeamCardReportRecordDto> getReportRecords(List<Filter> filters) {
         var queryContext = prepareReportQueryContext(filters);
         var allCards = teamCardsRepository.findAll(queryContext.fetchSpec(), DEFAULT_REPORT_SORT);
@@ -50,7 +58,9 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
 
     @Override
     @Cacheable(value = "team-cards-report-page",
-               key = "#filters.hashCode() + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
+               key = ORGANIZATION_CACHE_KEY + " + '-' + #filters.hashCode()"
+                       + " + '-' + #pageable.pageNumber + '-' + #pageable.pageSize"
+                       + " + '-' + #pageable.sort")
     public Page<TeamCardReportRecordDto> getReportRecords(List<Filter> filters, Pageable pageable) {
         var queryContext = prepareReportQueryContext(filters);
         var effectivePageable = withDefaultSort(pageable);
@@ -102,7 +112,12 @@ public class TeamCardsReportServiceImpl implements TeamCardsReportService {
      * @return спецификация для запроса к БД
      */
     private Specification<TeamCard> buildTeamCardSpecForReport(List<Filter> filters) {
-        return withFilters(filters).and(hasStream());
+        Specification<TeamCard> spec = withFilters(filters).and(hasStream());
+        var organizationId = organizationContext.getOrganizationId();
+        if (organizationId.isPresent() && !organizationContext.isOverlord()) {
+            spec = spec.and(organizationEquals(organizationId.get()));
+        }
+        return spec;
     }
 
     /**

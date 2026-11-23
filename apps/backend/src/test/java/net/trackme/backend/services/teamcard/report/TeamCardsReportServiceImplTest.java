@@ -3,16 +3,27 @@ package net.trackme.backend.services.teamcard.report;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import net.trackme.backend.domain.TeamCard;
 import net.trackme.backend.mapping.TeamCardMapper;
 import net.trackme.backend.repos.TeamCardsRepository;
 import net.trackme.backend.rest.api.teamcard.dto.TeamCardReportRecordDto;
+import net.trackme.backend.services.organization.OrganizationContext;
 import net.trackme.commons.filters.Filter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Page;
@@ -34,8 +45,15 @@ class TeamCardsReportServiceImplTest {
 
   private final TeamCardMapper teamCardMapper = mock(TeamCardMapper.class);
 
+  private final OrganizationContext organizationContext = mock(OrganizationContext.class);
+
   private final TeamCardsReportServiceImpl service = new TeamCardsReportServiceImpl(
-      excelGenerator, teamCardsRepository, teamCardMapper);
+      excelGenerator, teamCardsRepository, teamCardMapper, organizationContext);
+
+  @BeforeEach
+  void setUp() {
+    when(organizationContext.getOrganizationId()).thenReturn(Optional.empty());
+  }
 
   @Test
   void getReportRecordsUsesDefaultOrganizationSort() {
@@ -103,6 +121,65 @@ class TeamCardsReportServiceImplTest {
     Page<TeamCardReportRecordDto> result = service.getReportRecords(List.of(), pageable);
 
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void getReportRecordsAppliesOrganizationFilterForRegularUser() {
+    var organizationId = UUID.randomUUID();
+    when(organizationContext.getOrganizationId()).thenReturn(Optional.of(organizationId));
+    when(organizationContext.isOverlord()).thenReturn(false);
+    when(teamCardsRepository.getAverageGradesByUser(any(Specification.class)))
+        .thenReturn(Map.of());
+    when(teamCardsRepository.findAll(any(Specification.class), any(Sort.class)))
+        .thenReturn(List.of());
+
+    service.getReportRecords(List.of());
+
+    var specCaptor = ArgumentCaptor.forClass(Specification.class);
+    verify(teamCardsRepository).findAll(specCaptor.capture(), any(Sort.class));
+
+    var criteriaBuilder = mock(CriteriaBuilder.class);
+    var root = mock(Root.class);
+    var organizationPath = mock(Path.class);
+    var predicate = mock(Predicate.class);
+    when(root.get("organizationId")).thenReturn(organizationPath);
+    when(criteriaBuilder.equal(organizationPath, organizationId)).thenReturn(predicate);
+    when(criteriaBuilder.isNotEmpty(any(Expression.class))).thenReturn(predicate);
+    when(criteriaBuilder.and(any(Predicate[].class))).thenReturn(predicate);
+    when(criteriaBuilder.conjunction()).thenReturn(predicate);
+
+    specCaptor.getValue().toPredicate(root, mock(CriteriaQuery.class), criteriaBuilder);
+
+    verify(criteriaBuilder).equal(organizationPath, organizationId);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void getReportRecordsDoesNotApplyOrganizationFilterForOverlord() {
+    var organizationId = UUID.randomUUID();
+    when(organizationContext.getOrganizationId()).thenReturn(Optional.of(organizationId));
+    when(organizationContext.isOverlord()).thenReturn(true);
+    when(teamCardsRepository.getAverageGradesByUser(any(Specification.class)))
+        .thenReturn(Map.of());
+    when(teamCardsRepository.findAll(any(Specification.class), any(Sort.class)))
+        .thenReturn(List.of());
+
+    service.getReportRecords(List.of());
+
+    var specCaptor = ArgumentCaptor.forClass(Specification.class);
+    verify(teamCardsRepository).findAll(specCaptor.capture(), any(Sort.class));
+
+    var criteriaBuilder = mock(CriteriaBuilder.class);
+    var root = mock(Root.class);
+    var predicate = mock(Predicate.class);
+    when(criteriaBuilder.isNotEmpty(any(Expression.class))).thenReturn(predicate);
+    when(criteriaBuilder.and(any(Predicate[].class))).thenReturn(predicate);
+    when(criteriaBuilder.conjunction()).thenReturn(predicate);
+
+    specCaptor.getValue().toPredicate(root, mock(CriteriaQuery.class), criteriaBuilder);
+
+    verify(root, never()).get("organizationId");
   }
 
   private static TeamCardReportRecordDto record(String username) {
