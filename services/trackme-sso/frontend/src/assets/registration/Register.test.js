@@ -62,7 +62,7 @@ test('requires both consents before submitting registration', () => {
     target: { value: 'tester123' },
   });
   fireEvent.change(screen.getByLabelText('Пароль'), {
-    target: { value: 'Abc123@' },
+    target: { value: 'Abc123_' },
   });
   fireEvent.change(screen.getByLabelText('ФИО'), {
     target: { value: 'Иван Иванов' },
@@ -93,6 +93,7 @@ test('requires both consents before submitting registration', () => {
 
   expect(LoginAPI.register).toHaveBeenCalledWith(expect.objectContaining({
     username: 'tester123',
+    password: 'Abc123_',
     email: 'example@email.ru',
   }));
 });

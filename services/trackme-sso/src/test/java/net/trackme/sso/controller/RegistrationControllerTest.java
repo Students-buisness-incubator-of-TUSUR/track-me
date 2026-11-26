@@ -108,7 +108,7 @@ class RegistrationControllerTest extends AbstractIntegrationTest {
                         .content("""
                                 {
                                     "username": "johndoe",
-                                    "password": "password123U!",
+                                    "password": "password123U_",
                                     "phoneNumber": "+79001234567",
                                     "fullName": "John Doe",
                                     "email": "john@john.john",
