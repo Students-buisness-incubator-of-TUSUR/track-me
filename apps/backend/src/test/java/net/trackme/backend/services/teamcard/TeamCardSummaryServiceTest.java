@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -71,7 +72,7 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
         teamCardSummaryEvents.add(meetingSummaryEvent);
 
         // Act
-        teamCardSummaryService.sendTeamCardsSummary(teamCardSummaryEvents);
+        teamCardSummaryService.sendTeamCardsSummary(Instant.now(), teamCardSummaryEvents);
 
         // Assert
         verify(kafkaTemplate).send(any(Message.class));
@@ -88,7 +89,7 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
 
     @Test
     void sendTeamCardsSummary_emptyList_shouldNotSend() {
-        teamCardSummaryService.sendTeamCardsSummary(List.of());
+        teamCardSummaryService.sendTeamCardsSummary(Instant.now(), List.of());
         // Проверяем, что kafka-продюсер не вызывался
         verify(kafkaTemplate, never()).send(any(Message.class));
     }
@@ -101,7 +102,7 @@ class TeamCardSummaryServiceTest extends BaseApplicationTest {
         event.put("meetingLink", "http://test.com");
         
         // Не падает — просто логирует предупреждение
-        teamCardSummaryService.sendTeamCardsSummary(List.of(event));
+        teamCardSummaryService.sendTeamCardsSummary(Instant.now(), List.of(event));
         
         // Проверяем, что kafka-продюсер не вызывался (нет валидной карточки)
         verify(kafkaTemplate, never()).send(any(Message.class));

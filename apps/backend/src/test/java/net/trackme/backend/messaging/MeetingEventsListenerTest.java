@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,7 @@ class MeetingEventsListenerTest {
 
         meetingEventsListener.onMeetingSummaryEvent(summaryRecord);
 
-        verify(teamCardSummaryService).sendTeamCardsSummary(event);
+        verify(teamCardSummaryService).sendTeamCardsSummary(Instant.ofEpochMilli(summaryRecord.timestamp()), event);
     }
 
     @Test

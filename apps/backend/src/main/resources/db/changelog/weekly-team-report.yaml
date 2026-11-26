@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: weekly-team-report-1
+      author: trackme
+      changes:
+        - createTable:
+            schemaName: ${db_schema}
+            tableName: weekly_team_report
+            columns:
+              - column:
+                  name: report_key
+                  type: varchar(64)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: csv
+                  type: text
+                  constraints:
+                    nullable: false
