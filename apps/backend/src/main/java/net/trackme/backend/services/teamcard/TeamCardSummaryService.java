@@ -71,7 +71,7 @@ public class TeamCardSummaryService {
     public void reportAboutTeamCardLowGrades() {
         log.info("Scheduled team card low grade summary started");
         var runAt = Instant.now();
-        var rows = buildLowGradeSummary();
+        var rows = collectLowGradeRows();
         if (!rows.isEmpty()) {
             teamCardEventsProducer.sendTeamCardLowGradeSummaryEvent(rows);
         }
@@ -95,7 +95,6 @@ public class TeamCardSummaryService {
                 WeeklyTeamReports.missedMeetingsCsv(rows));
     }
 
-    @Transactional(readOnly = true)
     public List<TeamCardSummaryEvent> buildMissedMeetingSummary(
             List<Map<String, String>> meetingSummaryEvents) {
         List<TeamCardSummaryEvent> teamCardSummaryEvents = new ArrayList<>();
@@ -137,6 +136,10 @@ public class TeamCardSummaryService {
      */
     @Transactional(readOnly = true)
     public List<TeamCardLowGradeSummaryEvent> buildLowGradeSummary() {
+        return collectLowGradeRows();
+    }
+
+    private List<TeamCardLowGradeSummaryEvent> collectLowGradeRows() {
         var pageRequest = PageRequest.of(0, SUMMARY_PAGE_SIZE, Sort.by("id"));
         List<TeamCardLowGradeSummaryEvent> summaryEvents = new ArrayList<>();
         Slice<TeamCard> teamCards;
