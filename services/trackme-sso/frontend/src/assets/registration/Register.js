@@ -58,14 +58,14 @@ const Register = () => {
         
         if (password.length === 0) return "";
         
-        const isValidChar = (char) => /[A-Za-z0-9@$!%*?&-]/.test(char);
+        const isValidChar = (char) => /[A-Za-z0-9@$!%*?&_-]/.test(char);
         const validPassword = password.split("").every(isValidChar);
         
         return ""
             + (!/[A-Z]/.test(password) ? "• пароль должен содержать заглавную букву\n" : "")
             + (!/[a-z]/.test(password) ? "• пароль должен содержать строчную букву\n" : "")
             + (!/[0-9]/.test(password) ? "• пароль должен содержать цифру\n" : "")
-            + (!password.includes("@") && !password.includes("$") && !password.includes("!") && !password.includes("%") && !password.includes("*") && !password.includes("?") && !password.includes("&") && !password.includes("-") ? "• пароль должен содержать специальный символ (@$!%*?&-)\n" : "")
+            + (!/[@$!%*?&_-]/.test(password) ? "• пароль должен содержать специальный символ (@$!%*?&_-)\n" : "")
             + ((password.length < passwordMin) ? `• длина пароля должна быть не менее ${passwordMin} символов\n` : "")
             + (!validPassword ? "• пароль должен содержать только латинские символы\n" : "");
     }
