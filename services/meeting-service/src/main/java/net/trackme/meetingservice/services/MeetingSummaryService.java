@@ -16,6 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.OffsetDateTime;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +31,7 @@ public class MeetingSummaryService {
      * Период выборки несостоявщихся встреч.
      */
     private static final int MEETING_SUMMARY_PERIOD = 7;
+    private static final ZoneId REPORT_ZONE = ZoneId.of("Asia/Tomsk");
 
     /**
      * Репозиторий встреч.
@@ -51,28 +56,32 @@ public class MeetingSummaryService {
     public void reportAboutNotHappenedMeetings() {
         log.info("Scheduled not happened meetings summary started");
 
-        var now = OffsetDateTime.now();
+        var now = OffsetDateTime.now(REPORT_ZONE);
         var dateAfter = now.minusDays(MEETING_SUMMARY_PERIOD);
 
-        sendNotHappenedMeetingSummary(dateAfter, now);
+        meetingEventsProducer.sendMeetingSummaryEvents(findMissedMeetings(
+                MeetingSpecification.startDateAfter(dateAfter), now));
         log.info("Scheduled not happened meetings summary completed");
     }
 
-    private void sendNotHappenedMeetingSummary(OffsetDateTime dateAfter, OffsetDateTime now) {
-        Specification<Meeting> isAfterDate = MeetingSpecification.startDateAfter(dateAfter);
+    @Transactional(readOnly = true)
+    public List<MeetingSummaryEvent> currentMissedMeetings() {
+        var now = OffsetDateTime.now(REPORT_ZONE);
+        var monday = now.toLocalDate().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        var start = monday.atTime(LocalTime.of(9, 0)).atZone(REPORT_ZONE).toOffsetDateTime();
+        var week = MeetingSpecification.startDateAfter(start).and(MeetingSpecification.startDateBefore(now));
+        return findMissedMeetings(week, now);
+    }
+
+    private List<MeetingSummaryEvent> findMissedMeetings(Specification<Meeting> period, OffsetDateTime now) {
         Specification<Meeting> isCancelled = MeetingSpecification.withStatus(MeetingStatus.COMPLETED_AS_NOT_HAPPENED);
         Specification<Meeting> isScheduled = MeetingSpecification.withStatus(MeetingStatus.SCHEDULED);
         Specification<Meeting> isOverdue = MeetingSpecification.startDateBefore(now);
 
         Specification<Meeting> statusCondition = isCancelled.or(isScheduled.and(isOverdue));
-        Specification<Meeting> spec = isAfterDate.and(statusCondition);
+        Specification<Meeting> spec = period.and(statusCondition);
 
         List<Meeting> meetings = meetingRepository.findAll(spec);
-        if (meetings.isEmpty()) {
-            log.debug("No missed meetings to report for the last 7 days");
-            return;
-        }
-
         List<MeetingSummaryEvent> meetingSummaryEvents = new ArrayList<>();
         for (Meeting meeting : meetings) {
             String trackerFullName = meeting.getTrackerFullName() != null
@@ -89,7 +98,7 @@ public class MeetingSummaryService {
             meetingSummaryEvents.add(meetingSummaryEvent);
         }
 
-        meetingEventsProducer.sendMeetingSummaryEvents(meetingSummaryEvents);
+        return meetingSummaryEvents;
     }
 
     private String getMeetingLink(Meeting meeting) {

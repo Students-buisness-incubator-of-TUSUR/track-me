@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,7 @@ public class TeamCardSummaryService {
      * Контекст загруженных сущностей, освобождаемый после каждой страницы.
      */
     private final EntityManager entityManager;
+    private final WeeklyTeamReports weeklyTeamReports;
 
     /**
      * Сообщить о командах с низким рейтингом.
@@ -68,7 +70,13 @@ public class TeamCardSummaryService {
     @Scheduled(cron = "0 0 9 * * 1", zone = "Asia/Tomsk")
     public void reportAboutTeamCardLowGrades() {
         log.info("Scheduled team card low grade summary started");
-        sendTeamCardLowGradeSummary();
+        var runAt = Instant.now();
+        var rows = collectLowGradeRows();
+        if (!rows.isEmpty()) {
+            teamCardEventsProducer.sendTeamCardLowGradeSummaryEvent(rows);
+        }
+        weeklyTeamReports.archive(WeeklyTeamReports.Kind.LOW_GRADE, runAt,
+                WeeklyTeamReports.lowGradeCsv(rows));
         log.info("Scheduled team card low grade summary completed");
     }
 
@@ -78,6 +86,16 @@ public class TeamCardSummaryService {
      * @param meetingSummaryEvents Событие пропущенных встреч
      */
     public void sendTeamCardsSummary(
+            Instant sentAt, List<Map<String, String>> meetingSummaryEvents) {
+        var rows = buildMissedMeetingSummary(meetingSummaryEvents);
+        if (!rows.isEmpty()) {
+            teamCardEventsProducer.sendTeamCardSummaryEvent(rows);
+        }
+        weeklyTeamReports.archive(WeeklyTeamReports.Kind.MISSED_MEETINGS, sentAt,
+                WeeklyTeamReports.missedMeetingsCsv(rows));
+    }
+
+    public List<TeamCardSummaryEvent> buildMissedMeetingSummary(
             List<Map<String, String>> meetingSummaryEvents) {
         List<TeamCardSummaryEvent> teamCardSummaryEvents = new ArrayList<>();
 
@@ -110,18 +128,18 @@ public class TeamCardSummaryService {
             }
         }
 
-        if (teamCardSummaryEvents.isEmpty()) {
-            log.info("No team card summary events to send");
-            return;
-        }
-
-        teamCardEventsProducer.sendTeamCardSummaryEvent(teamCardSummaryEvents);
+        return teamCardSummaryEvents;
     }
 
     /**
      * Отправляет сводку о командах с низким рейтингом.
      */
-    private void sendTeamCardLowGradeSummary() {
+    @Transactional(readOnly = true)
+    public List<TeamCardLowGradeSummaryEvent> buildLowGradeSummary() {
+        return collectLowGradeRows();
+    }
+
+    private List<TeamCardLowGradeSummaryEvent> collectLowGradeRows() {
         var pageRequest = PageRequest.of(0, SUMMARY_PAGE_SIZE, Sort.by("id"));
         List<TeamCardLowGradeSummaryEvent> summaryEvents = new ArrayList<>();
         Slice<TeamCard> teamCards;
@@ -133,14 +151,7 @@ public class TeamCardSummaryService {
             pageRequest = pageRequest.next();
         } while (teamCards.hasNext());
 
-        log.info("Total events to send: {}", summaryEvents.size());
-
-        if (summaryEvents.isEmpty()) {
-            log.info("No events to send");
-            return;
-        }
-
-        teamCardEventsProducer.sendTeamCardLowGradeSummaryEvent(summaryEvents);
+        return summaryEvents;
     }
 
     /**

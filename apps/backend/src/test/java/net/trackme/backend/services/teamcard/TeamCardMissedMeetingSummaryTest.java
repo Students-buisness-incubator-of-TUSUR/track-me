@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashMap;
@@ -47,6 +48,9 @@ class TeamCardMissedMeetingSummaryTest {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private WeeklyTeamReports weeklyTeamReports;
+
     @InjectMocks
     private TeamCardSummaryService summaryService;
 
@@ -60,7 +64,7 @@ class TeamCardMissedMeetingSummaryTest {
         var second = team("Second team", false);
         givenTeams(first, expelled, second);
 
-        summaryService.sendTeamCardsSummary(List.of(
+        summaryService.sendTeamCardsSummary(Instant.now(), List.of(
                 meeting(first, "1"), meeting(expelled, "2"),
                 meeting(second, "3"), meeting(first, "4")));
 
@@ -77,7 +81,7 @@ class TeamCardMissedMeetingSummaryTest {
         var second = team("Second expelled team", true);
         givenTeams(first, second);
 
-        summaryService.sendTeamCardsSummary(List.of(meeting(first, "1"), meeting(second, "2")));
+        summaryService.sendTeamCardsSummary(Instant.now(), List.of(meeting(first, "1"), meeting(second, "2")));
 
         verifyNoInteractions(teamCardEventsProducer);
     }
@@ -87,7 +91,7 @@ class TeamCardMissedMeetingSummaryTest {
         var expelled = team("Expelled team", true);
         givenTeams(expelled);
 
-        summaryService.sendTeamCardsSummary(List.of(meeting(expelled, "1"), meeting(expelled, "2")));
+        summaryService.sendTeamCardsSummary(Instant.now(), List.of(meeting(expelled, "1"), meeting(expelled, "2")));
 
         verifyNoInteractions(teamCardEventsProducer);
     }
@@ -99,7 +103,7 @@ class TeamCardMissedMeetingSummaryTest {
         var eligible = team("Eligible team", passive);
         givenTeams(eligible);
 
-        summaryService.sendTeamCardsSummary(List.of(meeting(eligible, "1")));
+        summaryService.sendTeamCardsSummary(Instant.now(), List.of(meeting(eligible, "1")));
 
         verify(teamCardEventsProducer).sendTeamCardSummaryEvent(eventsCaptor.capture());
         assertEquals(List.of(expectedEvent(eligible, "1")), eventsCaptor.getValue());
@@ -111,11 +115,11 @@ class TeamCardMissedMeetingSummaryTest {
         givenTeams(restored);
         var meetings = List.of(meeting(restored, "1"));
 
-        summaryService.sendTeamCardsSummary(meetings);
+        summaryService.sendTeamCardsSummary(Instant.now(), meetings);
         verifyNoInteractions(teamCardEventsProducer);
 
         restored.setPassive(false);
-        summaryService.sendTeamCardsSummary(meetings);
+        summaryService.sendTeamCardsSummary(Instant.now(), meetings);
 
         verify(teamCardEventsProducer).sendTeamCardSummaryEvent(eventsCaptor.capture());
         assertEquals(List.of(expectedEvent(restored, "1")), eventsCaptor.getValue());
@@ -130,7 +134,7 @@ class TeamCardMissedMeetingSummaryTest {
                 : Set.of());
         givenTeams(eligible);
 
-        summaryService.sendTeamCardsSummary(List.of(meeting(eligible, "1")));
+        summaryService.sendTeamCardsSummary(Instant.now(), List.of(meeting(eligible, "1")));
 
         verifyNoInteractions(teamCardEventsProducer);
     }
@@ -143,7 +147,7 @@ class TeamCardMissedMeetingSummaryTest {
                 .thenThrow(new TeamCardNotFoundException(missing.getId()));
         givenTeams(eligible);
 
-        summaryService.sendTeamCardsSummary(List.of(meeting(missing, "1"), meeting(eligible, "2")));
+        summaryService.sendTeamCardsSummary(Instant.now(), List.of(meeting(missing, "1"), meeting(eligible, "2")));
 
         verify(teamCardEventsProducer).sendTeamCardSummaryEvent(eventsCaptor.capture());
         assertEquals(List.of(expectedEvent(eligible, "2")), eventsCaptor.getValue());
@@ -151,7 +155,7 @@ class TeamCardMissedMeetingSummaryTest {
 
     @Test
     void emptyInput_doesNotLoadTeamsOrSendSummary() {
-        summaryService.sendTeamCardsSummary(List.of());
+        summaryService.sendTeamCardsSummary(Instant.now(), List.of());
 
         verifyNoInteractions(teamCardsService, teamCardEventsProducer);
     }
@@ -163,7 +167,7 @@ class TeamCardMissedMeetingSummaryTest {
         var event = new HashMap<>(meeting(eligible, "1"));
         event.remove("trackerFullName");
 
-        summaryService.sendTeamCardsSummary(List.of(event));
+        summaryService.sendTeamCardsSummary(Instant.now(), List.of(event));
 
         verify(teamCardEventsProducer).sendTeamCardSummaryEvent(eventsCaptor.capture());
         assertEquals("Не назначен", eventsCaptor.getValue().getFirst().trackerFullName());

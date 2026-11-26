@@ -1,5 +1,7 @@
 package net.trackme.backend.messaging;
 
+import java.time.Instant;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trackme.backend.services.teamcard.TeamCardMeetingsService;
@@ -78,6 +80,6 @@ public class MeetingEventsListener {
             ConsumerRecord<String, List<Map<String, String>>> record) {
         var meetingSummaryEvents = record.value();
         log.info("Received meetings summary requested event: {}", meetingSummaryEvents);
-        teamCardSummaryService.sendTeamCardsSummary(meetingSummaryEvents);
+        teamCardSummaryService.sendTeamCardsSummary(Instant.ofEpochMilli(record.timestamp()), meetingSummaryEvents);
     }
 }

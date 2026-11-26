@@ -49,6 +49,9 @@ class TeamCardLowGradeSummaryTest {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private WeeklyTeamReports weeklyTeamReports;
+
     @InjectMocks
     private TeamCardSummaryService summaryService;
 
